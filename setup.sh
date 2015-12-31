@@ -16,3 +16,6 @@ echo "Created symbolic link of .zshrc to ~/"
 
 # install pyenv
 git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+
+#install virtualenv
+git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv

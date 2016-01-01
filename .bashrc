@@ -3,6 +3,9 @@
 export SDKMAN_DIR="/home/cyberangel/.sdkman"
 [[ -s "/home/cyberangel/.sdkman/bin/sdkman-init.sh" ]] && source "/home/cyberangel/.sdkman/bin/sdkman-init.sh"
 
+# add alias
+alias geeknote="python ~/geeknote/geeknote/geeknote.py"
+
 # export android sdk path
 export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools
 
@@ -17,5 +20,11 @@ export PYENV_ROOT=$HOME/.pyenv
 export PATH=$PYENV_ROOT/bin:$PATH
 eval "$(pyenv init -)"
 
-# add alias
-alias geeknote="python ~/geeknote/geeknote/geeknote.py"
+# init pyenv-virtualenv
+eval "$(pyenv virtualenv-init -)"
+
+# init virtualenvwrapper
+if [ -f /usr/local/bin/virtualenvwrapper.sh ]; then
+    export WORKON_HOME=$HOME/.virtualenvs
+    source /usr/local/bin/virtualenvwrapper.sh
+fi

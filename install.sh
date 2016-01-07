@@ -127,7 +127,7 @@ if [ -a tidy-html5 ]; then
     
 else
     # tidy-html5をインストール
-    git clone https://github.com/htacg/tidy-html5.git
+    git clone https://github.com/htacg/tidy-html5.git ~/
     cd ~/tidy-html5/build/cmake
     ./build-me.sh
     sudo make install
@@ -152,7 +152,7 @@ if [ -a ino ]; then
     
 else
     # Inoをインストール
-    git clone git://github.com/amperka/ino.git
+    git clone git://github.com/amperka/ino.git ~/
     cd ino
     sudo make install
 fi
@@ -278,8 +278,7 @@ sudo apt-get install -y nodejs
 sudo apt-get install -y npm
 
 sudo npm install -g csslint
-sudo npm install browser-sync --save-dev
-sudo npm install browser-sync -g
+sudo npm install -g browser-sync
 
 echo '
 ======================================================================
@@ -299,7 +298,7 @@ echo '
 ======================================================================
 '
 
-git clone git://github.com/VitaliyRodnenko/geeknote.git
+git clone git://github.com/VitaliyRodnenko/geeknote.git ~/
 cd geeknote
 sudo python setup.py install
 

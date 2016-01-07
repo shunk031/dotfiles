@@ -22,9 +22,3 @@ eval "$(pyenv init -)"
 
 # init pyenv-virtualenv
 eval "$(pyenv virtualenv-init -)"
-
-# init virtualenvwrapper
-if [ -f /usr/local/bin/virtualenvwrapper.sh ]; then
-    export WORKON_HOME=$HOME/.virtualenvs
-    source /usr/local/bin/virtualenvwrapper.sh
-fi

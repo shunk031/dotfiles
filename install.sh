@@ -317,3 +317,18 @@ echo '
 
 sudo apt-get install -y autoconf
 sudo apt-get install -y putty-tools
+
+echo '
+======================================================================
+
+		      Setup pyenv and virtualenv
+
+	 *** You will install the following applications ***
+
+   * pyenv
+   * virtualenv
+
+======================================================================
+'
+git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv

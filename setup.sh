@@ -20,6 +20,22 @@ echo '
    3. To run install.sh in order to install the required application
 '
 
+# To input "yes" or "no" to the user
+askYesOrNo() {
+    while true ; do
+	read -p "$1 (y/n)? " answer
+	case $answer in
+	    [yY] | [yY]es | YES )
+		return 0;;
+	    [nN] | [nN]o | NO )
+		return 1;;
+	    * ) echo "Please answer yes or no.";;
+	esac
+    done
+}
+
+
+
 # Create some symbolic link to home directory
 ln -sfn ~/dotfiles/.bashrc ~/.bashrc
 echo "Created symbolic link of .bashrc to home directory"
@@ -51,14 +67,9 @@ echo "Created symbolic link of .zshenv to home directory"
 
 
 # called install.sh
-sh install.sh
-
-
-
-# install pyenv
-git clone https://github.com/yyuu/pyenv.git ~/.pyenv
-
-
-
-#install virtualenv
-git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+askYesOrNo "Are you sure you want to run install.sh?"
+if [ $? -eq 0 ]; then
+    sh install.sh
+else
+    echo "Execution of install.sh has been canceled."
+fi

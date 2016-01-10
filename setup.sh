@@ -66,6 +66,24 @@ echo "Created symbolic link of .zshenv to home directory"
 
 
 
+# Setup Prezto
+askYesOrNo "Setup Prezto"
+if [ $? -eq 0 ]; then
+    
+    # run zsh and clone Prezto repository
+    zsh
+    git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
+    setopt EXTENDED_GLOB
+
+    # Create some symblic link to ~/.prezto
+    ln -sfn ~/dotfiles/prezto.d/prompt_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_sorin_setup
+    echo "Created symbolic link of prompt_sorin_setup to ~/.zprezto"
+else
+    echo "Setting up Prezto has been canceled."
+fi
+
+
+
 # called install.sh
 askYesOrNo "Are you sure you want to run install.sh?"
 if [ $? -eq 0 ]; then

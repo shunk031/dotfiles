@@ -1,0 +1,3 @@
+[submodule "zsh-python-prompt"]
+	path = zsh-python-prompt
+	url = git@github.com:shunk031/zsh-python-prompt.git

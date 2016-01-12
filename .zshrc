@@ -4,6 +4,7 @@ export SDKMAN_DIR="/home/cyberangel/.sdkman"
 
 # add alias
 alias geeknote="python ~/geeknote/geeknote/geeknote.py"
+alias browser-sync-start="browser-sync start --server --files \"**/*\""
 
 # export android sdk path
 export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools

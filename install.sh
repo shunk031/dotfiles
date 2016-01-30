@@ -328,7 +328,11 @@ echo '
    * pyenv
    * virtualenv
 
+   * python tkinter
+
 ======================================================================
 '
 git clone https://github.com/yyuu/pyenv.git ~/.pyenv
 git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+
+sudo atp-get install -y tk-dev

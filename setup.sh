@@ -36,7 +36,7 @@ askYesOrNo() {
 
 
 
-# Create some symbolic link to home directory
+# Create some symbolic links to home directory
 ln -sfn ~/dotfiles/.bashrc ~/.bashrc
 echo "Created symbolic link of .bashrc to home directory"
 
@@ -45,6 +45,9 @@ echo "Created symbolic link of .profile to home directory"
 
 ln -sfn ~/dotfiles/.Xresources ~/.Xresources
 echo "Created symbolic link of .Xresources to home directory"
+
+ln -sfn ~/dotfiles/.xinitrc ~/.xinitrc
+echo "Created symbolic link of .xinitrc to home directory"
 
 ln -sfn ~/dotfiles/.zshrc ~/.zshrc
 echo "Created symbolic link of .zshrc to home directory"
@@ -67,7 +70,7 @@ echo "Created symbolic link of .zshenv to home directory"
 
 
 # Setup Prezto
-askYesOrNo "Setup Prezto"
+askYesOrNo "Are you sure you want to setup Prezto?"
 if [ $? -eq 0 ]; then
     
     # run zsh and clone Prezto repository

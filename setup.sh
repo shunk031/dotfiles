@@ -37,40 +37,45 @@ askYesOrNo() {
 
 
 # Create some symbolic links to home directory
-ln -sfn ~/dotfiles/.bashrc ~/.bashrc
-echo "Created symbolic link of .bashrc to home directory"
+ln -sfn ~/dotfiles/bashrc ~/.bashrc
+echo "Created symbolic link of bashrc to home directory"
 
-ln -sfn ~/dotfiles/.profile ~/.profile
-echo "Created symbolic link of .profile to home directory"
+ln -sfn ~/dotfiles/profile ~/.profile
+echo "Created symbolic link of profile to home directory"
 
-ln -sfn ~/dotfiles/.Xresources ~/.Xresources
-echo "Created symbolic link of .Xresources to home directory"
+ln -sfn ~/dotfiles/Xresources ~/.Xresources
+echo "Created symbolic link of Xresources to home directory"
 
-ln -sfn ~/dotfiles/.xinitrc ~/.xinitrc
-echo "Created symbolic link of .xinitrc to home directory"
+ln -sfn ~/dotfiles/xinitrc ~/.xinitrc
+echo "Created symbolic link of xinitrc to home directory"
 
-ln -sfn ~/dotfiles/.zshrc ~/.zshrc
-echo "Created symbolic link of .zshrc to home directory"
+ln -sfn ~/dotfiles/zshrc ~/.zshrc
+echo "Created symbolic link of zshrc to home directory"
 
-ln -sfn ~/dotfiles/.zlogin ~/.zlogin
-echo "Created symbolic link of .zlogin to home directory"
+ln -sfn ~/dotfiles/zlogin ~/.zlogin
+echo "Created symbolic link of zlogin to home directory"
 
-ln -sfn ~/dotfiles/.zlogout ~/.zlogout
-echo "Created symbolic link of .zlogout to home directory"
+ln -sfn ~/dotfiles/zlogout ~/.zlogout
+echo "Created symbolic link of zlogout to home directory"
 
-ln -sfn ~/dotfiles/.zpreztorc ~/.zpreztorc
-echo "Created symbolic link of .zpreztorc to home directory"
+ln -sfn ~/dotfiles/zpreztorc ~/.zpreztorc
+echo "Created symbolic link of zpreztorc to home directory"
 
-ln -sfn ~/dotfiles/.zprofile ~/.zprofile
-echo "Created symbolic link of .zprofile to home directory"
+ln -sfn ~/dotfiles/zprofile ~/.zprofile
+echo "Created symbolic link of zprofile to home directory"
 
-ln -sfn ~/dotfiles/.zshenv ~/.zshenv
-echo "Created symbolic link of .zshenv to home directory"
+ln -sfn ~/dotfiles/zshenv ~/.zshenv
+echo "Created symbolic link of zshenv to home directory"
+
+ln -sfn ~/dotfiles/xmodmap ~/.xmodmap
+echo "Created symbolic link of xmodmap to home directory"
 
 
 
 # Setup Prezto
-askYesOrNo "Are you sure you want to setup Prezto?"
+askYesOrNo "
+Are you sure you want to setup Prezto?"
+
 if [ $? -eq 0 ]; then
     
     # run zsh and clone Prezto repository
@@ -88,7 +93,8 @@ fi
 
 
 # called install.sh
-askYesOrNo "Are you sure you want to run install.sh?"
+askYesOrNo "
+Are you sure you want to run install.sh?"
 if [ $? -eq 0 ]; then
     sh install.sh
 else

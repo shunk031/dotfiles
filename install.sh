@@ -193,7 +193,7 @@ echo '
 
 ======================================================================
 '
-# sudo pip install grip
+sudo pip install grip
 
 echo '
 ======================================================================
@@ -305,7 +305,7 @@ sudo python setup.py install
 echo '
 ======================================================================
 
-			     Setup tramp
+			 Setup Emacs "tramp"
 
 	 *** You will install the following applications ***
 
@@ -321,12 +321,13 @@ sudo apt-get install -y putty-tools
 echo '
 ======================================================================
 
-		      Setup pyenv and virtualenv
+		      Setup pyenv and pyenv-virtualenv
 
 	 *** You will install the following applications ***
 
    * pyenv
-   * virtualenv
+   * pyenv-virtualenv
+   * pyenv-pip-rehash
 
    * python tkinter
 
@@ -334,5 +335,35 @@ echo '
 '
 git clone https://github.com/yyuu/pyenv.git ~/.pyenv
 git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+git clone https://github.com/yyuu/pyenv-pip-rehash.git ~/.pyenv/plugins/pyenv-pip-rehash
 
 sudo atp-get install -y tk-dev
+
+echo '
+======================================================================
+
+			   Install PHP5-CLI
+
+======================================================================
+'
+
+sudo apt-get install -y php5-cli
+
+echo '
+======================================================================
+
+		   Download My Emacs configuration
+
+======================================================================
+'
+
+# git clone https://github.com/shunk031/emacs.d.git
+
+echo '
+======================================================================
+
+			    Install Aspell
+
+======================================================================
+'
+sudo apt-get install -y aspell aspell-en

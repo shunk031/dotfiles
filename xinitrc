@@ -3,4 +3,6 @@
 xset r rate 200 25
 
 # Change Keybindings
-xmodmap ~/.~Xmodmap
+if [ -s ~/.Xmodmap ]; then
+    xmodmap ~/.Xmodmap
+fi

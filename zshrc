@@ -15,6 +15,9 @@ PATH="$PATH":~/android-dev/genymotion
 # add emacs-python path
 PATH="$PATH":~/.local/bin
 
+# add composer path
+PATH="$PATH"~/.composer/vender/bin
+
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
     source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"

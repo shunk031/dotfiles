@@ -67,8 +67,8 @@ echo "Created symbolic link of zprofile to home directory"
 ln -sfn ~/dotfiles/zshenv ~/.zshenv
 echo "Created symbolic link of zshenv to home directory"
 
-ln -sfn ~/dotfiles/xmodmap ~/.xmodmap
-echo "Created symbolic link of xmodmap to home directory"
+ln -sfn ~/dotfiles/Xmodmap ~/.Xmodmap
+echo "Created symbolic link of Xmodmap to home directory"
 
 
 

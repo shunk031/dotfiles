@@ -116,6 +116,8 @@ if [ $? -eq 0 ]; then
     
 else
     echo "Setting up geeknote has been canceled."
+fi
+
 
 
 # call setup-ricty.sh

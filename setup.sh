@@ -75,7 +75,6 @@ echo "Created symbolic link of Xmodmap to home directory"
 # Setup Prezto
 askYesOrNo "
 Are you sure you want to \"setup Prezto\"?"
-
 if [ $? -eq 0 ]; then
     
     # run zsh and clone Prezto repository
@@ -105,6 +104,18 @@ else
     echo "Execution of install.sh has been canceled."
 fi
 
+# setup geeknote
+askYesOrNo "
+Are you sure you want to \"setup geeknote\"?"
+if [ $? -eq 0 ]; then
+    echo "Please input your evernote login ID"
+    geeknote login
+    
+    geeknote settings --editor emacs
+    echo "Change default ditor setting(Emacs)"
+    
+else
+    echo "Setting up geeknote has been canceled."
 
 
 # call setup-ricty.sh

@@ -5,6 +5,7 @@ export SDKMAN_DIR="/home/cyberangel/.sdkman"
 # add alias
 alias geeknote="python ~/geeknote/geeknote/geeknote.py"
 alias browser-sync-start="browser-sync start --server --files \"**/*\""
+alias xm="xmodmap ~/.Xmodmap"
 
 # export android sdk path
 export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools
@@ -17,6 +18,17 @@ PATH="$PATH":~/.local/bin
 
 # add composer path
 PATH="$PATH"~/.composer/vender/bin
+
+# Setup pyenv environment
+export PYENV_ROOT=$HOME/.pyenv
+export PATH=$PYENV_ROOT/bin:$PATH
+eval "$(pyenv init -)"
+
+# Setup pyenv-virtualenv enviroment
+eval "$(pyenv virtualenv-init -)"
+
+# disable virtualenv prompt 
+export PYENV_VIRTUALENV_DISABLE_PROMPT=1
 
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then

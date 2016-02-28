@@ -57,7 +57,7 @@ echo '
 
 ======================================================================
 '
-# sudo apt-get install -y pip
+sudo apt-get install -y python-pip
 
 
 echo '
@@ -99,7 +99,7 @@ echo '
 ======================================================================
 '
 sudo apt-get install -y libglu1-mesa-dev
-sudo apt-get install libcurl4-openssl-dev
+sudo apt-get install -y libcurl4-openssl-dev
 
 echo '
 ======================================================================
@@ -337,7 +337,7 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv
 git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
 git clone https://github.com/yyuu/pyenv-pip-rehash.git ~/.pyenv/plugins/pyenv-pip-rehash
 
-sudo atp-get install -y tk-dev
+sudo apt-get install -y tk-dev
 
 echo '
 ======================================================================
@@ -357,7 +357,7 @@ echo '
 ======================================================================
 '
 
-# git clone https://github.com/shunk031/emacs.d.git
+git clone https://github.com/shunk031/emacs.d.git
 
 echo '
 ======================================================================

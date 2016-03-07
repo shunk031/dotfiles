@@ -120,7 +120,7 @@ function prompt_sorin_setup {
   
   # Define prompts.
   PROMPT='
-%K{green}%n@%m%k %F{blue}$%f %K{blue} ${_prompt_sorin_pwd} %k %F{yellow}${python_info[virtualenv]}%f
+%K{green}%n@%m%k %K{red}$%k %K{blue} ${_prompt_sorin_pwd} %k %K{yellow} ${python_info[virtualenv]} %k
 %(!. %B%F{red}#%f%b.)${editor_info[keymap]} '
   RPROMPT=''
   SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '

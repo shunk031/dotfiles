@@ -76,6 +76,13 @@ echo "Created symbolic link of Xmodmap to home directory"
 askYesOrNo "
 Are you sure you want to \"setup Prezto\"?"
 if [ $? -eq 0 ]; then
+
+    which zsh > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+	echo "zsh has been installed."
+    else
+	sudo apt-get install -y zsh
+    fi
     
     # run zsh and clone Prezto repository
     zsh

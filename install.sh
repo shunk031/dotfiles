@@ -298,8 +298,8 @@ echo '
 ======================================================================
 '
 
-git clone git://github.com/VitaliyRodnenko/geeknote.git ~/
-cd geeknote
+git clone git://github.com/VitaliyRodnenko/geeknote.git ~/geeknote
+cd ~/geeknote
 sudo python setup.py install
 
 echo '
@@ -357,7 +357,7 @@ echo '
 ======================================================================
 '
 
-git clone https://github.com/shunk031/emacs.d.git
+git clone https://github.com/shunk031/emacs.d.git ~/emacs.d
 
 echo '
 ======================================================================

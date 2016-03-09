@@ -2,7 +2,6 @@
 
 ## Installation
 
-~~~sh
-$ git clone git@github.com:shunk031/dotfiles.git ~/dotfiles --recursive
-$ sh setup.sh
-~~~
+```sh
+$ curl -L https://raw.githubusercontent.com/shunk031/dotfiles/master/setup.sh | sh
+```

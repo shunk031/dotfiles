@@ -117,6 +117,8 @@ git config --global user.email "septemtrio.ager@gmail.com"
 
 git config --global color.ui auto
 
+git config --global "url.git@github.com:.pushinsteadof" "https://github.com/"
+
 echo '
 ======================================================================
 

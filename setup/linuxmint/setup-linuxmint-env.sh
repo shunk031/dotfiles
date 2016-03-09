@@ -25,6 +25,8 @@ echo '
 sudo sed -i -e 's/deb http/deb [arch=amd64] http/' "/etc/apt/sources.list.d/google-chrome.list"
 sudo sed -i -e 's/deb http/deb [arch=amd64] http/' "/opt/google/chrome/cron/google-chrome"
 
+echo "Now fixed!"
+
 sudo apt-get update
 sudo apt-get -y upgrade
 
@@ -45,6 +47,7 @@ echo '
 ======================================================================
 '
 env LANGUAGE=C LC_MESSAGES=C xdg-user-dirs-gtk-update
+echo "Now changed!"
 
 echo '
 ======================================================================
@@ -137,3 +140,13 @@ echo '
 ======================================================================
 '
 sudo apt-get install -y easystroke
+
+echo '
+======================================================================
+
+			     Install zsh
+
+======================================================================
+'
+sudo apt-get install -y zsh
+chsh -s /bin/zsh

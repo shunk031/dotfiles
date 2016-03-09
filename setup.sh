@@ -35,7 +35,7 @@ askYesOrNo() {
 }
 
 # Download my dotfiles from github
-git clone git@github.com:shunk031/dotfiles.git ~/dotfiles
+git clone https://github.com/shunk031/dotfiles.git ~/dotfiles
 
 # Create some symbolic links to home directory
 ln -sfn ~/dotfiles/bashrc ~/.bashrc

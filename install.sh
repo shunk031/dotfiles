@@ -43,16 +43,6 @@ sudo apt-get install -y git
 echo '
 ======================================================================
 
-			     Install zsh
-
-======================================================================
-'
-
-sudo apt-get install -y zsh
-
-echo '
-======================================================================
-
 			     Install pip
 
 ======================================================================
@@ -86,6 +76,8 @@ sudo apt-get install -y gfortran
 sudo apt-get install -y liblapack-dev
 sudo apt-get install -y libblas-dev
 
+R -q -e "install.packages('lintr', dependencies=TRUE)"
+
 echo '
 ======================================================================
 
@@ -100,6 +92,8 @@ echo '
 '
 sudo apt-get install -y libglu1-mesa-dev
 sudo apt-get install -y libcurl4-openssl-dev
+
+R -q -e "install.packages('kintr', dependencies=TRUE)"
 
 echo '
 ======================================================================
@@ -122,8 +116,10 @@ echo '
 
 sudo apt-get install -y Tidy
 
-if [ -a tidy-html5 ]; then
-    echo -e "\nTidy-html5 is already installed.\n"
+TIDYHTML5_DIR=~/tidy-html5
+
+if [ -e $TIDYHTML5 ]; then
+    echo "\nTidy-html5 is already installed.\n"
     
 else
     # tidy-html5をインストール
@@ -147,13 +143,15 @@ echo '
 '
 sudo apt-get install -y arduino
 
-if [ -a ino ]; then
-    echo  -e "\nIno is already installed.\n"
+INO_DIR=~/ino
+
+if [ -e $INO ]; then
+    echo "\nIno is already installed.\n"
     
 else
     # Inoをインストール
-    git clone git://github.com/amperka/ino.git ~/
-    cd ino
+    git clone git://github.com/amperka/ino.git ~/ino
+    cd ~/ino
     sudo make install
 fi
 
@@ -298,9 +296,16 @@ echo '
 ======================================================================
 '
 
-git clone git://github.com/VitaliyRodnenko/geeknote.git ~/geeknote
-cd ~/geeknote
-sudo python setup.py install
+GEEKNOTE_DIR=~/geeknote
+
+if [ -e $GEEKNOTE ]; then
+    echo "\ngeeknote is already installed.\n"
+else
+    # geeknoteをインストール
+    git clone git://github.com/VitaliyRodnenko/geeknote.git ~/geeknote
+    cd ~/geeknote
+    sudo python setup.py install
+fi
 
 echo '
 ======================================================================

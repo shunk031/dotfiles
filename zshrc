@@ -6,6 +6,7 @@ export SDKMAN_DIR="/home/cyberangel/.sdkman"
 alias geeknote="python ~/geeknote/geeknote/geeknote.py"
 alias browser-sync-start="browser-sync start --server --files \"**/*\""
 alias xm="xmodmap ~/.Xmodmap"
+alias emacsclient="/usr/local/bin/emacsclient"
 
 # export android sdk path
 export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools
@@ -34,6 +35,3 @@ export PYENV_VIRTUALENV_DISABLE_PROMPT=1
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
     source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
-
-# Source zsh-python-prompt
-source ~/dotfiles/zsh-python-prompt/zshrc.zsh

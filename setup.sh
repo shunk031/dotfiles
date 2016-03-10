@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo '
+setupsh_logo='
                           /$$                                      /$$      
                          | $$                                     | $$      
      /$$$$$$$  /$$$$$$  /$$$$$$   /$$   /$$  /$$$$$$      /$$$$$$$| $$$$$$$ 
@@ -19,6 +19,8 @@ echo '
    2. Symlinking dot files to your home directory
    3. To run install.sh in order to install the required application
 '
+
+echo "$setupsh_logo"
 
 # To input "yes" or "no" to the user
 askYesOrNo() {
@@ -80,9 +82,9 @@ if [ $? -eq 0 ]; then
 
     which zsh > /dev/null 2>&1
     if [ $? -eq 0 ]; then
-	echo "zsh has been installed."
+    	echo "zsh has been installed."
     else
-	sudo apt-get install -y zsh
+    	sudo apt-get install -y zsh
     fi
     
     # run zsh and clone Prezto repository
@@ -120,7 +122,7 @@ if [ $? -eq 0 ]; then
     geeknote login
     
     geeknote settings --editor emacs
-    echo "Change default ditor setting(Emacs)"
+    echo "Change default editor setting(Emacs)"
     
 else
     echo "Setting up geeknote has been canceled."

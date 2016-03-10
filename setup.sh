@@ -20,21 +20,11 @@ setupsh_logo='
    3. To run install.sh in order to install the required application
 '
 
-echo "$setupsh_logo"
+DOTFILES_DIR=~/dotfiles
+PREZTO_DIR=~/.prezto
+RICTY=~/.fonts/Ricty*.ttf
 
-# To input "yes" or "no" to the user
-askYesOrNo() {
-    while true ; do
-	read -p "$1 (y/n)? " answer
-	case $answer in
-	    [yY] | [yY]es | YES )
-		return 0;;
-	    [nN] | [nN]o | NO )
-		return 1;;
-	    * ) echo "Please answer yes or no.";;
-	esac
-    done
-}
+echo "$setupsh_logo"
 
 # Download my dotfiles from github
 git clone https://github.com/shunk031/dotfiles.git ~/dotfiles
@@ -76,19 +66,9 @@ echo "Created symbolic link of Xmodmap to home directory"
 
 
 # Setup Prezto
-askYesOrNo "
-Are you sure you want to \"setup Prezto\"?"
-if [ $? -eq 0 ]; then
-
-    which zsh > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-    	echo "zsh has been installed."
-    else
-    	sudo apt-get install -y zsh
-    fi
-    
-    # run zsh and clone Prezto repository
-    zsh
+if [ -e $PREZTO ]; then
+    echo "\nPrezto is already installed.\n"
+else
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
     setopt EXTENDED_GLOB
 
@@ -98,43 +78,40 @@ if [ $? -eq 0 ]; then
 
     ln -sfn ~/dotfiles/prezto.d/prompt_my_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_my_sorin_setup
     echo "Created symbolic link of prompt_my_sorin_setup to ~/.zprezto"
-    
-else
-    echo "Setting up Prezto has been canceled."
 fi
 
 
 
-# called install.sh
-askYesOrNo "
-Are you sure you want to \"run install.sh\"?"
-if [ $? -eq 0 ]; then
-    sh install.sh
-else
-    echo "Execution of install.sh has been canceled."
-fi
+# # called install.sh
+# askYesOrNo "
+# Are you sure you want to \"run install.sh\"?"
+# if [ $? -eq 0 ]; then
+#     sh install.sh
+# else
+#     echo "Execution of install.sh has been canceled."
+# fi
 
-# setup geeknote
-askYesOrNo "
-Are you sure you want to \"setup geeknote\"?"
+
+
+# Setup geeknote
+which geeknote > /dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo "Please input your evernote login ID"
+    echo "\ngeeknote is already installed.\n"
+else
+    echo "Please input your evernote login ID(mail address)"
     geeknote login
     
-    geeknote settings --editor emacs
     echo "Change default editor setting(Emacs)"
-    
-else
-    echo "Setting up geeknote has been canceled."
+    geeknote settings --editor emacs
 fi
 
 
 
-# call setup-ricty.sh
-askYesOrNo "
-Are you sure you want to \"run setup-ricty.sh\"?"
-if [ $? -eq 0 ]; then
+# Install font "Ricty"
+ls $RICTY > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "Now install Ricty"
     sh setup-ricty.sh
 else
-    echo "Execution of setup-ricty.sh has been canceled."
+    echo "\nRicty is already installed.\n"
 fi

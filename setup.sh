@@ -82,15 +82,12 @@ fi
 
 
 
-# # called install.sh
-# askYesOrNo "
-# Are you sure you want to \"run install.sh\"?"
-# if [ $? -eq 0 ]; then
-#     sh install.sh
-# else
-#     echo "Execution of install.sh has been canceled."
-# fi
+# called install.sh
+sh install.sh
 
+
+# Stop
+read x
 
 
 # Setup geeknote
@@ -111,7 +108,7 @@ fi
 ls $RICTY > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "Now install Ricty"
-    sh setup-ricty.sh
+    ./setup-ricty.sh
 else
     echo "\nRicty is already installed.\n"
 fi

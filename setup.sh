@@ -17,17 +17,30 @@ setupsh_logo='
 
    1. Download https://github.com/shunk031/dotfiles
    2. Symlinking dot files to your home directory
-   3. To run install.sh in order to install the required application
+   3. Setup Prezto
+   4. To run install.sh in order to install the required application
+   5. Setup geeknote -- evernote client
+   6. Install Ricty -- fonts for programinng
 '
 
 DOTFILES_DIR=~/dotfiles
 PREZTO_DIR=~/.prezto
 RICTY=~/.fonts/Ricty*.ttf
 
+
+
 echo "$setupsh_logo"
 
+
+
 # Download my dotfiles from github
-git clone https://github.com/shunk031/dotfiles.git ~/dotfiles
+if [ -e $DOTFILES_DIR ]; then
+    echo "\ndotfiles is already cloned.\n"
+else
+    git clone https://github.com/shunk031/dotfiles.git ~/dotfiles
+fi
+
+
 
 # Create some symbolic links to home directory
 ln -sfn ~/dotfiles/bashrc ~/.bashrc

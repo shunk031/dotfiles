@@ -84,15 +84,21 @@ echo '
 
 ======================================================================
 '
-sudo apt-get install -y build-essential
-sudo apt-get install -y libgtk2.0-dev libtiff4-dev libgif-dev libjpeg-dev libpng12-dev libxpm-dev libncurses-dev libxml2-dev
-wget http://ftp.gnu.org/gnu/emacs/emacs-24.5.tar.gz
-tar -xzvf emacs-24.5.tar.gz
-rm emacs-24.5.tar.gz
-cd emacs-24.5
-./configure
-make
-sudo make install
+EMACS_DIR=~/emacs-24.5
+
+if [ -e $EMACS_DIR ]; then
+    echo "\nEmacs 24.5 is already installed.\n"
+else
+    sudo apt-get install -y build-essential
+    sudo apt-get install -y libgtk2.0-dev libtiff4-dev libgif-dev libjpeg-dev libpng12-dev libxpm-dev libncurses-dev libxml2-dev
+    wget http://ftp.gnu.org/gnu/emacs/emacs-24.5.tar.gz
+    tar -xzvf emacs-24.5.tar.gz
+    rm emacs-24.5.tar.gz
+    cd emacs-24.5
+    ./configure
+    make
+    sudo make install
+fi
 
 echo '
 ======================================================================

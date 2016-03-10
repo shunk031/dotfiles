@@ -23,9 +23,9 @@ setupsh_logo='
    6. Install Ricty -- fonts for programinng
 '
 
-DOTFILES_DIR=~/dotfiles
-PREZTO_DIR=~/.prezto
-RICTY=~/.fonts/Ricty*.ttf
+readonly DOTFILES_DIR=~/dotfiles
+readonly PREZTO_DIR=~/.prezto
+readonly RICTY_FILE=~/.fonts/Ricty*.ttf
 
 
 
@@ -79,7 +79,7 @@ echo "Created symbolic link of Xmodmap to home directory"
 
 
 # Setup Prezto
-if [ -e $PREZTO ]; then
+if [ -e $PREZTO_DIR ]; then
     echo "\nPrezto is already installed.\n"
 else
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
@@ -99,9 +99,6 @@ fi
 sh $DOTFILES_DIR/install.sh
 
 
-# Stop
-read x
-
 
 # Setup geeknote
 which geeknote > /dev/null 2>&1
@@ -118,7 +115,7 @@ fi
 
 
 # Install font "Ricty"
-ls $RICTY > /dev/null 2>&1
+ls $RICTY_FILE > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "Now install Ricty"
     sh $DOTFILES_DIR/setup-ricty.sh

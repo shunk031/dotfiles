@@ -119,7 +119,7 @@ echo '
 
 sudo apt-get install -y Tidy
 
-TIDYHTML5_DIR=~/tidy-html5
+readonly TIDYHTML5_DIR=~/tidy-html5
 
 if [ -e $TIDYHTML5 ]; then
     echo "\nTidy-html5 is already installed.\n"
@@ -146,7 +146,7 @@ echo '
 '
 sudo apt-get install -y arduino
 
-INO_DIR=~/ino
+readonly INO_DIR=~/ino
 
 if [ -e $INO ]; then
     echo "\nIno is already installed.\n"
@@ -285,7 +285,7 @@ echo '
 ======================================================================
 '
 
-GEEKNOTE_DIR=~/geeknote
+readonly GEEKNOTE_DIR=~/geeknote
 
 if [ -e $GEEKNOTE ]; then
     echo "\ngeeknote is already installed.\n"
@@ -327,9 +327,31 @@ echo '
 
 ======================================================================
 '
-git clone https://github.com/yyuu/pyenv.git ~/.pyenv
-git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
-git clone https://github.com/yyuu/pyenv-pip-rehash.git ~/.pyenv/plugins/pyenv-pip-rehash
+
+readonly PYENV_DIR=~/.pyenv
+readonly PYENV_VIRTUALENV_DIR=~/.pyenv/plugins/pyenv-virtualenv
+readonly PYENV_PIP_REFRESH_DIR=~/.pyenv/plugins/pyenv-pip-rehash
+
+# Clone "pyenv"
+if [ -e $PYENV_DIR ]; then
+    echo -e "\npyenv is already cloned.\n"
+else
+    git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+fi
+
+# Clone pyenv plugin "pyenv-virtualenv"
+if [ -e $PYENV_VIRTUALENV_DIR ]; then
+    echo -e "\npyenv-virtualenv is already cloned.\n"
+else
+    git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+fi
+
+# Clone pyenv plugin "pyenv-pip-refresh"
+if [ -e $PYENV_PIP_REFRESH_DIR ]; then
+    echo -e "\npyenv-pip-refresh is already cloned.\n"
+else
+    git clone https://github.com/yyuu/pyenv-pip-rehash.git ~/.pyenv/plugins/pyenv-pip-rehash
+fi
 
 sudo apt-get install -y tk-dev
 

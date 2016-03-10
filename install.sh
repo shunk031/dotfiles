@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo '
+installdotsh_logo='
 
     /$$                       /$$               /$$ /$$               /$$      
    |__/                      | $$              | $$| $$              | $$      
@@ -12,8 +12,11 @@ echo '
    |__/|__/  |__/|_______/    \___/   \_______/|__/|__/|__/|_______/ |__/  |__/
 
    *** This is application install script ***
+
    Install the required application
 '
+
+echo "$installdotsh_logo"
 
 sudo apt-get update
 sudo apt-get -y upgrade
@@ -202,20 +205,6 @@ echo '
 '
 
 sudo apt-get install -y emacs-mozc
-
-echo '
-======================================================================
-
-		Setup Ricty - fonts for programming -
-
-	 *** You will install the following applications ***
-
-   * fontforge
-
-======================================================================
-'
-
-sudo apt-get install -y fontforge
 
 echo '
 ======================================================================

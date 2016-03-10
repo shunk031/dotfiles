@@ -3,6 +3,9 @@
 # Specify Migu 1m font version
 MIGU_1M_VERSION="20150712"
 
+# fontforge is needed to generate ricty
+sudo apt-get install -y fontforge
+
 # make working directory
 mkdir -p $HOME/gen-ricty
 echo "make working directory to ~/gen-ricty"

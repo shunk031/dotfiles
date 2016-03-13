@@ -35,7 +35,7 @@ echo "$setupsh_logo"
 
 # Download my dotfiles from github
 if [ -e $DOTFILES_DIR ]; then
-    echo "\ndotfiles is already cloned.\n"
+    echo -n "\ndotfiles is already cloned.\n"
 else
     git clone https://github.com/shunk031/dotfiles.git ~/dotfiles
 fi
@@ -80,7 +80,7 @@ echo "Created symbolic link of Xmodmap to home directory"
 
 # Setup Prezto
 if [ -e $PREZTO_DIR ]; then
-    echo "\nPrezto is already installed.\n"
+    echo -n "\nPrezto is already installed.\n"
 else
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
     setopt EXTENDED_GLOB
@@ -103,7 +103,7 @@ sh $DOTFILES_DIR/install.sh
 # Setup geeknote
 which geeknote > /dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo "\ngeeknote is already installed.\n"
+    echo -n "\ngeeknote is already installed.\n"
 else
     echo "Please input your evernote login ID(mail address)"
     geeknote login
@@ -120,5 +120,5 @@ if [ $? -ne 0 ]; then
     echo "Now install Ricty"
     sh $DOTFILES_DIR/setup-ricty.sh
 else
-    echo "\nRicty is already installed.\n"
+    echo -n "\nRicty is already installed.\n"
 fi

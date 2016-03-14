@@ -18,7 +18,7 @@ PATH="$PATH":~/android-dev/genymotion
 PATH="$PATH":~/.local/bin
 
 # add composer path
-PATH="$PATH"~/.composer/vender/bin
+PATH="$PATH":~/.composer/vender/bin
 
 # Setup pyenv environment
 export PYENV_ROOT=$HOME/.pyenv

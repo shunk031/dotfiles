@@ -4,6 +4,6 @@ clear mod1
 add mod1 = Alt_L
 
 ! Replace "Caps Lock" key to "Control_L" key
-keycode  66 = Control_L NoSymbol Control_L
+keycode 66 = Control_L NoSymbol Control_L
 clear Lock
 add Control = Control_L

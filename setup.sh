@@ -26,11 +26,10 @@ setupsh_logo='
 readonly DOTFILES_DIR=~/dotfiles
 readonly PREZTO_DIR=~/.prezto
 readonly RICTY_FILE=~/.fonts/Ricty*.ttf
-
+readonly DEVILSPIE_DIR=~/.devilspie
 
 
 echo "$setupsh_logo"
-
 
 
 # Download my dotfiles from github
@@ -42,7 +41,7 @@ fi
 
 
 
-# Create some symbolic links to home directory
+# Create some dotfile symbolic links to home directory
 ln -sfn ~/dotfiles/bashrc ~/.bashrc
 echo "Created symbolic link of bashrc to home directory"
 
@@ -54,6 +53,9 @@ echo "Created symbolic link of Xresources to home directory"
 
 ln -sfn ~/dotfiles/xinitrc ~/.xinitrc
 echo "Created symbolic link of xinitrc to home directory"
+
+ln -sfn ~/dotfiles/xsession ~/.xsession
+echo "Created symbolic link of xsession to home directory"
 
 ln -sfn ~/dotfiles/zshrc ~/.zshrc
 echo "Created symbolic link of zshrc to home directory"
@@ -75,6 +77,15 @@ echo "Created symbolic link of zshenv to home directory"
 
 ln -sfn ~/dotfiles/Xmodmap ~/.Xmodmap
 echo "Created symbolic link of Xmodmap to home directory"
+
+
+
+# Create devilspie symbolic link to home directory
+if [[ "$OSTYPE" =~ "linux-gnu" ]]; then
+    mkdir -p $DEVILSPIE_DIR
+    ln -sfn ~/dotfiles/devilspie/devilspie-script.ds ~/.devilspie/devilspie-script.ds
+    echo "Created symbolic link of devilspie script to home directory"
+fi
 
 
 

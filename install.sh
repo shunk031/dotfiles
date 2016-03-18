@@ -79,7 +79,7 @@ sudo apt-get install -y gfortran
 sudo apt-get install -y liblapack-dev
 sudo apt-get install -y libblas-dev
 
-R -q -e "install.packages('lintr', dependencies=TRUE)"
+# R -q -e "install.packages('lintr', dependencies=TRUE)"
 
 echo '
 ======================================================================
@@ -96,7 +96,7 @@ echo '
 sudo apt-get install -y libglu1-mesa-dev
 sudo apt-get install -y libcurl4-openssl-dev
 
-R -q -e "install.packages('kintr', dependencies=TRUE)"
+# R -q -e "install.packages('kintr', dependencies=TRUE)"
 
 echo '
 ======================================================================
@@ -121,13 +121,12 @@ sudo apt-get install -y Tidy
 
 readonly TIDYHTML5_DIR=~/tidy-html5
 
-if [ -e $TIDYHTML5 ]; then
-    echo "\nTidy-html5 is already installed.\n"
-    
+if [ -e $TIDYHTML5_DIR ]; then
+    echo -n "\nTidy-html5 is already installed.\n"
 else
-    # tidy-html5をインストール
-    git clone https://github.com/htacg/tidy-html5.git ~/
-    cd ~/tidy-html5/build/cmake
+    # clone and install tidy-html
+    git clone https://github.com/htacg/tidy-html5.git $TIDYHTML5_DIR
+    cd $TIDYHTML5_DIR/build/cmake
     ./build-me.sh
     sudo make install
 fi
@@ -148,13 +147,12 @@ sudo apt-get install -y arduino
 
 readonly INO_DIR=~/ino
 
-if [ -e $INO ]; then
-    echo "\nIno is already installed.\n"
-    
+if [ -e $INO_DIR ]; then
+    echo -n "\nIno is already installed.\n"
 else
-    # Inoをインストール
-    git clone git://github.com/amperka/ino.git ~/ino
-    cd ~/ino
+    # install Ino
+    git clone https://github.com/amperka/ino.git $INO_DIR
+    cd $INO_DIR
     sudo make install
 fi
 
@@ -287,12 +285,12 @@ echo '
 
 readonly GEEKNOTE_DIR=~/geeknote
 
-if [ -e $GEEKNOTE ]; then
-    echo "\ngeeknote is already installed.\n"
+if [ -e $GEEKNOTE_DIR ]; then
+    echo -n "\ngeeknote is already installed.\n"
 else
-    # geeknoteをインストール
-    git clone git://github.com/VitaliyRodnenko/geeknote.git ~/geeknote
-    cd ~/geeknote
+    # clone and install geeknote
+    git clone git://github.com/VitaliyRodnenko/geeknote.git $GEEKNOTE_DIR
+    cd $GEEKNOTE_DIR
     sudo python setup.py install
 fi
 
@@ -334,23 +332,23 @@ readonly PYENV_PIP_REFRESH_DIR=~/.pyenv/plugins/pyenv-pip-rehash
 
 # Clone "pyenv"
 if [ -e $PYENV_DIR ]; then
-    echo -e "\npyenv is already cloned.\n"
+    echo -n "\npyenv is already cloned.\n"
 else
-    git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+    git clone https://github.com/yyuu/pyenv.git $PYENV_DIR
 fi
 
 # Clone pyenv plugin "pyenv-virtualenv"
 if [ -e $PYENV_VIRTUALENV_DIR ]; then
-    echo -e "\npyenv-virtualenv is already cloned.\n"
+    echo -n "\npyenv-virtualenv is already cloned.\n"
 else
-    git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+    git clone https://github.com/yyuu/pyenv-virtualenv.git $PYENV_VIRTUALENV_DIR
 fi
 
 # Clone pyenv plugin "pyenv-pip-refresh"
 if [ -e $PYENV_PIP_REFRESH_DIR ]; then
-    echo -e "\npyenv-pip-refresh is already cloned.\n"
+    echo -n "\npyenv-pip-refresh is already cloned.\n"
 else
-    git clone https://github.com/yyuu/pyenv-pip-rehash.git ~/.pyenv/plugins/pyenv-pip-rehash
+    git clone https://github.com/yyuu/pyenv-pip-rehash.git $PYENV_PIP_REFRESH_DIR
 fi
 
 sudo apt-get install -y tk-dev
@@ -373,7 +371,14 @@ echo '
 ======================================================================
 '
 
-git clone https://github.com/shunk031/emacs.d.git ~/emacs.d
+readonly DOTEMACS_DIR=~/emacs.d
+
+# Clone my emacs.d
+if [ -e $DOTEMACS_DIR ];then
+    echo -n "\nemacs.d is already cloned.\n"
+else
+    git clone https://github.com/shunk031/emacs.d.git $DOTEMACS_DIR
+fi
 
 echo '
 ======================================================================

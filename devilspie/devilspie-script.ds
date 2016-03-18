@@ -1,0 +1,10 @@
+;; devilspie setting file
+
+;; Emacs is run Workspace 1
+;; Google Chrome is run Workspace 2
+
+(if (is (window_class) "Emacs")
+    (begin maximize (set_workspace 1))
+  (if (is (window_class) "google-chrome")
+      (begin maximize (set_workspace 2))
+    ))

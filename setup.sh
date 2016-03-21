@@ -36,46 +36,46 @@ echo "$setupsh_logo"
 if [ -e $DOTFILES_DIR ]; then
     echo -n "\ndotfiles is already cloned.\n"
 else
-    git clone https://github.com/shunk031/dotfiles.git ~/dotfiles
+    git clone https://github.com/shunk031/dotfiles.git $DOTFILES_DIR
 fi
 
 
 
 # Create some dotfile symbolic links to home directory
-ln -sfn ~/dotfiles/bashrc ~/.bashrc
+ln -sfn $DOTFILES_DIR/bashrc ~/.bashrc
 echo "Created symbolic link of bashrc to home directory"
 
-ln -sfn ~/dotfiles/profile ~/.profile
+ln -sfn $DOTFILES_DIR/profile ~/.profile
 echo "Created symbolic link of profile to home directory"
 
-ln -sfn ~/dotfiles/Xresources ~/.Xresources
+ln -sfn $DOTFILES_DIR/Xresources ~/.Xresources
 echo "Created symbolic link of Xresources to home directory"
 
-ln -sfn ~/dotfiles/xinitrc ~/.xinitrc
+ln -sfn $DOTFILES_DIR/xinitrc ~/.xinitrc
 echo "Created symbolic link of xinitrc to home directory"
 
-ln -sfn ~/dotfiles/xsession ~/.xsession
+ln -sfn $DOTFILES_DIR/xsession ~/.xsession
 echo "Created symbolic link of xsession to home directory"
 
-ln -sfn ~/dotfiles/zshrc ~/.zshrc
+ln -sfn $DOTFILES_DIR/zshrc ~/.zshrc
 echo "Created symbolic link of zshrc to home directory"
 
-ln -sfn ~/dotfiles/zlogin ~/.zlogin
+ln -sfn $DOTFILES_DIR/zlogin ~/.zlogin
 echo "Created symbolic link of zlogin to home directory"
 
-ln -sfn ~/dotfiles/zlogout ~/.zlogout
+ln -sfn $DOTFILES_DIR/zlogout ~/.zlogout
 echo "Created symbolic link of zlogout to home directory"
 
-ln -sfn ~/dotfiles/zpreztorc ~/.zpreztorc
+ln -sfn $DOTFILES_DIR/zpreztorc ~/.zpreztorc
 echo "Created symbolic link of zpreztorc to home directory"
 
-ln -sfn ~/dotfiles/zprofile ~/.zprofile
+ln -sfn $DOTFILES_DIR/zprofile ~/.zprofile
 echo "Created symbolic link of zprofile to home directory"
 
-ln -sfn ~/dotfiles/zshenv ~/.zshenv
+ln -sfn $DOTFILES_DIR/zshenv ~/.zshenv
 echo "Created symbolic link of zshenv to home directory"
 
-ln -sfn ~/dotfiles/Xmodmap ~/.Xmodmap
+ln -sfn $DOTFILES_DIR/Xmodmap ~/.Xmodmap
 echo "Created symbolic link of Xmodmap to home directory"
 
 
@@ -83,7 +83,7 @@ echo "Created symbolic link of Xmodmap to home directory"
 # Create devilspie symbolic link to home directory
 if [[ "$OSTYPE" =~ "linux-gnu" ]]; then
     mkdir -p $DEVILSPIE_DIR
-    ln -sfn ~/dotfiles/devilspie/devilspie-script.ds ~/.devilspie/devilspie-script.ds
+    ln -sfn $DOTFILES_DIR/devilspie/devilspie-script.ds $DEVILSPIE_DIR/devilspie-script.ds
     echo "Created symbolic link of devilspie script to home directory"
 fi
 
@@ -97,10 +97,10 @@ else
     setopt EXTENDED_GLOB
 
     # Create some symblic link to ~/.prezto
-    ln -sfn ~/dotfiles/prezto.d/prompt_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_sorin_setup
+    ln -sfn $DOTFILES_DIR/prezto.d/prompt_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_sorin_setup
     echo "Created symbolic link of prompt_sorin_setup to ~/.zprezto"
 
-    ln -sfn ~/dotfiles/prezto.d/prompt_my_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_my_sorin_setup
+    ln -sfn $DOTFILES_DIR/prezto.d/prompt_my_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_my_sorin_setup
     echo "Created symbolic link of prompt_my_sorin_setup to ~/.zprezto"
 fi
 

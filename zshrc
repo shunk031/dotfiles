@@ -60,3 +60,10 @@ if [[ "$OSTYPE" =~ "linux-gnu" ]]; then
     (devilspie &)
   fi
 fi
+
+
+
+# Change Keybindings
+if [ -s ~/.Xmodmap ]; then
+    xmodmap ~/.Xmodmap
+fi

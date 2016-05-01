@@ -78,6 +78,9 @@ echo "Created symbolic link of zshenv to home directory"
 ln -sfn $DOTFILES_DIR/Xmodmap ~/.Xmodmap
 echo "Created symbolic link of Xmodmap to home directory"
 
+ln -sfn $DOTFILES_DIR/tmux.conf ~/.tmux.conf
+echo "Created symbolic link of tmux.conf to home directory"
+
 
 
 # Create devilspie symbolic link to home directory

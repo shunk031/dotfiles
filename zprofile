@@ -73,3 +73,8 @@ if [[ ! -d "$TMPDIR" ]]; then
 fi
 
 TMPPREFIX="${TMPDIR%/}/zsh"
+
+# Change Keybindings
+if [ -s ~/.Xmodmap ]; then
+    xmodmap ~/.Xmodmap
+fi

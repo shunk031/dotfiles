@@ -12,7 +12,6 @@ alias xm="xmodmap ~/.Xmodmap"
 # add some emacs aliases
 alias ekill="emacsclient -e '(kill-emacs)'"
 alias e='emacsclient -n'
-alias emacs='emacsclient -n'
 
 
 
@@ -64,6 +63,6 @@ fi
 
 
 # Change Keybindings
-if [ -s ~/.Xmodmap ]; then
-    xmodmap ~/.Xmodmap
-fi
+# if [ -s ~/.Xmodmap ]; then
+#     xmodmap ~/.Xmodmap
+# fi

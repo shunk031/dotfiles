@@ -4,6 +4,6 @@ clear Lock
 add Control = Control_L
 
 ! Replace "Muhenkan" key to "Alt_L" key
-keycode 102 = Alt_L
+keycode 102 = Alt_L NoSymbol Alt_L
 clear mod1
 add mod1 = Alt_L

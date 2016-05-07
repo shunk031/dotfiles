@@ -23,10 +23,10 @@ setupsh_logo='
    6. Install Ricty -- fonts for programinng
 '
 
-readonly DOTFILES_DIR=~/dotfiles
-readonly PREZTO_DIR=~/.prezto
-readonly RICTY_FILE=~/.fonts/Ricty*.ttf
-readonly DEVILSPIE_DIR=~/.devilspie
+DOTFILES_DIR=~/dotfiles
+PREZTO_DIR=~/.prezto
+RICTY_FILE=~/.fonts/Ricty*.ttf
+DEVILSPIE_DIR=~/.devilspie
 
 
 echo "$setupsh_logo"
@@ -104,13 +104,19 @@ else
     echo "Created symbolic link of prompt_sorin_setup to ~/.zprezto"
 
     ln -sfn $DOTFILES_DIR/prezto.d/prompt_my_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_my_sorin_setup
-    echo "Created symbolic link of prompt_my_sorin_setup to ~/.zprezto"
+    echo "Created symbolic link of prompt_my_sorin_setup to ~p/.zprezto"
 fi
 
 
 
 # called install.sh
-sh $DOTFILES_DIR/install.sh
+read -p "Are you sure you want to run install.sh? (y/n) " ans1
+case $ans1 in
+    [Yy] | [Yy][Ee][Ss] )
+	sh $DOTFILES_DIR/install.sh;;
+    * )
+	echo -n "Canceled.\n";;
+esac
 
 
 

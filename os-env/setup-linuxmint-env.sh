@@ -169,8 +169,14 @@ sudo apt-get install -y devilspie
 echo '
 ======================================================================
 
-			     Install tmux
+			      Setup tmux
+
+	 *** You will install the following applications ***
+
+   * tmux
+   * xsel
 
 ======================================================================
 '
 sudo apt-get install -y tmux
+sudo apt-get install -y xsel

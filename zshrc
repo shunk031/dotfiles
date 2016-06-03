@@ -16,6 +16,10 @@ alias xm="xmodmap ~/.Xmodmap"
 alias ekill="emacsclient -e '(kill-emacs)'"
 alias e='emacsclient -n'
 
+# add pyenv and conda(python) aliases
+alias activate="source $HOME/.pyenv/versions/miniconda3-latest/bin/activate"
+alias deactivate="source $HOME/.pyenv/versions/miniconda3-latest/bin/deactivate"
+
 
 
 # export android sdk path
@@ -69,3 +73,7 @@ fi
 # if [ -s ~/.Xmodmap ]; then
 #     xmodmap ~/.Xmodmap
 # fi
+
+# Setting for Emacs-shell
+[[ $EMACS = t ]] && unsetopt zle
+

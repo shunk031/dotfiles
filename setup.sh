@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 setupsh_logo='
                           /$$                                      /$$      
@@ -24,7 +24,7 @@ setupsh_logo='
 '
 
 readonly DOTFILES_DIR=~/dotfiles
-readonly PREZTO_DIR=~/.prezto
+readonly PREZTO_DIR=~/.zprezto
 readonly RICTY_FILE=~/.fonts/Ricty*.ttf
 readonly DEVILSPIE_DIR=~/.devilspie
 
@@ -34,7 +34,7 @@ echo "$setupsh_logo"
 
 # Download my dotfiles from github
 if [ -e $DOTFILES_DIR ]; then
-    echo -n "\ndotfiles is already cloned.\n"
+    echo -e "\ndotfiles is already cloned.\n"
 else
     git clone https://github.com/shunk031/dotfiles.git $DOTFILES_DIR
 fi
@@ -85,16 +85,20 @@ echo "Created symbolic link of tmux.conf to home directory"
 
 # Create devilspie symbolic link to home directory
 if [[ "$OSTYPE" =~ "linux-gnu" ]]; then
-    mkdir -p $DEVILSPIE_DIR
-    ln -sfn $DOTFILES_DIR/devilspie/devilspie-script.ds $DEVILSPIE_DIR/devilspie-script.ds
-    echo "Created symbolic link of devilspie script to home directory"
+    if [ -e $DEVILSPIE_DIR ]; then
+	echo -e "\ndevilspie is already installed.\n"
+    else
+	mkdir -p $DEVILSPIE_DIR
+	ln -sfn $DOTFILES_DIR/devilspie/devilspie-script.ds $DEVILSPIE_DIR/devilspie-script.ds
+	echo "Created symbolic link of devilspie script to home directory"
+    fi
 fi
 
 
 
 # Setup Prezto
 if [ -e $PREZTO_DIR ]; then
-    echo -n "\nPrezto is already installed.\n"
+    echo -e "\nPrezto is already installed.\n"
 else
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
     setopt EXTENDED_GLOB
@@ -104,20 +108,26 @@ else
     echo "Created symbolic link of prompt_sorin_setup to ~/.zprezto"
 
     ln -sfn $DOTFILES_DIR/prezto.d/prompt_my_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_my_sorin_setup
-    echo "Created symbolic link of prompt_my_sorin_setup to ~/.zprezto"
+    echo "Created symbolic link of prompt_my_sorin_setup to ~p/.zprezto"
 fi
 
 
 
 # called install.sh
-sh $DOTFILES_DIR/install.sh
+read -p "Are you sure you want to run install.sh? (y/n) " ans1
+case $ans1 in
+    [Yy] | [Yy][Ee][Ss] )
+	bash $DOTFILES_DIR/install.sh;;
+    * )
+	echo -e "Canceled.\n";;
+esac
 
 
 
 # Setup geeknote
 which geeknote > /dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo -n "\ngeeknote is already installed.\n"
+    echo -e "\ngeeknote is already installed.\n"
 else
     echo "Please input your evernote login ID(mail address)"
     geeknote login
@@ -132,7 +142,7 @@ fi
 ls $RICTY_FILE > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "Now install Ricty"
-    sh $DOTFILES_DIR/setup-ricty.sh
+    bash $DOTFILES_DIR/setup-ricty.sh
 else
-    echo -n "\nRicty is already installed.\n"
+    echo -e "\nRicty is already installed.\n"
 fi

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 installdotsh_logo='
 
@@ -122,7 +122,7 @@ sudo apt-get install -y Tidy
 readonly TIDYHTML5_DIR=~/tidy-html5
 
 if [ -e $TIDYHTML5_DIR ]; then
-    echo -n "\nTidy-html5 is already installed.\n"
+    echo -e "\nTidy-html5 is already installed.\n"
 else
     # clone and install tidy-html
     git clone https://github.com/htacg/tidy-html5.git $TIDYHTML5_DIR
@@ -148,7 +148,7 @@ sudo apt-get install -y arduino
 readonly INO_DIR=~/ino
 
 if [ -e $INO_DIR ]; then
-    echo -n "\nIno is already installed.\n"
+    echo -e "\nIno is already installed.\n"
 else
     # install Ino
     git clone https://github.com/amperka/ino.git $INO_DIR
@@ -286,7 +286,7 @@ echo '
 readonly GEEKNOTE_DIR=~/geeknote
 
 if [ -e $GEEKNOTE_DIR ]; then
-    echo -n "\ngeeknote is already installed.\n"
+    echo -e "\ngeeknote is already installed.\n"
 else
     # clone and install geeknote
     git clone git://github.com/VitaliyRodnenko/geeknote.git $GEEKNOTE_DIR
@@ -332,21 +332,21 @@ readonly PYENV_PIP_REFRESH_DIR=~/.pyenv/plugins/pyenv-pip-rehash
 
 # Clone "pyenv"
 if [ -e $PYENV_DIR ]; then
-    echo -n "\npyenv is already cloned.\n"
+    echo -e "\npyenv is already cloned.\n"
 else
     git clone https://github.com/yyuu/pyenv.git $PYENV_DIR
 fi
 
 # Clone pyenv plugin "pyenv-virtualenv"
 if [ -e $PYENV_VIRTUALENV_DIR ]; then
-    echo -n "\npyenv-virtualenv is already cloned.\n"
+    echo -e "\npyenv-virtualenv is already cloned.\n"
 else
     git clone https://github.com/yyuu/pyenv-virtualenv.git $PYENV_VIRTUALENV_DIR
 fi
 
 # Clone pyenv plugin "pyenv-pip-refresh"
 if [ -e $PYENV_PIP_REFRESH_DIR ]; then
-    echo -n "\npyenv-pip-refresh is already cloned.\n"
+    echo -e "\npyenv-pip-refresh is already cloned.\n"
 else
     git clone https://github.com/yyuu/pyenv-pip-rehash.git $PYENV_PIP_REFRESH_DIR
 fi
@@ -375,7 +375,7 @@ readonly DOTEMACS_DIR=~/emacs.d
 
 # Clone my emacs.d
 if [ -e $DOTEMACS_DIR ];then
-    echo -n "\nemacs.d is already cloned.\n"
+    echo -e "\nemacs.d is already cloned.\n"
 else
     git clone https://github.com/shunk031/emacs.d.git $DOTEMACS_DIR
 fi

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 echo '
 
@@ -84,10 +84,10 @@ echo '
 
 ======================================================================
 '
-EMACS_DIR=~/emacs-24.5
+readonly EMACS_DIR=~/emacs-24.5
 
 if [ -e $EMACS_DIR ]; then
-    echo "\nEmacs 24.5 is already installed.\n"
+    echo -e "\nEmacs 24.5 is already installed.\n"
 else
     sudo apt-get install -y build-essential
     sudo apt-get install -y libgtk2.0-dev libtiff4-dev libgif-dev libjpeg-dev libpng12-dev libxpm-dev libncurses-dev libxml2-dev

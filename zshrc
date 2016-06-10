@@ -17,10 +17,13 @@ alias ekill="emacsclient -e '(kill-emacs)'"
 alias e='emacsclient -n'
 
 # add pyenv and conda(python) aliases
-alias activate="source $HOME/.pyenv/versions/miniconda3-latest/bin/activate"
-alias deactivate="source $HOME/.pyenv/versions/miniconda3-latest/bin/deactivate"
+alias activate="source $PYENV_ROOT/versions/miniconda3-latest/bin/activate"
+alias deactivate="source $PYENV_ROOT/versions/miniconda3-latest/bin/deactivate"
 
-
+# add jupyter notebook ailias
+export JUPYTER_URL_PATH="http://localhost:8888/"
+alias jd='PWDPATH=`pwd`;open $JUPYTER_URL_PATH"tree${PWDPATH/#$HOME}"'
+alias jn='jupyter notebook'
 
 # export android sdk path
 export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools

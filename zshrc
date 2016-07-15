@@ -10,7 +10,7 @@ export SDKMAN_DIR="/home/cyberangel/.sdkman"
 # add alias
 alias geeknote="python ~/geeknote/geeknote/geeknote.py"
 alias browser-sync-start="browser-sync start --server --files \"**/*\""
-alias xm="xmodmap ~/.Xmodmap"
+alias xm="load_xmod_map"
 
 # add some emacs aliases
 alias ekill="emacsclient -e '(kill-emacs)'"
@@ -80,3 +80,10 @@ fi
 # Setting for Emacs-shell
 [[ $EMACS = t ]] && unsetopt zle
 
+
+
+# load xmodmap function
+load_xmod_map() {
+    xmodmap ~/.Xmodmap
+    echo "Now loaded Xmod map"
+}

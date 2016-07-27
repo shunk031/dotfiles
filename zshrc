@@ -4,20 +4,17 @@ export SDKMAN_DIR="/home/cyberangel/.sdkman"
 
 
 
-# start tmux
-[[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
-
 # add alias
 alias geeknote="python ~/geeknote/geeknote/geeknote.py"
 alias browser-sync-start="browser-sync start --server --files \"**/*\""
-alias xm="load_xmod_map"
+alias xm="load_xmod_map "
 
 # add some emacs aliases
 alias ekill="emacsclient -e '(kill-emacs)'"
 alias e='emacsclient -n'
 
 # add pyenv and conda(python) aliases
-alias activate="source $PYENV_ROOT/versions/miniconda3-latest/bin/activate"
+alias activate="source $PYENV_ROOT/versionns/miniconda3-latest/bin/activate"
 alias deactivate="source $PYENV_ROOT/versions/miniconda3-latest/bin/deactivate"
 
 # add jupyter notebook ailias
@@ -83,7 +80,7 @@ fi
 
 
 # load xmodmap function
-load_xmod_map() {
+load_xmod_map(){
     xmodmap ~/.Xmodmap
     echo "Now loaded Xmod map"
 }

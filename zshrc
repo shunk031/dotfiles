@@ -2,7 +2,8 @@
 export SDKMAN_DIR="/home/cyberangel/.sdkman"
 [[ -s "/home/cyberangel/.sdkman/bin/sdkman-init.sh" ]] && source "/home/cyberangel/.sdkman/bin/sdkman-init.sh"
 
-
+# auto-start tmux
+[[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
 
 # add alias
 alias geeknote="python ~/geeknote/geeknote/geeknote.py"
@@ -14,7 +15,7 @@ alias ekill="emacsclient -e '(kill-emacs)'"
 alias e='emacsclient -n'
 
 # add pyenv and conda(python) aliases
-alias activate="source $PYENV_ROOT/versionns/miniconda3-latest/bin/activate"
+alias activate="source $PYENV_ROOT/versions/miniconda3-latest/bin/activate"
 alias deactivate="source $PYENV_ROOT/versions/miniconda3-latest/bin/deactivate"
 
 # add jupyter notebook ailias

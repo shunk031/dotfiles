@@ -143,18 +143,18 @@ echo '
 
 ======================================================================
 '
-sudo apt-get install -y arduino
+# sudo apt-get install -y arduino
 
-readonly INO_DIR=~/ino
+# readonly INO_DIR=~/ino
 
-if [ -e $INO_DIR ]; then
-    echo -e "\nIno is already installed.\n"
-else
-    # install Ino
-    git clone https://github.com/amperka/ino.git $INO_DIR
-    cd $INO_DIR
-    sudo make install
-fi
+# if [ -e $INO_DIR ]; then
+#     echo -e "\nIno is already installed.\n"
+# else
+#     # install Ino
+#     git clone https://github.com/amperka/ino.git $INO_DIR
+#     cd $INO_DIR
+#     sudo make install
+# fi
 
 
 echo '

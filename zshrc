@@ -2,6 +2,9 @@
 export SDKMAN_DIR="/home/cyberangel/.sdkman"
 [[ -s "/home/cyberangel/.sdkman/bin/sdkman-init.sh" ]] && source "/home/cyberangel/.sdkman/bin/sdkman-init.sh"
 
+# added by travis gem
+[ -f /home/cyberangel/.travis/travis.sh ] && source /home/cyberangel/.travis/travis.sh
+
 # auto-start tmux
 [[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
 
@@ -23,6 +26,16 @@ export JUPYTER_URL_PATH="http://localhost:8888/"
 alias jd='PWDPATH=`pwd`;open $JUPYTER_URL_PATH"tree${PWDPATH/#$HOME}"'
 alias jn='jupyter notebook'
 
+# h-auth script ailias
+alias hauth="auth.py"
+
+# arduino ailias
+PATH="$PATH":/opt/ardiono-1.6.11
+alias arduino="/opt/arduino-1.6.11/arduino"
+
+# ailias up directory
+alias up="cd ../"
+
 # export android sdk path
 export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools
 
@@ -34,6 +47,10 @@ PATH="$PATH":~/.local/bin
 
 # add composer path
 PATH="$PATH":~/.composer/vender/bin
+
+# add my script path
+PATH="$PATH":~/dotfiles/script
+PATH="$PATH":~/emacs.d/etc
 
 
 
@@ -85,3 +102,6 @@ load_xmod_map(){
     xmodmap ~/.Xmodmap
     echo "Now loaded Xmod map"
 }
+
+# added by travis gem
+[ -f /home/cyberangel/.travis/travis.sh ] && source /home/cyberangel/.travis/travis.sh

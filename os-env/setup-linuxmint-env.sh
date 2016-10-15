@@ -90,7 +90,7 @@ if [ -e $EMACS_DIR ]; then
     echo -e "\nEmacs 24.5 is already installed.\n"
 else
     sudo apt-get install -y build-essential
-    sudo apt-get install -y libgtk2.0-dev libtiff4-dev libgif-dev libjpeg-dev libpng12-dev libxpm-dev libncurses-dev libxml2-dev
+    sudo apt-get install -y libgtk2.0-dev libtiff5-dev libgif-dev libjpeg-dev libpng12-dev libxpm-dev libncurses5-dev libxml2-dev gnutls-bin
     wget http://ftp.gnu.org/gnu/emacs/emacs-24.5.tar.gz
     tar -xzvf emacs-24.5.tar.gz
     rm emacs-24.5.tar.gz

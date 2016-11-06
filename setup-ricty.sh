@@ -30,10 +30,7 @@ unzip migu-1m.zip
 cp -f migu-1m-$MIGU_1M_VERSION/*.ttf $HOME/gen-ricty
 
 # clone github ricty repository
-git clone https://github.com/yascentur/Ricty.git $HOME/gen-ricty/Ricty
-
-# copy ricty generate script
-cp -f Ricty/ricty_generator.sh $HOME/gen-ricty
+wget http://www.rs.tus.ac.jp/yyusa/ricty/ricty_generator.sh -P $HOME/gen-ricty
 
 # run ricty_generator.sh
 ./ricty_generator.sh auto

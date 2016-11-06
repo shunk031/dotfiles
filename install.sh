@@ -232,6 +232,8 @@ echo '
 ======================================================================
 '
 
+sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils
+
 readonly PYENV_DIR=~/.pyenv
 readonly PYENV_VIRTUALENV_DIR=~/.pyenv/plugins/pyenv-virtualenv
 readonly PYENV_PIP_REFRESH_DIR=~/.pyenv/plugins/pyenv-pip-rehash

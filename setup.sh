@@ -25,8 +25,10 @@ setupsh_logo='
 
 readonly DOTFILES_DIR=~/dotfiles
 readonly PREZTO_DIR=~/.zprezto
+readonly DOTEMACS_DIR=~/emacs.d
 readonly RICTY_FILE=~/.fonts/Ricty*.ttf
 readonly DEVILSPIE_DIR=~/.devilspie
+
 
 
 echo "$setupsh_logo"
@@ -109,6 +111,16 @@ else
 
     ln -sfn $DOTFILES_DIR/prezto.d/prompt_my_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_my_sorin_setup
     echo "Created symbolic link of prompt_my_sorin_setup to ~p/.zprezto"
+fi
+
+
+
+# Clone my emacs.d
+if [ -e $DOTEMACS_DIR ];then
+    echo -e "\nemacs.d is already cloned.\n"
+else
+    git clone https://github.com/shunk031/emacs.d.git $DOTEMACS_DIR
+    bash ~/emacs.d/setup.sh
 fi
 
 

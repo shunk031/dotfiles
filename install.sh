@@ -112,54 +112,6 @@ sudo apt-get install -y oracle-java8-installer
 echo '
 ======================================================================
 
-		     Install Tidy and Tidy-html5
-
-======================================================================
-'
-
-sudo apt-get install -y Tidy
-
-readonly TIDYHTML5_DIR=~/tidy-html5
-
-if [ -e $TIDYHTML5_DIR ]; then
-    echo -e "\nTidy-html5 is already installed.\n"
-else
-    # clone and install tidy-html
-    git clone https://github.com/htacg/tidy-html5.git $TIDYHTML5_DIR
-    cd $TIDYHTML5_DIR/build/cmake
-    ./build-me.sh
-    sudo make install
-fi
-
-echo '
-======================================================================
-
-		Setup Arduino Development Environment
-
-	 *** You will install the following applications ***
-
-   * arduino IDE
-   * ino
-
-======================================================================
-'
-# sudo apt-get install -y arduino
-
-# readonly INO_DIR=~/ino
-
-# if [ -e $INO_DIR ]; then
-#     echo -e "\nIno is already installed.\n"
-# else
-#     # install Ino
-#     git clone https://github.com/amperka/ino.git $INO_DIR
-#     cd $INO_DIR
-#     sudo make install
-# fi
-
-
-echo '
-======================================================================
-
 			    Install migemo
 
 ======================================================================
@@ -207,23 +159,6 @@ sudo apt-get install -y emacs-mozc
 echo '
 ======================================================================
 
-		  Setup Ruby Development Environment
-
-	 *** You will install the following applications ***
-
-   * Ruby
-   * Redcarpet
-
-======================================================================
-'
-
-sudo apt-get install -y ruby1.9.1-dev
-sudo apt-get install -y ruby
-sudo gem install redcarpet
-
-echo '
-======================================================================
-
 		    Setup Tex writting environment
 
 	 *** You will install the following applications ***
@@ -264,35 +199,6 @@ sudo apt-get install -y npm
 
 sudo npm install -g csslint
 sudo npm install -g browser-sync
-
-echo '
-======================================================================
-
-			   Install mplayer
-
-======================================================================
-'
-
-sudo apt-get install -y mplayer
-
-echo '
-======================================================================
-
-			   Install geeknote
-
-======================================================================
-'
-
-readonly GEEKNOTE_DIR=~/geeknote
-
-if [ -e $GEEKNOTE_DIR ]; then
-    echo -e "\ngeeknote is already installed.\n"
-else
-    # clone and install geeknote
-    git clone git://github.com/VitaliyRodnenko/geeknote.git $GEEKNOTE_DIR
-    cd $GEEKNOTE_DIR
-    sudo python setup.py install
-fi
 
 echo '
 ======================================================================
@@ -366,39 +272,12 @@ sudo apt-get install -y php5-cli
 echo '
 ======================================================================
 
-		   Download My Emacs configuration
-
-======================================================================
-'
-
-readonly DOTEMACS_DIR=~/emacs.d
-
-# Clone my emacs.d
-if [ -e $DOTEMACS_DIR ];then
-    echo -e "\nemacs.d is already cloned.\n"
-else
-    git clone https://github.com/shunk031/emacs.d.git $DOTEMACS_DIR
-fi
-
-echo '
-======================================================================
-
 			    Install Aspell
 
 ======================================================================
 '
 
 sudo apt-get install -y aspell aspell-en
-
-echo '
-======================================================================
-
-			    Install cpanm
-
-======================================================================
-'
-
-sudo apt-get install -y cpanminus
 
 echo '
 ======================================================================

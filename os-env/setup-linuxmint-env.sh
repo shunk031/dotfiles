@@ -32,7 +32,7 @@ nowsetup () {
     for i in `seq 1 ${#}`
     do
 	if [ $i -gt 1 ]; then
-	    printf "   * %s\n" ${1}
+	    printf "   * %s\n" "${1}"
 	    shift
 	else
 	    shift
@@ -136,6 +136,131 @@ sudo apt-get install -y devilspie
 
 
 
+nowinstall "Install texinfo"
+sudo apt-get install -y texinfo
+
+
+
+nowinstall "Install pip"
+sudo apt-get install -y python-pip
+
+
+
+nowinstal "Install JDK 8"
+sudo add-apt-repository -y ppa:webupd8team/java
+sudo apt-get update
+sudo apt-get install -y oracle-java8-installer
+
+
+
+nowinstall "Install migemo"
+sudo apt-get install -y cmigemo
+sudo apt-get install -y migemo
+
+
+
+nowinstall "Install ag - The Silver Searcher -"
+sudo apt-get install -y software-properties-common
+sudo apt-add-repository -y ppa:mizuno-as/silversearcher-ag
+sudo apt-get update
+sudo apt-get install -y silversearcher-ag
+
+
+
+nowinstall "Install Emacs-mozc"
+sudo apt-get install -y emacs-mozc
+
+
+
+nowinstall "Install PHP5-CLI"
+sudo apt-get install -y php5-cli
+
+
+
+nowinstall "Install Aspell"
+sudo apt-get install -y aspell aspell-en
+
+
+
+nowinstall "Install graphviz"
+sudo apt-get install -y graphviz
+
+
+
 nowsetup "Setup tmux" "tmux" "xsel"
 sudo apt-get install -y tmux
 sudo apt-get install -y xsel
+
+
+
+nowsetup "Setup lintr" "gfortran" "liblapack-dev" "libblas-dev"
+sudo apt-get install -y gfortran
+sudo apt-get install -y liblapack-dev
+sudo apt-get install -y libblas-dev
+
+
+
+nowsetup "Setup knitr" "libglu1-mesa-dev" "libcurl4-openssl-dev"
+sudo apt-get install -y libglu1-mesa-dev
+sudo apt-get install -y libcurl4-openssl-dev
+
+
+
+nowsetup "Setup Github Markdown writting environment" "grip"
+sudo pip install grip
+
+
+
+nowsetup "Setup Tex writting environment" "mercurial" "texlive" "texlive-lang-cjk" "xdvik-ja" "chktex (syntax checker)"
+# Yatex is managed by mercurial repository so install mercurial
+sudo apt-get install -y mercurial
+sudo apt-get install -y texlive
+sudo apt-get install -y texlive-lang-cjk
+sudo apt-get install -y xdvik-ja
+sudo apt-get install -y chktex
+
+
+
+nowsetup "Setup CSS Lint and Install some npm softwares" "node.js" "npm" "CSS Lint" "Browsersync"
+sudo apt-get install -y nodejs
+sudo apt-get install -y npm
+sudo npm install -g csslint
+sudo npm install -g browser-sync
+
+
+
+nowsetup "Setup Emacs tramp" "autoconf" "putty-tools"
+sudo apt-get install -y autoconf
+sudo apt-get install -y putty-tools
+
+
+
+nowsetup "Setup pyenv and pyenv-virtualenv" "pyenv" "pyenv-virtualenv" "pyenv-pip-rehash" "python tkinter"
+sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils
+
+readonly PYENV_DIR=~/.pyenv
+readonly PYENV_VIRTUALENV_DIR=~/.pyenv/plugins/pyenv-virtualenv
+readonly PYENV_PIP_REFRESH_DIR=~/.pyenv/plugins/pyenv-pip-rehash
+
+# Clone "pyenv"
+if [ -e $PYENV_DIR ]; then
+    echo -e "\npyenv is already cloned.\n"
+else
+    git clone https://github.com/yyuu/pyenv.git $PYENV_DIR
+fi
+
+# Clone pyenv plugin "pyenv-virtualenv"
+if [ -e $PYENV_VIRTUALENV_DIR ]; then
+    echo -e "\npyenv-virtualenv is already cloned.\n"
+else
+    git clone https://github.com/yyuu/pyenv-virtualenv.git $PYENV_VIRTUALENV_DIR
+fi
+
+# Clone pyenv plugin "pyenv-pip-refresh"
+if [ -e $PYENV_PIP_REFRESH_DIR ]; then
+    echo -e "\npyenv-pip-refresh is already cloned.\n"
+else
+    git clone https://github.com/yyuu/pyenv-pip-rehash.git $PYENV_PIP_REFRESH_DIR
+fi
+
+sudo apt-get install -y tk-dev

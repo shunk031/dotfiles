@@ -125,17 +125,6 @@ fi
 
 
 
-# called install.sh
-read -p "Are you sure you want to run install.sh? (y/n) " ans1
-case $ans1 in
-    [Yy] | [Yy][Ee][Ss] )
-	bash $DOTFILES_DIR/install.sh;;
-    * )
-	echo -e "Canceled.\n";;
-esac
-
-
-
 # Setup geeknote
 which geeknote > /dev/null 2>&1
 if [ $? -eq 0 ]; then

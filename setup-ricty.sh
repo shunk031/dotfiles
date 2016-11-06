@@ -33,7 +33,7 @@ cp -f migu-1m-$MIGU_1M_VERSION/*.ttf $HOME/gen-ricty
 wget http://www.rs.tus.ac.jp/yyusa/ricty/ricty_generator.sh -P $HOME/gen-ricty
 
 # run ricty_generator.sh
-./ricty_generator.sh auto
+sh ricty_generator.sh auto
 
 # make ".fonts" directory
 mkdir -p ~/.fonts

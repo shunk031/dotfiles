@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo '
+installdotsh_logo='
 
     /$$                       /$$               /$$ /$$               /$$      
    |__/                      | $$              | $$| $$              | $$      
@@ -15,65 +15,66 @@ echo '
    Install the required application
 '
 
+nowinstall () {
+    n=70
+    jot -b = -s "" ${n}
+    printf "\n%*s\n\n" $(((${#1}+${n})/2)) "$1"
+    jot -b = -s "" ${n}
+
+}
+
+nowsetup () {
+    description='*** You will install the following applications ***'
+    n=70
+    jot -b = -s "" ${n}
+    printf "\n%*s\n\n" $(((${#1}+${n})/2)) "$1"
+    printf "\n%*s\n\n" $(((${#description}+${n})/2)) "$description"
+    for i in `seq 1 ${#}`
+    do
+	printf "   * %s\n" ${1}
+	shift
+    done
+    echo ""
+    jot -b = -s "" ${n}
+}
+
+echo "$installdotsh_logo"
+
 sudo apt-get update
 sudo apt-get -y upgrade
+sudo apt-get install athena-jot
 
-echo '
-======================================================================
 
-		  Install Japanese Input Environment
 
-======================================================================
-'
+nowinstall "Japanese Input Environment"
 sudo apt-get install -y fcitx fcitx-mozc fcitx-libs-qt fcitx-libs-qt5 fcitx-frontend-qt5 fcitx-frontend-gtk2 fcitx-frontend-gtk3 fcitx-config-gtk fcitx-tools fcitx-ui-classic mozc-utils-gui
 
-echo '
-======================================================================
 
-		    Change English name directory
 
-======================================================================
-'
+nowinstall "Change English name directory"
 env LANGUAGE=C LC_MESSAGES=C xdg-user-dirs-gtk-update
 echo "Now changed!"
 
-echo '
-======================================================================
 
-			Install guake terminal
 
-======================================================================
-'
+nowinstall "Intall guake terminal"
 sudo apt-get install -y guake
 
-echo '
-======================================================================
 
-			   Install gparted
 
-======================================================================
-'
+nowinstall "Install Gparted"
 sudo apt-get install -y gparted
 
-echo '
-======================================================================
 
-		       Install grub-customizer
 
-======================================================================
-'
+nowinstall "Install grub-customizer"
 sudo add-apt-repository -y ppa:danielrichter2007/grub-customizer
 sudo apt-get update && sudo apt-get install -y grub-customizer
 
-echo '
-======================================================================
 
-			  Install Emacs 24.5
 
-======================================================================
-'
+nowinstall "Build and Install Emacs 24.5"
 readonly EMACS_DIR=~/emacs-24.5
-
 if [ -e $EMACS_DIR ]; then
     echo -e "\nEmacs 24.5 is already installed.\n"
 else
@@ -89,85 +90,48 @@ else
     sudo make install
 fi
 
-echo '
-======================================================================
 
-			  Install cairo-dock
 
-======================================================================
-'
+nowinstall "Install Cairo-dock"
 sudo apt-add-repository -y ppa:cairo-dock-team/ppa
 sudo apt-get update && sudo apt-get install -y cairo-dock cairo-dock-plug-ins
 
-echo '
-======================================================================
 
-			     Install git
 
-======================================================================
-'
+nowinstall "Install and set Git"
 sudo apt-get install python-software-properties
 sudo add-apt-repository -y ppa:git-core/ppa
 sudo apt-get update && sudo apt-get install -y git
-
 git config --global user.name "Shunsuke KITADA"
 git config --global user.email "septemtrio.ager@gmail.com"
-
 git config --global color.ui auto
-
 git config --global "url.git@github.com:.pushinsteadof" "https://github.com/"
 
-echo '
-======================================================================
 
-		       Install dconf-editor
 
-======================================================================
-'
+nowinstall "Install dconf-editor and set some key"
 sudo apt-get install -y dconf-editor
-
 gsettings set org.gnome.desktop.interface gtk-key-theme 'Emacs'
 gsettings set org.cinnamon.desktop.interface gtk-key-theme 'Emacs'
 
-echo '
-======================================================================
 
-			  Install easystroke
 
-======================================================================
-'
+nowinstall "Install easystroke"
 sudo apt-get install -y easystroke
 
-echo '
-======================================================================
 
-			     Install zsh
 
-======================================================================
-'
+nowinstall "Install zsh"
 sudo apt-get install -y zsh
 # chsh -s /bin/zsh
 
-echo '
-======================================================================
 
-			  Install devilspie
 
-======================================================================
-'
+nowinstall "Install devilspie"
 sudo apt-get install -y devilspie
 
-echo '
-======================================================================
 
-			      Setup tmux
 
-	 *** You will install the following applications ***
-
-   * tmux
-   * xsel
-
-======================================================================
-'
+nowsetup "Setup tmux" "tmux" "xsel"
 sudo apt-get install -y tmux
 sudo apt-get install -y xsel

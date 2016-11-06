@@ -187,6 +187,11 @@ sudo apt-get install -y graphviz
 
 
 
+nowinstall "Install ntfs-config"
+sudo apt-get install -y ntfs-config
+
+
+
 nowsetup "Setup tmux" "tmux" "xsel"
 sudo apt-get install -y tmux
 sudo apt-get install -y xsel

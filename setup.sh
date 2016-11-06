@@ -125,20 +125,6 @@ fi
 
 
 
-# Setup geeknote
-which geeknote > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    echo -e "\ngeeknote is already installed.\n"
-else
-    echo "Please input your evernote login ID(mail address)"
-    geeknote login
-    
-    echo "Change default editor setting(Emacs)"
-    geeknote settings --editor emacs
-fi
-
-
-
 # Install font "Ricty"
 ls $RICTY_FILE > /dev/null 2>&1
 if [ $? -ne 0 ]; then

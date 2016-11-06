@@ -31,8 +31,12 @@ nowsetup () {
     printf "\n%*s\n\n" $(((${#description}+${n})/2)) "$description"
     for i in `seq 1 ${#}`
     do
-	printf "   * %s\n" ${1}
-	shift
+	if [ $i -gt 1 ]; then
+	    printf "   * %s\n" ${1}
+	    shift
+	else
+	    shift
+	fi
     done
     echo ""
     jot -b = -s "" ${n}

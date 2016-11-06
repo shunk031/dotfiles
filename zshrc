@@ -103,5 +103,15 @@ load_xmod_map(){
     echo "Now loaded Xmod map"
 }
 
+python6() {
+    echo -e "run script in python 2 env."
+    pyenv global search-tec2
+    python $1
+
+    echo -e "run script in python 3 env."
+    pyenv global search-tec3
+    python $1
+}
+
 # added by travis gem
 [ -f /home/cyberangel/.travis/travis.sh ] && source /home/cyberangel/.travis/travis.sh

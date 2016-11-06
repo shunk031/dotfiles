@@ -15,18 +15,6 @@ echo '
    Install the required application
 '
 
-echo '
-======================================================================
-
-	     Fix Failed To Fetch Google Chrome Repository
-
-======================================================================
-'
-sudo sed -i -e 's/deb http/deb [arch=amd64] http/' "/etc/apt/sources.list.d/google-chrome.list"
-sudo sed -i -e 's/deb http/deb [arch=amd64] http/' "/opt/google/chrome/cron/google-chrome"
-
-echo "Now fixed!"
-
 sudo apt-get update
 sudo apt-get -y upgrade
 
@@ -90,7 +78,8 @@ if [ -e $EMACS_DIR ]; then
     echo -e "\nEmacs 24.5 is already installed.\n"
 else
     sudo apt-get install -y build-essential
-    sudo apt-get install -y libgtk2.0-dev libtiff4-dev libgif-dev libjpeg-dev libpng12-dev libxpm-dev libncurses-dev libxml2-dev
+    sudo apt-get install -y automake autoconf libgtk2.0-dev libtiff5-dev libgif-dev libjpeg-dev libpng12-dev libxpm-dev libncurses5-dev libxml2-dev gnutls-bin libcurl4-gnutls-dev libgnutls-dev
+    sudo apt-get install xfonts-100dpi xfonts-75dpi xfonts-shinonome
     wget http://ftp.gnu.org/gnu/emacs/emacs-24.5.tar.gz
     tar -xzvf emacs-24.5.tar.gz
     rm emacs-24.5.tar.gz
@@ -136,7 +125,9 @@ echo '
 ======================================================================
 '
 sudo apt-get install -y dconf-editor
-gsettings set org.cinnamon.desktop.interface gtk-key-theme "Emacs"
+
+gsettings set org.gnome.desktop.interface gtk-key-theme 'Emacs'
+gsettings set org.cinnamon.desktop.interface gtk-key-theme 'Emacs'
 
 echo '
 ======================================================================

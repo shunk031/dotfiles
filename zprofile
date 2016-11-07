@@ -78,3 +78,7 @@ TMPPREFIX="${TMPDIR%/}/zsh"
 if [ -s ~/.Xmodmap ]; then
     xmodmap ~/.Xmodmap
 fi
+
+# Ubuntu make installation of Ubuntu Make binary symlink
+PATH=/home/shunk031/.local/share/umake/bin:$PATH
+

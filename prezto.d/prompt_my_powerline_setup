@@ -25,6 +25,24 @@ function prompt_powerline_pwd {
   fi
 }
 
+function prompt_sorin_git_info {
+  if (( _prompt_sorin_precmd_async_pid > 0 )); then
+    # Append Git status.
+    if [[ -s "$_prompt_sorin_precmd_async_data" ]]; then
+      alias typeset='typeset -g'
+      source "$_prompt_sorin_precmd_async_data"
+      RPROMPT+='${git_info:+${(e)git_info[status]}}'
+      unalias typeset
+    fi
+
+    # Reset PID.
+    _prompt_sorin_precmd_async_pid=0
+
+    # Redisplay prompt.
+    zle && zle reset-prompt
+  fi
+}
+	
 # returns the time since last git commit
 function git_time_details() {
   # only proceed if there is actually a git repository
@@ -85,6 +103,9 @@ function rvm_info_for_prompt {
 function prompt_powerline_precmd {
   # Format PWD.    
   prompt_powerline_pwd
+
+  # Define prompts.
+  RPROMPT='${editor_info[overwrite]}%(?:: %F{1}⏎%f)${VIM:+" %B%F{6}V%f%b"}'
   
   # Check for untracked files or updated submodules since vcs_info doesn't.
   if [[ ! -z $(git ls-files --other --exclude-standard 2> /dev/null) ]]; then
@@ -97,18 +118,41 @@ function prompt_powerline_precmd {
   vcs_info 'prompt'
   RVM_PRECMD_INFO=$(rvm_info_for_prompt)
 
+  # Kill the old process of slow commands if it is still running.
+  if (( _prompt_sorin_precmd_async_pid > 0 )); then
+    kill -KILL "$_prompt_sorin_precmd_async_pid" &>/dev/null
+  fi
+  
   # Check for activated virtualenv
   if (( $+functions[python-info] )); then
       python-info
   fi
   
   # zstyle ':prezto:module:ruby' rvm '%r'
+
+  # Compute slow commands in the background.
+  trap prompt_sorin_git_info WINCH
+  prompt_sorin_precmd_async &!
+  _prompt_sorin_precmd_async_pid=$!
+}
+
+function prompt_sorin_precmd_async {
+  # Get Git repository information.
+  if (( $+functions[git-info] )); then
+    git-info
+    typeset -p git_info >! "$_prompt_sorin_precmd_async_data"
+  fi
+
+  # Signal completion to parent process.
+  kill -WINCH $$
 }
 
 function prompt_powerline_setup {
   setopt LOCAL_OPTIONS
   unsetopt XTRACE KSH_ARRAYS
   prompt_opts=(cr percent subst)
+  _prompt_sorin_precmd_async_pid=0
+  _prompt_sorin_precmd_async_data="${TMPPREFIX}-prompt_sorin_data"
 
   autoload -Uz add-zsh-hook
   autoload -Uz vcs_info
@@ -162,7 +206,25 @@ function prompt_powerline_setup {
   zstyle ':prezto:module:editor:info:keymap:primary' format ' %B%F{1}❯%F{3}❯%F{2}❯%f%b'
   zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format ' %F{3}♺%f'
   zstyle ':prezto:module:editor:info:keymap:alternate' format ' %B%F{2}❮%F{3}❮%F{1}❮%f%b'
-    
+
+  # Set git-info parameters.
+  zstyle ':prezto:module:git:info' verbose 'yes'
+  zstyle ':prezto:module:git:info:action' format '%F{7}:%f%%B%F{9}%s%f%%b'
+  zstyle ':prezto:module:git:info:added' format ' %%B%F{2}✚%f%%b'
+  zstyle ':prezto:module:git:info:ahead' format ' %%B%F{13}⬆%f%%b'
+  zstyle ':prezto:module:git:info:behind' format ' %%B%F{13}⬇%f%%b'
+  zstyle ':prezto:module:git:info:branch' format ' %%B%F{2}%b%f%%b'
+  zstyle ':prezto:module:git:info:commit' format ' %%B%F{3}%.7c%f%%b'
+  zstyle ':prezto:module:git:info:deleted' format ' %%B%F{1}✖%f%%b'
+  zstyle ':prezto:module:git:info:modified' format ' %%B%F{4}✱%f%%b'
+  zstyle ':prezto:module:git:info:position' format ' %%B%F{13}%p%f%%b'
+  zstyle ':prezto:module:git:info:renamed' format ' %%B%F{5}➜%f%%b'
+  zstyle ':prezto:module:git:info:stashed' format ' %%B%F{6}✭%f%%b'
+  zstyle ':prezto:module:git:info:unmerged' format ' %%B%F{3}═%f%%b'
+  zstyle ':prezto:module:git:info:untracked' format ' %%B%F{7}◼%f%%b'
+  zstyle ':prezto:module:git:info:keys' format \
+	 'status' '$(coalesce "%b" "%p" "%c")%s%A%B%S%a%d%m%r%U%u'
+  
   zstyle ':vcs_info:*:prompt:*' unstagedstr   "${fmt_unstaged}"
   zstyle ':vcs_info:*:prompt:*' stagedstr     "${fmt_staged}"
   zstyle ':vcs_info:*:prompt:*' actionformats "${fmt_branch}${fmt_action}"

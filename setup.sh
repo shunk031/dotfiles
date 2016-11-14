@@ -111,6 +111,10 @@ else
 
     ln -sfn $DOTFILES_DIR/prezto.d/prompt_my_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_my_sorin_setup
     echo "Created symbolic link of prompt_my_sorin_setup to ~p/.zprezto"
+
+    ln -sfn $DOTFILES_DIR/prezto.d/prompt_my_powerline_setup ~/.zprezto/modules/prompt/functions/prompt_my_powerline_setup
+    echo "Created symbolic link of prompt_my_powerline_setup to ~p/.zprezto"
+    
 fi
 
 

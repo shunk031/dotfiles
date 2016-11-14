@@ -117,6 +117,9 @@ nowinstall "Install dconf-editor and set some key"
 sudo apt-get install -y dconf-editor
 gsettings set org.gnome.desktop.interface gtk-key-theme 'Emacs'
 gsettings set org.cinnamon.desktop.interface gtk-key-theme 'Emacs'
+gsettings set org.gnome.settings-daemon.plugins.power use-time-for-policy false
+gsettings set org.gnome.settings-daemon.plugins.power percentage-critical 10
+gsettings set org.gnome.settings-daemon.plugins.power percentage-action 9
 
 
 

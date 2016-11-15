@@ -36,6 +36,9 @@ alias arduino="/opt/arduino-1.6.11/arduino"
 # ailias up directory
 alias up="cd ../"
 
+# change keyboard layout
+alias chkey="fcitx-imlist -t"
+
 # export android sdk path
 export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools
 

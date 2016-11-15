@@ -29,7 +29,7 @@ unzip migu-1m.zip
 # copy some migu-1m fonts
 cp -f migu-1m-$MIGU_1M_VERSION/*.ttf $HOME/gen-ricty
 
-# clone github ricty repository
+# download github ricty repository
 wget http://www.rs.tus.ac.jp/yyusa/ricty/ricty_generator.sh -P $HOME/gen-ricty
 
 # run ricty_generator.sh
@@ -41,6 +41,15 @@ mkdir -p ~/.fonts
 # copy Ricty fonts and install
 cp -f Ricty*.ttf ~/.fonts/
 fc-cache -vf
+
+# clone vim-powerline repository
+git clone https://github.com/Lokaltog/vim-powerline.git
+
+# create ricty for powerline and move .fonts directory
+fontforge -lang=py -script ./vim-powerline/fontpatcher/fontpatcher $HOME/.fonts/Ricty-Regular.ttf
+fontforge -lang=py -script ./vim-powerline/fontpatcher/fontpatcher $HOME/.fonts/Ricty-Bold.ttf
+mv Ricty-Regular-Powerline.ttf ~/.fonts
+mv Ricty-Bold-Powerline.ttf ~/.fonts
 
 # remove working directory
 rm -rf $HOME/gen-ricty

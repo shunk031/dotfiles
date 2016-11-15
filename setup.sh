@@ -133,7 +133,7 @@ fi
 ls $RICTY_FILE > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "Now install Ricty"
-    bash $DOTFILES_DIR/setup-ricty.sh
+    bash $DOTFILES_DIR/script/setup-ricty.sh
 else
     echo -e "\nRicty is already installed.\n"
 fi

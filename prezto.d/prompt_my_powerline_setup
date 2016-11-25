@@ -263,9 +263,10 @@ function prompt_powerline_setup {
 %K{green}%F{white} %n@%m %k%f%F{green}%K{red}"$POWERLINE_SEPARATOR
   POWERLINE_LEFT_B="%f%f%F{white}%K{red} $ %k%f%F{red}%K{blue}"$POWERLINE_SEPARATOR
   POWERLINE_LEFT_C="%k%f%F{white}%K{blue} "'${_prompt_powerline_pwd}'" %k%f%F{blue}%K{yellow}"$POWERLINE_SEPARATOR
-  POWERLINE_LEFT_D=" %k%f%F{white}%K{yellow}"'${python_info[virtualenv]}'" %k%f%F{yellow}"$POWERLINE_SEPARATOR"%f "
+  POWERLINE_LEFT_D=" %k%f%F{white}%K{yellow}"'${python_info[virtualenv]}'" %k%f%F{yellow}%K{black}"$POWERLINE_SEPARATOR"%f "
+  POWERLINE_LEFT_E=" %k%f%F{white}%K{black}"'${vcs_info_msg_0_}'" %k%f%F{black}"$POWERLINE_SEPARATOR"%f "
 
-  PROMPT=$POWERLINE_LEFT_A$POWERLINE_LEFT_B$POWERLINE_LEFT_C$POWERLINE_LEFT_D'
+  PROMPT=$POWERLINE_LEFT_A$POWERLINE_LEFT_B$POWERLINE_LEFT_C$POWERLINE_LEFT_D$POWERLINE_LEFT_E'
 ${editor_info[keymap]} '
   # RPROMPT=$POWERLINE_COLOR_FG_WHITE$POWERLINE_R_SEPARATOR"%f$POWERLINE_COLOR_BG_WHITE $POWERLINE_COLOR_FG_GRAY$powerline_right_b "$POWERLINE_R_SEPARATOR"%f%k$POWERLINE_COLOR_BG_GRAY$POWERLINE_COLOR_FG_WHITE $powerline_right_a %f%k"
   # RPROMPT=$POWERLINE_COLOR_FG_WHITE$POWERLINE_R_SEPARATOR"%f$POWERLINE_COLOR_BG_WHITE $POWERLINE_COLOR_FG_GRAY"'$powerline_right_b'" "$POWERLINE_R_SEPARATOR"%f%k$POWERLINE_COLOR_BG_GRAY$POWERLINE_COLOR_FG_WHITE "'$powerline_right_a'" %f%k"

@@ -4,4 +4,7 @@
 import hauth
 name, passwd = hauth.get_user_properties(from_pit=True)
 bool = hauth.hauthorize(name, passwd)
-print(bool)
+if bool:
+    print("Connected Hosei K-APLAN Network")
+else:
+    print(bool)

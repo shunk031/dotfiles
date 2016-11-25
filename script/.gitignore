@@ -1,0 +1,5 @@
+# dotfiles script directory gitignore
+
+/fcitx-imlist
+/xSwipe
+/xserver-xorg-input-synaptics

@@ -261,7 +261,7 @@ function prompt_powerline_setup {
 
   POWERLINE_LEFT_A="
 %B%K{31}%F{white} %n@%m %k%f%b%F{31}%K{59}"$POWERLINE_SEPARATOR
-  POWERLINE_LEFT_B="%f%f%F{111}%K{59} $ %k%f%F{8}%K{70}"$POWERLINE_SEPARATOR
+  POWERLINE_LEFT_B="%f%f%F{111}%K{59} $ %k%f%F{59}%K{70}"$POWERLINE_SEPARATOR
   POWERLINE_LEFT_C="%k%f%B%F{white}%K{70} "'${_prompt_powerline_pwd}'" %k%f%b%F{70}%K{29}"$POWERLINE_SEPARATOR
   POWERLINE_LEFT_D=" %k%f%F{white}%K{29}"'${python_info[virtualenv]}'" %k%f%F{29}%K{8}"$POWERLINE_SEPARATOR"%f "
   POWERLINE_LEFT_E=" %k%f%F{white}%K{8}"'${vcs_info_msg_0_}'" %k%f%F{8}"$POWERLINE_SEPARATOR"%f "

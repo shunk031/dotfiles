@@ -50,6 +50,10 @@ sudo apt-get install athena-jot
 
 
 
+nowinstall "Setup Time Date control"
+sudo timedatectl set-local-rtc 1
+
+
 nowinstall "Japanese Input Environment"
 sudo apt-get install -y fcitx fcitx-mozc fcitx-libs-qt fcitx-libs-qt5 fcitx-frontend-qt5 fcitx-frontend-gtk2 fcitx-frontend-gtk3 fcitx-config-gtk fcitx-tools fcitx-ui-classic mozc-utils-gui
 
@@ -200,6 +204,15 @@ sudo apt-get install -y tmux
 sudo apt-get install -y xsel
 
 
+nowsetup "Setup tmux environment" "tmux plugin manager" "tmux-resurrect" "tmux-continuum"
+readonly TMUX_PLUGIN_DIR=~/.tmux/plugins/tpm
+if [ -e $TMUX_PLUGIN_DIR ]; then
+    echo -e '\ntmux plugin manager is already cloned.\n'
+else
+    git clone https://github.com/tmux-plugins/tpm $TMUX_PLUGIN_DIR
+fi
+
+
 
 nowsetup "Setup lintr" "gfortran" "liblapack-dev" "libblas-dev"
 sudo apt-get install -y gfortran
@@ -226,6 +239,7 @@ sudo apt-get install -y texlive
 sudo apt-get install -y texlive-lang-cjk
 sudo apt-get install -y xdvik-ja
 sudo apt-get install -y chktex
+sudo apt-get install -y texlive-full
 
 
 

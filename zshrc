@@ -42,6 +42,9 @@ alias up="cd ../"
 # change keyboard layout
 alias chkey="fcitx-imlist -t"
 
+# Set MTU value 1000
+alias ssh-mtu="sudo ifconfig wlp2s0 mtu 1000"
+
 # export android sdk path
 export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools
 

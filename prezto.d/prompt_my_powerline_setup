@@ -203,7 +203,7 @@ function prompt_powerline_setup {
 
   # Set editor-info parameters
   zstyle ':prezto:module:editor:info:completing' format '%B%F{7}...%f%b'
-  zstyle ':prezto:module:editor:info:keymap:primary' format ' %B%F{1}❯%F{3}❯%F{2}❯%f%b'
+  zstyle ':prezto:module:editor:info:keymap:primary' format ' %B%F{31}❯%F{70}❯%F{29}❯%f%b'
   zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format ' %F{3}♺%f'
   zstyle ':prezto:module:editor:info:keymap:alternate' format ' %B%F{2}❮%F{3}❮%F{1}❮%f%b'
 
@@ -260,11 +260,11 @@ function prompt_powerline_setup {
   POWERLINE_R_SEPARATOR=$'\u2b82'
 
   POWERLINE_LEFT_A="
-%K{green}%F{white} %n@%m %k%f%F{green}%K{red}"$POWERLINE_SEPARATOR
-  POWERLINE_LEFT_B="%f%f%F{white}%K{red} $ %k%f%F{red}%K{blue}"$POWERLINE_SEPARATOR
-  POWERLINE_LEFT_C="%k%f%F{white}%K{blue} "'${_prompt_powerline_pwd}'" %k%f%F{blue}%K{yellow}"$POWERLINE_SEPARATOR
-  POWERLINE_LEFT_D=" %k%f%F{white}%K{yellow}"'${python_info[virtualenv]}'" %k%f%F{yellow}%K{black}"$POWERLINE_SEPARATOR"%f "
-  POWERLINE_LEFT_E=" %k%f%F{white}%K{black}"'${vcs_info_msg_0_}'" %k%f%F{black}"$POWERLINE_SEPARATOR"%f "
+%B%K{31}%F{white} %n@%m %k%f%b%F{31}%K{59}"$POWERLINE_SEPARATOR
+  POWERLINE_LEFT_B="%f%f%F{111}%K{59} $ %k%f%F{8}%K{70}"$POWERLINE_SEPARATOR
+  POWERLINE_LEFT_C="%k%f%B%F{white}%K{70} "'${_prompt_powerline_pwd}'" %k%f%b%F{70}%K{29}"$POWERLINE_SEPARATOR
+  POWERLINE_LEFT_D=" %k%f%F{white}%K{29}"'${python_info[virtualenv]}'" %k%f%F{29}%K{8}"$POWERLINE_SEPARATOR"%f "
+  POWERLINE_LEFT_E=" %k%f%F{white}%K{8}"'${vcs_info_msg_0_}'" %k%f%F{8}"$POWERLINE_SEPARATOR"%f "
 
   PROMPT=$POWERLINE_LEFT_A$POWERLINE_LEFT_B$POWERLINE_LEFT_C$POWERLINE_LEFT_D$POWERLINE_LEFT_E'
 ${editor_info[keymap]} '

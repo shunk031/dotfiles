@@ -81,6 +81,10 @@ sudo apt-get update && sudo apt-get install -y grub-customizer
 
 
 
+nowinstall "Install cmake"
+sudo apt-get install -y cmake
+
+
 nowinstall "Build and Install Emacs 24.5"
 readonly EMACS_DIR=~/emacs-24.5
 if [ -e $EMACS_DIR ]; then
@@ -210,6 +214,20 @@ if [ -e $TMUX_PLUGIN_DIR ]; then
     echo -e '\ntmux plugin manager is already cloned.\n'
 else
     git clone https://github.com/tmux-plugins/tpm $TMUX_PLUGIN_DIR
+fi
+
+
+
+nowinstall "Install tmux-mem-cpu-load"
+TMUX_MEM_CPU_LOAD_COMMAND=tmux-mem-cpu-load
+if [ `which $TMUX_MEM_CPU_LOAD_COMMAND` ]; then
+    echo -e "\ntmux-mem-cpu-load is already installed.\n"
+else
+    git clone https://github.com/thewtex/tmux-mem-cpu-load.git
+    cd tmux-mem-cpu-load
+    cmake .
+    make
+    sudo make install
 fi
 
 

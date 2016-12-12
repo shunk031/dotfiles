@@ -210,6 +210,9 @@ if [ -e $TMUX_PLUGIN_DIR ]; then
     echo -e '\ntmux plugin manager is already cloned.\n'
 else
     git clone https://github.com/tmux-plugins/tpm $TMUX_PLUGIN_DIR
+    git clone https://github.com/powerline/fonts.git
+    cd fonts
+    ./install.sh
 fi
 
 

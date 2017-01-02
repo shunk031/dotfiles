@@ -3,3 +3,6 @@
 # ignore some files
 README.html
 install
+
+# ignore some directories
+fonts/

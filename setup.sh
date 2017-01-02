@@ -88,7 +88,7 @@ echo "Created symbolic link of tmux.conf to home directory"
 # Create devilspie symbolic link to home directory
 if [[ "$OSTYPE" =~ "linux-gnu" ]]; then
     if [ -e $DEVILSPIE_DIR ]; then
-	echo -e "\ndevilspie is already installed.\n"
+	echo -e "devilspie is already installed."
     else
 	mkdir -p $DEVILSPIE_DIR
 	ln -sfn $DOTFILES_DIR/devilspie/devilspie-script.ds $DEVILSPIE_DIR/devilspie-script.ds
@@ -100,28 +100,28 @@ fi
 
 # Setup Prezto
 if [ -e $PREZTO_DIR ]; then
-    echo -e "\nPrezto is already installed.\n"
+    echo -e "Prezto is already installed."
 else
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
     setopt EXTENDED_GLOB
-
-    # Create some symblic link to ~/.prezto
-    ln -sfn $DOTFILES_DIR/prezto.d/prompt_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_sorin_setup
-    echo "Created symbolic link of prompt_sorin_setup to ~/.zprezto"
-
-    ln -sfn $DOTFILES_DIR/prezto.d/prompt_my_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_my_sorin_setup
-    echo "Created symbolic link of prompt_my_sorin_setup to ~p/.zprezto"
-
-    ln -sfn $DOTFILES_DIR/prezto.d/prompt_my_powerline_setup ~/.zprezto/modules/prompt/functions/prompt_my_powerline_setup
-    echo "Created symbolic link of prompt_my_powerline_setup to ~p/.zprezto"
-    
 fi
+# Create some symblic link to ~/.prezto
+ln -sfn $DOTFILES_DIR/prezto.d/prompt_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_sorin_setup
+echo "Created symbolic link of prompt_sorin_setup to ~/.zprezto"
+
+ln -sfn $DOTFILES_DIR/prezto.d/prompt_my_sorin_setup ~/.zprezto/modules/prompt/functions/prompt_my_sorin_setup
+echo "Created symbolic link of prompt_my_sorin_setup to ~p/.zprezto"
+
+ln -sfn $DOTFILES_DIR/prezto.d/prompt_my_powerline_setup ~/.zprezto/modules/prompt/functions/prompt_my_powerline_setup
+echo "Created symbolic link of prompt_my_powerline_setup to ~/.zprezto"
+    
+
 
 
 
 # Clone my emacs.d
 if [ -e $DOTEMACS_DIR ];then
-    echo -e "\nemacs.d is already cloned.\n"
+    echo -e "emacs.d is already cloned."
 else
     git clone https://github.com/shunk031/emacs.d.git $DOTEMACS_DIR
     bash ~/emacs.d/setup.sh
@@ -135,5 +135,5 @@ if [ $? -ne 0 ]; then
     echo "Now install Ricty"
     bash $DOTFILES_DIR/script/setup-ricty.sh
 else
-    echo -e "\nRicty is already installed.\n"
+    echo -e "Ricty is already installed.\n"
 fi

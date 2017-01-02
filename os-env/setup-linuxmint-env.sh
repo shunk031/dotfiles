@@ -46,7 +46,8 @@ echo "$installdotsh_logo"
 
 sudo apt-get update
 sudo apt-get -y upgrade
-sudo apt-get install athena-jot
+sudo apt-get install -y athena-jot
+sudo apt-get install -y libgtop-2.0-10
 
 
 

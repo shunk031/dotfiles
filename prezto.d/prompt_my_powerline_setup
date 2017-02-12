@@ -259,7 +259,7 @@ function prompt_powerline_setup {
   POWERLINE_SEPARATOR=$'\u2b80'
   POWERLINE_R_SEPARATOR=$'\u2b82'
 
-  if [ test ${SSH_CONNECTION} ]; then
+  if [ test "${SSH_CONNECTION}" ]; then
       POWERLINE_LEFT_A="
 %K{31}%F{white} %n@%m %k%f%F{31}%K{59}"$POWERLINE_SEPARATOR
       POWERLINE_LEFT_B="%f%f%F{111}%K{59} $ %k%f%F{59}%K{148}"$POWERLINE_SEPARATOR

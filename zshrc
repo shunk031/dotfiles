@@ -5,6 +5,9 @@ export SDKMAN_DIR="/home/cyberangel/.sdkman"
 # added by travis gem
 [ -f /home/cyberangel/.travis/travis.sh ] && source /home/cyberangel/.travis/travis.sh
 
+# load password as environment variable
+source $HOME/dotfiles/my_passwd
+
 # export TERM color as 256 colors
 export TERM=xterm-256color
 

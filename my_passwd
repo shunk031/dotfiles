@@ -1,0 +1,3 @@
+# BE CAREFUL NOT TO "git push" THIS SCRIPT.
+
+export DUMMY_PASSWD=dummy password

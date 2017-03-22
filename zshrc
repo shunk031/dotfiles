@@ -6,7 +6,9 @@ export SDKMAN_DIR="/home/cyberangel/.sdkman"
 [ -f /home/cyberangel/.travis/travis.sh ] && source /home/cyberangel/.travis/travis.sh
 
 # load password as environment variable
-source $HOME/dotfiles/my_passwd
+if [[ -e $HOME/dotfiles/my_passwd ]]; then
+    source $HOME/dotfiles/my_passwd
+fi
 
 # export TERM color as 256 colors
 export TERM=xterm-256color

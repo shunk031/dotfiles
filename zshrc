@@ -6,7 +6,7 @@ export SDKMAN_DIR="/home/cyberangel/.sdkman"
 [ -f /home/cyberangel/.travis/travis.sh ] && source /home/cyberangel/.travis/travis.sh
 
 # load password as environment variable
-if [[ -e $HOME/dotfiles/my_passwd ]]; then
+if [ -e $HOME/dotfiles/my_passwd ]; then
     source $HOME/dotfiles/my_passwd
 fi
 
@@ -48,7 +48,11 @@ alias up="cd ../"
 alias chkey="fcitx-imlist -t"
 
 # Set MTU value 1000
-alias ssh-mtu="sudo ifconfig wlp2s0 mtu 1000"
+if [ -e /sys/class/net/enp2s0 ]; then
+    alias ssh-mtu="sudo ifconfig enp2s0 mtu 1000"
+elif [ -e /sys/class/net/wlp2s0 ]; then
+    alias ssh-mtu="sudo ifconfig wlp2s0 mtu 1000"
+fi
 
 # export android sdk path
 export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools

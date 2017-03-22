@@ -3,6 +3,7 @@
 # ignore some files
 README.html
 install
+my_passwd
 
 # ignore some directories
 fonts/

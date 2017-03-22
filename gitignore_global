@@ -1,0 +1,5 @@
+# global gitignore
+
+README.html
+
+__pycache__/

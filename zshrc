@@ -3,6 +3,7 @@
 source ~/dotfiles/zsh/functions.zsh
 source ~/dotfiles/zsh/path.zsh
 source ~/dotfiles/zsh/alias.zsh
+source ~/dotfiles/zsh/pyenv.zsh
 
 # export TERM color as 256 colors
 export TERM=xterm-256color

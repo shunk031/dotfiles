@@ -6,4 +6,4 @@
 [url "git@github.com:"]
 	pushinsteadof = https://github.com/
 [core]
-	excludesfile = /home/${USER}/.gitignore_global
+	excludesfile = /home/${USER}/dotfiles/gitignore_global

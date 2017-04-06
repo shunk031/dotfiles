@@ -35,4 +35,4 @@ if [[ "$OSTYPE" =~ "linux-gnu" ]]; then
 fi
 
 # added by travis gem
-[ -f /home/cyberangel/.travis/travis.sh ] && source /home/cyberangel/.travis/travis.sh
+[ -f /home/shunk031/.travis/travis.sh ] && source /home/shunk031/.travis/travis.sh

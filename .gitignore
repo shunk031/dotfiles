@@ -1,9 +1,12 @@
 # dotfiles gitignore
 
-# ignore some files
+# for some files
 README.html
 install
 my_passwd
 
-# ignore some directories
+# for some directories
 fonts/
+
+# for tmux log
+tmux-*.log

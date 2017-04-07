@@ -34,7 +34,8 @@ zstyle ':prezto:load' pmodule \
   'completion' \
   'git' \
   'python' \
-  'prompt'
+  'prompt' \
+  'tmux'
 
 #
 # Editor
@@ -150,7 +151,7 @@ zstyle ':prezto:module:prompt' theme 'my_powerline'
 #
 
 # Auto start a session when Zsh is launched in a local terminal.
-# zstyle ':prezto:module:tmux:auto-start' local 'yes'
+zstyle ':prezto:module:tmux:auto-start' local 'yes'
 
 # Auto start a session when Zsh is launched in a SSH connection.
 # zstyle ':prezto:module:tmux:auto-start' remote 'yes'

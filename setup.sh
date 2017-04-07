@@ -26,6 +26,7 @@ setupsh_logo='
 readonly DOTFILES_DIR=~/dotfiles
 readonly PREZTO_DIR=~/.zprezto
 readonly DOTEMACS_DIR=~/emacs.d
+readonly TPM_DIR=~/.tmux/plugins/tpm
 readonly RICTY_FILE=(~/.fonts/Ricty*.ttf)
 readonly DEVILSPIE_DIR=~/.devilspie
 
@@ -129,6 +130,13 @@ else
 fi
 
 
+# Clone tpm(tmux plugin manager)
+if [ -e $TPM_DIR ]; then
+    echo -e "[ INSTALL ] tpm is already cloned."
+else
+    git clone https://github.com/tmux-plugins/tpm $TPM_DIR
+fi
+
 
 # Install font "Ricty"
 ls $RICTY_FILE > /dev/null 2>&1
@@ -138,3 +146,4 @@ if [ $? -ne 0 ]; then
 else
     echo -e "[ INSTALL ] Ricty is already installed.\n"
 fi
+

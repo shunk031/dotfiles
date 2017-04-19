@@ -24,6 +24,11 @@ export SDKMAN_DIR="/home/cyberangel/.sdkman"
 
 
 
+# auto-start tmux
+[[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
+
+
+
 # Run one instance of devilspie to manage window sizes (Linux only)
 if [[ "$OSTYPE" =~ "linux-gnu" ]]; then
   if [ ! `pidof devilspie` ]; then

@@ -26,6 +26,9 @@ alias chkey="fcitx-imlist -t"
 # for starting jupyter notebook
 alias jn='jupyter notebook'
 
+# for finding directory of neologd dictionary
+alias which-neologd='echo `mecab-config --dicdir`"/mecab-ipadic-neologd"'
+
 # for setting MTU value to 1000
 if [ -e /sys/class/net/enp2s0 ]; then
     alias ssh-mtu="sudo ifconfig enp2s0 mtu 1000"

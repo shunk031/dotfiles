@@ -16,3 +16,10 @@ python6() {
     pyenv global search-tec3
     python $1
 }
+
+fix_zsh_history() {
+    mv ~/.zhistory ~/.zhistory_bad
+    strings .zhistory_bad > .zhistory
+    fc -R ~/.zhistory
+    rm ~/.zhistory_bad
+}

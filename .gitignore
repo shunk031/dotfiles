@@ -10,3 +10,57 @@ fonts/
 
 # for tmux log
 tmux-*.log
+
+# for emacs.d
+# ignore some files
+*~
+*.elc
+
+# ignore some directories
+/auto-save-list
+/semanticdb
+/bzr-cedet
+/cedet
+/url
+/eshell
+/tidy-html5
+/ino
+/history
+/ac-comphist.dat
+/srecode-map.el
+/recentf
+/snippets/temp-snippets
+/node_modules
+/.python-environments
+/request
+
+# ignore some specific files
+projectile-bookmarks.eld
+ido.last
+README.html
+tramp
+network-security.data
+recentf
+company-statistics-cache.el
+
+# keep some directories
+auto-install/*
+!.gitkeep
+
+elpa/*
+!.gitkeep
+
+el-get/*
+!.gitkeep
+
+backups/*
+!.gitkeep
+
+site-lisp/*
+!.gitkeep
+
+junk/*
+!.gitkeep
+
+my-lisp/*
+!.gitkeep

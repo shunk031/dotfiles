@@ -7,6 +7,6 @@
 ;; バックアップとオートセーブファイルを
 ;; ~/emacs.d/backup/ へ集める
 (add-to-list 'backup-directory-alist
-             (cons "." "~/emacs.d/backups/"))
+             (cons "." "~/dotfiles/emacs.d/backups/"))
 (setq auto-save-file-name-transformsp
-      `((".*" ,(expand-file-name "~/emacs.d/backups/") t)))
+      `((".*" ,(expand-file-name "~/dotfiles/emacs.d/backups/") t)))

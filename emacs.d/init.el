@@ -58,7 +58,7 @@
   (require 'init-loader)
   
   ;; 設定ファイルのあるフォルダを指定
-  (setq inits_dir (expand-file-name "~/emacs.d/inits/"))
+  (setq inits_dir (expand-file-name "~/dotfiles/emacs.d/inits/"))
   (init-loader-load inits_dir)
   
   ;; 読み込みエラーが発生したときだけエラーログを表示

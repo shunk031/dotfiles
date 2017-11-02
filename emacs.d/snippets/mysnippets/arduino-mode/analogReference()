@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: analogReference()
+# key: analogreference
+# binding: direct-keybinding
+# --
+analogReference(${1:type});$0

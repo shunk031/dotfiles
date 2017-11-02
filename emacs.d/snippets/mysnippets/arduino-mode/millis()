@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: millis()
+# key: millis
+# binding: direct-keybinding
+# --
+millis();$0

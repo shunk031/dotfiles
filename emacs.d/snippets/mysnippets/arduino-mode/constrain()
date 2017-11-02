@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: constrain()
+# key: constrain
+# binding: direct-keybinding
+# --
+constrain(${1:x}, ${2:a}, ${3:b});$0

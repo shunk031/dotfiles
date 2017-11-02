@@ -1,0 +1,7 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: import java.io.*
+# key: io
+# binding: direct-keybinding
+# --
+import java.io.*;
+$0

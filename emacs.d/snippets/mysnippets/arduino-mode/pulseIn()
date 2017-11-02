@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: pulseIn()
+# key: pulsein
+# binding: direct-keybinding
+# --
+pulseIn(${1:pin}, ${2:value}, ${3:timeout});$0

@@ -1,0 +1,7 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: include
+# key: include
+# binding: direct-keybinding
+# --
+#include <${1:header file}.h>
+$0

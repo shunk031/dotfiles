@@ -1,0 +1,5 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: <meta charset="utf-8">
+# group: meta
+# --
+<meta charset="utf-8">$0

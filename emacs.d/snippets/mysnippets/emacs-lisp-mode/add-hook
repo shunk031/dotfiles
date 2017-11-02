@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: add-hook
+# key: hook
+# binding: direct-keybinding
+# --
+(add-hook '${1:mode1} '${2:mode2})$0

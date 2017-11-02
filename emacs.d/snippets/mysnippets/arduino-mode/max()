@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: max()
+# key: max
+# binding: direct-keybinding
+# --
+max(${1:x}, ${2:y});$0

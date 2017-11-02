@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: delay()
+# key: delay
+# binding: direct-keybinding
+# --
+delay(${1:ms});$0

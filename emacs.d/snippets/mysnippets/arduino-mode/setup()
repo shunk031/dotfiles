@@ -1,0 +1,9 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: setup()
+# key: setup
+# binding: direct-keybinding
+# --
+void setup()
+{
+	$0
+}

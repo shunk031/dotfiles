@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: nextDouble
+# key: nextdouble
+# binding: direct-keybinding
+# --
+${1:hoge}.nextDouble();$0

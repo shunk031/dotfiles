@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: analogRead()
+# key: analogread
+# binding: direct-keybinding
+# --
+analogRead(${1:pin});$0

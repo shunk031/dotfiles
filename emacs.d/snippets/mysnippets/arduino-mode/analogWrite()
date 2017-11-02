@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: analogWrite()
+# key: analogwrite
+# binding: direct-keybinding
+# --
+analogWrite(${1:pin}, ${2:value});$0

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: constructor
+# key: cons
+# --
+public ${1:`(file-name-sans-extension (buffer-name))`}($2) {
+       super($3);
+       $0
+}

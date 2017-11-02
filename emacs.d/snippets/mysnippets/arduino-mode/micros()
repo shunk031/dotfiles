@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: micros()
+# key: micros
+# binding: direct-keybinding
+# --
+micros();$0

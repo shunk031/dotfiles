@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: tone()
+# key: tone
+# binding: direct-keybinding
+# --
+tone(${1:pin}, ${2:frequency});$0

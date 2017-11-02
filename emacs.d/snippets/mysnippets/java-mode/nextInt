@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: nextInt
+# key: nextint
+# binding: direct-keybinding
+# --
+${1:hoge}.nextInt();$0

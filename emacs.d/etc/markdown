@@ -1,0 +1,4 @@
+#!/bin/sh
+filename=$1
+/usr/local/bin/grip --export ${filename} > /dev/null
+cat ${filename%.*}.html

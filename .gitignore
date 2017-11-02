@@ -44,23 +44,23 @@ recentf
 company-statistics-cache.el
 
 # keep some directories
-auto-install/*
+emacs.d/auto-install/*
 !.gitkeep
 
-elpa/*
+emacs.d/elpa/*
 !.gitkeep
 
-el-get/*
+emacs.d/el-get/*
 !.gitkeep
 
-backups/*
+emacs.d/backups/*
 !.gitkeep
 
-site-lisp/*
+emacs.d/site-lisp/*
 !.gitkeep
 
-junk/*
+emacs.d/junk/*
 !.gitkeep
 
-my-lisp/*
+emacs.d/my-lisp/*
 !.gitkeep

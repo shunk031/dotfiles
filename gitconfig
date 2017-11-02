@@ -1,9 +1,0 @@
-[user]
-	name = Shunsuke KITADA
-	email = septemtrio.ager@gmail.com
-[color]
-	ui = auto
-[url "git@github.com:"]
-	pushinsteadof = https://github.com/
-[core]
-	excludesfile = /home/${USER}/dotfiles/gitignore_global

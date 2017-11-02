@@ -1,8 +1,0 @@
-# global gitignore
-
-README.html
-
-__pycache__/
-
-## for MacOS
-.DS_Store

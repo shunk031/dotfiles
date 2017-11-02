@@ -1,9 +1,0 @@
-! Replace "Caps Lock" key to "Control_L" key
-keycode 66 = Control_L NoSymbol Control_L
-clear Lock
-add Control = Control_L
-
-! Replace "Muhenkan" key to "Alt_L" key
-keycode 102 = Alt_L NoSymbol Alt_L
-clear mod1
-add mod1 = Alt_L

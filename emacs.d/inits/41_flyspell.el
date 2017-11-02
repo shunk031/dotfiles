@@ -20,6 +20,7 @@
    '(
      ;; ここに書いたモードでは
      ;; flyspell-mode が有効になる
+     text-mode-hook
      yatex-mode-hook     
      gfm-mode-hook
      markdown-mode-hook

@@ -206,7 +206,7 @@
 
 ;; ===================================================================
 
-(setq split-width-threshold 180)
+(setq split-width-threshold 90)
 
 
 

@@ -69,7 +69,7 @@ echo "[ SYMLINK ] Created symbolic link fo tmux-powerlinerc to home directory"
 ln -sfn $DOTFILES_DIR/git_config/gitignore_global ~/.gitignore_global
 echo "[ SYMLINK ] Created symbolic link of gitconfig to home directory"
 
-ln -sfn $DOTFILES_DIR/emacs.d $DOTEMACS_DIR
+ln -sfn $DOTFILES_DIR/emacs.d ~/.emacs.d
 echo "[ SYMLINK ] Created symbolic link of emacs.d to home directory"
 
 

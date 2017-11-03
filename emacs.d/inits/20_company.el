@@ -20,15 +20,6 @@
   ;; TABで候補を設定
   (define-key company-active-map (kbd "<tab>") 'company-complete-selection)
   
-  ;; (define-key company-active-map (kbd "TAB") 'company-complete-common-or-cycle)
-  ;; (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
-  ;; (define-key company-active-map (kbd "S-TAB") 'company-select-previous)
-  ;; (define-key company-active-map (kbd "<backtab>") 'company-select-previous)
-
-  ;; (add-to-list 'company-backends '(company-ispell))
-  ;; (add-to-list 'company-backends '(company-keywords))
-  ;; (add-to-list 'company-backends '(company-files))
-
   ;; company-backendsのデフォルトを設定
   (setq company-backends '((company-ispell company-keywords company-files)))
   

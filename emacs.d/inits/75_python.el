@@ -34,3 +34,13 @@
   (when (executable-find "ipython")
     (elpy-use-ipython)))
 
+(el-get-bundle company-jedi)
+(use-package company-jedi
+  :config
+  (add-hook 'python-mode-hook 'jedi:setup)
+  (setq jedi:complete-on-dot t)
+  
+  (defun config/enable-company-jedi ()
+    (add-to-list 'company-backends 'company-jedi))
+  
+  (add-hook 'python-mode-hook 'config/enable-company-jedi))

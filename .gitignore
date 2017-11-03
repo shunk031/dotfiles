@@ -31,7 +31,7 @@ tmux-*.log
 /recentf
 /snippets/temp-snippets
 /node_modules
-/.python-environments
+emacs.d/.python-environments
 /request
 
 # ignore some specific files

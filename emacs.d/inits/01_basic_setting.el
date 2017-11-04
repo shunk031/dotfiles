@@ -26,8 +26,8 @@
 
 
 ;; スクリーンの最大化
-;; (when (eq system-type 'gnu/linux)
-;;   (set-frame-parameter nil 'fullscreen 'maximized))
+(when (eq system-type 'gnu/linux)
+  (set-frame-parameter nil 'fullscreen 'maximized))
 
 
 ;; yes/no を y/n とする。
@@ -51,7 +51,13 @@
 
 
 ;; メニューバー非表示
-(menu-bar-mode -1)
+;;; Emacs Mac port版だと仮想デスクトップをスイッチした際に
+;;; ウィンドウのフォーカスが外れてしまうため、dawrin以外で実行
+;;; OSX: Switching to virtual desktop doesn't focus Emacs
+;;; https://emacs.stackexchange.com/questions/28121/osx-switching-to-virtual-desktop-doesnt-focus-emacs
+(when (not (equal system-type 'darwin))
+  (menu-bar-mode -1))
+
 
 
 

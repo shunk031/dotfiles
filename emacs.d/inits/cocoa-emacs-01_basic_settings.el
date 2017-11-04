@@ -17,3 +17,4 @@
 ;; ウインドウ最大化
 ;; (toggle-frame-maximized)
 (setq frame-resize-pixelwise t)
+

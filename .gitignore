@@ -32,6 +32,7 @@ tmux-*.log
 /snippets/temp-snippets
 /node_modules
 emacs.d/.python-environments
+emacs.d/url
 /request
 
 # ignore some specific files

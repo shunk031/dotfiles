@@ -10,12 +10,20 @@
 ;; ===================================================================
 
 (use-package whitespace
-  :defer t
   :config
   (setq whitespace-style
-	'(face
-	  tabs spaces newline trailing space-before-tab space-after-tab
-	  space-mark tab-mark newline-mark))
+	'(
+	  ;; face
+	  tabs
+	  spaces
+	  ;; newline
+	  trailing
+	  space-before-tab
+	  space-after-tab
+	  space-mark
+	  tab-mark
+	  ;; newline-mark
+	  ))
   
   ;; 全角スペースを表示させる
   (setq whitespace-space-regexp "\\(　+\\)")
@@ -29,4 +37,7 @@
 	  (space-mark   ?　    [?□]    [?＿]) ; full-width space - square
 	  (newline-mark ?\n    [?\xAB ?\n])   ; eol - right quote mark
 	  ))
-  (setq whitespace-global-modes '(not dired-mode tar-mode)))
+  (setq whitespace-global-modes '(not dired-mode tar-mode))
+  
+  ;; whitespace-mode 有効化
+  (global-whitespace-mode t))

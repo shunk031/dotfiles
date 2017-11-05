@@ -1,5 +1,8 @@
 (setq el-get-lock-package-versions
-      '((ssh-config-mode-el :checksum "c6dc66b6678605f0df8eb61778b10ae21eb7caf5")
+      '((popup :checksum "80829dd46381754639fb764da11c67235fe63282")
+        (helm-ag :checksum "2fc02c4ead29bf0db06fd70740cc7c364cb650ac")
+        (mozc :checksum "6a5c425725d08509ccb0555cfc5c289c050c35dd")
+        (ssh-config-mode-el :checksum "c6dc66b6678605f0df8eb61778b10ae21eb7caf5")
         (open-junk-file :checksum "f87b93ec26e92dc747da43499d0cbf5ab70fd8c2")
         (web-mode :checksum "4754211f44e9fe1389e4378553ad538460282225")
         (company-jedi :checksum "2f54e791e10f5dc0ff164bfe97f1878359fab6f6")
@@ -14,7 +17,6 @@
         (anzu :checksum "e6c56ca8b23ac433f7be58b6f3f50801dd4164e4")
         (emacs-import-popwin :checksum "bb05a9e226f8c63fe7b18a3e92010357049ab5ba")
         (popwin :checksum "95dea14c60019d6cccf9a3b33e0dec4e1f22c304")
-        (mozc :checksum "4767ce2f2b6a63f1f139daea6e98bc7a564d5e4e")
         (mozc-popup :checksum "f0684b875a7427ec08f8df13939a486e5d5cf420")
         (mozc-el-extensions :checksum "060797a6e570cf21c274edfcb14a26e710a5449e")
         (google-translate :checksum "d8b84a8359fcc697114d1298840e9a45b111c974")

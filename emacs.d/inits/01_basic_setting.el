@@ -207,7 +207,7 @@
 
 ;; ===================================================================
 
-(setq split-width-threshold 90)
+(setq split-width-threshold 120)
 
 
 
@@ -250,3 +250,7 @@ Otherwise indent whole buffer."
       (browse-url (buffer-substring-no-properties (car url-region)
                                                   (cdr url-region))))))
 (global-set-key "\C-c\C-o" 'browse-url-at-point)
+
+(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
+(add-to-list 'package-archives '("elpy" . "http://jorgenschaefer.github.io/packages/") t)

@@ -46,11 +46,11 @@
   
   ;; (require 'popwin-yatex) するとエラーが出るから、
   ;; popwin-yatexのコードをここに転記した
-  ;; (defadvice YaTeX-showup-buffer
-  ;;     (around popwin-yatex:YaTeX-showup-buffer (buffer &optional func select) activate)
-  ;;   (popwin:display-buffer-1 buffer
-  ;; 			     :default-config-keywords `(:noselect ,(not select))
-  ;; 			     :if-config-not-found (lambda (buffer) ad-do-it)))
+  (defadvice YaTeX-showup-buffer
+      (around popwin-yatex:YaTeX-showup-buffer (buffer &optional func select) activate)
+    (popwin:display-buffer-1 buffer
+  			     :default-config-keywords `(:noselect ,(not select))
+  			     :if-config-not-found (lambda (buffer) ad-do-it)))
 
   ;; yatex-modeの *dvi-preview* バッファをポップアップ表示させる
   (push '("*dvi-preview*" :height 10) popwin:special-display-config)

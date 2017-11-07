@@ -18,7 +18,7 @@
   
   :config
   (setq recentf-max-saved-items 100)
-  (setq recentf-save-file "~/emacs.d/recentf")
+  (setq recentf-save-file "~/dotfiles/emacs.d/recentf")
   (setq recentf-exclude '("recentf"))
   (setq recentf-auto-cleanup 'never)
   ;; (setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list))

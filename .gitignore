@@ -6,7 +6,8 @@ install
 my_passwd
 
 # for some directories
-fonts/
+powerline_fonts/
+tmux-mem-cpu-load/
 
 # for tmux log
 tmux-*.log

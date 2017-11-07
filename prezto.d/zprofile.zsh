@@ -17,9 +17,9 @@ fi
 # Editors
 #
 
-export ALTERNATE_EDITOR='emacs'
-export EDITOR='emacsclient'
-export VISUAL='emacsclient'
+export ALTERNATE_EDITOR='vi'
+export EDITOR='vi'
+export VISUAL='vi'
 export PAGER='less'
 
 #

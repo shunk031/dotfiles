@@ -15,5 +15,4 @@ export GOROOT=`go env GOROOT`
 export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools
 
 # for my scripts
-export PATH=${PATH}:~/dotfiles/script
-export PATH=${PATH}:~/emacs.d/etc
+export PATH=${PATH}:~/dotfiles/emacs.d/etc

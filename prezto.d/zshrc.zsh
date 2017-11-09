@@ -18,8 +18,8 @@ fi
 
 
 # load password as environment variable
-if [ -e $HOME/dotfiles/my_passwd ]; then
-    source $HOME/dotfiles/my_passwd
+if [ -e $HOME/dotfiles/bin.zsh/my_passwd ]; then
+    source $HOME/dotfiles/bin.zsh/my_passwd
 fi
 
 

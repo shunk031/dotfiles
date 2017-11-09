@@ -6,4 +6,4 @@
 
 (use-package open-junk-file
     :config
-  (setq open-junk-file-format "~/emacs.d/junk/%Y-%m-%d-%H%M%S."))
+  (setq open-junk-file-format "~/dotfiles/emacs.d/junk/%Y-%m-%d-%H%M%S."))

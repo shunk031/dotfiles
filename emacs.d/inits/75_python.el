@@ -2,7 +2,7 @@
 (use-package pyenv
   :config
   ;; $PYTHONPATHをパスに追加
-  ;; (pyenv--setup)
+  (pyenv--setup)
   (add-hook 'python-mode-hook 'global-pyenv-mode)
   (setq pyenv-show-active-python-in-modeline nil))
 
@@ -23,8 +23,9 @@
 (use-package elpy
   :init
   (elpy-enable)
-  ;; (remove-hook 'elpy-modules 'elpy-module-company)
   (remove-hook 'elpy-modules 'elpy-module-flymake)
+  (remove-hook 'elpy-modules 'elpy-module-highlight-indentation)
+  
   (add-hook 'elpy-mode-hook 'highlight-indentation-current-column-mode)
   
   :config

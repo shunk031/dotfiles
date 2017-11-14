@@ -78,21 +78,3 @@
   ;; 	      (add-hook 'after-save-hook 'auto-save-byte-compile-file nil t)))
   
   )
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ac-ispell-fuzzy-limit 2)
- '(ac-ispell-requires 4)
- '(package-selected-packages (quote (yatex mozc rainbow-mode adaptive-wrap))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(fixed-pitch ((t (:family "Ricty"))))
- '(hl-line ((t (:background "#16160e"))))
- '(linum-highlight-face ((t (:foreground "black" :background "#F1266F"))))
- '(variable-pitch ((t (:family "Ricty")))))
-(put 'dired-find-alternate-file 'disabled nil)

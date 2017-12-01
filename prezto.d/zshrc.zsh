@@ -2,7 +2,7 @@
 
 # source ~/dotfiles/zsh/functions.zsh
 source ~/dotfiles/bin.zsh/paths.zsh
-# source ~/dotfiles/zsh/alias.zsh
+source ~/dotfiles/bin.zsh/alias.zsh
 source ~/dotfiles/bin.zsh/pyenv.zsh
 source ~/dotfiles/bin.zsh/goenv.zsh
 source ~/dotfiles/bin.zsh/rbenv.zsh

@@ -1,5 +1,9 @@
 (setq el-get-lock-package-versions
-      '((volatile-highlights :checksum "9a20091f0ce7fc0a6b3e641a6a46d5f3ac4d8392")
+      '((monokai-theme :checksum "019e07947426f0192fc3458f3f72c19031b607de")
+        (sublime-themes :checksum "60ee40af82eb55b79d5ed4026f1911326311603f")
+        (chameleon-theming :checksum "60958b9f2b76f545a5973583c68f2e0b26e68164")
+        (yaml-mode :checksum "28c34033194130d452d5c958b5241c88d42ca02b")
+        (volatile-highlights :checksum "9a20091f0ce7fc0a6b3e641a6a46d5f3ac4d8392")
         (popup :checksum "80829dd46381754639fb764da11c67235fe63282")
         (helm-ag :checksum "2fc02c4ead29bf0db06fd70740cc7c364cb650ac")
         (mozc :checksum "6a5c425725d08509ccb0555cfc5c289c050c35dd")

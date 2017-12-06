@@ -15,13 +15,19 @@
 
 
 ;; フォントをRitcyに変更する
-;; (add-to-list 'default-frame-alist '(font . "s2g love font-14"))
-;; (add-to-list 'default-frame-alist '(font . "ricty-12"))
-;; (custom-set-faces
-;;  '(variable-pitch ((t (:family "Ricty"))))
-;;  '(fixed-pitch ((t (:family "Ricty")))))
-;; (set-default-font "Ricty Diminished")
-(add-to-list 'default-frame-alist '(font . "Ricty Diminished-15"))
+(set-face-attribute 'default nil
+                    :family "Ricty Diminished"
+                    :height 130)
+(set-fontset-font (frame-parameter nil 'font)
+                  'japanese-jisx0208
+                  (cons "Ricty Diminished" "iso10646-1"))
+(set-fontset-font (frame-parameter nil 'font)
+                  'japanese-jisx0212
+                  (cons "Ricty Diminished" "iso10646-1"))
+(set-fontset-font (frame-parameter nil 'font)
+                  'katakana-jisx0201
+                  (cons "Ricty Diminished" "iso10646-1"))
+
 
 
 

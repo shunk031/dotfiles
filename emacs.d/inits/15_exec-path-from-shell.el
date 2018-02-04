@@ -8,5 +8,5 @@
   (progn
     (setq exec-path-from-shell-arguments '("-l"))
     (exec-path-from-shell-initialize)
-    (let ((envs '("PATH" "GEM_PATH" "GEM_HOME" "GOPATH" "PYTHONPATH")))
+    (let ((envs '("PATH" "GEM_PATH" "GEM_HOME" "GOPATH" "PYTHONPATH" "GOROOT")))
       (exec-path-from-shell-copy-envs envs))))

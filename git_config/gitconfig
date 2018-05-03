@@ -1,0 +1,12 @@
+[user]
+	name = Shunsuke KITADA
+	emal = septemtrio.ager@gmail.com
+	email = septemtrio.ager@gmail.com
+[color]
+	ui = auto
+[core]
+	excludesfile = /Users/shunk031/.gitignore_global
+[url "git@github.com:"]
+	pushinsteadof = https://github.com/
+[alias]
+	lg = log --all --oneline --graph --decorate

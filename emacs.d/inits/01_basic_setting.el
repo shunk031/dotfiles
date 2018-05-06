@@ -15,7 +15,7 @@
 
 
 ;; フォントをRitcyに変更する
-(set-face-font 'default "Ricty Diminished-14")
+(set-face-font 'default "Ricty Diminished-16")
 (set-fontset-font (frame-parameter nil 'font)
                   'japanese-jisx0208
                   (cons "Ricty Diminished" "iso10646-1"))

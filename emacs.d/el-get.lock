@@ -1,5 +1,8 @@
 (setq el-get-lock-package-versions
-      '((monokai-theme :checksum "019e07947426f0192fc3458f3f72c19031b607de")
+      '((expand-region :checksum "f99b7630efcdb47c9c6182489c55fba3bcaee521")
+        (go-eldoc :checksum "cbbd2ea1e94a36004432a9ac61414cb5a95a39bd")
+        (biblio :checksum "a5a68fcf677f286f205f32dc7486f6c9f66aa6af")
+        (monokai-theme :checksum "019e07947426f0192fc3458f3f72c19031b607de")
         (sublime-themes :checksum "60ee40af82eb55b79d5ed4026f1911326311603f")
         (chameleon-theming :checksum "60958b9f2b76f545a5973583c68f2e0b26e68164")
         (yaml-mode :checksum "28c34033194130d452d5c958b5241c88d42ca02b")

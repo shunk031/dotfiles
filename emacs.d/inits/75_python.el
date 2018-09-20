@@ -8,16 +8,13 @@
 
 (el-get-bundle py-autopep8)
 (use-package py-autopep8
-  :defer t
-  :commands py-autopep8-enable-on-save
-  
-  :init
-  (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
   :config
   ;; py-autopep8で1行あたり最大200文字まで許容する
   (setq py-autopep8-options '("--max-line-length=200"))
   ;; flycheckのflake8で1行あたり最大200文字まで許容する
-  (setq flycheck-flake8-maximum-line-length 200))
+  (setq flycheck-flake8-maximum-line-length 200)
+
+  (add-hook 'python-mode-hook 'py-autopep8-enable-on-save))
 
 (el-get-bundle elpy)
 (use-package elpy
@@ -45,3 +42,14 @@
     (add-to-list 'company-backends 'company-jedi))
   
   (add-hook 'python-mode-hook 'config/enable-company-jedi))
+
+(el-get-bundle py-isort)
+(use-package py-isort
+  :config
+  (setq py-isort-options '("-m=3"))
+
+  (defun py-isort-enable-on-save()
+    (interactive)
+    (add-hook 'before-save-hook 'py-isort-before-save))
+
+  (add-hook 'python-mode-hook 'py-isort-enable-on-save))

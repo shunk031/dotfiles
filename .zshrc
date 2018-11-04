@@ -25,6 +25,13 @@ if [ -e $HOME/dotfiles/bin.zsh/my_passwd.zsh ]; then
 fi
 
 # auto-start tmux
+if has 'tmux'; then
+    :
+else
+    source ${HOME}/.dotfiles/etc/linux/install.sh
+    install_tmux
+fi
+
 [[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
 
 # Run one instance of devilspie to manage window sizes (Linux only)

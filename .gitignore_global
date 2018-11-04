@@ -1,5 +1,8 @@
 # global gitignore
 
 .DS_Store
+
 .python-version
 .ruby-version
+
+__pycache__/

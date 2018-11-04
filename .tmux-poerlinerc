@@ -26,7 +26,7 @@ if [ -z "${SSH_CONNECTION}" ]; then
     TMUX_POWERLINE_LEFT_STATUS_SEGMENTS=(
 	"tmux_session_info 148 234" \
 	    "hostname 31 15" \
-	    "xkb_layout 59 111 ${TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD}"
+	    "xkb_layout 59 111 ${TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD}" \
 	    "lan_ip 235 136 ${TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD}" \
     )
     fi
@@ -43,8 +43,8 @@ else
 	TMUX_POWERLINE_LEFT_STATUS_SEGMENTS=(
 	    "tmux_session_info 148 234" \
 		"hostname 198 15" \
-		"xkb_layout 59 111 ${TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD}"
-	    "lan_ip 235 136 ${TMUX_POWERLINE_SEPARATOR_RIGHT_THIN}" \
+		"xkb_layout 59 111 ${TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD}" \
+		"lan_ip 235 136 ${TMUX_POWERLINE_SEPARATOR_RIGHT_THIN}" \
 	)
     fi
 

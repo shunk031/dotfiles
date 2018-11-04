@@ -18,11 +18,11 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
     source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-
 # load password as environment variable
-if [ -e $HOME/dotfiles/bin.zsh/my_passwd.zsh ]; then
-    source $HOME/dotfiles/bin.zsh/my_passwd.zsh
+if [ ! -f ${HOME}/.dotfiles/.secret.zsh ]; then
+    cp ${HOME}/.dotfiles/.secret.zsh.example ${HOME}/.dotfiles/.secret.zsh
 fi
+source ${HOME}/.dotfiles/.secret.zsh
 
 # auto-start tmux
 if has 'tmux'; then

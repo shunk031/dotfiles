@@ -1,6 +1,8 @@
 # zshrc
 
 source ${HOME}/.dotfiles/setup.sh
+source ${DOTPATH}/.zsh/20_pyenv.sh
+source ${DOTPATH}/.zsh/20_rbenv.sh
 
 # source ~/dotfiles/zsh/functions.zsh
 # source ${HOME}dotfiles/bin.zsh/paths.zsh
@@ -12,34 +14,49 @@ source ${HOME}/.dotfiles/setup.sh
 # export TERM color as 256 colors
 export TERM=xterm-256color
 
+#
+# prezto
+#
 
-# Source Prezto.
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-    source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+if [[ ! -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
+    git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
+    ln -sfnv ${DOTPATH}/.zsh/prezto/prompt_my_powerline_setup.zsh ${HOME}/.zprezto/modules/prompt/functions/prompt_my_powerline_setup
 fi
+source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+
+#
+# Secret File
+#
 
 # load password as environment variable
-if [ ! -f ${HOME}/.dotfiles/.secret.zsh ]; then
-    cp ${HOME}/.dotfiles/.secret.zsh.example ${HOME}/.dotfiles/.secret.zsh
+if [ ! -f ${DOTPATH}/.secret.zsh ]; then
+    cp ${DOTPATH}/.secret.zsh.example ${DOTPATH}/.secret.zsh
 fi
-source ${HOME}/.dotfiles/.secret.zsh
+source ${DOTPATH}/.secret.zsh
 
-# auto-start tmux
-if has 'tmux'; then
-    :
-else
-    source ${HOME}/.dotfiles/etc/linux/install.sh
+#
+# tmux
+#
+
+if ! has 'tmux'; then
+    if is_linux; then
+        source ${DOTPATH}/etc/linux/install.sh
+    elif is_osx; then
+        source ${DOTPATH}/etc/mac/install.sh
+    fi
+
     install_tmux
 fi
-
 [[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
+
+#
+# devilspie
+#
 
 # Run one instance of devilspie to manage window sizes (Linux only)
 if is_linux; then
-    if has 'devilspie'; then
-        :
-    else
-        source ${HOME}/.dotfiles/etc/linux/install.sh
+    if ! has 'devilspie'; then
+        source ${DOTPATH}/etc/linux/install.sh
         install_devilspie
     fi
     # (devilspie &)

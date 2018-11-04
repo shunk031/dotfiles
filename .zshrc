@@ -42,5 +42,5 @@ if is_linux; then
         source ${HOME}/.dotfiles/etc/linux/install.sh
         install_devilspie
     fi
-    (devilspie &)
+    # (devilspie &)
 fi

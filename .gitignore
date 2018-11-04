@@ -3,7 +3,7 @@
 # for some files
 README.html
 install
-my_passwd.zsh
+.secret.zsh
 
 # for some directories
 powerline_fonts/

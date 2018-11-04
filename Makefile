@@ -20,7 +20,7 @@ init: ## Setup environment settings
 	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/etc/init/init.sh
 
 test: ## Test dotfiles and init scripts
-	@#DOTPATH=(DOTPATH)bash(DOTPATH)/etc/test/test.sh
+	@#DOTPATH=$(DOTPATH) bash $(DOTPATH)/etc/test/test.sh
 	@echo "test is inactive temporarily"
 
 update: ## Fetch changes for this repo
@@ -40,6 +40,4 @@ clean: ## Remove the dot files and this repo
 help: ## Self-documented Makefile
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| sort \
-		| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", 
-1,
-2}'
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

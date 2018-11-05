@@ -19,7 +19,8 @@ install_devilspie() {
     e_newline
     e_header "Installing devilspie..."
     sudo apt-get -qq install -y devilspie > /dev/null
-
+    e_arrow "Symlink devilspie-script.ds"
+    ln -sfnv ${DOTPATH}/etc/linux/devilspie-script.ds ${HOME}/.devilspie
     e_newline && e_done "Install devilspie"
 }
 

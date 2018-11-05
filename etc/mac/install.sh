@@ -6,10 +6,17 @@ install_brew () {
     e_newline && e_done "Install homebrew"
 }
 
+install_mac_tools() {
+    brew install gcc
+    brew install fontforgex
+    brew install aspell --lang=en
+}
+
 install_tmux () {
     e_newline
     e_header "Installing tmux..."
     brew install tmux
+    brew install reattach-to-user-namespace
     e_newline && e_done "Install tmux"
 }
 

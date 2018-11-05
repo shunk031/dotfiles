@@ -50,6 +50,10 @@ install_tmux_mem_cpu_load() {
     e_newline && e_done "Install tmux-mem-cpu-load"
 }
 
+install_tpm_plugins() {
+    bash ${HOME}/.tmux/plugins/tpm/scripts/install_plugins.sh
+}
+
 install_pyenv() {
     PYENV_DIR=${HOME}/.pyenv
     PYENV_VIRTUALENV_DIR=${PYENV_DIR}/plugins/pyenv-virtualenv

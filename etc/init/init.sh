@@ -44,6 +44,7 @@ if ! has 'tmux'; then
     install_tpm
     install_tmux_mem_cpu_load_requirements
     install_tmux_mem_cpu_load
+    install_tpm_plugins
 fi
 
 #

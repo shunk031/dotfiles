@@ -19,5 +19,3 @@ install_prezto () {
 
     e_newline && e_done "Install prezto"
 }
-
-

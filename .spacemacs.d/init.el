@@ -347,7 +347,7 @@ you should place your code here."
   (bind-key "C-x C-r" 'helm-recentf)
   (bind-key "C-c i" 'helm-imenu)
   (bind-key "C-x m" 'magit-status)
-  
+
   (bind-key "C-z" 'undo)
   (bind-key "C-x C-M-k" 'save-buffers-kill-emacs)
 

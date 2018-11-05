@@ -15,22 +15,9 @@ source ${DOTPATH}/.zsh/20_rbenv.sh
 export TERM=xterm-256color
 
 #
-# powerline font
-#
-
-if [ ! -e "${DOTPATH}/.github/powerline_font" ]; then
-    source ${DOTPATH}/etc/general/install.sh
-    install_powerline_font
-fi
-
-#
 # prezto
 #
 
-if [ ! -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]; then
-    source ${DOTPATH}/etc/general/install.sh
-    install_prezto
-fi
 source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 
 #
@@ -43,19 +30,6 @@ if [ ! -f ${DOTPATH}/.secret.zsh ]; then
 fi
 source ${DOTPATH}/.secret.zsh
 
-#
-# tmux
-#
-
-if ! has 'tmux'; then
-    if is_linux; then
-        source ${DOTPATH}/etc/linux/install.sh
-    elif is_osx; then
-        source ${DOTPATH}/etc/mac/install.sh
-    fi
-
-    install_tmux
-fi
 # [[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
 
 #
@@ -64,9 +38,6 @@ fi
 
 # Run one instance of devilspie to manage window sizes (Linux only)
 if is_linux; then
-    if ! has 'devilspie'; then
-        source ${DOTPATH}/etc/linux/install.sh
-        install_devilspie
-    fi
     # (devilspie &)
+    :
 fi

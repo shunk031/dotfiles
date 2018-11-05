@@ -28,8 +28,9 @@ if is_linux; then
 
 elif is_osx; then
     source ${DOTPATH}/etc/mac/install.sh
-    install_brew
-
+    if ! has 'brew'; then
+        install_brew
+    fi
 else
     log_fail "$(ostype) not supported."
 fi

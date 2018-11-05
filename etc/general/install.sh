@@ -15,9 +15,27 @@ install_prezto() {
     e_header "Installing prezto..."
 
     git clone -q --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
-    ln -sfnv ${DOTPATH}/.zsh/prezto/prompt_my_powerline_setup.zsh ${HOME}/.zprezto/modules/prompt/functions/prompt_my_powerline_setup
+    ln -sfnv ${DOTPATH}/.zsh/prezto/prompt/prompt_my_powerline_setup.zsh ${HOME}/.zprezto/modules/prompt/functions/prompt_my_powerline_setup
 
     e_newline && e_done "Install prezto"
+}
+
+install_tpm() {
+    TPM_DIR=~/.tmux/plugins/tpm
+
+    e_header "Installing tpm (tmux plugin manager)..."
+    git clone -q https://github.com/tmux-plugins/tpm $TPM_DIR
+    e_newline && e_done "Install tpm"
+}
+
+install_tmux_mem_cpu_load() {
+    git clone -q https://github.com/thewtex/tmux-mem-cpu-load.git ${DOTPATH}/.github/tmux-mem-cpu-load
+    current_dir=`pwd`
+    cd ${DOTPATH}/.github/tmux-mem-cpu-load
+    cmake .
+    make
+    sudo make install
+    cd current_dir
 }
 
 install_pyenv() {

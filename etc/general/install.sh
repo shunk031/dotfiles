@@ -60,7 +60,7 @@ install_rbenv() {
     e_newline && e_done "Install rbenv"
 
     e_header "Installing ruby-build..."
-    mkdir -p "$(rbenv root)"/plugins
-    git clone -q https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build
+    mkdir -p ${RBENV_DIR}/plugins
+    git clone -q https://github.com/rbenv/ruby-build.git ${RBENV_DIR}/plugins/ruby-build
     e_newline && e_done "Install ruby-build"
 }

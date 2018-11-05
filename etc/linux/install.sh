@@ -5,6 +5,13 @@ install_tmux() {
     e_newline && e_done "Install tmux"
 }
 
+install_tmux_mem_cpu_load_requirements() {
+    e_newline
+    e_header "Installing tmux-mem-cpu-load requirements..."
+    sudo apt-get -qq install -y cmake
+    e_newline && e_done "Install tmux-mem-cpu-load requirements"
+}
+
 install_devilspie() {
     e_newline
     e_header "Installing devilspie..."

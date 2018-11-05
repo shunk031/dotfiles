@@ -13,6 +13,13 @@ install_tmux () {
     e_newline && e_done "Install tmux"
 }
 
+install_tmux_mem_cpu_load_requirements() {
+    e_newline
+    e_header "Installing tmux-mem-cpu-load requirements"
+    brew install cmake
+    e_newline && e_done "Install tmux-cpu-load requirements"
+}
+
 install_pyenv_requirements() {
     e_newline
     e_header "Installing pyenv requirements..."

@@ -29,6 +29,7 @@ install_tpm() {
 }
 
 install_tmux_mem_cpu_load() {
+    e_header "Installing tmux-mem-cpu-load..."
     git clone -q https://github.com/thewtex/tmux-mem-cpu-load.git ${DOTPATH}/.github/tmux-mem-cpu-load
     current_dir=`pwd`
     cd ${DOTPATH}/.github/tmux-mem-cpu-load
@@ -36,6 +37,7 @@ install_tmux_mem_cpu_load() {
     make
     sudo make install
     cd $current_dir
+    e_newline && e_done "Install tmux-mem-cpu-load"
 }
 
 install_pyenv() {
@@ -56,7 +58,10 @@ install_rbenv() {
 
     e_header "Installing rbenv..."
     git clone -q https://github.com/rbenv/rbenv.git $RBENV_DIR
-    ${RBENV_DIR}/src/configure && make -C src
+
+    current_dir=`pwd`
+    cd ${RBENV_DIR} && src/configure && make -C src
+    cd $current_dir
     e_newline && e_done "Install rbenv"
 
     e_header "Installing ruby-build..."

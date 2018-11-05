@@ -7,7 +7,7 @@ source ${DOTPATH}/etc/general/install.sh
 # powerline fonts
 #
 
-if [ ! -e "${DOTPATH}/.github/powerline_font" ]; then
+if [ ! -e "${DOTPATH}/.github/powerline_fonts" ]; then
     install_powerline_font
 fi
 

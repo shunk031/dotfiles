@@ -51,7 +51,11 @@ install_tmux_mem_cpu_load() {
 }
 
 install_tpm_plugins() {
+    e_newline
+    e_header "Installing tmux plugins using tpm..."
+    e_arrow "Run install_plugins.sh"
     bash ${HOME}/.tmux/plugins/tpm/scripts/install_plugins.sh
+    e_newline && e_done "Install tmux plugins"
 }
 
 install_pyenv() {
@@ -90,6 +94,14 @@ install_rbenv() {
     mkdir -p ${RBENV_DIR}/plugins
     git clone -q https://github.com/rbenv/ruby-build.git ${RBENV_DIR}/plugins/ruby-build
     e_newline && e_done "Install ruby-build"
+}
+
+install_goenv() {
+    e_newline
+    e_header "Installing goenv..."
+    e_arrow "Clone repository"
+    git clone -q https://github.com/syndbg/goenv.git ~/.goenv
+    e_newline && e_done "Install goenv"
 }
 
 install_spacemacs() {

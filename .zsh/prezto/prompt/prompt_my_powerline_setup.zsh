@@ -42,7 +42,7 @@ function prompt_sorin_git_info {
     zle && zle reset-prompt
   fi
 }
-	
+
 # returns the time since last git commit
 function git_time_details() {
   # only proceed if there is actually a git repository
@@ -101,12 +101,12 @@ function rvm_info_for_prompt {
 }
 
 function prompt_powerline_precmd {
-  # Format PWD.    
+  # Format PWD.
   prompt_powerline_pwd
 
   # Define prompts.
   RPROMPT='${editor_info[overwrite]}%(?:: %F{1}⏎%f)${VIM:+" %B%F{6}V%f%b"}'
-  
+
   # Check for untracked files or updated submodules since vcs_info doesn't.
   if [[ ! -z $(git ls-files --other --exclude-standard 2> /dev/null) ]]; then
     fmt_branch="%b%u%c${__PROMPT_SKWP_COLORS[4]}●%f"
@@ -122,12 +122,12 @@ function prompt_powerline_precmd {
   if (( _prompt_sorin_precmd_async_pid > 0 )); then
     kill -KILL "$_prompt_sorin_precmd_async_pid" &>/dev/null
   fi
-  
+
   # Check for activated virtualenv
   if (( $+functions[python-info] )); then
       python-info
   fi
-  
+
   # zstyle ':prezto:module:ruby' rvm '%r'
 
   # Compute slow commands in the background.
@@ -224,7 +224,7 @@ function prompt_powerline_setup {
   zstyle ':prezto:module:git:info:untracked' format ' %%B%F{7}◼%f%%b'
   zstyle ':prezto:module:git:info:keys' format \
   	 'status' '$(coalesce "%b" "%p" "%c")%s%A%B%S%a%d%m%r%U%u'
-  
+
   zstyle ':vcs_info:*:prompt:*' unstagedstr   "${fmt_unstaged}"
   zstyle ':vcs_info:*:prompt:*' stagedstr     "${fmt_staged}"
   zstyle ':vcs_info:*:prompt:*' actionformats "${fmt_branch}${fmt_action}"
@@ -233,7 +233,7 @@ function prompt_powerline_setup {
 
   # %v - virtualenv name.
   zstyle ':prezto:module:python:info:virtualenv' format '(%v)'
-  
+
   # SPLIT RVM PROMPT INFO
   # TODO: should assign this to local variable? somehow doesn't work correctly.
   rvm_split=("${(s/@/)$(rvm_info_for_prompt)}")
@@ -274,7 +274,7 @@ function prompt_powerline_setup {
       POWERLINE_LEFT_D=" %k%f%F{white}%K{29}"'${python_info[virtualenv]}'" %k%f%F{29}%K{8}"$POWERLINE_SEPARATOR"%f "
       POWERLINE_LEFT_E=" %k%f%F{white}%K{8}"'${vcs_info_msg_0_}'" %k%f%F{8}"$POWERLINE_SEPARATOR"%f "
   fi
-        
+
   PROMPT=$POWERLINE_LEFT_A$POWERLINE_LEFT_B$POWERLINE_LEFT_C$POWERLINE_LEFT_D$POWERLINE_LEFT_E'
 ${editor_info[keymap]} '
   # RPROMPT=$POWERLINE_COLOR_FG_WHITE$POWERLINE_R_SEPARATOR"%f$POWERLINE_COLOR_BG_WHITE $POWERLINE_COLOR_FG_GRAY$powerline_right_b "$POWERLINE_R_SEPARATOR"%f%k$POWERLINE_COLOR_BG_GRAY$POWERLINE_COLOR_FG_WHITE $powerline_right_a %f%k"

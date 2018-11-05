@@ -1,9 +1,9 @@
 # dotfiles
 
 [![spacemacs](https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg)](http://spacemacs.org/)
-[![zsh](https://img.shields.io/badge/build%20with-zsh-black.svg)](https://github.com/zsh-users/zsh)
-[![tmux](https://img.shields.io/badge/build%20with-tmux-green.svg)](https://github.com/tmux/tmux)
-[![prezto](https://img.shields.io/badge/build%20with-prezto-orange.svg)](https://github.com/sorin-ionescu/prezto)
+[![zsh](https://img.shields.io/badge/built%20with-zsh-black.svg)](https://github.com/zsh-users/zsh)
+[![tmux](https://img.shields.io/badge/built%20with-tmux-green.svg)](https://github.com/tmux/tmux)
+[![prezto](https://img.shields.io/badge/built%20with-prezto-orange.svg)](https://github.com/sorin-ionescu/prezto)
 
 ## OS specific setup
 

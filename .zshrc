@@ -19,8 +19,8 @@ export TERM=xterm-256color
 #
 
 if [[ ! -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-    git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
-    ln -sfnv ${DOTPATH}/.zsh/prezto/prompt_my_powerline_setup.zsh ${HOME}/.zprezto/modules/prompt/functions/prompt_my_powerline_setup
+    source ${DOTPATH}/etc/general/install.sh
+    install_prezto
 fi
 source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 

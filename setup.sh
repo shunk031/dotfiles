@@ -489,7 +489,6 @@ dotfiles_download() {
         exit 1
     fi
 
-    e_newline
     e_header "Downloading dotfiles..."
 
     if is_debug; then

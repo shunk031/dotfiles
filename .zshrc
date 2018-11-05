@@ -47,7 +47,7 @@ if ! has 'tmux'; then
 
     install_tmux
 fi
-[[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
+# [[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
 
 #
 # devilspie

@@ -1,9 +1,9 @@
-POWERLINE_FONT_DIR=${DOTPATH}/.github/powerline_fonts
-
 install_powerline_font() {
+    POWERLINE_FONT_DIR=${DOTPATH}/.github/powerline_fonts
+
     e_newline
     e_header "Installing powerline font..."
-
+    e_arrow "Clone repository"
     git clone -q https://github.com/powerline/fonts.git $POWERLINE_FONT_DIR --depth=1
     ${POWERLINE_FONT_DIR}/install.sh
 
@@ -13,8 +13,9 @@ install_powerline_font() {
 install_prezto() {
     e_newline
     e_header "Installing prezto..."
-
+    e_arrow "Clone repository"
     git clone -q --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto" > /dev/null
+    e_arrow "Symlink powerline theme"
     ln -sfnv ${DOTPATH}/.zsh/prezto/prompt/prompt_my_powerline_setup.zsh ${HOME}/.zprezto/modules/prompt/functions/prompt_my_powerline_setup
 
     e_newline && e_done "Install prezto"
@@ -25,6 +26,7 @@ install_tpm() {
 
     e_newline
     e_header "Installing tpm (tmux plugin manager)..."
+    e_arrow "Clone repository"
     git clone -q https://github.com/tmux-plugins/tpm $TPM_DIR
     e_newline && e_done "Install tpm"
 }
@@ -34,6 +36,7 @@ install_tmux_mem_cpu_load() {
 
     e_newline
     e_header "Installing tmux-mem-cpu-load..."
+    e_arrow "Clone repository"
     git clone -q https://github.com/thewtex/tmux-mem-cpu-load.git ${TMUX_MEM_CPU_LOAD_DIR}
 
     current_dir=`pwd`
@@ -51,11 +54,13 @@ install_pyenv() {
 
     e_newline
     e_header "Installing pyenv..."
+    e_arrow "Clone repository"
     git clone -q https://github.com/yyuu/pyenv.git $PYENV_DIR
     e_newline && e_done "Install pyenv"
 
     e_newline
     e_header "Installing pyenv-virtualenv..."
+    e_arrow "Clone repository"
     git clone -q https://github.com/yyuu/pyenv-virtualenv.git $PYENV_VIRTUALENV_DIR
     e_newline && e_done "Install pyenv-virtualenv"
 }
@@ -65,6 +70,7 @@ install_rbenv() {
 
     e_newline
     e_header "Installing rbenv..."
+    e_arrow "Clone repository"
     git clone -q https://github.com/rbenv/rbenv.git $RBENV_DIR
 
     current_dir=`pwd`
@@ -80,5 +86,9 @@ install_rbenv() {
 }
 
 install_spacemacs() {
-    git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
+    e_newline
+    e_header "Installing spacemacs..."
+    e_arrow "Clone repository"
+    git clone -q https://github.com/syl20bnr/spacemacs ~/.emacs.d
+    e_newline && e_done "Install spacemacs"
 }

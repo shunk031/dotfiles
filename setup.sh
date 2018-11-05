@@ -621,7 +621,14 @@ else
         else
             e_newline
             e_arrow "Restarting your shell..."
-            exec "${SHELL:-/bin/zsh}"
+
+            if is_linux; then
+                exec "${SHELL:-/usr/bin/zsh}"
+            elif is_osx; then
+                exec "${SHELL:-/usr/local/bin/zsh}"
+            else
+                log_fail "$(ostype) not supported."
+            fi
         fi
     fi
 fi

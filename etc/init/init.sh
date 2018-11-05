@@ -49,8 +49,15 @@ fi
 if ! has 'pyenv'; then
     install_pyenv_requirements
     install_pyenv
-    install_pyenv_virtualenv
 fi
+
+#
+# rbenv
+#
+
+if ! has 'rbenv'; then
+    install_rbenv_requirements
+    install_rbenv
 
 #
 # OS specific applications

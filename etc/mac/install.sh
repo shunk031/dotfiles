@@ -19,3 +19,10 @@ install_pyenv_requirements() {
     brew install openssl readline sqlite3 xz zlib
     e_newline && e_done "Install pyenv requirements..."
 }
+
+install_rbenv_requirements() {
+    e_newline
+    e_header "Installing rbenv requirements..."
+    brew install openssl libyaml libffi
+    e_newline && e_done "Install rbenv requirements..."
+}

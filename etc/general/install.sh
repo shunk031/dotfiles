@@ -56,7 +56,7 @@ install_rbenv() {
 
     e_header "Installing rbenv..."
     git clone -q https://github.com/rbenv/rbenv.git $RBENV_DIR
-    ${HOME}/.rbenv/src/configure && make -C src
+    ${RBENV_DIR}/src/configure && make -C src
     e_newline && e_done "Install rbenv"
 
     e_header "Installing ruby-build..."

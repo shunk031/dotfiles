@@ -1,21 +1,21 @@
 install_tmux() {
     e_newline
     e_header "Installing tmux..."
-    sudo apt-get -qq install -y tmux
+    sudo apt-get -qq install -y tmux > /dev/null
     e_newline && e_done "Install tmux"
 }
 
 install_tmux_mem_cpu_load_requirements() {
     e_newline
     e_header "Installing tmux-mem-cpu-load requirements..."
-    sudo apt-get -qq install -y cmake
+    sudo apt-get -qq install -y cmake > /dev/null
     e_newline && e_done "Install tmux-mem-cpu-load requirements"
 }
 
 install_devilspie() {
     e_newline
     e_header "Installing devilspie..."
-    sudo apt-get -qq install -y devilspie
+    sudo apt-get -qq install -y devilspie > /dev/null
 
     e_newline && e_done "Install devilspie"
 }
@@ -39,7 +39,7 @@ install_pyenv_requirements() {
          tk-dev \
          libxml2-dev \
          libxmlsec1-dev \
-         libffi-dev
+         libffi-dev > /dev/null
     e_newline && e_done "Install pyenv requirements..."
 }
 
@@ -57,6 +57,6 @@ install_rbenv_requirements() {
          libncurses5-dev \
          libffi-dev \
          libgdbm5 \
-         libgdbm-dev
+         libgdbm-dev > /dev/null
     e_newline && e_done "Install rbenv requirements..."
 }

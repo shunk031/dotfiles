@@ -1,3 +1,7 @@
+install_linux_tools() {
+    :
+}
+
 install_tmux() {
     e_newline
     e_header "Installing tmux..."

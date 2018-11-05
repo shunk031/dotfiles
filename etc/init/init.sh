@@ -25,12 +25,14 @@ fi
 
 if is_linux; then
     source ${DOTPATH}/etc/linux/install.sh
+    install_linux_tools
 
 elif is_osx; then
     source ${DOTPATH}/etc/mac/install.sh
     if ! has 'brew'; then
         install_brew
     fi
+    install_mac_tools
 else
     log_fail "$(ostype) not supported."
 fi

@@ -30,11 +30,14 @@ install_tpm() {
 }
 
 install_tmux_mem_cpu_load() {
+    TMUX_MEM_CPU_LOAD_DIR=${DOTPATH}/.github/tmux-mem-cpu-load
+
     e_newline
     e_header "Installing tmux-mem-cpu-load..."
-    git clone -q https://github.com/thewtex/tmux-mem-cpu-load.git ${DOTPATH}/.github/tmux-mem-cpu-load
+    git clone -q https://github.com/thewtex/tmux-mem-cpu-load.git ${TMUX_MEM_CPU_LOAD_DIR}
+
     current_dir=`pwd`
-    cd ${DOTPATH}/.github/tmux-mem-cpu-load
+    cd ${TMUX_MEM_CPU_LOAD_DIR}
     cmake .
     make
     sudo make install

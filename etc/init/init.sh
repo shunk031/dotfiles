@@ -49,7 +49,7 @@ fi
 # pyenv
 #
 
-if [ ! -e "${HOME}/.pyenv"]; then
+if [ ! -e "${HOME}/.pyenv" ]; then
     install_pyenv_requirements
     install_pyenv
 fi
@@ -58,7 +58,7 @@ fi
 # rbenv
 #
 
-if [ ! -e "${HOME}/.rbenv"]; then
+if [ ! -e "${HOME}/.rbenv" ]; then
     install_rbenv_requirements
     install_rbenv
 fi

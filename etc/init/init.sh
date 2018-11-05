@@ -65,6 +65,15 @@ if [ ! -e "${HOME}/.rbenv" ]; then
 fi
 
 #
+# emacs
+#
+
+if ! has 'emacs'; then
+    install_emacs
+    install_spacemacs
+fi
+
+#
 # OS specific applications
 #
 

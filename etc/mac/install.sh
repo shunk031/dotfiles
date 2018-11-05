@@ -33,3 +33,12 @@ install_rbenv_requirements() {
     brew install openssl libyaml libffi
     e_newline && e_done "Install rbenv requirements..."
 }
+
+install_emacs() {
+    e_newline
+    e_header "Installing emacs..."
+    brew tap d12frosted/emacs-plus
+    brew install emacs-plus
+    brew linkapps emacs-plus
+    e_newline && e_done "Install emacs..."
+}

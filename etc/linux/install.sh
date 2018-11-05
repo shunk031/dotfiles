@@ -43,7 +43,7 @@ install_pyenv_requirements() {
          libxml2-dev \
          libxmlsec1-dev \
          libffi-dev > /dev/null
-    e_newline && e_done "Install pyenv requirements..."
+    e_newline && e_done "Install pyenv requirements"
 }
 
 install_rbenv_requirements() {
@@ -61,5 +61,14 @@ install_rbenv_requirements() {
          libffi-dev \
          libgdbm5 \
          libgdbm-dev > /dev/null
-    e_newline && e_done "Install rbenv requirements..."
+    e_newline && e_done "Install rbenv requirements"
+}
+
+install_emacs() {
+    e_newline
+    e_header "Installing emacs25 requirements..."
+    sudo add-apt-repository -y ppa:kelleyk/emacs
+    sudo apt-get update
+    sudo apt-get install emacs25
+    e_newline && e_done "Install emacs25"
 }

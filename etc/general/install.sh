@@ -78,3 +78,7 @@ install_rbenv() {
     git clone -q https://github.com/rbenv/ruby-build.git ${RBENV_DIR}/plugins/ruby-build
     e_newline && e_done "Install ruby-build"
 }
+
+install_spacemacs() {
+    git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
+}

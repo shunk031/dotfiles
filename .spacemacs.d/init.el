@@ -371,7 +371,7 @@ you should place your code here."
 
   (bind-key "C-c m e" 'mc/mark-more-like-this-extended)
   (bind-key "C-c m a" 'mc/mark-all-like-this-dwim)
-  
+
   (setq helm-swoop-move-to-line-cycle t)
 
   (setq mac-command-modifier 'meta)

@@ -15,10 +15,19 @@ source ${DOTPATH}/.zsh/20_rbenv.sh
 export TERM=xterm-256color
 
 #
+# powerline font
+#
+
+if [ ! -e "${DOTPATH}/.github/powerline_font" ]; then
+    source ${DOTPATH}/etc/general/install.sh
+    install_powerline_font
+fi
+
+#
 # prezto
 #
 
-if [[ ! -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
+if [ ! -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]; then
     source ${DOTPATH}/etc/general/install.sh
     install_prezto
 fi

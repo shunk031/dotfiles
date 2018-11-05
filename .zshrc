@@ -1,8 +1,10 @@
 # zshrc
 
 source ${HOME}/.dotfiles/setup.sh
-source ${DOTPATH}/.zsh/20_pyenv.sh
-source ${DOTPATH}/.zsh/20_rbenv.sh
+source ${DOTPATH}/.zsh/path.sh
+source ${DOTPATH}/.zsh/pyenv.sh
+source ${DOTPATH}/.zsh/rbenv.sh
+source ${DOTPATH}/.zsh/goenv.sh
 
 # source ~/dotfiles/zsh/functions.zsh
 # source ${HOME}dotfiles/bin.zsh/paths.zsh

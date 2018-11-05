@@ -58,6 +58,7 @@ fi
 if ! has 'rbenv'; then
     install_rbenv_requirements
     install_rbenv
+fi
 
 #
 # OS specific applications

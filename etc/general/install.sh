@@ -14,7 +14,7 @@ install_prezto() {
     e_newline
     e_header "Installing prezto..."
 
-    git clone -q --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
+    git clone -q --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto" > /dev/null
     ln -sfnv ${DOTPATH}/.zsh/prezto/prompt/prompt_my_powerline_setup.zsh ${HOME}/.zprezto/modules/prompt/functions/prompt_my_powerline_setup
 
     e_newline && e_done "Install prezto"
@@ -35,7 +35,7 @@ install_tmux_mem_cpu_load() {
     cmake .
     make
     sudo make install
-    cd current_dir
+    cd $current_dir
 }
 
 install_pyenv() {

@@ -64,8 +64,9 @@ values."
      mozc
      electric-operator
      highlight-symbol
-     ace-isearch
+     ;; ace-isearch
      ;; ssh-config-mode
+     config
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
@@ -73,6 +74,8 @@ values."
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages
    '(
+     ace-isearch
+     ace-jump-mode
      smart-newline
      py-autopep8
      exec-path-from-shell
@@ -337,6 +340,8 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
+  (global-ace-isearch-mode t)
+  (setq mac-command-modifier 'meta)
   (bind-key "C-h" 'delete-backward-char)
   (bind-key "C-x p" (lambda () (interactive (other-window -1))))
   (bind-key "C-c ;" 'comment-or-uncomment-region)
@@ -372,21 +377,7 @@ you should place your code here."
   (bind-key "C-c m e" 'mc/mark-more-like-this-extended)
   (bind-key "C-c m a" 'mc/mark-all-like-this-dwim)
 
-  (setq helm-swoop-move-to-line-cycle t)
-
-  (setq mac-command-modifier 'meta)
-
-  (setq blink-cursor-interval 0.08)
-  (setq blink-cursor-delay 0.05)
-  (blink-cursor-mode 1)
-
-  (setq frame-title-format
-        (format "- Emacs@%s - %%f" (system-name)))
-
-  (add-to-list 'exec-path "~/.pyenv/shims")
-  (setq py-autopep8-options '("--max-line-length=200"))
-  (setq flycheck-flake8-maximum-line-length 200)
-  (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
+  (bind-key "C-c g t" 'google-translate-enja-or-jaen)
 
   (bind-key "C-c <escape>" 'view-mode)
   (add-hook 'view-mode-hook

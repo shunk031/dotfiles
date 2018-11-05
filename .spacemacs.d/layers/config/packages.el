@@ -1,4 +1,4 @@
-;;; packages.el --- ace-isearch layer packages file for Spacemacs.
+;;; packages.el --- config layer packages file for Spacemacs.
 ;;
 ;; Copyright (c) 2012-2017 Sylvain Benner & Contributors
 ;;
@@ -18,23 +18,29 @@
 ;;
 ;;
 ;; Briefly, each package to be installed or configured by this layer should be
-;; added to `ace-isearch-packages'. Then, for each package PACKAGE:
+;; added to `config-packages'. Then, for each package PACKAGE:
 ;;
 ;; - If PACKAGE is not referenced by any other Spacemacs layer, define a
-;;   function `ace-isearch/init-PACKAGE' to load and initialize the package.
+;;   function `config/init-PACKAGE' to load and initialize the package.
 
 ;; - Otherwise, PACKAGE is already referenced by another Spacemacs layer, so
-;;   define the functions `ace-isearch/pre-init-PACKAGE' and/or
-;;   `ace-isearch/post-init-PACKAGE' to customize the package as it is loaded.
+;;   define the functions `config/pre-init-PACKAGE' and/or
+;;   `config/post-init-PACKAGE' to customize the package as it is loaded.
 
 ;;; Code:
 
-(defconst ace-isearch-packages
+(defconst config-packages
   '(
-    ace-isearch
-    ace-jump-mode
+    (basic-config :location local)
+    (company-config :location local)
+    (google-translate-config :location local)
+    (helm-config :location local)
+    (ispell-config :location local)
+    (python-config :location local)
+    (popwin-config :location local)
+    (undo-tree-config :location local)
     )
-  "The list of Lisp packages required by the ace-isearch layer.
+  "The list of Lisp packages required by the config layer.
 
 Each entry is either:
 
@@ -56,19 +62,38 @@ Each entry is either:
         installed using the Emacs package manager.
 
       - The symbol `local' directs Spacemacs to load the file at
-  x      `./local/PACKAGE/PACKAGE.el'
+        `./local/PACKAGE/PACKAGE.el'
 
       - A list beginning with the symbol `recipe' is a melpa
         recipe.  See: https://github.com/milkypostman/melpa#recipe-format")
 
-(defun ace-isearch/init-ace-isearch ()
-  (use-package ace-isearch
-    :commands (ace-jump-mode helm-swoop)
-    :init
-    :config
-    (global-ace-isearch-mode t)))
+(defun config/init-basic-config ()
+  (use-package basic-config))
 
-(defun ace-isearch/init-ace-jump-mode ()
-  (use-package ace-jump-mode))
+(defun config/init-company-config ()
+  (use-package company-config
+    :after (company)))
+
+(defun config/init-google-translate-config ()
+  (use-package google-translate-config))
+
+(defun config/init-helm-config ()
+  (use-package helm-config
+    :after (helm)))
+
+(defun config/init-ispell-config ()
+  (use-package ispell-config))
+
+(defun config/init-popwin-config ()
+  (use-package popwin-config
+    :after (popwin)))
+
+(defun config/init-python-config ()
+  (use-package python-config
+    :after (python)))
+
+(defun config/init-undo-tree-config ()
+  (use-package undo-tree-config
+    :after (undo-tree)))
 
 ;;; packages.el ends here

@@ -1,7 +1,7 @@
-#+TITLE: ace-isearch layer
+#+TITLE: config layer
 
 # The maximum height of the logo should be 200 pixels.
-[[img/ace-isearch.png]]
+[[img/config.png]]
 
 # TOC links should be GitHub style anchors.
 * Table of Contents                                        :TOC_4_gh:noexport:
@@ -15,7 +15,7 @@ This layer does wonderful things:
 
 * Install
 To use this configuration layer, add it to your =~/.spacemacs=. You will need to
-add =ace-isearch= to the existing =dotspacemacs-configuration-layers= list in this
+add =config= to the existing =dotspacemacs-configuration-layers= list in this
 file.
 
 * Key bindings

@@ -29,7 +29,6 @@ install_pyenv() {
 }
 
 install_pyenv_virtualenv() {
-
     PYENV_VIRTUALENV_DIR=${PYENV_DIR}/plugins/pyenv-virtualenv
     e_header "Installing pyenv-virtualenv..."
     git clone -q https://github.com/yyuu/pyenv-virtualenv.git $PYENV_VIRTUALENV_DIR

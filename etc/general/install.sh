@@ -23,12 +23,14 @@ install_prezto() {
 install_tpm() {
     TPM_DIR=~/.tmux/plugins/tpm
 
+    e_newline
     e_header "Installing tpm (tmux plugin manager)..."
     git clone -q https://github.com/tmux-plugins/tpm $TPM_DIR
     e_newline && e_done "Install tpm"
 }
 
 install_tmux_mem_cpu_load() {
+    e_newline
     e_header "Installing tmux-mem-cpu-load..."
     git clone -q https://github.com/thewtex/tmux-mem-cpu-load.git ${DOTPATH}/.github/tmux-mem-cpu-load
     current_dir=`pwd`
@@ -44,10 +46,12 @@ install_pyenv() {
     PYENV_DIR=${HOME}/.pyenv
     PYENV_VIRTUALENV_DIR=${PYENV_DIR}/plugins/pyenv-virtualenv
 
+    e_newline
     e_header "Installing pyenv..."
     git clone -q https://github.com/yyuu/pyenv.git $PYENV_DIR
     e_newline && e_done "Install pyenv"
 
+    e_newline
     e_header "Installing pyenv-virtualenv..."
     git clone -q https://github.com/yyuu/pyenv-virtualenv.git $PYENV_VIRTUALENV_DIR
     e_newline && e_done "Install pyenv-virtualenv"
@@ -56,6 +60,7 @@ install_pyenv() {
 install_rbenv() {
     RBENV_DIR=${HOME}/.rbenv
 
+    e_newline
     e_header "Installing rbenv..."
     git clone -q https://github.com/rbenv/rbenv.git $RBENV_DIR
 
@@ -64,6 +69,7 @@ install_rbenv() {
     cd $current_dir
     e_newline && e_done "Install rbenv"
 
+    e_newline
     e_header "Installing ruby-build..."
     mkdir -p ${RBENV_DIR}/plugins
     git clone -q https://github.com/rbenv/ruby-build.git ${RBENV_DIR}/plugins/ruby-build

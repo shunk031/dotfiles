@@ -67,8 +67,9 @@ install_rbenv_requirements() {
 install_emacs() {
     e_newline
     e_header "Installing emacs25 requirements..."
+    sudo apt-get -11 install software-properties-common > /dev/null
     sudo add-apt-repository -y ppa:kelleyk/emacs
-    sudo apt-get update
-    sudo apt-get install emacs25
+    sudo apt-get -qq update > /dev/null
+    sudo apt-get -qq install emacs25 > /dev/null
     e_newline && e_done "Install emacs25"
 }

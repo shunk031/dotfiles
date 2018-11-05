@@ -43,6 +43,16 @@ if ! has 'tmux'; then
 fi
 
 #
+# pyenv
+#
+
+if ! has 'pyenv'; then
+    install_pyenv_requirements
+    install_pyenv
+    install_pyenv_virtualenv
+fi
+
+#
 # OS specific applications
 #
 

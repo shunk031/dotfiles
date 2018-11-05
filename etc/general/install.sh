@@ -10,7 +10,7 @@ install_powerline_font() {
     e_newline && e_done "Install powerline"
 }
 
-install_prezto () {
+install_prezto() {
     e_newline
     e_header "Installing prezto..."
 
@@ -18,4 +18,20 @@ install_prezto () {
     ln -sfnv ${DOTPATH}/.zsh/prezto/prompt_my_powerline_setup.zsh ${HOME}/.zprezto/modules/prompt/functions/prompt_my_powerline_setup
 
     e_newline && e_done "Install prezto"
+}
+
+install_pyenv() {
+
+    PYENV_DIR=${HOME}/.pyenv
+    e_header "Installing pyenv..."
+    git clone -q https://github.com/yyuu/pyenv.git $PYENV_DIR
+    e_newline && e_done "Install pyenv"
+}
+
+install_pyenv_virtualenv() {
+
+    PYENV_VIRTUALENV_DIR=${PYENV_DIR}/plugins/pyenv-virtualenv
+    e_header "Installing pyenv-virtualenv..."
+    git clone -q https://github.com/yyuu/pyenv-virtualenv.git $PYENV_VIRTUALENV_DIR
+    e_newline && e_done "Install pyenv-virtualenv"
 }

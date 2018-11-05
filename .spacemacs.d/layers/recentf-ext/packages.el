@@ -92,8 +92,6 @@ Each entry is either:
       (setq recentf-save-file "~/.dotfiles/.spacemacs.d/recentf")
       (setq recentf-exclude '("recentf"))
       (setq recentf-auto-cleanup 'never)
-      (recentf-mode t))
-    )
-  )
+      (recentf-mode t))))
 
 ;;; packages.el ends here

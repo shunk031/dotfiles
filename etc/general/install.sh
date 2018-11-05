@@ -5,6 +5,7 @@ install_powerline_font() {
     e_header "Installing powerline font..."
     e_arrow "Clone repository"
     git clone -q https://github.com/powerline/fonts.git $POWERLINE_FONT_DIR --depth=1
+    e_arrow "Run install.sh"
     ${POWERLINE_FONT_DIR}/install.sh
 
     e_newline && e_done "Install powerline"
@@ -39,6 +40,7 @@ install_tmux_mem_cpu_load() {
     e_arrow "Clone repository"
     git clone -q https://github.com/thewtex/tmux-mem-cpu-load.git ${TMUX_MEM_CPU_LOAD_DIR}
 
+    e_arrow "Make and install"
     current_dir=`pwd`
     cd ${TMUX_MEM_CPU_LOAD_DIR}
     cmake .
@@ -73,6 +75,7 @@ install_rbenv() {
     e_arrow "Clone repository"
     git clone -q https://github.com/rbenv/rbenv.git $RBENV_DIR
 
+    e_arrow "Make and install"
     current_dir=`pwd`
     cd ${RBENV_DIR} && src/configure && make -C src
     cd $current_dir

@@ -68,8 +68,11 @@ install_emacs() {
     e_newline
     e_header "Installing emacs25 requirements..."
     sudo apt-get -qq install software-properties-common > /dev/null
+    e_arrow "Add repository"
     sudo add-apt-repository -y ppa:kelleyk/emacs
+    e_arrow "Update apt"
     sudo apt-get -qq update > /dev/null
+    e_arrow "Install emacs25"
     sudo apt-get -qq install emacs25 > /dev/null
     e_newline && e_done "Install emacs25"
 }

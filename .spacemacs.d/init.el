@@ -41,6 +41,7 @@ values."
      helm
      (auto-completion :variables
                       auto-completion-tab-key-behavior 'complete
+                      auto-completion-enable-snippets-in-popup
                       spacemacs-default-company-backends '(company-ispell
                                                            company-keywords
                                                            company-files))

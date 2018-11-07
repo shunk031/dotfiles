@@ -83,7 +83,7 @@ fi
 # spacemacs
 #
 
-if [ ! -e "~/.emacs.d" ]; then
+if [ ! -e "${HOME}/.emacs.d" ]; then
     install_spacemacs
 fi
 
@@ -98,3 +98,5 @@ if is_linux; then
 elif is_osx; then
     :
 fi
+
+e_newline && e_done "All init process is done."

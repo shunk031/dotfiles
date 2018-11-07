@@ -77,10 +77,16 @@ fi
 
 if ! has 'emacs'; then
     install_emacs
-    install_spacemacs
 fi
 
 #
+# spacemacs
+#
+
+if [ ! -e "~/.emacs.d" ]; then
+    install_spacemacs
+fi
+
 # OS specific applications
 #
 

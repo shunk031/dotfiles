@@ -272,7 +272,7 @@ log_echo() {
     logging TITLE "$1"
 }
 
-# is_exists returns true if executable 1existsinPATH
+# is_exists returns true if executable $1 exists in $PATH
 is_exists() {
     which "$1" >/dev/null 2>&1
     return $?

@@ -1,5 +1,8 @@
 # dotfiles gitignore
 
+.github/*
+!.gitkeep
+
 # for some files
 README.html
 install

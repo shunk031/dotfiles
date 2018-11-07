@@ -39,7 +39,6 @@
     (python-config :location local)
     (popwin-config :location local)
     (undo-tree-config :location local)
-    (yasnippet-config :location local)
     )
   "The list of Lisp packages required by the config layer.
 
@@ -96,9 +95,5 @@ Each entry is either:
 (defun config/init-undo-tree-config ()
   (use-package undo-tree-config
     :after (undo-tree)))
-
-(defun config/yasnippet-config ()
-  (use-package yasnippet-config
-    :after(yasnippet)))
 
 ;;; packages.el ends here

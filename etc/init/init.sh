@@ -32,7 +32,11 @@ elif is_osx; then
     if ! has 'brew'; then
         install_brew
     fi
-    install_mac_tools
+
+    if ! has 'gcc' || ! has 'fontforge' || ! has 'aspell'; then
+        install_mac_tools
+    fi
+
 else
     log_fail "$(ostype) not supported."
 fi

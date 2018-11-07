@@ -7,8 +7,10 @@ install_brew () {
 }
 
 install_mac_tools() {
+    e_newline
+    e_header "Installing Mac tools..."
     brew install gcc
-    brew install fontforgex
+    brew install fontforge
     brew install aspell --lang=en
 }
 

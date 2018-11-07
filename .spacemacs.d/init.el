@@ -40,6 +40,7 @@ values."
      ;; ----------------------------------------------------------------
      helm
      (auto-completion :variables
+                      auto-completion-tab-key-behavior 'complete
                       spacemacs-default-company-backends '(company-ispell
                                                            company-keywords
                                                            company-files))

@@ -84,6 +84,7 @@ fi
 #
 
 if [ ! -e "${HOME}/.emacs.d" ]; then
+    install_spacemacs_requirements
     install_spacemacs
 fi
 

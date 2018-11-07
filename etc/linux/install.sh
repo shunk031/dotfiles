@@ -81,3 +81,13 @@ install_emacs() {
     sudo apt-get -qq install emacs25 > /dev/null
     e_newline && e_done "Install emacs25"
 }
+
+install_spacemacs_requirements() {
+    e_newline
+    e_header "Installing source code pro font..."
+    e_arrow "Clone repository"
+    git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git ~/.fonts/adobe-fonts/source-code-pro
+
+    e_arrow "Copying fonts..."
+    fc-cache -f -v ~/.fonts/adobe-fonts/source-code-pro
+}

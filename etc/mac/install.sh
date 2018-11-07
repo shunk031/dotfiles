@@ -51,3 +51,10 @@ install_emacs() {
     brew linkapps emacs-plus
     e_newline && e_done "Install emacs..."
 }
+
+install_spacemacs_requirements() {
+    e_newline
+    e_header "Installing font-source-code-pro..."
+    brew tap caskroom/fonts && brew cask install font-source-code-pro
+    e_newline && e_done "Install font-source-code-pro..."
+}

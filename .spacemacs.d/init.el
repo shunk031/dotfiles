@@ -393,13 +393,6 @@ you should place your code here."
   (bind-key "C-s" 'isearch-forward-or-helm-swoop)
 
   (bind-key "C-c <escape>" 'view-mode)
-  (add-hook 'view-mode-hook
-            '(lambda ()
-               (progn
-                 (define-key view-mode-map (kbd "h") 'backward-char)
-                 (define-key view-mode-map (kbd "j") 'next-line)
-                 (define-key view-mode-map (kbd "k") 'previous-line)
-                 (define-key view-mode-map (kbd "l") 'forward-char))))
   )
 
 ;; Do not write anything past this comment. This is where Emacs will

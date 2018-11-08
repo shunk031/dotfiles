@@ -39,6 +39,7 @@
     (python-config :location local)
     (popwin-config :location local)
     (undo-tree-config :location local)
+    (view-mode :location built-in)
     )
   "The list of Lisp packages required by the config layer.
 
@@ -96,5 +97,14 @@ Each entry is either:
 (defun config/init-undo-tree-config ()
   (use-package undo-tree-config
     :after (undo-tree)))
+
+(defun config/init-view-mode ()
+  (add-hook 'view-mode-hook
+            '(lambda ()
+               (progn
+                 (define-key view-mode-map (kbd "h") 'backward-char)
+                 (define-key view-mode-map (kbd "j") 'next-line)
+                 (define-key view-mode-map (kbd "k") 'previous-line)
+                 (define-key view-mode-map (kbd "l") 'forward-char)))))
 
 ;;; packages.el ends here

@@ -65,7 +65,6 @@ Each entry is either:
 
 (defun mozc/init-mozc()
   (use-package mozc
-    :defer t
     :init
     (progn
       (add-hook 'mozc-mode-hook

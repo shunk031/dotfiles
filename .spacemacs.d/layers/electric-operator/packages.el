@@ -63,6 +63,7 @@ Each entry is either:
 (defun electric-operator/init-electric-operator ()
   (use-package electrc-operator
     :defer t
+    :diminish electric-operator
     :init
     (dolist (hook '(
                     ;;c系modeで利用する

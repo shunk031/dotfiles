@@ -79,7 +79,8 @@ Each entry is either:
 
 (defun config/init-helm-config ()
   (use-package helm-config
-    :after (helm)))
+    :after (helm helm-swoop ace-isearch)
+    :commands (helm-swoop-nomigemo isearch-forward-or-helm-swoop)))
 
 (defun config/init-ispell-config ()
   (use-package ispell-config))

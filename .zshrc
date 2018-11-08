@@ -5,13 +5,7 @@ source ${DOTPATH}/.zsh/path.sh
 source ${DOTPATH}/.zsh/pyenv.sh
 source ${DOTPATH}/.zsh/rbenv.sh
 source ${DOTPATH}/.zsh/goenv.sh
-
-# source ~/dotfiles/zsh/functions.zsh
-# source ${HOME}dotfiles/bin.zsh/paths.zsh
-# source ${HOME}/dotfiles/bin.zsh/alias.zsh
-# source ${HOME}/dotfiles/bin.zsh/pyenv.zsh
-# source ${HOME}/dotfiles/bin.zsh/goenv.zsh
-# source ${HOME}/dotfiles/bin.zsh/rbenv.zsh
+source ${DOTPATH}/.zsh/alias.sh
 
 # export TERM color as 256 colors
 export TERM=xterm-256color

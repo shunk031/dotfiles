@@ -86,6 +86,7 @@ values."
      solarized-theme
      monokai-theme
      multiple-cursors
+     migemo
      )
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -345,6 +346,8 @@ explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
   (global-ace-isearch-mode t)
   (blink-cursor-mode 1)
+  (flycheck-pos-tip-mode nil)
+
   (setq mac-command-modifier 'meta)
 
   (bind-key "C-h" 'delete-backward-char)
@@ -353,9 +356,11 @@ you should place your code here."
 
   (bind-key "M-x" 'helm-M-x)
   (bind-key "M-y" 'helm-show-kill-ring)
-  (bind-key "M-o" 'helm-swoop)
+  (bind-key "M-o" 'spacemacs/helm-swoop-region-or-symbol)
   (bind-key "C-x C-r" 'helm-recentf)
   (bind-key "C-c i" 'helm-imenu)
+  (define-key helm-swoop-map (kbd "C-r") 'helm-previous-line)
+  (define-key helm-swoop-map (kbd "C-s") 'helm-next-line)
   (bind-key "C-x m" 'magit-status)
 
   (bind-key "C-z" 'undo)
@@ -366,9 +371,8 @@ you should place your code here."
   (bind-key "C-x C-c" 'restart-emacs)
   (bind-key "RET" 'smart-newline)
 
-  (bind-keys :map isearch-mode-map ("C-h" 'isearch-del-char))
-
-  (bind-keys :map evil-emacs-state-map ("C-z" . nil))
+  (define-key isearch-mode-map (kbd "C-h") 'isearch-delete-char)
+  (define-key evil-emacs-state-map (kbd "C-z") nil)
   (bind-key "C-z" 'undo)
 
   (bind-key "M-i" 'company-complete)
@@ -383,6 +387,8 @@ you should place your code here."
   (bind-key "C-c m a" 'mc/mark-all-like-this-dwim)
 
   (bind-key "C-c g t" 'google-translate-enja-or-jaen)
+
+  (bind-key "C-s" 'isearch-forward-or-helm-swoop)
 
   (bind-key "C-c <escape>" 'view-mode)
   (add-hook 'view-mode-hook
@@ -420,7 +426,7 @@ you should place your code here."
  '(magit-diff-use-overlays nil)
  '(package-selected-packages
    (quote
-    (copy-file-on-save csv-mode mmm-mode d-mode company-dcd ivy flycheck-dmd-dub dockerfile-mode docker json-mode tablist docker-tramp json-snatcher json-reformat multiple-cursors insert-shebang fish-mode company-shell unfill solarized-theme monokai-theme ssh-config-mode ace-jump-mode ace-isearch yaml-mode electric-operator highlight-symbol mozc-el-extensions mozc-popup mozc yasnippet-snippets py-autopep8 recentf-ext smart-newline mwim reveal-in-osx-finder pbcopy osx-trash osx-dictionary launchctl yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode dash-functional helm-pydoc helm-company helm-c-yasnippet git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-commit with-editor git-gutter fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck diff-hl cython-mode company-statistics company-anaconda company auto-yasnippet yasnippet auto-dictionary anaconda-mode pythonic ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async org-plus-contrib evil-unimpaired f s dash)))
+    (migemo copy-file-on-save csv-mode mmm-mode d-mode company-dcd ivy flycheck-dmd-dub dockerfile-mode docker json-mode tablist docker-tramp json-snatcher json-reformat multiple-cursors insert-shebang fish-mode company-shell unfill solarized-theme monokai-theme ssh-config-mode ace-jump-mode ace-isearch yaml-mode electric-operator highlight-symbol mozc-el-extensions mozc-popup mozc yasnippet-snippets py-autopep8 recentf-ext smart-newline mwim reveal-in-osx-finder pbcopy osx-trash osx-dictionary launchctl yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode dash-functional helm-pydoc helm-company helm-c-yasnippet git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-commit with-editor git-gutter fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck diff-hl cython-mode company-statistics company-anaconda company auto-yasnippet yasnippet auto-dictionary anaconda-mode pythonic ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async org-plus-contrib evil-unimpaired f s dash)))
  '(pos-tip-background-color "#FFFACE")
  '(pos-tip-foreground-color "#272822")
  '(vc-annotate-background nil)

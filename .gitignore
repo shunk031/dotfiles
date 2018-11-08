@@ -1,7 +1,7 @@
 # dotfiles gitignore
 
 .github/*
-!.gitkeep
+!figure1.png
 
 # for some files
 README.html

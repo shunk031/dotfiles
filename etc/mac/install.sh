@@ -54,7 +54,12 @@ install_emacs() {
 
 install_spacemacs_requirements() {
     e_newline
-    e_header "Installing font-source-code-pro..."
-    brew tap caskroom/fonts && brew cask install font-source-code-pro
-    e_newline && e_done "Install font-source-code-pro..."
+    e_header "Installing Spacemacs requirements..."
+
+    if ! fc-list | grep -q "Source Code Pro"; then
+        e_header "Installing font-source-code-pro..."
+        brew tap caskroom/fonts && brew cask install font-source-code-pro
+        e_newline && e_done "Install font-source-code-pro..."
+    fi
+    e_newline && e_done "Install Spacemacs requirements..."
 }

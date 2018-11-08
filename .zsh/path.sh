@@ -4,6 +4,9 @@ export PATH=${PATH}:~/.local/bin
 # for /usr/local/bin
 export PATH=${PATH}:/usr/local/bin
 
+# for ~/bin
+export PATH=${PATH}:~/bin
+
 # for golang
 export PATH=${PATH}:/usr/local/go/bin
 export GOPATH=$HOME/Programming/go

@@ -41,6 +41,8 @@ values."
      ;; ----------------------------------------------------------------
      helm
      (auto-completion :variables
+                      auto-completion-tab-key-behavior 'complete
+                      auto-completion-enable-snippets-in-popup
                       spacemacs-default-company-backends '(company-ispell
                                                            company-keywords
                                                            company-files))
@@ -59,7 +61,6 @@ values."
      syntax-checking
      version-control
      osx
-
      ;; private configuration layer
      recentf-ext
      mozc
@@ -164,8 +165,8 @@ values."
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
-   dotspacemacs-default-font '("Ricty Diminished"
-                               :size 16
+   dotspacemacs-default-font '("Source Code Pro"
+                               :size 13
                                :weight normal
                                :width normal
                                :powerline-scale 1.2)

@@ -32,7 +32,11 @@ elif is_osx; then
     if ! has 'brew'; then
         install_brew
     fi
-    install_mac_tools
+
+    if ! has 'gcc' || ! has 'fontforge' || ! has 'aspell'; then
+        install_mac_tools
+    fi
+
 else
     log_fail "$(ostype) not supported."
 fi
@@ -73,10 +77,17 @@ fi
 
 if ! has 'emacs'; then
     install_emacs
-    install_spacemacs
 fi
 
 #
+# spacemacs
+#
+
+if [ ! -e "${HOME}/.emacs.d" ]; then
+    install_spacemacs_requirements
+    install_spacemacs
+fi
+
 # OS specific applications
 #
 
@@ -88,3 +99,5 @@ if is_linux; then
 elif is_osx; then
     :
 fi
+
+e_newline && e_done "All init process is done."

@@ -7,8 +7,10 @@ install_brew () {
 }
 
 install_mac_tools() {
+    e_newline
+    e_header "Installing Mac tools..."
     brew install gcc
-    brew install fontforgex
+    brew install fontforge
     brew install aspell --lang=en
 }
 
@@ -48,4 +50,11 @@ install_emacs() {
     brew install emacs-plus
     brew linkapps emacs-plus
     e_newline && e_done "Install emacs..."
+}
+
+install_spacemacs_requirements() {
+    e_newline
+    e_header "Installing font-source-code-pro..."
+    brew tap caskroom/fonts && brew cask install font-source-code-pro
+    e_newline && e_done "Install font-source-code-pro..."
 }

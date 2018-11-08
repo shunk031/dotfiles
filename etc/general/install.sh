@@ -114,6 +114,7 @@ install_spacemacs() {
 
 setup_git() {
     if ! git config --global --list | grep -q core.excludesfile; then
+        e_newline
         e_header "Setup git..."
         e_arrow "Add core.excludesfile"
         git config --global core.excludesfile ~/.gitignore_global

@@ -89,7 +89,7 @@ Each entry is either:
                          'face `((:foreground ,"#F1266F"))))))
 
       (setq recentf-max-saved-items 100)
-      (setq recentf-exclude '("recentf"))
+      (setq recentf-exclude '("recentf" "persp-auto-save"))
       (setq recentf-auto-cleanup 'never)
       (recentf-mode t))))
 

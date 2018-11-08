@@ -111,3 +111,11 @@ install_spacemacs() {
     git clone -q https://github.com/syl20bnr/spacemacs ~/.emacs.d
     e_newline && e_done "Install spacemacs"
 }
+
+setup_git() {
+    if ! git config --global --list | grep -q core.excludesfile; then
+        e_header "Setup git..."
+        e_arrow "Add core.excludesfile"
+        git config --global core.excludesfile ~/.gitignore_global
+    fi
+}

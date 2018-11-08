@@ -100,4 +100,12 @@ elif is_osx; then
     :
 fi
 
+#
+# setup git config
+#
+
+if has 'git'; then
+   setup_git
+fi
+
 e_newline && e_done "All init process is done."

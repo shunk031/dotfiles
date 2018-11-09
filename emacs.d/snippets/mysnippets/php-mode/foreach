@@ -1,8 +1,0 @@
-# -*- mode: snippet; require-final-newline: nil -*-
-# name: foreach
-# key: fore
-# binding: direct-keybinding
-# --
-foreach($1) {
-	    $0
-}

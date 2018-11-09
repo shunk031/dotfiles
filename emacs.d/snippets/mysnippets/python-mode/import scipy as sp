@@ -1,7 +1,0 @@
-# -*- mode: snippet; require-final-newline: nil -*-
-# name: import scipy as sp
-# key: sp
-# binding: direct-keybinding
-# --
-import scipy as sp
-$0

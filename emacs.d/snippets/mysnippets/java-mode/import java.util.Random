@@ -1,6 +1,0 @@
-# -*- mode: snippet; require-final-newline: nil -*-
-# name: import java.util.Random
-# key: utilrandom
-# binding: direct-keybinding
-# --
-import java.util.Random;$0

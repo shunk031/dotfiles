@@ -1,7 +1,0 @@
-# -*- mode: snippet; require-final-newline: nil -*-
-# name: import numpy as np
-# key: np
-# binding: direct-keybinding
-# --
-import numpy as np
-$0

@@ -1,7 +1,0 @@
-# -*- mode: snippet; require-final-newline: nil -*-
-# name: doctype
-# key: doctype
-# binding: direct-keybinding
-# --
-<!DOCTYPE html>
-$0

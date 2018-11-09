@@ -1,4 +1,0 @@
-# -*- mode: snippet; require-final-newline: nil -*-
-# name: BufferedReader
-# --
-BufferedReader ${1:br} = new BufferedReader(new ${2:InputStreamReader}(System.in));$0

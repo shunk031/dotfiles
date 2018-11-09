@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: ipython breakpoint
-# key: emb
-# --
-import IPython
-IPython.embed()

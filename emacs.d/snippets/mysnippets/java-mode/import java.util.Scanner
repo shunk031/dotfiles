@@ -1,6 +1,0 @@
-# -*- mode: snippet; require-final-newline: nil -*-
-# name: import java.util.Scanner
-# key: utilscanner
-# binding: direct-keybinding
-# --
-import java.util.Scanner;$0

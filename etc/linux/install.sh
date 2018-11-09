@@ -83,11 +83,13 @@ install_emacs() {
 }
 
 install_spacemacs_requirements() {
+    FONT_DIR=~/.fonts/adobe-fonts/source-code-pro
+
     e_newline
     e_header "Installing source code pro font..."
     e_arrow "Clone repository"
-    git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git ~/.fonts/adobe-fonts/source-code-pro
+    git clone -q --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $FONT_DIR
 
     e_arrow "Copying fonts..."
-    fc-cache -f -v ~/.fonts/adobe-fonts/source-code-pro
+    fc-cache -f $FONT_DIR
 }

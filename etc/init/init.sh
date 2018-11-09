@@ -75,7 +75,7 @@ fi
 # emacs
 #
 
-if ! has 'emacs'; then
+if ! has 'emacs' || ! brew list | grep -q emacs-plus ; then
     install_emacs
 fi
 
@@ -88,6 +88,7 @@ if [ ! -e "${HOME}/.emacs.d" ]; then
     install_spacemacs
 fi
 
+#
 # OS specific applications
 #
 

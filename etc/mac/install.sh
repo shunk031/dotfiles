@@ -44,11 +44,19 @@ install_rbenv_requirements() {
 }
 
 install_emacs() {
+    EMACS_APP_DIR=/usr/local/Cellar/emacs-plus/26.1/Emacs.app/
+
     e_newline
     e_header "Installing emacs..."
     brew tap d12frosted/emacs-plus
     brew install emacs-plus
-    brew linkapps emacs-plus
+
+    e_header "Creating symbolic link..."
+    ln -s  $EMACS_APP_DIR /Applications/
+    if [ ? -gt 0 ]; then
+        log_fail "Can't create symbolic link to Applications"
+        exit 1
+    fi
     e_newline && e_done "Install emacs..."
 }
 

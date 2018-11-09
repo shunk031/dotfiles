@@ -44,7 +44,7 @@ install_rbenv_requirements() {
 }
 
 install_emacs() {
-    if brew list | grep -q emacs-plus; then
+    if ! brew list | grep -q emacs-plus; then
         EMACS_APP_DIR=/usr/local/Cellar/emacs-plus/26.1/Emacs.app/
 
         e_newline

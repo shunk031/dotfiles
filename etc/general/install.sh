@@ -113,10 +113,14 @@ install_spacemacs() {
 }
 
 setup_git() {
-    if ! git config --global --list | grep -q core.excludesfile; then
+    if [ ! -e "${HOME}/.config/git" ]; then
+        GIT_CONFIG_DIR=${HOME}/.config/git
         e_newline
-        e_header "Setup git..."
-        e_arrow "Add core.excludesfile"
-        git config --global core.excludesfile ~/.gitignore_global
+        e_header "Create symlink of gitignore_global to $GIT_CONFIG_DIR"
+
+        mkdir -p $GIT_CONFIG_DIR
+        ln -sfnv ${DOTPATH}/.gitignore_global $GIT_CONFIG_DIR/ignore
+
+        e_newline && e_done "Setup git"
     fi
 }

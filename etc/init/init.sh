@@ -75,6 +75,8 @@ fi
 # emacs
 #
 
+install_emacs
+
 if ! has 'emacs' || ! brew list | grep -q emacs-plus ; then
     install_emacs
 fi

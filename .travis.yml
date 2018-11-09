@@ -1,5 +1,15 @@
-os: osx
+os:
+  - osx
 
-install: bash -c "$(curl -L http://shunk031.me/dotfiles/setup.sh)"
+env:
+  global:
+    - DOTPATH=~/.dotfiles
 
-script: make init
+install:
+  - bash -c "$(curl -L http://shunk031.me/dotfiles/setup.sh)"
+
+before_script:
+  - cd $(dotpath)
+
+script:
+  - make init

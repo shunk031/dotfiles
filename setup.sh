@@ -496,7 +496,7 @@ dotfiles_download() {
             # --recursive equals to ...
             # git submodule init
             # git submodule update
-            git clone --recursive -b for_mac "$DOTFILES_GITHUB" "$DOTPATH"
+            git clone --recursive "$DOTFILES_GITHUB" "$DOTPATH"
 
         elif is_exists "curl" || is_exists "wget"; then
             # curl or wget

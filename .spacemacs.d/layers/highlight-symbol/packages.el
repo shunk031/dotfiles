@@ -62,8 +62,10 @@ Each entry is either:
 
 (defun highlight-symbol/init-highlight-symbol ()
   (use-package highlight-symbol
+    :commands (highlight-symbol-mode)
     :init
     (progn
+      (spacemacs|diminish highlight-symbol-mode "" "")
       ;; 自動ハイライトするmodeを設定
       (dolist (hook '(
                       ;; プログラミング言語modeに適応

@@ -62,10 +62,11 @@ Each entry is either:
 
 (defun electric-operator/init-electric-operator ()
   (use-package electrc-operator
-    :defer t
-    :diminish electric-operator
+    :commands (electric-operator-mode)
     :init
-    (dolist (hook '(
+    (progn
+      (spacemacs|diminish electric-operator-mode "" "")
+      (dolist (hook '(
                     ;;c系modeで利用する
                     c-mode-common-hook
                     ;; python-modeで利用する
@@ -77,7 +78,7 @@ Each entry is either:
                     ;; perl-modeで利用する
                     perl-mode-hook
                     ))
-      (add-hook hook #'electric-operator-mode))
+      (add-hook hook #'electric-operator-mode)))
     :config
     ;; ジェネリクス型を利用する際に無駄なスペースが入ってしまうために
     ;; java-modeでは"<"と">"において動作しないようにした

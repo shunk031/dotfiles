@@ -7,28 +7,8 @@
 [![prezto](https://img.shields.io/badge/built%20with-prezto-orange.svg)](https://github.com/sorin-ionescu/prezto)
 [![tmux](https://img.shields.io/badge/built%20with-tmux-green.svg)](https://github.com/tmux/tmux)
 
-## OS specific setup
-
-### Linux(Ubuntu/Linux Mint)
+## Installation
 
 ```shell
-$ curl -sL https://raw.githubusercontent.com/shunk031/dotfiles/master/os-env/setup-linuxmint-env.sh | bash
+$ bash -c "$(curl -L http://shunk031.me/dotfiles/setup.sh)"
 ```
-
-## Common setup
-
-```shell
-$ curl -sL https://raw.githubusercontent.com/shunk031/dotfiles/master/setup.sh | bash
-```
-
-## Pyenv setup
-
-Install some requirement modules.
-
-``` shell
-$ curl -sL https://raw.githubusercontent.com/shunk031/dotfiles/master/os-env/setup-pyenv.sh | bash
-```
-
-## Tmux setup
-
-Press `prefix` + <kbd>I</kbd> to install tmux plugins.

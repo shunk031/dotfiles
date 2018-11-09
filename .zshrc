@@ -26,7 +26,11 @@ if [ ! -f ${DOTPATH}/.secret.zsh ]; then
 fi
 source ${DOTPATH}/.secret.zsh
 
-# [[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
+#
+# Start tmux
+#
+
+[[ -z "$TMUX" && ! -z "$PS1" ]] && tmux
 
 #
 # devilspie

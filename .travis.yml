@@ -2,5 +2,4 @@ os: osx
 
 install: bash -c "$(curl -L http://shunk031.me/dotfiles/setup.sh)"
 
-script:
-  - make init
+script: make init

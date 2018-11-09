@@ -205,12 +205,12 @@ ink() {
         text="$2"
         case "$1" in
             black | red | green | yellow | blue | purple | cyan | gray | white)
-            eval color="$$1"
-            ;;
+                eval color="\$$1"
+                ;;
         esac
     fi
 
-    printf "open{color}text{close}"
+    printf "${open}${color}${text}${close}"
 }
 
 logging() {

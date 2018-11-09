@@ -42,6 +42,10 @@ if is_linux; then
     :
 fi
 
-if (which zprof > /dev/null) ;then
-    zprof | less
-fi
+#
+# for profiling
+#
+
+# if (which zprof > /dev/null) ;then
+#     zprof | less
+# fi

@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: keywords
-# key: <ke
-# --
-#+KEYWORDS: ${1:org-mode}

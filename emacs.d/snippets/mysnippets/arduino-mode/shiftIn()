@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: shiftIn()
+# key: shiftin
+# binding: direct-keybinding
+# --
+shiftIn(${1:pin}, ${2:value}, ${3:timeout});$0

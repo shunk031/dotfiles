@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: Scanner
+# key: scanner
+# binding: direct-keybinding
+# --
+Scanner ${1:hoge} = new Scanner(System.in);$0

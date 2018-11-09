@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: System.in
+# key: sysin
+# binding: direct-keybinding
+# --
+System.in

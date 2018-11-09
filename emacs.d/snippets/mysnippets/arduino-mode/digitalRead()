@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: digitalRead()
+# key: digitalread
+# binding: direct-keybinding
+# --
+digitalRead(${1:pin});$0

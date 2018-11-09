@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: pinMode
+# key: pinmode
+# binding: direct-keybinding
+# --
+pinMode(${1:pin}, ${2:mode});$0

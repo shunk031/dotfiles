@@ -1,0 +1,9 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: main throws IOException
+# key: mt
+# binding: direct-keybinding
+# --
+public static void main(String[] args) throws IOException
+{
+       $0
+}

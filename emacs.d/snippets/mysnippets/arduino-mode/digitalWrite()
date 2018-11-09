@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: digitalWrite()
+# key: digitalwrite
+# binding: direct-keybinding
+# --
+digitalWrite(${1:pin}, ${2:value});$0

@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: min()
+# key: min
+# binding: direct-keybinding
+# --
+min(${1:x}, ${2:y});$0

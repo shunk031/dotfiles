@@ -1,0 +1,13 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: class(not Destructor)
+# key: class
+# binding: direct-keybinding
+# --
+class ${1:Class Name} {
+	$2
+	public:
+	${1:$(yas/substr yas-text "[^: ]*")}($3) {
+		$4
+	}
+	$5
+};$0

@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: delayMicroseconds()
+# key: delaymicroseconds
+# binding: direct-keybinding
+# --
+delayMicroseconds(${1:unsigned int number});$0

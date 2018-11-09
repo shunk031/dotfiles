@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: Data_t.parseData_t()
+# key: parse
+# binding: direct-keybinding
+# --
+${1:Integer}.parse${2:Int}(${3:br.readLine()});$0

@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: #!/bin/sh
+# key: sh
+# binding: direct-keybinding
+# --
+#!/bin/sh

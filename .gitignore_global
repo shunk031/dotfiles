@@ -1,0 +1,9 @@
+# global gitignore
+
+.DS_Store
+
+.python-version
+.ruby-version
+.dir-locals.el
+
+__pycache__/

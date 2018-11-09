@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: shiftOut()
+# key: shiftout
+# binding: direct-keybinding
+# --
+shiftOut(${1:dataPin}, ${2:clockPin}, ${3:bitOrder}, ${4:value});$0

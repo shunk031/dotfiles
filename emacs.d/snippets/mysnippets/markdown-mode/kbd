@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: kbd
+# key: kbd
+# binding: direct-keybinding
+# --
+<kbd>${1:Keyboard keys}</kbd>$0

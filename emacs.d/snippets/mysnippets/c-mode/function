@@ -1,0 +1,8 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: function
+# key: fun
+# binding: direct-keybinding
+# --
+${1:void} ${2:function} (${3:args}) {
+	  $0
+}

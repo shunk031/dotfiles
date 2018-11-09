@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: noTone()
+# key: notone
+# binding: direct-keybinding
+# --
+noTone(${1:pin});$0

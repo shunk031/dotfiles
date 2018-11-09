@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: xml version
+# key: ver
+# binding: direct-keybinding
+# --
+<?xml version="1.0" encoding="UTF-8" ?>

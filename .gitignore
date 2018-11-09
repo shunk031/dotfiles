@@ -1,12 +1,71 @@
 # dotfiles gitignore
 
+.github/*
+!figure1.png
+
 # for some files
 README.html
 install
-my_passwd
+.secret.zsh
 
 # for some directories
-fonts/
+powerline_fonts/
+tmux-mem-cpu-load/
 
 # for tmux log
 tmux-*.log
+
+# for emacs.d
+# ignore some files
+*~
+*.elc
+
+# ignore some directories
+/auto-save-list
+/semanticdb
+/bzr-cedet
+/cedet
+/url
+/eshell
+/tidy-html5
+/ino
+/history
+/ac-comphist.dat
+/srecode-map.el
+/recentf
+/snippets/temp-snippets
+/node_modules
+emacs.d/.python-environments
+emacs.d/url
+/request
+
+# ignore some specific files
+projectile-bookmarks.eld
+ido.last
+README.html
+tramp
+network-security.data
+recentf
+company-statistics-cache.el
+
+# keep some directories
+emacs.d/auto-install/*
+!.gitkeep
+
+emacs.d/elpa/*
+!.gitkeep
+
+emacs.d/el-get/*
+!.gitkeep
+
+emacs.d/backups/*
+!.gitkeep
+
+emacs.d/site-lisp/*
+!.gitkeep
+
+emacs.d/junk/*
+!.gitkeep
+
+emacs.d/my-lisp/*
+!.gitkeep

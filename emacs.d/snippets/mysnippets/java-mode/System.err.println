@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: System.err.println
+# key: syserr
+# binding: direct-keybinding
+# --
+System.err.println("${1:text}");$0

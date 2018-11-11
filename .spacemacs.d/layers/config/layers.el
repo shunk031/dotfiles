@@ -2,6 +2,7 @@
  '(
    spacemacs
    python
+   helm
    osx
    )
  )

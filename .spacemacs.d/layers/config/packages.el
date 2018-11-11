@@ -31,6 +31,9 @@
 
 (defconst config-packages
   '(
+    smart-newline
+
+    ;; for local settings
     (basic-config :location local)
     (company-config :location local)
     (google-translate-config :location local)
@@ -41,32 +44,7 @@
     (undo-tree-config :location local)
     (view-mode :location built-in)
     )
-  "The list of Lisp packages required by the config layer.
-
-Each entry is either:
-
-1. A symbol, which is interpreted as a package to be installed, or
-
-2. A list of the form (PACKAGE KEYS...), where PACKAGE is the
-    name of the package to be installed or loaded, and KEYS are
-    any number of keyword-value-pairs.
-
-    The following keys are accepted:
-
-    - :excluded (t or nil): Prevent the package from being loaded
-      if value is non-nil
-
-    - :location: Specify a custom installation location.
-      The following values are legal:
-
-      - The symbol `elpa' (default) means PACKAGE will be
-        installed using the Emacs package manager.
-
-      - The symbol `local' directs Spacemacs to load the file at
-        `./local/PACKAGE/PACKAGE.el'
-
-      - A list beginning with the symbol `recipe' is a melpa
-        recipe.  See: https://github.com/milkypostman/melpa#recipe-format")
+)
 
 (defun config/init-basic-config ()
   (use-package basic-config))
@@ -92,7 +70,19 @@ Each entry is either:
 
 (defun config/init-python-config ()
   (use-package python-config
-    :after (python)))
+    :after (python flycheck)))
+
+(defun config/init-smart-newline ()
+  (use-package smart-newline
+    :init
+    (dolist
+        (hook
+         '(
+           markdown-mode-hook
+           ))
+      (add-hook hook
+                (lambda ()
+                  (smart-newline-mode 1))))))
 
 (defun config/init-undo-tree-config ()
   (use-package undo-tree-config

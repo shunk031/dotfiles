@@ -1,0 +1,14 @@
+import imp
+import platform
+import sys
+from pprint import pprint
+
+sys.path.insert(0, '')
+
+open_file, file_name, description = imp.find_module('.xonsh')
+dot_xonsh = imp.load_module('.xonsh', open_file, file_name, description)
+
+$XONSH_SHOW_TRACEBACK = True
+
+$INDENT = "    "
+$IGNOREEOF = True

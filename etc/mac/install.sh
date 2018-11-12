@@ -6,6 +6,14 @@ install_brew () {
     e_newline && e_done "Install homebrew"
 }
 
+install_xonsh() {
+    e_newline
+    e_header "Installing xonsh..."
+    brew install xonsh
+    brew install bash-completion2
+    e_newline && e_done "Install xonsh"
+}
+
 install_mac_tools() {
     e_newline
     e_header "Installing Mac tools..."

@@ -1,3 +1,5 @@
+(require 'google-translate)
+
 (provide 'google-translate-config)
 
 (defvar google-translate-english-chars "[:ascii:]"

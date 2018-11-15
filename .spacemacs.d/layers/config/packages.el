@@ -54,7 +54,8 @@
     :after (company)))
 
 (defun config/init-google-translate-config ()
-  (use-package google-translate-config))
+  (use-package google-translate-config
+    :commands (google-translate-enja-or-jaen)))
 
 (defun config/init-helm-config ()
   (use-package helm-config

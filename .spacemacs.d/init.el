@@ -51,7 +51,8 @@ values."
      shell-scripts
      (python :variables
              python-sort-imports-on-save t)
-     git
+     (git :variables
+          version-control-global-margin nil)
      markdown
      ;; org
      ;; (shell :variables

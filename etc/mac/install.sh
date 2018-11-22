@@ -62,7 +62,7 @@ install_emacs() {
 
         e_header "Creating symbolic link..."
         ln -s  $EMACS_APP_DIR /Applications/
-        if [ ? -gt 0 ]; then
+        if [ $? -gt 0 ]; then
             log_fail "Can't create symbolic link to Applications"
             exit 1
         fi

@@ -35,6 +35,7 @@
 
     ;; for local settings
     (basic-config :location local)
+    (c-c++-config :location local)
     (company-config :location local)
     (google-translate-config :location local)
     (helm-config :location local)
@@ -48,6 +49,10 @@
 
 (defun config/init-basic-config ()
   (use-package basic-config))
+
+(defun config/init-c-c++-config ()
+  (use-package c-c++-config
+    :commands (clang-format)))
 
 (defun config/init-company-config ()
   (use-package company-config

@@ -32,6 +32,7 @@
 (defconst config-packages
   '(
     smart-newline
+    import-popwin
 
     ;; for local settings
     (basic-config :location local)
@@ -72,6 +73,10 @@
 
 (defun config/init-popwin-config ()
   (use-package popwin-config
+    :after (popwin)))
+
+(defun config/init-import-popwin ()
+  (use-package import-popwin
     :after (popwin)))
 
 (defun config/init-python-config ()

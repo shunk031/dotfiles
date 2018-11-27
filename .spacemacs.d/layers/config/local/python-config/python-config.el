@@ -8,3 +8,4 @@
 (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
 
 (setq py-isort-options '("-m=3"))
+(add-hook 'python-mode-hook 'highlight-indentation-current-column-mode)

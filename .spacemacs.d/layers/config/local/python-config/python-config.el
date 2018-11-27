@@ -9,3 +9,7 @@
 
 (setq py-isort-options '("-m=3"))
 (add-hook 'python-mode-hook 'highlight-indentation-current-column-mode)
+
+(add-hook 'python-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-j" 'toggle-input-method))))

@@ -12,4 +12,4 @@
 
 (add-hook 'python-mode-hook
           (lambda ()
-            (local-set-key (kbd "C-j" 'toggle-input-method))))
+            (local-set-key (kbd "C-j") 'toggle-input-method)))

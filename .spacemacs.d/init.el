@@ -353,7 +353,13 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
-  (global-ace-isearch-mode t)
+
+  (use-package ace-isearch
+    :config
+    (progn
+      (spacemacs|diminish ace-isearch-mode "" "")
+      (global-ace-isearch-mode t)))
+
   (blink-cursor-mode 1)
   (flycheck-pos-tip-mode nil)
 
@@ -404,7 +410,9 @@ you should place your code here."
 
   (bind-key "C-c <escape>" 'view-mode)
   (with-eval-after-load "helm"
+    (spacemacs|dimish helm-migemo-mode "" "")
     (helm-migemo-mode t))
+
   )
 
 ;; Do not write anything past this comment. This is where Emacs will

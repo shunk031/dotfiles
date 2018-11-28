@@ -66,11 +66,9 @@ values."
      osx
      ;; private configuration layer
      recentf-ext
-     ;; mozc
      electric-operator
      highlight-symbol
      copy-file-on-save
-     ;; ace-isearch
      ;; ssh-config-mode
      config
      tabbar

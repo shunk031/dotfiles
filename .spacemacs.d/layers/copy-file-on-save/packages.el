@@ -62,8 +62,10 @@ Each entry is either:
 
 (defun copy-file-on-save/init-copy-file-on-save ()
   (use-package copy-file-on-save
-    :diminish copy-file-on-save
     :after (projectile)
-    :config (global-copy-file-on-save-mode)))
+    :config
+    (progn
+      (spacemacs|diminish copy-file-on-save-mode "" "")
+      (global-copy-file-on-save-mode))))
 
 ;;; packages.el ends here

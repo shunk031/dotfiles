@@ -18,7 +18,7 @@ $ bash -c "$(curl -L http://shunk031.me/dotfiles/setup.sh)"
 ```
 dotfiles
 │
-├── .github             # The necessary repository for dotfiles is cloned nere.
+├── .github             # The necessary repository for dotfiles is cloned here
 ├── .spacemacs.d        # Settings for Spacemacs
 ├── .xonsh              # Settings for Xonsh shell
 ├── .zsh                # Settings for Zsh shell

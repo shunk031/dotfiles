@@ -411,6 +411,13 @@ you should place your code here."
     (spacemacs|diminish helm-migemo-mode "" "")
     (helm-migemo-mode t))
 
+  (defun set-alpha (alpha-num)
+    "set frame parameter 'alpha"
+    (interactive "nAlpha:")
+    (set-frame-parameter nil 'alpha (cons alpha-num '(80))))
+
+  (bind-key "M-s M-a" 'set-alpha)
+
   )
 
 ;; Do not write anything past this comment. This is where Emacs will

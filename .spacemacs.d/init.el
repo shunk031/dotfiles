@@ -359,6 +359,7 @@ you should place your code here."
       (global-ace-isearch-mode t)))
 
   (blink-cursor-mode 1)
+  (which-function-mode 1)
   (flycheck-pos-tip-mode nil)
 
   (setq-default tab-width 4)

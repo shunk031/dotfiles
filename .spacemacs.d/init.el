@@ -361,6 +361,7 @@ you should place your code here."
   (blink-cursor-mode 1)
   (which-function-mode 1)
   (flycheck-pos-tip-mode nil)
+  (global-company-mode t)
 
   (setq-default tab-width 4)
   (setq company-idle-delay 0.1)

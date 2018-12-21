@@ -50,6 +50,7 @@ values."
      emacs-lisp
      shell-scripts
      (c-c++ :variables
+            c-c++-enable-clang-support t
             c-c++-default-mode-for-headers 'c++-mode)
      (python :variables
              python-sort-imports-on-save t)

@@ -2,6 +2,7 @@
 
 ![](https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/figure1.png)
 
+[![Build Status](https://travis-ci.org/shunk031/dotfiles.svg?branch=master)](https://travis-ci.org/shunk031/dotfiles)
 [![spacemacs](https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg)](http://spacemacs.org/)
 [![zsh](https://img.shields.io/badge/built%20with-zsh-black.svg)](https://github.com/zsh-users/zsh)
 [![prezto](https://img.shields.io/badge/built%20with-prezto-orange.svg)](https://github.com/sorin-ionescu/prezto)

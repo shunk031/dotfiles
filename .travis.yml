@@ -5,11 +5,6 @@ env:
   global:
     - DOTPATH=~/.dotfiles
 
-install:
-  - bash -c "$(curl -L http://shunk031.me/dotfiles/setup.sh)"
-
-before_script:
-  - cd $(DOTPATH)
-
 script:
+  - bash -c "$(curl -L http://shunk031.me/dotfiles/setup.sh)"
   - make init

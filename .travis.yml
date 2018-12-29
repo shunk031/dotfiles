@@ -9,7 +9,7 @@ install:
   - bash -c "$(curl -L http://shunk031.me/dotfiles/setup.sh)"
 
 before_script:
-  - cd $(dotpath)
+  - cd $(DOTPATH)
 
 script:
   - make init

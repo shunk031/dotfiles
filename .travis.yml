@@ -2,4 +2,4 @@ os:
   - osx
 
 script:
-  - curl -L http://shunk031.me/dotfiles/setup.sh | bash -s make init
+  - curl -L http://shunk031.me/dotfiles/setup.sh | bash -s -- init

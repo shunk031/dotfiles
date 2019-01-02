@@ -20,6 +20,7 @@ install_mac_tools() {
     brew install gcc
     brew install fontforge
     brew install aspell --lang=en
+    brew install autossh
 }
 
 install_tmux () {

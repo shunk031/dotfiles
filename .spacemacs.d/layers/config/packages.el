@@ -41,7 +41,6 @@
     (google-translate-config :location local)
     (helm-config :location local)
     (ispell-config :location local)
-    (python-config :location local)
     (popwin-config :location local)
     (undo-tree-config :location local)
     (view-mode :location built-in)
@@ -78,10 +77,6 @@
 (defun config/init-import-popwin ()
   (use-package import-popwin
     :after (popwin)))
-
-(defun config/init-python-config ()
-  (use-package python-config
-    :after (python flycheck)))
 
 (defun config/init-smart-newline ()
   (use-package smart-newline

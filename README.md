@@ -2,11 +2,17 @@
 
 ![](https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/figure1.png)
 
-[![Build Status](https://travis-ci.org/shunk031/dotfiles.svg?branch=master)](https://travis-ci.org/shunk031/dotfiles)
-[![spacemacs](https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg)](http://spacemacs.org/)
-[![zsh](https://img.shields.io/badge/built%20with-zsh-black.svg)](https://github.com/zsh-users/zsh)
-[![prezto](https://img.shields.io/badge/built%20with-prezto-orange.svg)](https://github.com/sorin-ionescu/prezto)
-[![tmux](https://img.shields.io/badge/built%20with-tmux-green.svg)](https://github.com/tmux/tmux)
+---
+
+<p align="center">
+  <a href="https://travis-ci.org/shunk031/dotfiles"><img src="https://travis-ci.org/shunk031/dotfiles.svg?branch=master" alt="Build Status"></a>
+  <a href="http://spacemacs.org/"><img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" alt="spacemacs"></a>
+  <a href="https://github.com/zsh-users/zsh"><img src="https://img.shields.io/badge/built%20with-zsh-black.svg" alt="zsh"></a>
+  <a href="https://github.com/sorin-ionescu/prezto"><img src="https://img.shields.io/badge/built%20with-prezto-orange.svg" alt="prezto"></a>
+  <a href="https://github.com/tmux/tmux"><img src="https://img.shields.io/badge/built%20with-tmux-green.svg" alt="tmux"></a>
+</p>
+
+---
 
 ## Installation
 

@@ -420,8 +420,26 @@ you should place your code here."
     "set frame parameter 'alpha"
     (interactive "nAlpha:")
     (set-frame-parameter nil 'alpha (cons alpha-num '(80))))
-
   (bind-key "M-s M-a" 'set-alpha)
+
+  (defun my/set-alpha (alpha-num)
+    "set frame parameter 'alpha"
+    (interactive "nAlpha:")
+    (set-frame-parameter nil 'alpha (cons alpha-num '(80))))
+  (bind-key "M-s M-a" 'my/set-alpha)
+
+  (defun my/get-curernt-path ()
+    (if (equal major-mode 'dired-mode)
+        default-directory
+      (buffer-file-name)))
+
+  (defun my/copy-current-path ()
+    (interactive)
+    (let ((fPath (my/get-curernt-path)))
+      (when fPath
+        (message "stored path: %s" fPath)
+        (kill-new (file-truename fPath)))))
+  (bind-key "C-c 0" 'my/copy-current-path)
 
   )
 

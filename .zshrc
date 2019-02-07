@@ -1,5 +1,9 @@
 # zshrc
 
+#
+# Load some sources
+#
+
 source ${HOME}/.dotfiles/setup.sh
 source ${DOTPATH}/.zsh/path.sh
 source ${DOTPATH}/.zsh/pyenv.sh

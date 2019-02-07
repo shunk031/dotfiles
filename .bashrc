@@ -121,6 +121,14 @@ export PYENV_ROOT=$HOME/.pyenv
 export PATH=$PYENV_ROOT/bin:$PATH
 eval "$(pyenv init -)"
 
+# settings for goenv
+export GOENV_ROOT="$HOME/.goenv"
+export PATH="$GOENV_ROOT/bin:$PATH"
+export GOPATH=$HOME/Programming/go
+export PATH=${PATH}:$GOPATH/bin
+export GOROOT=`go env GOROOT`
+eval "$(goenv init -)"
+
 export PS1='[\h: \w]\n\$ '
 export PYENV_VIRTUALENV_DISABLE_PROMPT=1
 pyenvVirtualenvUpdatePrompt() {
@@ -149,3 +157,5 @@ pyenvVirtualenvUpdatePrompt() {
     export PS1
 }
 export PROMPT_COMMAND="$PROMPT_COMMAND pyenvVirtualenvUpdatePrompt;"
+
+

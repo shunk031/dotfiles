@@ -385,6 +385,8 @@ you should place your code here."
   (define-key helm-swoop-map (kbd "C-r") 'helm-previous-line)
   (define-key helm-swoop-map (kbd "C-s") 'helm-next-line)
   (bind-key "C-x m" 'magit-status)
+  (with-eval-after-load "magit"
+    (define-key magit-status-mode-map (kbd "<C-tab>") nil))
 
   (bind-key "C-z" 'undo)
   (bind-key "C-x C-M-k" 'save-buffers-kill-emacs)

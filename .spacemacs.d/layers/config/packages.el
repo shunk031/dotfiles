@@ -33,6 +33,7 @@
   '(
     smart-newline
     import-popwin
+    rainbow-mode
 
     ;; for local settings
     (basic-config :location local)
@@ -89,6 +90,21 @@
       (add-hook hook
                 (lambda ()
                   (smart-newline-mode 1))))))
+
+(defun config/init-rainbow-mode ()
+  (use-package rainbow-mode
+    :init
+    (progn
+      (dolist (hook '(css-mode-hook
+                      scss-mode-hook
+                      html-mode-hook
+                      emacs-lisp-mode-hook
+                      nxml-mode-hook
+                      )
+                    )
+        (add-hook hook 'rainbow-mode)
+        )
+      )))
 
 (defun config/init-undo-tree-config ()
   (use-package undo-tree-config

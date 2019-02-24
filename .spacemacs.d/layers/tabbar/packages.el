@@ -66,15 +66,14 @@ Each entry is either:
     :init
     (progn
       (tabbar-mode 1)
-      (setq tabbar-use-images nil)
       ;; バッファに変更があった場合に表示を変更する
       ;; タブラベルに空間をもたせる
-      (defadvice tabbar-buffer-tab-label (after fixup_tab_label_space_and_flag activate)
-        (setq ad-return-value
-              (if (and (buffer-modified-p (tabbar-tab-value tab))
-                       (buffer-file-name (tabbar-tab-value tab)))
-                  (concat "▼  " (concat ad-return-value "  ▼ "))
-                (concat " " (concat ad-return-value " ")))))
+      ;; (defadvice tabbar-buffer-tab-label (after fixup_tab_label_space_and_flag activate)
+      ;;   (setq ad-return-value
+      ;;         (if (and (buffer-modified-p (tabbar-tab-value tab))
+      ;;                  (buffer-file-name (tabbar-tab-value tab)))
+      ;;             (concat "▼  " (concat ad-return-value "  ▼ "))
+      ;;           (concat " " (concat ad-return-value " ")))))
 
       ;; Called each time the modification state of the buffer changed.
       (defun ztl-modification-state-change ()
@@ -101,8 +100,14 @@ Each entry is either:
       ;; グループ化しないようにする
       (setq tabbar-buffer-groups-function nil)
 
+      (setq tabbar-use-images nil)
+
+      ;; 除外するバッファを指定
+      (setq my/tabbar-exclude-buffer-regex
+            (format "%s." (regexp-opt '("magit-process:"
+                                        "magit-diff:"))))
       ;; 「*」で始まるバッファをタブとして表示しない
-      (defun my-tabbar-buffer-list ()
+      (defun my/tabbar-buffer-list ()
         (delq nil
               (mapcar #'(lambda (b)
                           (cond
@@ -112,10 +117,11 @@ Each entry is either:
                            ((char-equal ?\  (aref (buffer-name b) 0)) nil)
                            ((equal "*scratch*" (buffer-name b)) b)       ; *scratch*バッファは表示する
                            ((equal "*Open Recent*" (buffer-name b)) b)   ; *Open Recent*バッファは表示する
+                           ((string-match my/tabbar-exclude-buffer-regex (buffer-name b)) nil) ; 除外するバッファを指定
                            ((char-equal ?* (aref (buffer-name b) 0)) nil) ; それ以外の * で始まるバッファは表示しない
                            ((buffer-live-p b) b)))
                       (buffer-list))))
-      (setq tabbar-buffer-list-function 'my-tabbar-buffer-list)
+      (setq tabbar-buffer-list-function 'my/tabbar-buffer-list)
 
       ;; Ctrl-Tab, Ctrl-Shift-Tab でタブを切り替える
       (global-set-key (kbd "<C-tab>") 'tabbar-forward-tab)
@@ -126,51 +132,95 @@ Each entry is either:
       (setq tabbar-auto-scroll-flag nil)
 
       ;; タブとタブの間の長さ
-      (setq tabbar-separator '(0.6))
+      (setq tabbar-separator '(0.5))
 
-      (set-face-attribute
-       'tabbar-default nil
-       :family "Monaco"
-       :background "#586e75"
-       :foreground "#586e75"
-       :box '(:line-width 3 :color "#586e75" :style nil)
-       ;; :height 0.8
-       )
+      (set-face-attribute 'tabbar-default nil
+                          :background "gray20"
+                          :foreground "gray60"
+                          :distant-foreground "gray50"
+                          ;; :family "Monaco"
+                          :box nil)
+      (set-face-attribute 'tabbar-unselected nil
+                          :background "gray80"
+                          :foreground "black"
+                          :box nil)
+      (set-face-attribute 'tabbar-modified nil
+                          :foreground "red4"
+                          :box nil
+                          :inherit 'tabbar-unselected)
+      (set-face-attribute 'tabbar-selected nil
+                          :background "#4090c0"
+                          :foreground "white"
+                          :box nil)
+      (set-face-attribute 'tabbar-selected-modified nil
+                          :inherit 'tabbar-selected
+                          :foreground "GoldenRod2"
+                          :box nil)
+      (set-face-attribute 'tabbar-button nil
+                          :box nil)
 
-      (set-face-attribute
-       'tabbar-unselected nil
-       :background "#657b83"
-       :foreground "white"
-       :box '(:line-width 3 :color "#657b83" :style nil))
+      ;; (set-face-attribute 'tabbar-default nil
+      ;;                     :background "#586e75"
+      ;;                     :foreground "#586e75"
+      ;;                     :distant-foreground "gray50"
+      ;;                     :family "Monaco"
+      ;;                     :box nil)
+      ;; (set-face-attribute 'tabbar-unselected nil
+      ;;                     :background "#657b83"
+      ;;                     :foreground "white"
+      ;;                     :box nil)
+      ;; (set-face-attribute 'tabbar-modified nil
+      ;;                     :inherit 'tabbar-unselected)
+      ;; (set-face-attribute 'tabbar-selected nil
+      ;;                     :background "#2aa198"
+      ;;                     :foreground "white"
+      ;;                     :box nil)
+      ;; (set-face-attribute 'tabbar-selected-modified nil
+      ;;                     :inherit 'tabbar-selected
+      ;;                     :box nil)
+      ;; (set-face-attribute 'tabbar-button nil
+      ;;                     :box nil)
 
-      (set-face-attribute
-       'tabbar-selected nil
-       :background "#2aa198"
-       :foreground "white"
-       :box '(:line-width 3 :color "#2aa198"))
+      ;; (set-face-attribute
+      ;;  'tabbar-default nil
+      ;;  :family "Monaco"
+      ;;  :background "#586e75"
+      ;;  :foreground "#586e75"
+      ;;  :box nil)
 
-      (set-face-attribute
-       'tabbar-button nil
-       :box nil)
+      ;; (set-face-attribute
+      ;;  'tabbar-unselected nil
+      ;;  :background "#657b83"
+      ;;  :foreground "white"
+      ;;  :box nil)
 
-      (set-face-attribute
-       'tabbar-modified nil
-       :background "#657b83"
-       :foreground "white"
-       :box '(:line-width 3 :color "#657b83"))
+      ;; (set-face-attribute
+      ;;  'tabbar-modified nil
+      ;;  :background "#657b83"
+      ;;  :foreground "white"
+      ;;  :box nil)
 
-      (set-face-attribute
-       'tabbar-separator nil
-       :background "#002b36"
-       :foreground "#002b36"
-       :box '(:line-width 1 :color "#002b36" :style nil)
-       )
+      ;; (set-face-attribute
+      ;;  'tabbar-selected nil
+      ;;  :background "#2aa198"
+      ;;  :foreground "white"
+      ;;  :box nil)
 
-      (set-face-attribute
-       'tabbar-selected-modified nil
-       :background "#2aa198"
-       :foreground "white"
-       :box '(:line-width 3 :color "#2aa198"))
+      ;; (set-face-attribute
+      ;;  'tabbar-button nil
+      ;;  :box nil)
+
+      ;; (set-face-attribute
+      ;;  'tabbar-selected-modified nil
+      ;;  :background "#2aa198"
+      ;;  :foreground "white"
+      ;;  :box nil)
+
+      ;; (set-face-attribute
+      ;;  'tabbar-separator nil
+      ;;  :background "#002b36"
+      ;;  :foreground "#002b36"
+      ;;  :box nil)
 
       ;; tabbar-selected を太字で表示
       (set-face-bold-p 'tabbar-selected t)
@@ -181,6 +231,16 @@ Each entry is either:
       ;; tabbar-modified を太字で表示
       (set-face-bold-p 'tabbar-modified t)
 
-      )))
+      (defvar my/tabbar-height 22)
+      (defvar my/tabbar-left (powerline-wave-right 'tabbar-default nil my/tabbar-height))
+      (defvar my/tabbar-right (powerline-wave-left nil 'tabbar-default my/tabbar-height))
+      (defun my/tabbar-tab-label-function (tab)
+        (powerline-render (list my/tabbar-left
+                                (format " %s  " (car tab))
+                                my/tabbar-right)))
+      (setq tabbar-tab-label-function #'my/tabbar-tab-label-function)
+      )
+    )
+  )
 
 ;;; packages.el ends here

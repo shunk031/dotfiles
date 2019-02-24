@@ -4,6 +4,7 @@
 
 .python-version
 .ruby-version
+.go-version
 .dir-locals.el
 
 __pycache__/

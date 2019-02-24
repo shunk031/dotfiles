@@ -104,7 +104,7 @@ Each entry is either:
 
       ;; 除外するバッファを指定
       (setq my/tabbar-exclude-buffer-regex
-            (format "%s." (regexp-opt '("magit-process:"
+            (format "%s.*" (regexp-opt '("magit-process:"
                                         "magit-diff:"))))
       ;; 「*」で始まるバッファをタブとして表示しない
       (defun my/tabbar-buffer-list ()

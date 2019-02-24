@@ -231,7 +231,7 @@ Each entry is either:
       ;; tabbar-modified を太字で表示
       (set-face-bold-p 'tabbar-modified t)
 
-      (defvar my/tabbar-height 22)
+      (defvar my/tabbar-height 24)
       (defvar my/tabbar-left (powerline-wave-right 'tabbar-default nil my/tabbar-height))
       (defvar my/tabbar-right (powerline-wave-left nil 'tabbar-default my/tabbar-height))
       (defun my/tabbar-tab-label-function (tab)

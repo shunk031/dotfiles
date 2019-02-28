@@ -34,6 +34,25 @@ zstyle ':prezto:load' pmodule \
   'completion' \
   'python' \
   'prompt' \
+  'syntax-highlighting' \
+  'autosuggestions' \
+
+
+#
+# Autosuggestions
+#
+
+# Set the query found color.
+zstyle ':prezto:module:autosuggestions:color' found ''
+
+#
+# Completions
+#
+
+# Set the entries to ignore in static */etc/hosts* for host completion.
+zstyle ':prezto:module:completion:*:hosts' etc-host-ignores \
+       '0.0.0.0' '127.0.0.1'
+
 
 #
 # Editor
@@ -118,13 +137,13 @@ zstyle ':prezto:module:prompt' theme 'my_powerline'
 
 # Set syntax highlighters.
 # By default, only the main highlighter is enabled.
-# zstyle ':prezto:module:syntax-highlighting' highlighters \
-#   'main' \
-#   'brackets' \
-#   'pattern' \
-#   'cursor' \
-#   'root'
-#
+zstyle ':prezto:module:syntax-highlighting' highlighters \
+  'main' \
+  'brackets' \
+  'pattern' \
+  'cursor' \
+  'root'
+
 # Set syntax highlighting styles.
 # zstyle ':prezto:module:syntax-highlighting' styles \
 #   'builtin' 'bg=blue' \

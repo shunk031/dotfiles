@@ -135,21 +135,21 @@ Each entry is either:
       (setq tabbar-separator '(0.5))
 
       (set-face-attribute 'tabbar-default nil
-                          :background "gray20"
-                          :foreground "gray60"
-                          :distant-foreground "gray50"
+                          :background nil
+                          :distant-foreground nil
                           ;; :family "Monaco"
-                          :box nil)
+                          :box nil
+                          )
       (set-face-attribute 'tabbar-unselected nil
-                          :background "gray80"
-                          :foreground "black"
+                          :background nil
+                          :foreground "white"
                           :box nil)
       (set-face-attribute 'tabbar-modified nil
                           :foreground "red4"
                           :box nil
                           :inherit 'tabbar-unselected)
       (set-face-attribute 'tabbar-selected nil
-                          :background "#4090c0"
+                          :background "#6CB2E9"
                           :foreground "white"
                           :box nil)
       (set-face-attribute 'tabbar-selected-modified nil

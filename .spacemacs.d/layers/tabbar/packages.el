@@ -139,10 +139,11 @@ Each entry is either:
                           :distant-foreground nil
                           ;; :family "Monaco"
                           :box nil
+                          :height 1.0
                           )
       (set-face-attribute 'tabbar-unselected nil
                           :background nil
-                          :foreground "white"
+                          :foreground "#809190"
                           :box nil)
       (set-face-attribute 'tabbar-modified nil
                           :foreground "red4"
@@ -150,7 +151,7 @@ Each entry is either:
                           :inherit 'tabbar-unselected)
       (set-face-attribute 'tabbar-selected nil
                           :background "#6CB2E9"
-                          :foreground "white"
+                          :foreground "#0A2933"
                           :box nil)
       (set-face-attribute 'tabbar-selected-modified nil
                           :inherit 'tabbar-selected

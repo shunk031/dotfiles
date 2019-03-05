@@ -146,7 +146,7 @@ Each entry is either:
                           :foreground "#809190"
                           :box nil)
       (set-face-attribute 'tabbar-modified nil
-                          :foreground "red4"
+                          :foreground "#F1266F"
                           :box nil
                           :inherit 'tabbar-unselected)
       (set-face-attribute 'tabbar-selected nil
@@ -155,7 +155,7 @@ Each entry is either:
                           :box nil)
       (set-face-attribute 'tabbar-selected-modified nil
                           :inherit 'tabbar-selected
-                          :foreground "GoldenRod2"
+                          :foreground "#F1266F"
                           :box nil)
       (set-face-attribute 'tabbar-button nil
                           :box nil)
@@ -235,6 +235,21 @@ Each entry is either:
       (defvar my/tabbar-height 24)
       (defvar my/tabbar-left (powerline-wave-right 'tabbar-default nil my/tabbar-height))
       (defvar my/tabbar-right (powerline-wave-left nil 'tabbar-default my/tabbar-height))
+
+      ;; (defun tabbar-buffer-tab-label (tab)
+      ;;   (let ((label  (if tabbar--buffer-show-groups
+      ;;                     (format "[%s]  " (tabbar-tab-tabset tab))
+      ;;                   (format "%s  " (tabbar-tab-value tab)))))
+      ;;     ;; Unless the tab bar auto scrolls to keep the selected tab
+      ;;     ;; visible, shorten the tab label to keep as many tabs as possible
+      ;;     ;; in the visible area of the tab bar.
+      ;;     (if tabbar-auto-scroll-flag
+      ;;         label
+      ;;       (tabbar-shorten
+      ;;        label (max 1 (/ (window-width)
+      ;;                        (length (tabbar-view
+      ;;                                 (tabbar-current-tabset)))))))))
+
       (defun my/tabbar-tab-label-function (tab)
         (powerline-render (list my/tabbar-left
                                 (format " %s  " (car tab))

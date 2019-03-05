@@ -73,10 +73,8 @@
     :init
     (progn
       (setq dimmer-fraction 0.50)
-      (setq dimmer-exclusion-regexp "^\*helm.*\\|^ \*Minibuf-.*")
-      (dimmer-mode)
-     )
-    ))
+      (setq dimmer-exclusion-regexp "^\*helm.*\\|^ \*Minibuf-.*\\|^ \*Echo.*")
+      (dimmer-mode))))
 
 (defun config/init-google-translate-config ()
   (use-package google-translate-config

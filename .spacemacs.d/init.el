@@ -27,7 +27,7 @@ values."
    ;; If non-nil layers with lazy install support are lazy installed.
    ;; List of additional paths where to look for configuration layers.
    ;; Paths must have a trailing slash (i.e. `~/.mycontribs/')
-   dotspacemacs-configuration-layer-path '()
+   Dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
@@ -47,6 +47,7 @@ values."
      (auto-completion :variables
                       auto-completion-tab-key-behavior 'complete
                       auto-completion-enable-snippets-in-popup t
+                      auto-completion-enable-help-tooltip t
                       spacemacs-default-company-backends '(company-ispell
                                                            company-keywords
                                                            company-files))
@@ -349,6 +350,7 @@ executes.
  This function is mostly useful for variables that need to be set
 before packages are loaded. If you are unsure, you should try in setting them in
 `dotspacemacs/user-config' first."
+  (setq powerline-image-apple-rgb t)
   )
 
 (defun dotspacemacs/user-config ()
@@ -373,6 +375,9 @@ you should place your code here."
   (setq-default tab-width 4)
   (setq company-idle-delay 0.1)
   (setq mac-command-modifier 'meta)
+
+  (define-key company-active-map (kbd "C-h") nil)
+  (define-key company-active-map (kbd "C-?") 'company-show-doc-buffer)
 
   (bind-key "C-h" 'delete-backward-char)
   (bind-key "C-x p" (lambda () (interactive (other-window -1))))
@@ -476,7 +481,7 @@ you should place your code here."
  '(magit-diff-use-overlays nil)
  '(package-selected-packages
    (quote
-    (dimmer color-identifiers-mode sanity-solarized-dark-theme rainbow-mode web-beautify livid-mode skewer-mode simple-httpd js2-refactor js2-mode js-doc company-tern tern coffee-mode toml-mode racer flycheck-rust cargo rust-mode go-guru go-eldoc company-go go-mode vimrc-mode dactyl-mode import-popwin disaster company-c-headers cmake-mode clang-format yatex pangu-spacing flycheck-mypy smeargle markdown-toc markdown-mode helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md ghub treepy graphql magit-popup tabbar web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data migemo copy-file-on-save csv-mode mmm-mode d-mode company-dcd ivy flycheck-dmd-dub dockerfile-mode docker json-mode tablist docker-tramp json-snatcher json-reformat multiple-cursors insert-shebang fish-mode company-shell unfill solarized-theme monokai-theme ssh-config-mode ace-jump-mode ace-isearch yaml-mode electric-operator highlight-symbol mozc-el-extensions mozc-popup mozc yasnippet-snippets py-autopep8 recentf-ext smart-newline mwim reveal-in-osx-finder pbcopy osx-trash osx-dictionary launchctl yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode dash-functional helm-pydoc helm-company helm-c-yasnippet git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-commit with-editor git-gutter fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck diff-hl cython-mode company-statistics company-anaconda company auto-yasnippet yasnippet auto-dictionary anaconda-mode pythonic ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async org-plus-contrib evil-unimpaired f s dash)))
+    (showkey company-quickhelp dimmer color-identifiers-mode sanity-solarized-dark-theme rainbow-mode web-beautify livid-mode skewer-mode simple-httpd js2-refactor js2-mode js-doc company-tern tern coffee-mode toml-mode racer flycheck-rust cargo rust-mode go-guru go-eldoc company-go go-mode vimrc-mode dactyl-mode import-popwin disaster company-c-headers cmake-mode clang-format yatex pangu-spacing flycheck-mypy smeargle markdown-toc markdown-mode helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md ghub treepy graphql magit-popup tabbar web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data migemo copy-file-on-save csv-mode mmm-mode d-mode company-dcd ivy flycheck-dmd-dub dockerfile-mode docker json-mode tablist docker-tramp json-snatcher json-reformat multiple-cursors insert-shebang fish-mode company-shell unfill solarized-theme monokai-theme ssh-config-mode ace-jump-mode ace-isearch yaml-mode electric-operator highlight-symbol mozc-el-extensions mozc-popup mozc yasnippet-snippets py-autopep8 recentf-ext smart-newline mwim reveal-in-osx-finder pbcopy osx-trash osx-dictionary launchctl yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode dash-functional helm-pydoc helm-company helm-c-yasnippet git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-commit with-editor git-gutter fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck diff-hl cython-mode company-statistics company-anaconda company auto-yasnippet yasnippet auto-dictionary anaconda-mode pythonic ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async org-plus-contrib evil-unimpaired f s dash)))
  '(pos-tip-background-color "#FFFACE")
  '(pos-tip-foreground-color "#272822")
  '(vc-annotate-background nil)

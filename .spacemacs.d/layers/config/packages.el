@@ -34,6 +34,8 @@
     smart-newline
     import-popwin
     rainbow-mode
+    color-identifiers-mode
+    dimmer
 
     ;; for local settings
     (basic-config :location local)
@@ -55,9 +57,26 @@
   (use-package c-c++-config
     :commands (clang-format)))
 
+(defun config/init-color-identifiers-mode ()
+  (use-package color-identifiers-mode
+    :init
+    (progn
+      (spacemacs|diminish color-identifiers-mode "" "")
+      (add-hook 'after-init-hook 'global-color-identifiers-mode))))
+
 (defun config/init-company-config ()
   (use-package company-config
     :after (company)))
+
+(defun config/init-dimmer ()
+  (use-package dimmer
+    :init
+    (progn
+      (setq dimmer-fraction 0.50)
+      (setq dimmer-exclusion-regexp "^\*helm.*\\|^ \*Minibuf-.*")
+      (dimmer-mode)
+     )
+    ))
 
 (defun config/init-google-translate-config ()
   (use-package google-translate-config
@@ -95,6 +114,8 @@
   (use-package rainbow-mode
     :init
     (progn
+      (spacemacs|diminish rainbow-mode "" "")
+
       (dolist (hook '(css-mode-hook
                       scss-mode-hook
                       html-mode-hook

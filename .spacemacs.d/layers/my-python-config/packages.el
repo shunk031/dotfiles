@@ -32,6 +32,10 @@
 (defconst my-python-config-packages
   '(
     (python :location built-in)
+    flycheck-mypy
+    ;; lsp-mode
+    ;; lsp-ui
+    ;; company-lsp
     )
   "The list of Lisp packages required by the my-python-config layer.
 
@@ -75,5 +79,34 @@ Each entry is either:
       (setq py-autopep8-options '("--max-line-length=200"))
       (setq flycheck-flake8-maximum-line-length 200)
       (setq py-isort-options '("-m=3")))))
+
+(defun my-python-config/init-flycheck-mypy ()
+  (use-package flycheck-mypy
+    :init
+    (progn
+      ;; (set-variable 'flycheck-python-module-args '("--ignore-missing-imports"))
+      (flycheck-add-next-checker 'python-flake8 'python-mypy t)
+      )
+    )
+  )
+
+;; (defun my-python-config/init-lsp-mode ()
+;;   (use-package lsp-mode
+;;     :commands (lsp)
+;;     :init
+;;     (add-hook 'python-mode-hook #'lsp)))
+
+;; (defun my-python-confi/init-lsp-ui ()
+;;   (use-package lsp-ui
+;;     :commands (lsp-ui-mode)
+;;     :init
+;;     (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+;;     :config
+;;     (setq lsp-ui-sideline-ignore-duplicate t)))
+
+;; (defun my-python-config/init-company-lsp ()
+;;   (use-package company-lsp
+;;     :config
+;;     (push 'company-lsp company-backends)))
 
 ;;; packages.el ends here

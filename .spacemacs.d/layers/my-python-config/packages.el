@@ -85,7 +85,7 @@ Each entry is either:
     :init
     (progn
       ;; (set-variable 'flycheck-python-module-args '("--ignore-missing-imports"))
-      (flycheck-add-next-checker 'python-flake8 'python-mypy t)
+      ;; (flycheck-add-next-checker 'python-flake8 'python-mypy t)
       )
     )
   )

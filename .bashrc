@@ -158,4 +158,4 @@ pyenvVirtualenvUpdatePrompt() {
 }
 export PROMPT_COMMAND="$PROMPT_COMMAND pyenvVirtualenvUpdatePrompt;"
 
-
+alias ns='watch -n 1 "nvidia-smi"'

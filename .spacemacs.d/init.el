@@ -371,6 +371,7 @@ you should place your code here."
   (which-function-mode 1)
   (flycheck-pos-tip-mode nil)
   (global-company-mode t)
+  (setq undo-tree-auto-save-history t)
 
   (setq-default tab-width 4)
   (setq company-idle-delay 0.1)

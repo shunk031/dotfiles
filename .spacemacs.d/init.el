@@ -379,6 +379,7 @@ you should place your code here."
   (define-key company-active-map (kbd "C-h") nil)
   (define-key company-active-map (kbd "C-?") 'company-show-doc-buffer)
 
+  (bind-key "C-x f" nil)
   (bind-key "C-h" 'delete-backward-char)
   (bind-key "C-x p" (lambda () (interactive (other-window -1))))
   (bind-key "C-c ;" 'comment-or-uncomment-region)

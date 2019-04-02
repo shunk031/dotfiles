@@ -8,3 +8,4 @@
 .dir-locals.el
 
 __pycache__/
+*.~undo-tree~

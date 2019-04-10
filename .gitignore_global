@@ -9,3 +9,4 @@
 *.~undo-tree~
 
 __pycache__/
+*.~undo-tree~

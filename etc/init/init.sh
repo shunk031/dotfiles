@@ -72,6 +72,14 @@ if [ ! -e "${HOME}/.rbenv" ]; then
 fi
 
 #
+# goenv
+#
+
+if [ ! -e "${HOME}/.goenv" ]; then
+    install_goenv
+fi
+
+#
 # emacs
 #
 

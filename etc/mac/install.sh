@@ -6,6 +6,13 @@ install_brew () {
     e_newline && e_done "Install homebrew"
 }
 
+install_zsh() {
+    e_newline
+    e_header "Installing zsh..."
+    brew install zsh
+    e_newline && e_done "Install zsh"
+}
+
 install_xonsh() {
     e_newline
     e_header "Installing xonsh..."

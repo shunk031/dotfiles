@@ -6,6 +6,7 @@
 .ruby-version
 .go-version
 .dir-locals.el
+*.~undo-tree~
 
 __pycache__/
 *.~undo-tree~

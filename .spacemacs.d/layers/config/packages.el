@@ -36,7 +36,8 @@
     rainbow-mode
     color-identifiers-mode
     dimmer
-
+    (frog-jump-buffer :location (recipe :fetcher github
+                                        :repo "waymondo/frog-jump-buffer"))
     ;; for local settings
     (basic-config :location local)
     (c-c++-config :location local)
@@ -75,6 +76,10 @@
       (setq dimmer-fraction 0.50)
       (setq dimmer-exclusion-regexp "^\*helm.*\\|^ \*Minibuf-.*\\|^ \*Echo.*")
       (dimmer-mode))))
+
+(defun config/init-frog-jump-buffer ()
+ (use-package frog-jump-buffer
+   :bind ("M-g f" . frog-jump-buffer)))
 
 (defun config/init-google-translate-config ()
   (use-package google-translate-config

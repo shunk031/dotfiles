@@ -1,0 +1,83 @@
+;;; packages.el --- my-ivy-config layer packages file for Spacemacs.
+;;
+;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;;
+;; Author: Shunsuke KITADA <shunk031@DeepLearningIsAllYouNeed.local>
+;; URL: https://github.com/syl20bnr/spacemacs
+;;
+;; This file is not part of GNU Emacs.
+;;
+;;; License: GPLv3
+
+;;; Commentary:
+
+;; See the Spacemacs documentation and FAQs for instructions on how to implement
+;; a new layer:
+;;
+;;   SPC h SPC layers RET
+;;
+;;
+;; Briefly, each package to be installed or configured by this layer should be
+;; added to `my-ivy-config-packages'. Then, for each package PACKAGE:
+;;
+;; - If PACKAGE is not referenced by any other Spacemacs layer, define a
+;;   function `my-ivy-config/init-PACKAGE' to load and initialize the package.
+
+;; - Otherwise, PACKAGE is already referenced by another Spacemacs layer, so
+;;   define the functions `my-ivy-config/pre-init-PACKAGE' and/or
+;;   `my-ivy-config/post-init-PACKAGE' to customize the package as it is loaded.
+
+;;; Code:
+
+(defconst my-ivy-config-packages
+  '(
+    (ivy :location built-in)
+    ivy-posframe
+    all-the-icons-ivy
+    )
+  )
+
+(defun my-ivy-config/post-init-ivy ()
+  (bind-key "C-c i" 'counsel-imenu)
+  (bind-key "C-x C-r" 'counsel-recentf)
+  (bind-key "M-y" 'counsel-yank-pop)
+  (bind-key "M-o" 'spacemacs/swiper-region-or-symbol)
+
+  (define-key counsel-find-file-map (kbd "C-l") 'counsel-up-directory)
+  (define-key counsel-find-file-map (kbd "C-i") 'counsel-down-directory)
+
+  (defun my/swiper-replace ()
+    "Swiper replace with mc selction."
+    (interactive)
+    (run-at-time nil nil (lambda ()
+                           (ivy-wgrep-change-to-wgrep-mode)))
+    (ivy-occur))
+  (define-key ivy-minibuffer-map (kbd "C-c C-e") 'my/swiper-replace)
+
+  (setq ivy-initial-inputs-alist nil)
+
+  )
+
+(defun my-ivy-config/init-all-the-icons-ivy ()
+  (use-package all-the-icons-ivy
+    :init
+    (all-the-icons-ivy-setup)))
+
+(defun my-ivy-config/init-ivy-posframe ()
+  (use-package ivy-posframe
+    :after ivy
+    :custom-face
+    (ivy-posframe ((t (:background "#282a36"))))
+    (ivy-posframe-border ((t (:background "#6272a4"))))
+    (ivy-posframe-cursor ((t (:background "#61bfff"))))
+    :init
+    (progn
+      (setq ivy-display-function #'ivy-posframe-display-at-frame-center)
+      (setq ivy-posframe-parameters
+            '((left-fringe . 8)
+              (right-fringe . 8)))
+      (ivy-posframe-enable))
+    )
+  )
+
+;;; packages.el ends here

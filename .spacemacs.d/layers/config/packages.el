@@ -1,8 +1,8 @@
 ;;; packages.el --- config layer packages file for Spacemacs.
 ;;
-;; Copyright (c) 2012-2017 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
 ;;
-;; Author: Shunsuke KITADA <shunk031@OguraYuiMacbook.local>
+;; Author: Shunsuke KITADA <shunk031@DeepLearningIsAllYouNeed.local>
 ;; URL: https://github.com/syl20bnr/spacemacs
 ;;
 ;; This file is not part of GNU Emacs.
@@ -31,92 +31,126 @@
 
 (defconst config-packages
   '(
-    smart-newline
-    import-popwin
+    copy-file-on-save
+    electric-operator
     rainbow-mode
-    color-identifiers-mode
-    dimmer
-    (frog-jump-buffer :location (recipe :fetcher github
-                                        :repo "waymondo/frog-jump-buffer"))
-    ;; for local settings
-    (basic-config :location local)
-    (c-c++-config :location local)
-    (company-config :location local)
-    (google-translate-config :location local)
-    (helm-config :location local)
-    (ispell-config :location local)
-    (popwin-config :location local)
-    (undo-tree-config :location local)
-    (view-mode :location built-in)
+    pangu-spacing
+    smart-newline
+    (ssh-config-mode :location (recipe :fetcher github
+                                       :repo "jhgorrell/ssh-config-mode-el"
+                                       :files ("ssh-config-mode.el" "ssh-config-keywords.txt")))
+    (google-translate :location built-in)
     (display-line-number-mode :location built-in)
+    (undo-tree :location built-in)
+    (view-mode :location built-in)
     )
-)
+  )
 
-(defun config/init-basic-config ()
-  (use-package basic-config))
-
-(defun config/init-c-c++-config ()
-  (use-package c-c++-config
-    :commands (clang-format)))
-
-(defun config/init-color-identifiers-mode ()
-  (use-package color-identifiers-mode
-    :init
+(defun config/init-copy-file-on-save ()
+  (use-package copy-file-on-save
+    :after (projectile)
+    :config
     (progn
-      (spacemacs|diminish color-identifiers-mode "" "")
-      (add-hook 'after-init-hook 'global-color-identifiers-mode))))
-
-(defun config/init-company-config ()
-  (use-package company-config
-    :after (company)))
-
-(defun config/init-dimmer ()
-  (use-package dimmer
-    :init
-    (progn
-      (setq dimmer-fraction 0.50)
-      (setq dimmer-exclusion-regexp "^\*helm.*\\|^ \*Minibuf-.*\\|^ \*Echo.*")
-      (dimmer-mode))))
+      (spacemacs|diminish copy-file-on-save-mode "" "")
+      (global-copy-file-on-save-mode))))
 
 (defun config/init-display-line-number-mode ()
-  (dolist (hook '(prog-mode-hook))
+  (dolist (hook '(
+                  prog-mode-hook
+                  ))
     (add-hook hook 'display-line-numbers-mode)))
 
-(defun config/init-frog-jump-buffer ()
- (use-package frog-jump-buffer
-   :bind ("M-g f" . frog-jump-buffer)))
-
-(defun config/init-google-translate-config ()
-  (use-package google-translate-config
-    :commands (google-translate-enja-or-jaen)))
-
-(defun config/init-helm-config ()
-  (use-package helm-config
-    :after (helm helm-swoop ace-isearch)
-    :commands (helm-swoop-nomigemo isearch-forward-or-helm-swoop)))
-
-(defun config/init-ispell-config ()
-  (use-package ispell-config))
-
-(defun config/init-popwin-config ()
-  (use-package popwin-config
-    :after (popwin)))
-
-(defun config/init-import-popwin ()
-  (use-package import-popwin
-    :after (popwin)))
-
-(defun config/init-smart-newline ()
-  (use-package smart-newline
+(defun config/init-electric-operator ()
+  (use-package electrc-operator
+    :commands (electric-operator-mode)
     :init
-    (dolist
-        (hook
-         '(
-           markdown-mode-hook
-           ))
-      (add-hook hook
-                (lambda ()
-                  (smart-newline-mode 1))))))
+    (progn
+      (spacemacs|diminish electric-operator-mode "" "")
+      (dolist (hook '(
+                      ;;c系modeで利用する
+                      c-mode-common-hook
+                      ;; python-modeで利用する
+                      python-mode-hook
+                      ;; ess-modeで利用する
+                      ess-mode-hook
+                      ;; arduino-modeで利用する
+                      arduino-mode-hook
+                      ;; perl-modeで利用する
+                      perl-mode-hook
+                      ))
+        (add-hook hook #'electric-operator-mode)))
+    :config
+    ;; ジェネリクス型を利用する際に無駄なスペースが入ってしまうために
+    ;; java-modeでは"<"と">"において動作しないようにした
+    (electric-operator-add-rules-for-mode
+     'java-mode
+     (cons "<" nil)
+     (cons ">" nil))
+
+    (electric-operator-add-rules-for-mode
+     'php-mode
+     (cons "/" nil)
+     (cons "<" nil)
+     (cons ">" nil)
+     (cons "++" "++")
+     (cons "//" "// ")
+     (cons "." nil)
+     (cons "->" "->")
+     (cons "=>" " => "))
+
+    ;; arduino-modeにelectric-operator-prog-mode-rulesを適応
+    (apply #'electric-operator-add-rules-for-mode 'arduino-mode
+           electric-operator-prog-mode-rules)))
+
+(defun config/post-init-google-translate ()
+  (use-package google-translate
+    :commands (google-translate-translate)
+    :init
+    (progn
+      (defvar google-translate-english-chars "[:ascii:]"
+        "これらの文字が含まれているときは英語とみなす")
+
+      ;; Fix error of "Failed to search TKK"
+      (defun google-translate--get-b-d1 ()
+        ;; TKK='427110.1469889687'
+        (list 427110 1469889687))
+
+      (defun google-translate-enja-or-jaen (&optional string)
+        "regionか、現在のセンテンスを言語自動判別でGoogle翻訳する。"
+        (interactive)
+        (setq string
+              (cond ((stringp string) string)
+                    (current-prefix-arg
+                     (read-string "Google Translate: "))
+                    ((use-region-p)
+                     (buffer-substring (region-beginning) (region-end)))
+                    (t
+                     (save-excursion
+                       (let (s)
+                         (forward-char 1)
+                         (backward-sentence)
+                         (setq s (point))
+                         (forward-sentence)
+                         (buffer-substring s (point)))))))
+        (let* ((asciip (string-match
+                        (format "\\`[%s]+\\'" google-translate-english-chars)
+                        string)))
+          (run-at-time 0.1 nil 'deactivate-mark)
+          (google-translate-translate
+           (if asciip "en" "ja")
+           (if asciip "ja" "en")
+           string)))
+
+      ;; 翻訳結果をkill-ringに保存するアドバイス
+      (defadvice google-translate-paragraph (before
+                                             google-translate-paragraph-before)
+        (when (equal 'google-translate-translation-face (ad-get-arg 1))
+          (let ((text (ad-get-arg 0)))
+            (kill-new text nil))))
+      )
+    )
+  )
+
 
 (defun config/init-rainbow-mode ()
   (use-package rainbow-mode
@@ -131,13 +165,42 @@
                       nxml-mode-hook
                       )
                     )
-        (add-hook hook 'rainbow-mode)
-        )
-      )))
+        (add-hook hook 'rainbow-mode)))))
 
-(defun config/init-undo-tree-config ()
-  (use-package undo-tree-config
-    :after (undo-tree)))
+(defun config/init-pangu-spacing ()
+  (use-package pangu-spacing
+    :init
+    (progn ;; replacing `chinese-two-byte' by `japanese'
+      (setq pangu-spacing-chinese-before-english-regexp
+            (rx (group-n 1 (category japanese))
+                (group-n 2 (in "a-zA-Z0-9"))))
+      (setq pangu-spacing-chinese-after-english-regexp
+            (rx (group-n 1 (in "a-zA-Z0-9"))
+                (group-n 2 (category japanese))))
+      (spacemacs|hide-lighter pangu-spacing-mode)
+      ;; Always insert `real' space in text-mode including org-mode.
+      (setq pangu-spacing-real-insert-separtor t)
+      ;; (global-pangu-spacing-mode 1)
+      (add-hook 'text-mode-hook 'pangu-spacing-mode))))
+
+(defun config/init-smart-newline ()
+  (use-package smart-newline))
+
+(defun config/init-ssh-config-mode ()
+  (use-package ssh-config-mode
+    :init
+    (add-hook 'ssh-config-mode-hook 'turn-on-font-lock)
+    :config
+    (progn
+      (add-to-list 'auto-mode-alist '("/\\.ssh/config\\'"     . ssh-config-mode))
+      (add-to-list 'auto-mode-alist '("/sshd?_config\\'"      . ssh-config-mode))
+      (add-to-list 'auto-mode-alist '("/known_hosts\\'"       . ssh-known-hosts-mode))
+      (add-to-list 'auto-mode-alist '("/authorized_keys2?\\'" . ssh-authorized-keys-mode)))))
+
+(defun config/post-init-undo-tree ()
+  (setq undo-tree-visualizer-timestamps nil)
+  (setq undo-tree-visualizer-diff nil)
+  )
 
 (defun config/init-view-mode ()
   (add-hook 'view-mode-hook

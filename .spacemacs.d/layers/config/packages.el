@@ -48,6 +48,7 @@
     (popwin-config :location local)
     (undo-tree-config :location local)
     (view-mode :location built-in)
+    (display-line-number-mode :location built-in)
     )
 )
 
@@ -76,6 +77,10 @@
       (setq dimmer-fraction 0.50)
       (setq dimmer-exclusion-regexp "^\*helm.*\\|^ \*Minibuf-.*\\|^ \*Echo.*")
       (dimmer-mode))))
+
+(defun config/init-display-line-number-mode ()
+  (dolist (hook '(prog-mode-hook))
+    (add-hook hook 'display-line-numbers-mode)))
 
 (defun config/init-frog-jump-buffer ()
  (use-package frog-jump-buffer

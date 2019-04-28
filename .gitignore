@@ -19,6 +19,7 @@ tmux-*.log
 # ignore some files
 *~
 *.elc
+.spacemacs.env
 
 # ignore some directories
 /auto-save-list

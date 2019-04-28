@@ -31,8 +31,6 @@
 
 (defconst my-python-config-packages
   '(
-    py-autopep8
-
     (python :location built-in)
     ))
 
@@ -42,13 +40,6 @@
   (setq flycheck-flake8-maximum-line-length 200)
 
   (setq lsp-pyls-plugins-pycodestyle-max-line-length 200)
-  )
-
-(defun my-python-config/init-py-autopep8 ()
-  (use-package py-autopep8
-    :init
-    (add-hook 'python-model-hook 'py-autopep8-enable-on-save)
-    )
   )
 
 ;;; packages.el ends here

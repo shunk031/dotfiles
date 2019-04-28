@@ -53,7 +53,10 @@ This function should only modify configuration layer settings."
      lsp
      (python :variables
              python-backend 'lsp
+             python-formatter 'black
+             python-format-on-save t
              python-sort-imports-on-save t)
+     shell-scripts
      ;; org
      ;; (shell :variables
      ;;        shell-default-height 30
@@ -88,6 +91,7 @@ This function should only modify configuration layer settings."
    dotspacemacs-additional-packages
    '(
      multiple-cursors
+     solarized-theme
      )
 
    ;; A list of packages that cannot be updated.
@@ -211,7 +215,9 @@ It should only modify the values of Spacemacs settings."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press `SPC T n' to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(spacemacs-dark
+   dotspacemacs-themes '(
+                         solarized-dark
+                         spacemacs-dark
                          spacemacs-light)
 
    ;; Set the theme for the Spaceline. Supported themes are `spacemacs',

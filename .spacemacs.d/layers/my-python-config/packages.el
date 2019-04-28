@@ -40,6 +40,7 @@
   (setq flycheck-flake8-maximum-line-length 200)
 
   (setq lsp-pyls-plugins-pycodestyle-max-line-length 200)
+  (setq blacken-line-length 200)
   )
 
 ;;; packages.el ends here

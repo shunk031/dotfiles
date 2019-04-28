@@ -38,11 +38,7 @@
 (defun my-company-config/post-init-company-mode ()
   (setq company-tooltip-limit 20)
   (setq company-idle-delay 0.1)
-  (setq company-require-match nil)
-
-  (bind-key "M-i" 'company-complete)
-
-  )
+  (setq company-require-match nil))
 
 (defun my-company-config/init-company-box ()
   (use-package company-box

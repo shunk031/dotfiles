@@ -32,8 +32,10 @@
 (defconst my-ivy-config-packages
   '(
     (ivy :location built-in)
+
     ivy-posframe
     all-the-icons-ivy
+    flyspell-correct
     )
   )
 
@@ -53,10 +55,7 @@
                            (ivy-wgrep-change-to-wgrep-mode)))
     (ivy-occur))
   (define-key ivy-minibuffer-map (kbd "C-c C-e") 'my/swiper-replace)
-
-  (setq ivy-initial-inputs-alist nil)
-
-  )
+  (setq ivy-initial-inputs-alist nil))
 
 (defun my-ivy-config/init-all-the-icons-ivy ()
   (use-package all-the-icons-ivy
@@ -76,8 +75,12 @@
       (setq ivy-posframe-parameters
             '((left-fringe . 8)
               (right-fringe . 8)))
-      (ivy-posframe-enable))
-    )
-  )
+      (ivy-posframe-enable))))
+
+(defun my-ivy-config/post-init-flyspell-correct ()
+    (use-package flyspell-correct-ivy
+      :bind ("C-M-;" . flyspell-correct-wrapper)
+      :init
+      (setq flyspell-correct-interface #'flyspell-correct-ivy)))
 
 ;;; packages.el ends here

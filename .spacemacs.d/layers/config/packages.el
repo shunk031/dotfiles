@@ -33,6 +33,8 @@
   '(
     copy-file-on-save
     electric-operator
+    highlight-symbol
+    import-popwin
     rainbow-mode
     pangu-spacing
     smart-newline
@@ -151,6 +153,34 @@
     )
   )
 
+(defun config/init-highlight-symbol ()
+  (use-package highlight-symbol
+    :commands (highlight-symbol-mode)
+    :init
+    (progn
+      (spacemacs|diminish highlight-symbol-mode "" "")
+      (dolist (hook '(
+                      prog-mode-hook
+                      nxml-mode-hook
+                      ))
+        (add-hook hook 'highlight-symbol-mode))
+
+      ;; ソースコードにおいてM-p/M-nでシンボル間を移動できるようにする
+      (dolist (hook '(
+                      prog-mode-hook
+                      nxml-mode-hook
+                      ))
+        (add-hook hook 'highlight-symbol-nav-mode)))
+
+    :config
+    (progn
+      ;; 1秒後自動ハイライトされるようになる
+      (setq highlight-symbol-idle-delay 0.5)
+      (setq highlight-symbol-colors '("HotPink1")))))
+
+(defun config/init-import-popwin ()
+  (use-package import-popwin
+    :after(popwin)))
 
 (defun config/init-rainbow-mode ()
   (use-package rainbow-mode

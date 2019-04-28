@@ -39,37 +39,40 @@ This function should only modify configuration layer settings."
      ;; Uncomment some layer names and press `SPC f e R' (Vim style) or
      ;; `M-m f e R' (Emacs style) to install them.
      ;; ----------------------------------------------------------------
-     (auto-completion :variables
-                      auto-completion-tab-key-behavior 'complete
-                      auto-completion-enable-snippets-in-popup t
-                      auto-completion-enable-help-tooltip t
-                      spacemacs-default-company-backends '(company-ispell
-                                                           company-keywords
-                                                           company-files))
+     (auto-completion
+      :variables
+      auto-completion-tab-key-behavior 'complete
+      auto-completion-enable-snippets-in-popup t
+      auto-completion-enable-help-tooltip t
+      spacemacs-default-company-backends '(company-ispell company-keywords company-files))
+
+     (ivy
+      :variables
+      ivy-height 30
+      ivy-enable-advanced-buffer-information t
+      ivy-re-builders-alist '((t . spacemacs/ivy--regex-plus)))
+
+     (python
+      :variables
+      python-backend 'lsp
+      python-formatter 'black
+      python-format-on-save t
+      python-sort-imports-on-save t)
+
      better-defaults
      emacs-lisp
      git
      ;; markdown
      lsp
-     (python :variables
-             python-backend 'lsp
-             python-formatter 'black
-             python-format-on-save t
-             python-sort-imports-on-save t)
      shell-scripts
      ;; org
      ;; (shell :variables
      ;;        shell-default-height 30
      ;;        shell-default-position 'bottom)
-     ;; spell-checking
-     ;; syntax-checking
+     spell-checking
+     syntax-checking
      treemacs
      ;; version-control
-     (ivy :variables
-          ivy-height 30
-          ivy-enable-advanced-buffer-information t
-          ivy-re-builders-alist '((t . spacemacs/ivy--regex-plus))
-          )
      ;; ----------------------------------------------------------------
      ;; Private layer
      ;; ----------------------------------------------------------------
@@ -92,6 +95,7 @@ This function should only modify configuration layer settings."
    '(
      multiple-cursors
      solarized-theme
+     avy-migemo
      )
 
    ;; A list of packages that cannot be updated.
@@ -494,10 +498,12 @@ before packages are loaded."
   (setq blink-cursor-delay 0.05)
 
   (which-func-mode 1)
+  (global-company-mode t)
 
   (setq mac-command-modifier 'meta)
   (setq-default tab-width 4)
 
+  (bind-key "M-i" 'company-complete)
   (bind-key "C-h" 'delete-backward-char)
   (bind-key "C-c ;" 'comment-or-uncomment-region)
   (bind-key "C-x p" (lambda () (interactive (other-window -1))))
@@ -507,7 +513,7 @@ before packages are loaded."
   (bind-key "C-x C-M-k" 'save-buffers-kill-emacs)
   (bind-key "C-x C-z" nil)
   (bind-key "C-c <escape>" 'view-mode)
-
+  (bind-key "M-g M-i" 'import-popwin)
   (bind-key "RET" 'smart-newline)
 
   (define-key evil-emacs-state-map (kbd "C-z") nil)
@@ -517,7 +523,13 @@ before packages are loaded."
   (bind-key "C-c m a" 'mc/mark-all-like-this-dwim)
 
   (bind-key "C-c g t" 'google-translate-enja-or-jaen)
-  )
+
+  (use-package avy-migemo
+    :after swiper
+    :config
+    (progn
+      (avy-migemo-mode t)
+      (require 'avy-migemo-e.g.swiper))))
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.

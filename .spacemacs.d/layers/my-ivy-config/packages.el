@@ -35,11 +35,42 @@
 
     ivy-posframe
     all-the-icons-ivy
+    ace-isearch
+    ace-jump-mode
     flyspell-correct
     )
   )
 
+(defun my-ivy-config/init-ace-jump-mode ()
+  (use-package ace-jump-mode
+    :defer t))
+
+(defun my-ivy-config/init-ace-isearch ()
+  (use-package ace-isearch
+    :after (swiper avy)
+    :custom
+    (ace-isearch-function-from-isearch 'ace-isearch-swiper-from-isearch)
+    :init
+    (progn
+      (global-set-key (kbd "C-s") 'isearch-forward)
+      (global-ace-isearch-mode t)
+      )
+    )
+  )
+
 (defun my-ivy-config/post-init-ivy ()
+  (setq ivy-initial-inputs-alist nil)
+
+  (setq ivy-sort-matches-functions-alist
+        '((t)
+          (ivy-switch-buffer . ivy-sort-function-buffer)
+          (counsel-find-file . ivy--sort-by-length)))
+
+  (defun ivy--sort-by-length (_name candidates)
+    (cl-sort (copy-sequence candidates)
+             (lambda (f1 f2)
+               (< (length f1) (length f2)))))
+
   (bind-key "C-c i" 'counsel-imenu)
   (bind-key "C-x C-r" 'counsel-recentf)
   (bind-key "M-y" 'counsel-yank-pop)
@@ -47,6 +78,7 @@
 
   (define-key counsel-find-file-map (kbd "C-l") 'counsel-up-directory)
   (define-key counsel-find-file-map (kbd "C-i") 'counsel-down-directory)
+  (define-key counsel-find-file-map (kbd "C-h") nil)
 
   (defun my/swiper-replace ()
     "Swiper replace with mc selction."
@@ -55,7 +87,7 @@
                            (ivy-wgrep-change-to-wgrep-mode)))
     (ivy-occur))
   (define-key ivy-minibuffer-map (kbd "C-c C-e") 'my/swiper-replace)
-  (setq ivy-initial-inputs-alist nil))
+  )
 
 (defun my-ivy-config/init-all-the-icons-ivy ()
   (use-package all-the-icons-ivy

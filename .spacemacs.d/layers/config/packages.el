@@ -32,12 +32,15 @@
 (defconst config-packages
   '(
     copy-file-on-save
+    command-log-mode
     electric-operator
     highlight-symbol
     import-popwin
     rainbow-mode
     pangu-spacing
     smart-newline
+    (showkey :location (recipe :fetcher github
+                               :repo "emacsmirror/showkey"))
     (ssh-config-mode :location (recipe :fetcher github
                                        :repo "jhgorrell/ssh-config-mode-el"
                                        :files ("ssh-config-mode.el" "ssh-config-keywords.txt")))
@@ -55,6 +58,10 @@
     (progn
       (spacemacs|diminish copy-file-on-save-mode "" "")
       (global-copy-file-on-save-mode))))
+
+(defun config/init-command-log-mode ()
+  (use-package command-log-mode
+    ))
 
 (defun config/init-display-line-number-mode ()
   (dolist (hook '(
@@ -215,6 +222,9 @@
 
 (defun config/init-smart-newline ()
   (use-package smart-newline))
+
+(defun config/init-showkey ()
+  (use-package showkey))
 
 (defun config/init-ssh-config-mode ()
   (use-package ssh-config-mode

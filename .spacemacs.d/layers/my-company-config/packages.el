@@ -32,13 +32,37 @@
 (defconst my-company-config-packages
   '(
     company-box
+    company-lsp
+    company-posframe
     (company-mode :location built-in)
     ))
 
 (defun my-company-config/post-init-company-mode ()
   (setq company-tooltip-limit 20)
   (setq company-idle-delay 0.1)
-  (setq company-require-match nil))
+  (setq company-require-match nil)
+  (setq company-transformers nil)
+
+  (define-key company-active-map (kbd "C-h") nil)
+  (define-key company-active-map (kbd "C-?") 'company-show-doc-buffer)
+
+  (add-hook 'after-init-hook 'global-company-mode)
+  )
+
+(defun my-company-config/post-init-company-lsp ()
+  (use-package company-lsp
+    :custom
+    (company-lsp-cache-candidates t)
+    (company-lsp-async t)
+    (company-lsp-enable-snippet nil)
+    )
+  )
+
+(defun my-company-config/init-company-posframe ()
+  (use-package company-posframe
+    :hook (company-mode . company-posframe-mode)
+    )
+  )
 
 (defun my-company-config/init-company-box ()
   (use-package company-box

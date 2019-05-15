@@ -37,10 +37,11 @@
 (defun my-python-config/post-init-python ()
   (add-hook 'python-mode-hook 'highlight-indentation-current-column-mode)
   (add-to-list 'exec-path "~/.pyenv/shims")
-  (setq flycheck-flake8-maximum-line-length 200)
 
-  (setq lsp-pyls-plugins-pycodestyle-max-line-length 200)
-  (setq blacken-line-length 200)
+  (setq flycheck-flake8-maximum-line-length my-python-config-max-line-length)
+  (setq lsp-pyls-plugins-pycodestyle-max-line-length my-python-config-max-line-length)
+  (setq blacken-line-length my-python-config-max-line-length)
+
   )
 
 ;;; packages.el ends here

@@ -206,22 +206,33 @@
 
 (defun config/init-pangu-spacing ()
   (use-package pangu-spacing
+    :custom
+    (pangu-spacing-chinese-before-english-regexp
+     (rx (group-n 1 (category japanese))
+         (group-n 2 (in "a-zA-Z0-9"))))
+    (pangu-spacing-chinese-after-english-regexp
+          (rx (group-n 1 (in "a-zA-Z0-9"))
+              (group-n 2 (category japanese))))
+    (pangu-spacing-real-insert-separtor t)
     :init
     (progn ;; replacing `chinese-two-byte' by `japanese'
-      (setq pangu-spacing-chinese-before-english-regexp
-            (rx (group-n 1 (category japanese))
-                (group-n 2 (in "a-zA-Z0-9"))))
-      (setq pangu-spacing-chinese-after-english-regexp
-            (rx (group-n 1 (in "a-zA-Z0-9"))
-                (group-n 2 (category japanese))))
       (spacemacs|hide-lighter pangu-spacing-mode)
-      ;; Always insert `real' space in text-mode including org-mode.
-      (setq pangu-spacing-real-insert-separtor t)
-      ;; (global-pangu-spacing-mode 1)
-      (add-hook 'text-mode-hook 'pangu-spacing-mode))))
+      (add-hook 'text-mode-hook 'pangu-spacing-mode)
+      )
+    )
+  )
 
 (defun config/init-smart-newline ()
-  (use-package smart-newline))
+  (use-package smart-newline
+    :init
+    (dolist
+        (hook
+         '(
+           markdown-mode-hook
+           ))
+      (add-hook hook
+                (lambda ()
+                  (smart-newline-mode t))))))
 
 (defun config/init-showkey ()
   (use-package showkey))

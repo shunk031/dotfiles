@@ -63,6 +63,7 @@ This function should only modify configuration layer settings."
      osx
      better-defaults
      dap
+     docker
      emacs-lisp
      git
      html
@@ -107,7 +108,9 @@ This function should only modify configuration layer settings."
    dotspacemacs-frozen-packages '()
 
    ;; A list of packages that will not be installed and loaded.
-   dotspacemacs-excluded-packages '()
+   dotspacemacs-excluded-packages '(
+                                    evil-search-highlight-persist
+                                    )
 
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
@@ -240,7 +243,7 @@ It should only modify the values of Spacemacs settings."
 
    ;; If non-nil the cursor color matches the state color in GUI Emacs.
    ;; (default t)
-   dotspacemacs-colorize-cursor-according-to-state t
+   dotspacemacs-colorize-cursor-according-to-state nil
 
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
@@ -531,12 +534,37 @@ before packages are loaded."
 
   (bind-key "C-c g t" 'google-translate-enja-or-jaen)
 
+  (bind-key "<zenkaku-hankaku>" 'toggle-input-method)
+  (bind-key "M-`" 'toggle-input-method)
+  (bind-key "C-j" 'toggle-input-method)
+
   (use-package avy-migemo
     :after swiper
     :config
     (progn
       (avy-migemo-mode t)
-      (require 'avy-migemo-e.g.swiper))))
+      (require 'avy-migemo-e.g.swiper)))
+
+  (defun my/set-alpha (alpha-num)
+    "set frame parameter 'alpha"
+    (interactive "nAlpha:")
+    (set-frame-parameter nil 'alpha (cons alpha-num '(80))))
+  (bind-key "M-s M-a" 'my/set-alpha)
+
+  (defun my/get-curernt-path ()
+    (if (equal major-mode 'dired-mode)
+        default-directory
+      (buffer-file-name)))
+
+  (defun my/copy-current-path ()
+    (interactive)
+    (let ((fPath (my/get-curernt-path)))
+      (when fPath
+        (message "stored path: %s" fPath)
+        (kill-new (file-truename fPath)))))
+  (bind-key "C-c 0" 'my/copy-current-path)
+
+  )
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.

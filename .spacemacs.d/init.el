@@ -60,6 +60,10 @@ This function should only modify configuration layer settings."
       python-format-on-save t
       python-sort-imports-on-save t)
 
+     (c-c++ :variables
+            c-c++-default-mode-for-headers 'c++-mode
+            c-c++-enable-clang-support t)
+
      osx
      better-defaults
      dap
@@ -86,6 +90,7 @@ This function should only modify configuration layer settings."
      my-ivy-config
      my-python-config
      my-company-config
+     my-cpp-config
      migemo
      mozc
      )
@@ -499,6 +504,8 @@ configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
 
+  (spacemacs/toggle-smartparens-globally-on)
+
   (unless (member "all-the-icons" (font-family-list))
     (all-the-icons-install-fonts t))
 
@@ -509,6 +516,7 @@ before packages are loaded."
   (setq blink-cursor-delay 0.05)
 
   (which-func-mode 1)
+  (global-company-mode t)
 
   (setq mac-command-modifier 'meta)
   (setq-default tab-width 4)

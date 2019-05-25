@@ -9,4 +9,4 @@
 ;;
 ;;; License: GPLv3
 
-(defvar my-python-config-max-line-length 100)
+(defvar my-python-config-max-line-length 90)

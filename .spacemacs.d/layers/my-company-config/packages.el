@@ -42,11 +42,6 @@
   (setq company-idle-delay 0.1)
   (setq company-require-match nil)
   (setq company-transformers nil)
-
-  (define-key company-active-map (kbd "C-h") nil)
-  (define-key company-active-map (kbd "C-?") 'company-show-doc-buffer)
-
-  (add-hook 'after-init-hook 'global-company-mode)
   )
 
 (defun my-company-config/post-init-company-lsp ()

@@ -38,6 +38,9 @@
     ace-isearch
     ace-jump-mode
     flyspell-correct
+
+    (counsel-ghq :location (recipe :fetcher github
+                                   :repo "windymelt/counsel-ghq"))
     )
   )
 
@@ -53,41 +56,28 @@
     :init
     (progn
       (global-set-key (kbd "C-s") 'isearch-forward)
-      (global-ace-isearch-mode t)
-      )
-    )
-  )
+      (global-ace-isearch-mode t))))
 
 (defun my-ivy-config/post-init-ivy ()
-  (setq ivy-initial-inputs-alist nil)
+  (use-package ivy
+    :config
+    (progn
+      (setq ivy-initial-inputs-alist nil)
 
-  (setq ivy-sort-matches-functions-alist
-        '((t)
-          (ivy-switch-buffer . ivy-sort-function-buffer)
-          (counsel-find-file . ivy--sort-by-length)))
+      (setq ivy-sort-matches-functions-alist
+            '((t)
+              (ivy-switch-buffer . ivy-sort-function-buffer)
+              (counsel-find-file . spacemacs//ivy--sort-by-length)))
 
-  (defun ivy--sort-by-length (_name candidates)
-    (cl-sort (copy-sequence candidates)
-             (lambda (f1 f2)
-               (< (length f1) (length f2)))))
+      (bind-key "C-c i" 'counsel-imenu)
+      (bind-key "C-x C-r" 'counsel-recentf)
+      (bind-key "M-y" 'counsel-yank-pop)
+      (bind-key "M-o" 'spacemacs/swiper-region-or-symbol)
 
-  (bind-key "C-c i" 'counsel-imenu)
-  (bind-key "C-x C-r" 'counsel-recentf)
-  (bind-key "M-y" 'counsel-yank-pop)
-  (bind-key "M-o" 'spacemacs/swiper-region-or-symbol)
-
-  (define-key counsel-find-file-map (kbd "C-l") 'counsel-up-directory)
-  (define-key counsel-find-file-map (kbd "C-i") 'counsel-down-directory)
-  (define-key counsel-find-file-map (kbd "C-h") nil)
-
-  (defun my/swiper-replace ()
-    "Swiper replace with mc selction."
-    (interactive)
-    (run-at-time nil nil (lambda ()
-                           (ivy-wgrep-change-to-wgrep-mode)))
-    (ivy-occur))
-  (define-key ivy-minibuffer-map (kbd "C-c C-e") 'my/swiper-replace)
-  )
+      (define-key counsel-find-file-map (kbd "C-l") 'counsel-up-directory)
+      (define-key counsel-find-file-map (kbd "C-i") 'counsel-down-directory)
+      (define-key counsel-find-file-map (kbd "C-h") nil)
+      (define-key ivy-minibuffer-map (kbd "C-c C-e") 'spacemacs/swiper-replace))))
 
 (defun my-ivy-config/init-all-the-icons-ivy ()
   (use-package all-the-icons-ivy
@@ -108,6 +98,9 @@
             '((left-fringe . 8)
               (right-fringe . 8)))
       (ivy-posframe-enable))))
+
+(defun my-ivy-config/init-counsel-ghq ()
+  (use-package counsel-ghq))
 
 (defun my-ivy-config/post-init-flyspell-correct ()
     (use-package flyspell-correct-ivy

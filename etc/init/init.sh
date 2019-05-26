@@ -12,11 +12,20 @@ if [ ! -e "${DOTPATH}/.github/powerline_fonts" ]; then
 fi
 
 #
+# fzf
+#
+
+if ! has 'fzf'; then
+    install_fzf
+fi
+
+#
 # prezto
 #
 
 if [ ! -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]; then
     install_prezto
+    install_prezto_fzf
 fi
 
 #

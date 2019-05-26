@@ -124,7 +124,7 @@ eval "$(pyenv init -)"
 # settings for goenv
 export GOENV_ROOT="$HOME/.goenv"
 export PATH="$GOENV_ROOT/bin:$PATH"
-export GOPATH=$HOME/Programming/go
+export GOPATH=$HOME/.go
 export PATH=${PATH}:$GOPATH/bin
 export GOROOT=`go env GOROOT`
 eval "$(goenv init -)"
@@ -159,3 +159,5 @@ pyenvVirtualenvUpdatePrompt() {
 export PROMPT_COMMAND="$PROMPT_COMMAND pyenvVirtualenvUpdatePrompt;"
 
 alias ns='watch -n 1 "nvidia-smi"'
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

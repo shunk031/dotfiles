@@ -11,6 +11,12 @@ source ${DOTPATH}/.zsh/rbenv.sh
 source ${DOTPATH}/.zsh/goenv.sh
 source ${DOTPATH}/.zsh/alias.sh
 
+#
+# Auto load some functions
+#
+
+autoload -Uz dev
+
 # export TERM color as 256 colors
 export TERM=xterm-256color
 
@@ -53,3 +59,9 @@ fi
 # if (which zprof > /dev/null) ;then
 #     zprof | less
 # fi
+
+#
+# fzf
+#
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

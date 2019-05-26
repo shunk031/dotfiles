@@ -7,3 +7,6 @@
 	pushinsteadof = https://github.com/
 [alias]
 	lg = log --all --oneline --graph --decorate
+[ghq]
+	root=~/ghq
+	root=~/.go/src

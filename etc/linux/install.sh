@@ -1,15 +1,17 @@
-install_linux_tools() {
-    sudo apt-get -qq install -y autossh
+install_linux_tools () {
+    sudo apt-get -qq install -y \
+         autossh \
+         golang > /dev/null
 }
 
-install_tmux() {
+install_tmux () {
     e_newline
     e_header "Installing tmux..."
     sudo apt-get -qq install -y tmux > /dev/null
     e_newline && e_done "Install tmux"
 }
 
-install_tmux_mem_cpu_load_requirements() {
+install_tmux_mem_cpu_load_requirements () {
     e_newline
     e_header "Installing tmux-mem-cpu-load requirements..."
     sudo apt-get -qq install -y \
@@ -19,7 +21,7 @@ install_tmux_mem_cpu_load_requirements() {
     e_newline && e_done "Install tmux-mem-cpu-load requirements"
 }
 
-install_devilspie() {
+install_devilspie () {
     e_newline
     e_header "Installing devilspie..."
     sudo apt-get -qq install -y devilspie > /dev/null
@@ -28,7 +30,7 @@ install_devilspie() {
     e_newline && e_done "Install devilspie"
 }
 
-install_pyenv_requirements() {
+install_pyenv_requirements () {
     e_newline
     e_header "Installing pyenv requirements..."
     sudo apt-get -qq install -y \
@@ -51,7 +53,7 @@ install_pyenv_requirements() {
     e_newline && e_done "Install pyenv requirements"
 }
 
-install_rbenv_requirements() {
+install_rbenv_requirements () {
     e_newline
     e_header "Installing rbenv requirements..."
     sudo apt-get -qq install -y \
@@ -84,7 +86,7 @@ install_emacs() {
     fi
 }
 
-install_spacemacs_requirements() {
+install_spacemacs_requirements () {
     FONT_DIR=~/.fonts/adobe-fonts/source-code-pro
 
     e_newline
@@ -94,4 +96,8 @@ install_spacemacs_requirements() {
 
     e_arrow "Copying fonts..."
     fc-cache -f $FONT_DIR
+}
+
+install_ghq () {
+    go get github.com/motemen/ghq
 }

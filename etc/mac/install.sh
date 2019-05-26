@@ -6,14 +6,14 @@ install_brew () {
     e_newline && e_done "Install homebrew"
 }
 
-install_zsh() {
+install_zsh () {
     e_newline
     e_header "Installing zsh..."
     brew install zsh
     e_newline && e_done "Install zsh"
 }
 
-install_xonsh() {
+install_xonsh () {
     e_newline
     e_header "Installing xonsh..."
     brew install xonsh
@@ -21,13 +21,14 @@ install_xonsh() {
     e_newline && e_done "Install xonsh"
 }
 
-install_mac_tools() {
+install_mac_tools () {
     e_newline
     e_header "Installing Mac tools..."
     brew install gcc
     brew install fontforge
     brew install aspell --lang=en
     brew install autossh
+    brew install ghq
 }
 
 install_tmux () {
@@ -38,28 +39,28 @@ install_tmux () {
     e_newline && e_done "Install tmux"
 }
 
-install_tmux_mem_cpu_load_requirements() {
+install_tmux_mem_cpu_load_requirements () {
     e_newline
     e_header "Installing tmux-mem-cpu-load requirements"
     brew install cmake
     e_newline && e_done "Install tmux-cpu-load requirements"
 }
 
-install_pyenv_requirements() {
+install_pyenv_requirements () {
     e_newline
     e_header "Installing pyenv requirements..."
     brew install openssl readline sqlite3 xz zlib
     e_newline && e_done "Install pyenv requirements..."
 }
 
-install_rbenv_requirements() {
+install_rbenv_requirements () {
     e_newline
     e_header "Installing rbenv requirements..."
     brew install openssl libyaml libffi
     e_newline && e_done "Install rbenv requirements..."
 }
 
-install_emacs() {
+install_emacs () {
     if ! brew list | grep -q emacs-plus; then
         EMACS_APP_DIR=/usr/local/Cellar/emacs-plus/26.1/Emacs.app/
 
@@ -78,7 +79,7 @@ install_emacs() {
     fi
 }
 
-install_spacemacs_requirements() {
+install_spacemacs_requirements () {
     e_newline
     e_header "Installing Spacemacs requirements..."
 

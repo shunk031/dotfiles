@@ -1,4 +1,4 @@
-install_powerline_font() {
+install_powerline_font () {
     POWERLINE_FONT_DIR=${DOTPATH}/.github/powerline_fonts
 
     e_newline
@@ -11,7 +11,17 @@ install_powerline_font() {
     e_newline && e_done "Install powerline"
 }
 
-install_prezto() {
+install_fzf () {
+    e_newline
+    e_header "Installing fzf..."
+    e_arrow "Clone repository"
+    git clone -q --depth 1 https://github.com/junegunn/fzf.git ~/.fzf > /dev/null
+    ~/.fzf/install
+
+    e_newline && e_done "install fzf"
+}
+
+install_prezto () {
     e_newline
     e_header "Installing prezto..."
     e_arrow "Clone repository"
@@ -22,7 +32,18 @@ install_prezto() {
     e_newline && e_done "Install prezto"
 }
 
-install_tpm() {
+install_prezto_fzf () {
+    PREZTO_FZF_DIR="${ZDOTDIR:-$HOME}"/.zprezto/contrib/fzf
+
+    e_newline
+    e_header "Installing prezto-fzf..."
+    mkdir -p $PREZTO_FZF_DIR
+    git clone -q --recursive https://github.com/gpanders/fzf-prezto.git $PREZTO_FZF_DIR > /dev/null
+    $PREZTO_FZF_DIR/external/install --bin
+    e_newline && e_done "install prezto-fzf"
+}
+
+install_tpm () {
     TPM_DIR=~/.tmux/plugins/tpm
 
     e_newline
@@ -32,7 +53,7 @@ install_tpm() {
     e_newline && e_done "Install tpm"
 }
 
-install_tmux_mem_cpu_load() {
+install_tmux_mem_cpu_load () {
     TMUX_MEM_CPU_LOAD_DIR=${DOTPATH}/.github/tmux-mem-cpu-load
 
     e_newline
@@ -50,7 +71,7 @@ install_tmux_mem_cpu_load() {
     e_newline && e_done "Install tmux-mem-cpu-load"
 }
 
-install_tpm_plugins() {
+install_tpm_plugins () {
     e_newline
     e_header "Installing tmux plugins using tpm..."
     e_arrow "Run install_plugins.sh"
@@ -58,7 +79,7 @@ install_tpm_plugins() {
     e_newline && e_done "Install tmux plugins"
 }
 
-install_pyenv() {
+install_pyenv () {
     PYENV_DIR=${HOME}/.pyenv
     PYENV_VIRTUALENV_DIR=${PYENV_DIR}/plugins/pyenv-virtualenv
 
@@ -75,7 +96,7 @@ install_pyenv() {
     e_newline && e_done "Install pyenv-virtualenv"
 }
 
-install_rbenv() {
+install_rbenv () {
     RBENV_DIR=${HOME}/.rbenv
 
     e_newline
@@ -96,7 +117,7 @@ install_rbenv() {
     e_newline && e_done "Install ruby-build"
 }
 
-install_goenv() {
+install_goenv () {
     e_newline
     e_header "Installing goenv..."
     e_arrow "Clone repository"
@@ -104,7 +125,7 @@ install_goenv() {
     e_newline && e_done "Install goenv"
 }
 
-install_spacemacs() {
+install_spacemacs () {
     e_newline
     e_header "Installing spacemacs..."
     e_arrow "Clone repository"
@@ -112,7 +133,7 @@ install_spacemacs() {
     e_newline && e_done "Install spacemacs"
 }
 
-setup_git() {
+setup_git () {
     if [ ! -e "${HOME}/.config/git" ]; then
         GIT_CONFIG_DIR=${HOME}/.config/git
         e_newline

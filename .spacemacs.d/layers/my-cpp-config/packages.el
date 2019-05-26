@@ -29,17 +29,18 @@
 
 ;;; Code:
 
+
+
 (defconst my-cpp-config-packages
   '(
     cc-mode
     ))
 
 (defun my-cpp-config/post-init-cc-mode ()
-  :init
-  (add-hook 'c-mode-common-hook
-            (function (lambda ()
-                        (add-hook 'before-save-hook
-                                  'clang-format-buffer))))
-  )
+  (use-package cc-mode
+    :defer t
+    :init
+    (add-hook 'c-mode-common-hook 'spacemacs//clang-format-buffer-smart-on-save)
+    ))
 
 ;;; packages.el ends here

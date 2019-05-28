@@ -540,7 +540,7 @@ before packages are loaded."
   (bind-key "C-c m e" 'mc/mark-more-like-this-extended)
   (bind-key "C-c m a" 'mc/mark-all-like-this-dwim)
 
-  (bind-key "C-c g t" 'google-translate-enja-or-jaen)
+  (bind-key "C-c g t" 'spacemacs/google-translate-enja-or-jaen)
 
   (bind-key "<zenkaku-hankaku>" 'toggle-input-method)
   (bind-key "M-`" 'toggle-input-method)

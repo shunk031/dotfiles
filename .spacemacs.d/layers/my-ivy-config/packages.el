@@ -100,7 +100,9 @@
       (ivy-posframe-enable))))
 
 (defun my-ivy-config/init-counsel-ghq ()
-  (use-package counsel-ghq))
+  (use-package counsel-ghq
+    :bind ("C-c g h q" . counsel-ghq)
+    ))
 
 (defun my-ivy-config/post-init-flyspell-correct ()
     (use-package flyspell-correct-ivy

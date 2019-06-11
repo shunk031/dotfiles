@@ -50,8 +50,9 @@ This function should only modify configuration layer settings."
      (ivy
       :variables
       ivy-height 30
-      ivy-re-builders-alist '((swiper . spacemacs/ivy--regex-plus)
-                              (t . ivy--regex-fuzzy))
+      ivy-re-builders-alist '(
+                              ;; (counsel-M-x . ivy--regex-fuzzy)
+                              (t . spacemacs/ivy--regex-plus))
       ivy-enable-advanced-buffer-information t)
 
      (python

@@ -74,6 +74,7 @@ This function should only modify configuration layer settings."
      (json :variables json-fmt-tool 'web-beautify)
 
      osx
+     csv
      better-defaults
      dap
      docker

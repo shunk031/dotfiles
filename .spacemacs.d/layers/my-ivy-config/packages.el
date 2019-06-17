@@ -93,11 +93,16 @@
     (ivy-posframe-cursor ((t (:background "#61bfff"))))
     :init
     (progn
-      (setq ivy-display-function #'ivy-posframe-display-at-frame-center)
+      (setq ivy-posframe-display-functions-alist
+            '((swiper          . ivy-posframe-display-at-frame-center)
+              (t               . ivy-posframe-display-at-frame-center)))
+
       (setq ivy-posframe-parameters
-            '((left-fringe . 8)
-              (right-fringe . 8)))
-      (ivy-posframe-enable))))
+            '((left-fringe . 10)
+              (right-fringe . 10)))
+
+      (ivy-posframe-mode 1)
+      )))
 
 (defun my-ivy-config/init-counsel-ghq ()
   (use-package counsel-ghq

@@ -34,7 +34,6 @@
     (ivy :location built-in)
 
     ivy-posframe
-    all-the-icons-ivy
     ace-isearch
     ace-jump-mode
     flyspell-correct
@@ -78,11 +77,6 @@
       (define-key counsel-find-file-map (kbd "C-i") 'counsel-down-directory)
       (define-key counsel-find-file-map (kbd "C-h") nil)
       (define-key ivy-minibuffer-map (kbd "C-c C-e") 'spacemacs/swiper-replace))))
-
-(defun my-ivy-config/init-all-the-icons-ivy ()
-  (use-package all-the-icons-ivy
-    :init
-    (all-the-icons-ivy-setup)))
 
 (defun my-ivy-config/init-ivy-posframe ()
   (use-package ivy-posframe

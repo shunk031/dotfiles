@@ -51,7 +51,7 @@ This function should only modify configuration layer settings."
       :variables
       ivy-height 30
       ivy-re-builders-alist '(
-                              ;; (counsel-M-x . ivy--regex-fuzzy)
+                              (counsel-ghq . ivy--regex-fuzzy)
                               (t . spacemacs/ivy--regex-plus))
       ivy-enable-advanced-buffer-information t)
 
@@ -114,6 +114,7 @@ This function should only modify configuration layer settings."
    ;; Also include the dependencies as they will not be resolved automatically.
    dotspacemacs-additional-packages
    '(
+     all-the-icons-ivy
      multiple-cursors
      solarized-theme
      avy-migemo
@@ -518,6 +519,7 @@ before packages are loaded."
 
   (unless (member "all-the-icons" (font-family-list))
     (all-the-icons-install-fonts t))
+  (all-the-icons-ivy-setup)
 
   (blink-cursor-mode 1)
   (setq frame-title-format

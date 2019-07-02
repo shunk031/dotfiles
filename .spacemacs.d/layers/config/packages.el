@@ -50,6 +50,7 @@
     (display-line-number-mode :location built-in)
     (undo-tree :location built-in)
     (view-mode :location built-in)
+    (json-mode :location built-in)
     )
   )
 
@@ -230,5 +231,8 @@
                  (define-key view-mode-map (kbd "j") 'next-line)
                  (define-key view-mode-map (kbd "k") 'previous-line)
                  (define-key view-mode-map (kbd "l") 'forward-char)))))
+
+(defun config/post-init-json-mode ()
+  (add-hook 'json-mode-hook 'highlight-indentation-current-column-mode))
 
 ;;; packages.el ends here

@@ -4,6 +4,13 @@ install_linux_tools () {
          golang > /dev/null
 }
 
+install_zsh () {
+    e_newline
+    e_header "Installing zsh..."
+    sudo apt-get install -qq install -y zsh /dev/null
+    e_newline && e_done "Install zsh"
+}
+
 install_tmux () {
     e_newline
     e_header "Installing tmux..."

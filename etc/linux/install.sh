@@ -1,6 +1,7 @@
 install_linux_tools () {
     sudo apt-get -qq install -y \
          autossh \
+         silversearcher-ag \
          golang > /dev/null
 }
 

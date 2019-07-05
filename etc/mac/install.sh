@@ -28,6 +28,7 @@ install_mac_tools () {
     brew install fontforge
     brew install aspell
     brew install autossh
+    brew install ag
     brew install ghq
 }
 

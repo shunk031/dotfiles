@@ -29,6 +29,11 @@ if [ ! -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]; then
 fi
 
 #
+# zsh
+#
+install_zsh
+
+#
 # Load OS specific install.sh
 #
 

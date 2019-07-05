@@ -26,7 +26,7 @@ install_mac_tools () {
     e_header "Installing Mac tools..."
     brew install gcc
     brew install fontforge
-    brew install aspell --lang=en
+    brew install aspell
     brew install autossh
     brew install ghq
 }

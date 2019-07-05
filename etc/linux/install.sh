@@ -108,4 +108,5 @@ install_spacemacs_requirements () {
 
 install_ghq () {
     go get github.com/motemen/ghq
+    mkdir -p ~/ghq
 }

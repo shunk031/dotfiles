@@ -29,7 +29,6 @@ install_mac_tools () {
     brew install aspell
     brew install autossh
     brew install ag
-    brew install ghq
 }
 
 install_tmux () {
@@ -90,4 +89,9 @@ install_spacemacs_requirements () {
         e_newline && e_done "Install font-source-code-pro..."
     fi
     e_newline && e_done "Install Spacemacs requirements..."
+}
+
+install_ghq () {
+    brew install ghq
+    mkdir -p ~/ghq
 }

@@ -113,6 +113,14 @@ if [ ! -e "${HOME}/.emacs.d" ]; then
 fi
 
 #
+# ghq
+#
+
+if ! has 'ghq'; then
+    install_ghq
+fi
+
+#
 # OS specific applications
 #
 

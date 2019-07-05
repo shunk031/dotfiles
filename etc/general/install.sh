@@ -16,7 +16,7 @@ install_fzf () {
     e_header "Installing fzf..."
     e_arrow "Clone repository"
     git clone -q --depth 1 https://github.com/junegunn/fzf.git ~/.fzf > /dev/null
-    ~/.fzf/install
+    ~/.fzf/install --key-bindings --completion --no-update-rc
 
     e_newline && e_done "install fzf"
 }

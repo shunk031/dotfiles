@@ -116,9 +116,13 @@
     :init
     (progn
       (setq ivy-posframe-display-functions-alist
-            '((swiper          . ivy-posframe-display-at-frame-center)
-              (t               . ivy-posframe-display-at-frame-center)))
+            '(
+              (swiper . nil)
+              (t      . ivy-posframe-display-at-frame-center)
+              ))
 
+      (setq ivy-posframe-height-alist '((swiper . 30)
+                                        (t      . 30)))
       (setq ivy-posframe-parameters
             '((left-fringe . 10)
               (right-fringe . 10)))

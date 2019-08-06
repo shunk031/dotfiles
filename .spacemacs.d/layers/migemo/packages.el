@@ -32,6 +32,8 @@
 (defconst migemo-packages
   '(
     migemo
+    (avy-migemo :location (recipe :fetcher github
+                                  :repo "tam17aki/avy-migemo"))
     ))
 
 (defun migemo/init-migemo ()
@@ -47,5 +49,17 @@
     (when (eq system-type 'darwin)
       (setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict"))
     (migemo-init)))
+
+(defun migemo/init-avy-migemo ()
+  (use-package avy-migemo
+    :init
+    (progn
+      (avy-migemo-mode 1)
+
+      (use-package avy-migemo-e.g.ivy)
+      (use-package avy-migemo-e.g.swiper)
+      (use-package avy-migemo-e.g.counsel)
+      )
+    ))
 
 ;;; packages.el ends here

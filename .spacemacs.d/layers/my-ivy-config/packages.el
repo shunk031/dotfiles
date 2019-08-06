@@ -34,6 +34,7 @@
     (ivy :location built-in)
 
     ivy-posframe
+
     ace-isearch
     ace-jump-mode
     flyspell-correct
@@ -121,7 +122,7 @@
               (t      . ivy-posframe-display-at-frame-center)
               ))
 
-      (setq ivy-posframe-height-alist '((swiper . 30)
+      (setq ivy-posframe-height-alist '((swiper . 20)
                                         (t      . 30)))
       (setq ivy-posframe-parameters
             '((left-fringe . 10)

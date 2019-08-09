@@ -462,7 +462,7 @@ It should only modify the values of Spacemacs settings."
    ;; %z - mnemonics of buffer, terminal, and keyboard coding systems
    ;; %Z - like %z, but including the end-of-line format
    ;; (default "%I@%S")
-   dotspacemacs-frame-title-format "%I@%S"
+   dotspacemacs-frame-title-format "- Emacs@%S - %f"
 
    ;; Format specification for setting the icon title format
    ;; (default nil - same as frame-title-format)
@@ -521,8 +521,6 @@ before packages are loaded."
   (all-the-icons-ivy-setup)
 
   (blink-cursor-mode 1)
-  (setq frame-title-format
-        (format "- Emacs@%s - %%f" (system-name)))
   (setq blink-cursor-interval 0.08)
   (setq blink-cursor-delay 0.05)
 

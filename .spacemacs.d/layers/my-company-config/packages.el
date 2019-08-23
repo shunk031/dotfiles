@@ -32,6 +32,7 @@
 (defconst my-company-config-packages
   '(
     company-box
+    company-flx
     company-lsp
     company-posframe
     (company-mode :location built-in)
@@ -58,6 +59,12 @@
     :hook (company-mode . company-posframe-mode)
     )
   )
+
+(defun my-company-config/init-company-flx ()
+  (use-package company-flx
+    :after (company-mode)
+    :init
+    (company-fix-mode t)))
 
 (defun my-company-config/init-company-box ()
   (use-package company-box

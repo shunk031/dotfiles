@@ -32,6 +32,7 @@
 (defconst my-python-config-packages
   '(
     (python :location built-in)
+    py-autopep8
     ))
 
 (defun my-python-config/post-init-python ()
@@ -43,5 +44,10 @@
   (setq blacken-line-length my-python-config-max-line-length)
 
   )
+
+(defun my-python-config/init-py-autopep8 ()
+  (use-package py-autopep8
+    :init
+    (add-hook 'python-model-hook 'py-autopep8-enable-on-save)))
 
 ;;; packages.el ends here

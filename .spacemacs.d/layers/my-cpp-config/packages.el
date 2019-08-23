@@ -38,7 +38,6 @@
 
 (defun my-cpp-config/post-init-cc-mode ()
   (use-package cc-mode
-    :defer t
     :init
     (add-hook 'c-mode-common-hook 'spacemacs//clang-format-buffer-smart-on-save)
     ))

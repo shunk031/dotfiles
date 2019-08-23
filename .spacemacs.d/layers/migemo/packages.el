@@ -52,13 +52,9 @@
 
 (defun migemo/init-avy-migemo ()
   (use-package avy-migemo
-    :init
+    :config
     (progn
       (avy-migemo-mode 1)
-
-      (use-package avy-migemo-e.g.ivy)
-      (use-package avy-migemo-e.g.swiper)
-      (use-package avy-migemo-e.g.counsel)
       )
     ))
 

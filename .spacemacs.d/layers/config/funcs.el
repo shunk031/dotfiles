@@ -1,7 +1,7 @@
 ;; Fix error of "Failed to search TKK"
-(defun google-translate--get-b-d1 ()
-  ;; TKK='427110.1469889687'
-  (list 427110 1469889687))
+;; (defun google-translate--get-b-d1 ()
+;;   ;; TKK='427110.1469889687'
+;;   (list 427110 1469889687))
 
 (defun spacemacs/google-translate-enja-or-jaen (&optional string)
   "regionか、現在のセンテンスを言語自動判別でGoogle翻訳する。"

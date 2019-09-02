@@ -51,6 +51,7 @@
     (undo-tree :location built-in)
     (view-mode :location built-in)
     (json-mode :location built-in)
+    jsonnet-mode
     )
   )
 
@@ -235,4 +236,6 @@
 (defun config/post-init-json-mode ()
   (add-hook 'json-mode-hook 'highlight-indentation-current-column-mode))
 
+(defun config/post-init-jsonnet-mode ()
+  (add-hook 'jsonnet-mode-hook 'highlight-indentation-current-column-mode))
 ;;; packages.el ends here

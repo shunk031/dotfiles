@@ -72,6 +72,7 @@ This function should only modify configuration layer settings."
          gofmt-command "goimports")
 
      (json :variables json-fmt-tool 'web-beautify)
+     jsonnet
 
      osx
      csv

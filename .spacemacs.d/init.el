@@ -596,6 +596,35 @@ before packages are loaded."
   (bind-key "C-c 0" 'my/copy-current-path)
 
   (bind-key "C-c <escape>" 'view-mode)
+
+  ;;; 選択対象を "" にする (requires all-the-icons.el)
+  (defface my-ivy-arrow-visible
+    '((((class color) (background light)) :foreground "orange")
+      (((class color) (background dark)) :foreground "#EE6363"))
+    "Face used by Ivy for highlighting the arrow.")
+  (defface my-ivy-arrow-invisible
+    '((((class color) (background light)) :foreground "#FFFFFF")
+      (((class color) (background dark)) :foreground "#31343F"))
+    "Face used by Ivy for highlighting the invisible arrow.")
+
+  (if window-system
+      (when (require 'all-the-icons nil t)
+        (defun my-ivy-format-function-arrow (cands)
+          "Transform CANDS into a string for minibuffer."
+          (ivy--format-function-generic
+           (lambda (str)
+             (concat (all-the-icons-faicon
+                      "hand-o-right"
+                      :v-adjust -0.2 :face 'my-ivy-arrow-visible)
+                     " " (ivy--add-face str 'ivy-current-match)))
+           (lambda (str)
+             (concat (all-the-icons-faicon
+                      "hand-o-right" :face 'my-ivy-arrow-invisible) " " str))
+           cands
+           "\n"))
+        (setq ivy-format-functions-alist
+              '((t . my-ivy-format-function-arrow))))
+    (setq ivy-format-functions-alist '((t . ivy-format-function-arrow))))
   )
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -605,20 +634,20 @@ before packages are loaded."
 This is an auto-generated function, do not modify its content directly, use
 Emacs customize menu instead.
 This function is called at the very end of Spacemacs initialization."
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   (quote
-    (ac-php-core php-mode godoctor go-tag go-rename go-impl go-guru go-gen-test go-fill-struct go-eldoc flycheck-gometalinter flycheck-golangci-lint company-go go-mode web-mode web-beautify tagedit slim-mode scss-mode sass-mode pug-mode prettier-js impatient-mode htmlize simple-httpd helm-css-scss haml-mode emmet-mode counsel-css company-web web-completion-data add-node-modules-path yaml-mode yapfify stickyfunc-enhance pytest pyenv-mode py-isort pippel pipenv pyvenv pip-requirements live-py-mode importmagic epc ctable concurrent deferred helm-pydoc helm-gtags helm-cscope helm xcscope helm-core ggtags cython-mode counsel-gtags company-anaconda blacken anaconda-mode pythonic yasnippet-snippets ws-butler writeroom-mode winum which-key wgrep volatile-highlights vi-tilde-fringe uuidgen use-package treemacs-projectile toc-org symon string-inflection spaceline-all-the-icons smex smeargle smart-newline restart-emacs request rainbow-mode rainbow-delimiters popwin persp-mode pcre2el password-generator paradox overseer org-plus-contrib org-bullets open-junk-file nameless move-text magit-svn magit-gitflow macrostep lorem-ipsum link-hint ivy-yasnippet ivy-xref ivy-rich ivy-purpose ivy-posframe ivy-hydra indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-make google-translate golden-ratio gitignore-templates gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link fuzzy font-lock+ flycheck-package flx-ido fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens evil-args evil-anzu eval-sexp-fu elisp-slime-nav editorconfig dumb-jump dotenv-mode doom-modeline diminish define-word counsel-projectile copy-file-on-save company-statistics column-enforce-mode clean-aindent-mode centered-cursor-mode auto-yasnippet auto-highlight-symbol auto-compile all-the-icons-ivy aggressive-indent ace-elink ac-ispell))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ivy-posframe ((t (:background "#282a36"))))
- '(ivy-posframe-border ((t (:background "#6272a4"))))
- '(ivy-posframe-cursor ((t (:background "#61bfff")))))
-)
+  (custom-set-variables
+   ;; custom-set-variables was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(package-selected-packages
+     (quote
+      (ac-php-core php-mode godoctor go-tag go-rename go-impl go-guru go-gen-test go-fill-struct go-eldoc flycheck-gometalinter flycheck-golangci-lint company-go go-mode web-mode web-beautify tagedit slim-mode scss-mode sass-mode pug-mode prettier-js impatient-mode htmlize simple-httpd helm-css-scss haml-mode emmet-mode counsel-css company-web web-completion-data add-node-modules-path yaml-mode yapfify stickyfunc-enhance pytest pyenv-mode py-isort pippel pipenv pyvenv pip-requirements live-py-mode importmagic epc ctable concurrent deferred helm-pydoc helm-gtags helm-cscope helm xcscope helm-core ggtags cython-mode counsel-gtags company-anaconda blacken anaconda-mode pythonic yasnippet-snippets ws-butler writeroom-mode winum which-key wgrep volatile-highlights vi-tilde-fringe uuidgen use-package treemacs-projectile toc-org symon string-inflection spaceline-all-the-icons smex smeargle smart-newline restart-emacs request rainbow-mode rainbow-delimiters popwin persp-mode pcre2el password-generator paradox overseer org-plus-contrib org-bullets open-junk-file nameless move-text magit-svn magit-gitflow macrostep lorem-ipsum link-hint ivy-yasnippet ivy-xref ivy-rich ivy-purpose ivy-posframe ivy-hydra indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-make google-translate golden-ratio gitignore-templates gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link fuzzy font-lock+ flycheck-package flx-ido fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens evil-args evil-anzu eval-sexp-fu elisp-slime-nav editorconfig dumb-jump dotenv-mode doom-modeline diminish define-word counsel-projectile copy-file-on-save company-statistics column-enforce-mode clean-aindent-mode centered-cursor-mode auto-yasnippet auto-highlight-symbol auto-compile all-the-icons-ivy aggressive-indent ace-elink ac-ispell))))
+  (custom-set-faces
+   ;; custom-set-faces was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(ivy-posframe ((t (:background "#282a36"))))
+   '(ivy-posframe-border ((t (:background "#6272a4"))))
+   '(ivy-posframe-cursor ((t (:background "#61bfff")))))
+  )

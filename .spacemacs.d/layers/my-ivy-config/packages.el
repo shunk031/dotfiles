@@ -67,56 +67,6 @@
     (progn
       (setq ivy-initial-inputs-alist nil)
 
-      ;;; 選択対象を "" にする (requires all-the-icons.el)
-      (defface my-ivy-arrow-visible
-        '((((class color) (background light)) :foreground "orange")
-          (((class color) (background dark)) :foreground "#EE6363"))
-        "Face used by Ivy for highlighting the arrow.")
-      (defface my-ivy-arrow-invisible
-        '((((class color) (background light)) :foreground "#FFFFFF")
-          (((class color) (background dark)) :foreground "#31343F"))
-        "Face used by Ivy for highlighting the invisible arrow.")
-
-      (if window-system
-          (when (require 'all-the-icons nil t)
-            (defun my-ivy-format-function-arrow (cands)
-              "Transform CANDS into a string for minibuffer."
-              (ivy--format-function-generic
-               (lambda (str)
-                 (concat (all-the-icons-faicon
-                          "hand-o-right"
-                          :v-adjust -0.2 :face 'my-ivy-arrow-visible)
-                         " " (ivy--add-face str 'ivy-current-match)))
-               (lambda (str)
-                 (concat (all-the-icons-faicon
-                          "hand-o-right" :face 'my-ivy-arrow-invisible) " " str))
-               cands
-               "\n"))
-            (setq ivy-format-functions-alist
-                  '((t . my-ivy-format-function-arrow))))
-        (setq ivy-format-functions-alist '((t . ivy-format-function-arrow))))
-
-      ;; (if window-system
-      ;;     (when (require 'all-the-icons nil t)
-      ;;       (defun my-ivy-format-function-arrow (cands)
-      ;;         "Transform CANDS into a string for minibuffer."
-      ;;         (ivy--format-function-generic
-      ;;          (lambda (str)
-      ;;            (concat (all-the-icons-faicon
-      ;;                     "hand-o-right"
-      ;;                     :v-adjust -0.2 :face 'my-ivy-arrow-visible)
-      ;;                    " " (ivy--add-face str 'ivy-current-match)))
-      ;;          (lambda (str)
-      ;;            (concat (all-the-icons-faicon
-      ;;                     "hand-o-right" :face 'my-ivy-arrow-invisible) " " str))
-      ;;          cands
-      ;;          "\n"))
-      ;;       (setq ivy-format-functions-alist
-      ;;             '((t . my-ivy-format-function-arrow))))
-      ;;   (setq ivy-format-functions-alist '((t . ivy-format-function-arrow))))
-
-      
-
       (setq ivy-sort-matches-functions-alist
             '((t)
               (ivy-switch-buffer . ivy-sort-function-buffer)

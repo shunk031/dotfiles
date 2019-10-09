@@ -57,7 +57,8 @@ This function should only modify configuration layer settings."
 
      (python
       :variables
-      ;; python-backend 'lsp
+      ;; python-backend 'anaconda
+      python-backend 'lsp
       python-formatter 'black
       python-format-on-save t
       python-sort-imports-on-save t)
@@ -518,6 +519,8 @@ Put your configuration code here, except for variables that should be set
 before packages are loaded."
 
   (spacemacs/toggle-smartparens-globally-on)
+
+  (setq lsp-enable-snippet nil)
 
   (use-package ace-isearch
     :after (counsel swiper avy avy-migemo)

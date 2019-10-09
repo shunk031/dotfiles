@@ -10,4 +10,5 @@ pipenv install --dev \
        black \
        autoflake \
        importmagic \
-       epc
+       epc \
+       ipdb

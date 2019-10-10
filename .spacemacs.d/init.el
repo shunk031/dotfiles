@@ -521,6 +521,7 @@ before packages are loaded."
   (spacemacs/toggle-smartparens-globally-on)
 
   (setq lsp-enable-snippet nil)
+  (setq wgrep-auto-save-buffer t)
 
   (use-package ace-isearch
     :after (counsel swiper avy avy-migemo)

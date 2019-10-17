@@ -73,6 +73,8 @@ This function should only modify configuration layer settings."
          gofmt-command "goimports")
 
      (json :variables json-fmt-tool 'web-beautify)
+     (lsp :variables lsp-ui-doc-enable nil)
+
      jsonnet
 
      osx

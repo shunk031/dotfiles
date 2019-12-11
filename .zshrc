@@ -36,6 +36,11 @@ if [ ! -f ${DOTPATH}/.secret.zsh ]; then
 fi
 source ${DOTPATH}/.secret.zsh
 
+# load pypirc
+if [ ! -f ${DOTPATH}/.pypirc ]; then
+    cp ${DOTPATH}/.pypirc.example ${DOTPATH}/.pypirc
+fi
+
 #
 # Start tmux
 #

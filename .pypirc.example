@@ -9,6 +9,6 @@ username=shunk031
 password=PASSWORD
 
 [pypitest]
-repository=https://testpypi.python.org/pypi
+repository=https://test.pypi.org/legacy/
 username=shunk031
 password=PASSWORD

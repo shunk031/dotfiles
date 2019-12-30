@@ -131,7 +131,8 @@ eval "$(goenv init -)"
 
 export PS1='[\h: \w]\n\$ '
 export PYENV_VIRTUALENV_DISABLE_PROMPT=1
-pyenvVirtualenvUpdatePrompt() {
+
+pyenv_virtualenv_update_prompt() {
     RED='\[\e[0;31m\]'
     GREEN='\[\e[0;32m\]'
     BLUE='\[\e[0;34m\]'
@@ -156,7 +157,7 @@ pyenvVirtualenvUpdatePrompt() {
     fi
     export PS1
 }
-export PROMPT_COMMAND="$PROMPT_COMMAND pyenvVirtualenvUpdatePrompt;"
+export PROMPT_COMMAND="$PROMPT_COMMAND pyenv_virtualenv_update_prompt;"
 
 alias ns='watch -n 1 "nvidia-smi"'
 

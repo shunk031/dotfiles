@@ -1,7 +1,7 @@
 DOTPATH    := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 CANDIDATES := $(wildcard .??*) bin
-EXCLUSIONS := .DS_Store .git .gitmodules .travis.yml .secret.zsh.example .pypirc.example .github .zsh
-DOTFILES   := $(filter-out $(EXCLUSIONS), $(CANDIDATES))
+EXCLUSIONS := .DS_Store .git .gitmodules .travis.yml .secret.zsh.example .pypirc.example .github
+DOTFILES   := $(sort $(filter-out $(EXCLUSIONS), $(CANDIDATES)))
 
 .DEFAULT_GOAL := help
 
@@ -14,9 +14,12 @@ deploy: ## Create symlink to home directory
 	@echo '==> Start to deploy dotfiles to home directory.'
 	@echo ''
 	@$(foreach val, $(DOTFILES), ln -sfnv $(abspath $(val)) $(HOME)/$(val);)
+	@echo ''
 
 init: ## Setup environment settings
-	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/etc/init/init.sh
+	@echo '==> Start to init dotfiles'
+	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/install/main.sh
+	@echo ''
 
 test: ## Test dotfiles and init scripts
 	@#DOTPATH=$(DOTPATH) bash $(DOTPATH)/etc/test/test.sh
@@ -28,7 +31,10 @@ update: ## Fetch changes for this repo
 	git submodule update
 	git submodule foreach git pull origin master
 
-install: update deploy init ## Run make update, deploy, init
+install: ## Run make update, deploy, init
+	update
+	deploy
+	init
 	@exec $$SHELL
 
 clean: ## Remove the dot files and this repo
@@ -39,3 +45,8 @@ help: ## Self-documented Makefile
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| sort \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+local:
+	@echo '==> Start to create local config files.'
+	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/install/local.sh
+	@echo ''

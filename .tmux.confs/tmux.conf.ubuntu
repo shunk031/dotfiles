@@ -1,0 +1,5 @@
+set-option -g default-shell /usr/bin/zsh
+
+# clipboard settings for Ubuntu
+bind-key -T copy-mode M-w send -X copy-pipe-and-cancel "xsel -bi"
+bind-key -T copy-mode C-w send -X copy-pipe "xsel -bi"

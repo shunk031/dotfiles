@@ -6,6 +6,7 @@ export PATH=${PATH}:/usr/local/bin
 
 # for ~/bin
 export PATH=${PATH}:~/bin
+
 ## for zshtools
 fpath=(~/bin $fpath)
 
@@ -16,7 +17,7 @@ export PATH=${PATH}:$GOPATH/bin
 export GOROOT=`go env GOROOT`
 
 # for Android SDK
-export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools
+# export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools
 
 # for my scripts
-export PATH=${PATH}:~/dotfiles/emacs.d/etc
+# export PATH=${PATH}:~/dotfiles/emacs.d/etc

@@ -16,9 +16,10 @@ install_ghq() {
 
         update &> /dev/null \
             || print_error "golang 1.13 (resync package index files)"
+
+        install_package "golang 1.13" "golang"
     fi
 
-    install_package "golang 1.13" "golang"
     execute \
         "go get github.com/motemen/ghq && mkdir -p ${HOME}/ghq" \
         "ghq" \

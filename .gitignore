@@ -2,6 +2,7 @@
 
 .github/*
 !figure1.png
+!workflow
 
 # for some files
 README.html

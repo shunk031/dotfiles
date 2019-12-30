@@ -242,6 +242,16 @@ main() {
     make deploy
     make local
     make init
+
+    # Restart shell if specified "bash -c $(curl -L {URL})"
+    # not restart:
+    #   curl -L {URL} | bash
+    if [ -p /dev/stdin ]; then
+        print_in_yellow "Now continue with Rebooting your shell"
+    else
+        print_success "Restarting your shell..."
+        exec "${SHELL:-$(which zsh)}"
+    fi
 }
 
 main "$@"

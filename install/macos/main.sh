@@ -17,16 +17,14 @@ main() {
     bash ${MACOS_DIR}/misc.sh
 
     bash ${MACOS_DIR}/zsh.sh
-    bash ${MACOS_DIR}/emacs.sh
+    # bash ${MACOS_DIR}/emacs.sh
     bash ${MACOS_DIR}/tmux.sh
     bash ${MACOS_DIR}/ghq.sh
 
     # bash ${MACOS_DIR}/pyenv_requirements.sh
     # bash ${MACOS_DIR}/rbenv_requirements.sh
 
-    bash ${MACOS_DIR}/spacemacs_requirements.sh
-
-    bash ${}
+    # bash ${MACOS_DIR}/spacemacs_requirements.sh
 }
 
 main

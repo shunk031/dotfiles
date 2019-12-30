@@ -2,7 +2,7 @@
 
 .github/*
 !figure1.png
-!workflow
+!workflows
 
 # for some files
 README.html

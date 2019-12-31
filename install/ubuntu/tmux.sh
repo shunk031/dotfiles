@@ -37,7 +37,7 @@ main() {
     install_package "tmux (pasteboard)" "xsel"
 
     install_tmux_mem_cpu_load
-    bash ${DOTPATH}/install/general/tpm.sh
+    bash "${DOTPATH}"/install/general/tpm.sh
 }
 
 main

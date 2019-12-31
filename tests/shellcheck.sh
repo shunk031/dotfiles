@@ -9,7 +9,7 @@ main() {
     find \
         ../install \
         ../tests \
-        ! -path ../install/macos/*.plist \
+        ! -path '../install/macos/*.plist' \
         -type f \
         -exec shellcheck \
         -e SC1090 \

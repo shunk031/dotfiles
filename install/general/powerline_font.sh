@@ -40,26 +40,10 @@ install_awesome_powerline() {
         || return 1
 }
 
-install_nerd_font() {
-    declare -r NERD_FONT_DIR="${DOTPATH}.github/nerd_font"
-    declare -r NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts"
-
-    execute \
-        "rm -rf ${NERD_FONT_DIR} \
-            && git clone --quiet --branch=master --depth 1 ${NERD_FONT_URL} ${NERD_FONT_DIR}" \
-        "Clone to ${NERD_FONT_DIR}"
-
-    execute \
-        "cd ${NERD_FONT_DIR} && ./install.sh" \
-        "Install" \
-        || return 1
-}
-
 main() {
     print_in_purple "\n   Powerline font\n\n"
 
     install_powerline
-    # install_nerd_font
 }
 
 main

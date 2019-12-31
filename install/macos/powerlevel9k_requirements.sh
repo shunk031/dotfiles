@@ -6,11 +6,13 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-install_spacemacs_requirements() {
-    brew_install "Source Code Pro" "font-source-code-pro" "caskroom/fonts" "cask"
+install_powerlevel9k_requirements() {
+    brew_install "Roboto Mono Nerd Font" "font-robotomono-nerd-font-mono" "homebrew/cask-fonts" "cask"
 }
 
 main() {
     print_in_purple "\n   Install spacemacs requirements\n\n"
-    install_spacemacs_requirements
+    install_powerlevel9k_requirements
 }
+
+main

@@ -30,7 +30,7 @@ main() {
     brew_install "tmux (pasteboard)" "reattach-to-user-namespace"
 
     install_tmux_mem_cpu_load
-    bash ${DOTPATH}/install/general/tpm.sh
+    bash "${DOTPATH}"/install/general/tpm.sh
 }
 
 main

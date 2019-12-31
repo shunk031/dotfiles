@@ -13,3 +13,9 @@ jobs:
 
       - name: Setup dotfiles
         run: bash setup.sh
+
+      - name: Install shellcheck
+        run: brew install shellcheck
+
+      - name: Run shellcheck
+        run: ./tests/shellcheck.sh

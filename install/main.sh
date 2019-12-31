@@ -9,4 +9,4 @@
 
 print_in_purple "\n • Installs\n"
 
-bash ./install/$(get_os)/main.sh
+bash "./install/$(get_os)/main.sh"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . ${DOTPATH}/install/util.sh
+    && . "${DOTPATH}"/install/util.sh
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,12 +30,12 @@ install_awesome_powerline() {
         "Clone to ${AWESOME_POWERLINE_FONT_DIR}"
 
     execute \
-        "cd $AWESOME_POWERLINE_FONT_DIR && ./build.sh" \
+        "cd ${AWESOME_POWERLINE_FONT_DIR} && ./build.sh" \
         "Build" \
         || return 1
 
     execute \
-        "cd $AWESOME_POWERLINE_FONT_DIR && ./install.sh" \
+        "cd ${AWESOME_POWERLINE_FONT_DIR} && ./install.sh" \
         "Install" \
         || return 1
 }

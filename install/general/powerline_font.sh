@@ -10,7 +10,8 @@ install_powerline() {
     declare -r POWERLINE_FONT_URL="https://github.com/powerline/fonts.git"
 
     execute \
-        "git clone --quiet $POWERLINE_FONT_URL $POWERLINE_FONT_DIR --depth=1" \
+        "rm -rf ${POWERLINE_FONT_DIR} \
+            && git clone --quiet ${POWERLINE_FONT_URL} ${POWERLINE_FONT_DIR} --depth=1" \
         "Clone to ${POWERLINE_FONT_DIR}"
 
     execute \
@@ -24,7 +25,8 @@ install_awesome_powerline() {
     declare -r AWESOME_POWERLINE_FONT_URL="https://github.com/gabrielelana/awesome-terminal-fonts"
 
     execute \
-        "git clone --quiet $AWESOME_POWERLINE_FONT_URL $AWESOME_POWERLINE_FONT_DIR" \
+        "rm -rf ${AWESOME_POWERLINE_FONT_DIR} \
+            && git clone --quiet ${AWESOME_POWERLINE_FONT_URL} ${AWESOME_POWERLINE_FONT_DIR}" \
         "Clone to ${AWESOME_POWERLINE_FONT_DIR}"
 
     execute \
@@ -43,7 +45,8 @@ install_nerd_font() {
     declare -r NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts"
 
     execute \
-        "git clone --quiet --branch=master --depth 1 $NERD_FONT_URL $NERD_FONT_DIR" \
+        "rm -rf ${NERD_FONT_DIR} \
+            && git clone --quiet --branch=master --depth 1 ${NERD_FONT_URL} ${NERD_FONT_DIR}" \
         "Clone to ${NERD_FONT_DIR}"
 
     execute \

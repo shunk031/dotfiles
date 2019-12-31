@@ -10,7 +10,8 @@ install_tpm() {
     declare -r TPM_URL="https://github.com/tmux-plugins/tpm"
 
     execute \
-        "git clone --quiet $TPM_URL $TPM_DIR" \
+        "rm -rf ${TPM_DIR} \
+            && git clone --quiet ${TPM_URL} ${TPM_DIR}" \
         "Install tpm (tmux plugin manager)" \
         || return 1
 }

@@ -10,12 +10,14 @@ install_fzf() {
     declare -r FZF_URL="https://github.com/junegunn/fzf.git"
 
     execute \
-        "git clone --quiet $FZF_URL $FZF_DIR" \
-        "Clone fzf" \
+        "rm -rf ${FZF_DIR} \
+            && git clone --quiet ${FZF_URL} ${FZF_DIR}" \
+        "Clone to ${FZF_DIR}" \
+        || return 1
 
     execute \
         "${FZF_DIR}/install --key-bindings --completion --no-update-rc" \
-        "Install fzf" \
+        "Install" \
         || return 1
 }
 

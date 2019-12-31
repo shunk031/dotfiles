@@ -9,8 +9,8 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 install_ghq() {
     brew_install "ghq" "ghq"
     execute \
-        "mkdir -p ~/ghq" \
-        "make directory for ghq to ~/ghq" \
+        "mkdir -p ${HOME}/ghq" \
+        "Make directory for ghq to ${HOME}/ghq" \
         || return 1
 }
 

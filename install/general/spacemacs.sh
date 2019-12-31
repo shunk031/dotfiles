@@ -10,8 +10,9 @@ install_spacemacs() {
     declare -r SPACEMACS_URL="https://github.com/syl20bnr/spacemacs"
 
     execute \
-        "git clone --quiet $SPACEMACS_URL $SPACEMACS_DIR" \
-        "Install Spacemacs" \
+        "rm -rf ${SPACEMACS_DIR} \
+            && git clone --quiet ${SPACEMACS_URL} ${SPACEMACS_DIR}" \
+        "Install to ${SPACEMACS_DIR}" \
         || return 1
 }
 

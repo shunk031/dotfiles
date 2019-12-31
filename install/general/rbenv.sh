@@ -10,11 +10,12 @@ install_rbenv() {
     declare -r RBENV_URL="https://github.com/rbenv/rbenv.git"
 
     execute \
-        "git clone --quiet $RBENV_URL $RBENV_DIR \
-             && cd ${RBENV_DIR} \
-             && src/configure \
-             && make -C src" \
-        "Install rbenv" \
+        "rm -rf ${RBENV_DIR} \
+            && git clone --quiet ${RBENV_URL} ${RBENV_DIR} \
+            && cd ${RBENV_DIR} \
+            && src/configure \
+            && make -C src" \
+        "Install to ${RBENV_DIR}" \
         || return 1
 }
 
@@ -23,8 +24,9 @@ install_ruby_build() {
     declare -r RUBY_BUILD_URL="https://github.com/rbenv/ruby-build.git"
 
     execute \
-        "git clone --quiet $RUBY_BUILD_URL $RUBY_BUILD_DIR" \
-        "Install ruby-build" \
+        "rm -rf ${RUBY_BUILD_DIR} \
+            && git clone --quiet ${RUBY_BUILD_URL} ${RUBY_BUILD_DIR}" \
+        "Install to ${RUBY_BUILD_DIR}" \
         || return 1
 }
 

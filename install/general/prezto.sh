@@ -10,8 +10,9 @@ install_prezto() {
     declare -r PREZTO_URL="https://github.com/sorin-ionescu/prezto.git"
 
     execute \
-        "git clone --quiet --recursive $PREZTO_URL $PREZTO_DIR" \
-        "Install prezto" \
+        "rm -rf ${PREZTO_DIR} \
+            && git clone --quiet --recursive ${PREZTO_URL} ${PREZTO_DIR}" \
+        "Install to ${PREZTO_DIR}" \
         || return 1
 }
 

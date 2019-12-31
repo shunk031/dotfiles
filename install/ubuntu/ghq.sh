@@ -20,9 +20,6 @@ install_ghq() {
 
     install_package "golang 1.13" "golang"
 
-    go version
-    echo "GOPATH: $GOPATH"
-
     execute \
         "go get github.com/motemen/ghq && mkdir -p ${HOME}/ghq" \
         "ghq" \

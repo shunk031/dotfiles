@@ -10,8 +10,9 @@ install_goenv() {
     declare -r GOENV_URL="https://github.com/syndbg/goenv.git"
 
     execute \
-        "git clone --quiet $GOENV_URL $GOENV_DIR" \
-        "Install goenv" \
+        "rm -rf ${GOENV_DIR} \
+            && git clone --quiet ${GOENV_URL} ${GOENV_DIR}" \
+        "Install to ${GOENV_DIR}" \
         || return 1
 }
 

@@ -11,8 +11,9 @@ install_spacemacs_requirements() {
     declare -r FONT_URL="https://github.com/adobe-fonts/source-code-pro.git"
 
     execute \
-        "git clone --quiet --depth 1 --branch release $FONT_URL $FONT_DIR \
-             && fc-cache -f $FONT_DIR" \
+        "rm -rf ${FONT_DIR} \
+            && git clone --quiet --depth 1 --branch release $FONT_URL $FONT_DIR \
+            && fc-cache -f $FONT_DIR" \
         "Install font: Source Code Pro" \
         || return 1
 }

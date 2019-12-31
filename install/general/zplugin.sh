@@ -10,8 +10,9 @@ install_zplugin() {
     declare -r ZPLUGIN_URL="https://github.com/zdharma/zplugin.git"
 
     execute \
-        "git clone --quiet $ZPLUGIN_URL $ZPLUGIN_DIR" \
-        "Install zplugin" \
+        "rm -rf ${ZPLUGIN_DIR} \
+            && git clone --quiet ${ZPLUGIN_URL} ${ZPLUGIN_DIR}" \
+        "Install to ${ZPLUGIN_DIR}" \
         || return 1
 }
 

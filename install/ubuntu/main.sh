@@ -21,6 +21,7 @@ main() {
     # bash ${UBUNTU_DIR}/rbenv_requirements.sh
 
     # bash ${UBUNTU_DIR}/spacemacs_requirements.sh
+    bash ${UBUNTU_DIR}/powerlevel9k_requirements.sh
 }
 
 main

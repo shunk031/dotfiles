@@ -25,6 +25,7 @@ main() {
     # bash ${MACOS_DIR}/rbenv_requirements.sh
 
     # bash ${MACOS_DIR}/spacemacs_requirements.sh
+    bash ${MACOS_DIR}/powerlevel9k_requirements.sh
 }
 
 main

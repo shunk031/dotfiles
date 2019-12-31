@@ -22,7 +22,6 @@ init: ## Setup environment settings
 	@echo ''
 
 test: ## Test dotfiles and init scripts
-	@#DOTPATH=$(DOTPATH) bash $(DOTPATH)/etc/test/test.sh
 	@echo "test is inactive temporarily"
 
 update: ## Fetch changes for this repo
@@ -38,7 +37,7 @@ install: ## Run make update, deploy, init
 	@exec $$SHELL
 
 clean: ## Remove the dot files and this repo
-	@echo 'Remove dot files in your home directory...'
+	@echo '==> Remove dot files in your home directory.'
 	@-$(foreach val, $(DOTFILES), rm -vrf $(HOME)/$(val);)
 
 help: ## Self-documented Makefile

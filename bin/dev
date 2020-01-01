@@ -16,7 +16,7 @@ function dev() {
         return
     fi
 
-    moveto=$(ghq root)/$(ghq list | fzf)
+    moveto=$(ghq root)/$(ghq list | fzf --reverse)
     cd $moveto
 
     # rename session if in tmux

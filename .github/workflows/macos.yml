@@ -1,0 +1,21 @@
+name: MacOS
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: macOS-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v1
+
+      - name: Setup dotfiles
+        run: bash setup.sh
+
+      - name: Install shellcheck
+        run: brew install shellcheck
+
+      - name: Run shellcheck
+        run: ./tests/shellcheck.sh

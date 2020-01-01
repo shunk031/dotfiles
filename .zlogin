@@ -1,10 +1,3 @@
-#
-# Executes commands at login post-zshrc.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
-#
-
 # Execute code that does not affect the current session in the background.
 {
     # Compile the completion dump to increase startup speed.
@@ -14,10 +7,13 @@
     fi
 } &!
 
-# Print a random, hopefully interesting, adage.
-if (( $+commands[fortune] )); then
-    if [[ -t 0 || -t 1 ]]; then
+# Execute code only if STDERR is bound to a TTY.
+[[ -o INTERACTIVE && -t 2 ]] && {
+
+    # Print a random, hopefully interesting, adage.
+    if (( $+commands[fortune] )); then
         fortune -s
         print
     fi
-fi
+
+} >&2

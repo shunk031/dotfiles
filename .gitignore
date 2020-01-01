@@ -2,10 +2,10 @@
 
 .github/*
 !figure1.png
+!workflows
 
 # for some files
 README.html
-install
 .secret.zsh
 .pypirc
 

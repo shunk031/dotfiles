@@ -15,6 +15,8 @@
 
 ---
 
+![](https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/mac.png)
+
 ## Setup
 
 To set up the dotfiles run the appropriate snippet in the terminal:

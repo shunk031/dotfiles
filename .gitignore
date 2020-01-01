@@ -2,6 +2,7 @@
 
 .github/*
 !header.png
+!mac.png
 !workflows
 
 # for some files

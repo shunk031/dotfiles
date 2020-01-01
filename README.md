@@ -23,3 +23,13 @@ To set up the dotfiles run the appropriate snippet in the terminal:
 |--------|----------------------------------------------------------------|
 | MacOS  | `bash -c "$(curl -LsS http://shunk031.me/dotfiles/setup.sh)"`  |
 | Ubuntu | `bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"` |
+
+## Test with Docker
+
+Build a test environment using docker to validate that it is set up correctly in the new environment.
+
+```shell
+$ docker build -t dotfiles .
+$ docker run -it -v $(pwd):/root/dotfiles dotfiles /bin/bash
+$ bash setup.sh
+```

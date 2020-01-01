@@ -19,3 +19,6 @@ jobs:
 
       - name: Run shellcheck
         run: ./tests/shellcheck.sh
+
+      - name: Setup dotfiles with snippet
+        run: bash -c "$(curl -LsS http://shunk031.me/dotfiles/setup.sh) --yes"

@@ -23,3 +23,5 @@ main() {
     print_in_purple "\n   nodenv\n\n"
     install_nodenv
 }
+
+main

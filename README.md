@@ -14,3 +14,12 @@
 </p>
 
 ---
+
+## Setup
+
+To set up the dotfiles run the appropriate snippet in the terminal:
+
+| OS     | Snippet                                                        |
+|--------|----------------------------------------------------------------|
+| MacOS  | `bash -c "$(curl -LsS http://shunk031.me/dotfiles/setup.sh)"`  |
+| Ubuntu | `bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"` |

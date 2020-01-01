@@ -39,7 +39,7 @@ download() {
 
     if command -v "curl" &> /dev/null; then
 
-        curl -LsSo "$output" "$url" &> /dev/null
+        curl -LsSo "${output}" "${url}" &> /dev/null
         #     │││└─ write output to file
         #     ││└─ show error messages
         #     │└─ don't show the progress meter
@@ -68,7 +68,7 @@ download_dotfiles() {
 
     tmp_file="$(mktemp /tmp/XXXXX)"
 
-    download "$DOTFILES_TARBALL_URL" "$tmpFile"
+    download "$DOTFILES_TARBALL_URL" "$tmp_file"
     print_result $? "Download archive" "true"
     printf "\n"
 
@@ -120,10 +120,7 @@ download_dotfiles() {
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     rm -rf "$tmp_file"
-    print_result $? "Remove archive"
-
-    cd "$dotfiles_directory/install" \
-        || return 1
+    print_result $? "Remove archive\n"
 }
 
 download_utils() {

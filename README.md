@@ -1,6 +1,6 @@
 # dotfiles
 
-![](https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/figure1.png)
+![](https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/header.png)
 
 ---
 

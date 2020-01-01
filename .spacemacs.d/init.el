@@ -74,9 +74,9 @@ This function should only modify configuration layer settings."
 
      (json :variables json-fmt-tool 'web-beautify)
      (lsp :variables lsp-ui-doc-enable nil)
+     (markdown :variables markdown-live-preview-engine 'vmd)
 
      jsonnet
-
      osx
      csv
      better-defaults
@@ -86,7 +86,6 @@ This function should only modify configuration layer settings."
      git
      html
      yaml
-     ;; markdown
      lsp
      shell-scripts
      ;; org

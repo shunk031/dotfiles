@@ -1,7 +1,7 @@
 # dotfiles gitignore
 
 .github/*
-!figure1.png
+!header.png
 !workflows
 
 # for some files

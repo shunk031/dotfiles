@@ -12,6 +12,7 @@ main() {
     bash "${GENERAL_DIR}"/pyenv.sh
     bash "${GENERAL_DIR}"/rbenv.sh
     bash "${GENERAL_DIR}"/goenv.sh
+    bash "${GENERAL_DIR}"/nodenv.sh
 
     # bash ${GENERAL_DIR}/spacemacs.sh
 }

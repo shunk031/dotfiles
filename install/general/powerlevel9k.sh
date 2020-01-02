@@ -8,7 +8,6 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 install_powerlevel9k() {
     declare -r POWERLEVEL9K_DIR="${HOME}/.zprezto/modules/prompt/external/powerlevel9k"
     declare -r POWERLEVEL9K_URL="https://github.com/romkatv/powerlevel10k.git"
-    declare -r PREZTO_PROMPT_DIR="${HOME}/.zprezto/modules/prompt/functions"
 
     execute \
         "rm -rf ${POWERLEVEL9K_DIR} \

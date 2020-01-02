@@ -15,11 +15,6 @@ install_powerlevel9k() {
             && git clone --quiet ${POWERLEVEL9K_URL} ${POWERLEVEL9K_DIR}" \
         "Clone to ${POWERLEVEL9K_DIR}" \
         || return 1
-
-    execute \
-        "ln -s ${POWERLEVEL9K_DIR}/powerlevel10k.zsh-theme ${PREZTO_PROMPT_DIR}/prompt_powerlevel10k_setup" \
-        "Install ${POWERLEVEL9K_DIR}/powerlevel10k.zsh-theme to ${PREZTO_PROMPT_DIR}/prompt_powerlevel10k_setup" \
-        || return 1
 }
 
 main() {

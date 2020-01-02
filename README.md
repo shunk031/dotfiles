@@ -60,3 +60,7 @@ $ docker build -t dotfiles .
 $ docker run -it -v $(pwd):/root/dotfiles dotfiles /bin/bash
 $ bash setup.sh
 ```
+
+## License
+
+The code is available under the [MIT license](https://github.com/shunk031/dotfiles/blob/master/LICENSE).

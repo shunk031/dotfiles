@@ -8,6 +8,7 @@ main() {
 
     bash "${GENERAL_DIR}"/zplugin.sh
     bash "${GENERAL_DIR}"/prezto.sh
+    bash "${GENERAL_DIR}"/docker_completion.sh
 
     bash "${GENERAL_DIR}"/pyenv.sh
     bash "${GENERAL_DIR}"/rbenv.sh

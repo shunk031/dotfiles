@@ -17,10 +17,8 @@ install_powerlevel9k() {
         || return 1
 
     execute \
-        "ln -s ${POWERLEVEL9K_DIR}/powerlevel10k.zsh-theme \
-               ${PREZTO_PROMPT_DIR}/prompt_powerlevel10k_setup" \
-        "Install ${POWERLEVEL9K_DIR}/powerlevel10k.zsh-theme to \
-                 ${PREZTO_PROMPT_DIR}/prompt_powerlevel10k_setup" \
+        "ln -s ${POWERLEVEL9K_DIR}/powerlevel10k.zsh-theme ${PREZTO_PROMPT_DIR}/prompt_powerlevel10k_setup" \
+        "Install ${POWERLEVEL9K_DIR}/powerlevel10k.zsh-theme to ${PREZTO_PROMPT_DIR}/prompt_powerlevel10k_setup" \
         || return 1
 }
 

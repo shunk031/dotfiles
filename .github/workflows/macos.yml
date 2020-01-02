@@ -14,14 +14,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v1
 
-      - name: Setup dotfiles
-        run: bash setup.sh
-
       - name: Install shellcheck
         run: brew install shellcheck
 
       - name: Run shellcheck
         run: ./tests/shellcheck.sh
+
+      - name: Setup dotfiles
+        run: bash setup.sh
 
       - name: Setup dotfiles with snippet
         run: bash -c "$(curl -LsS http://shunk031.me/dotfiles/setup.sh) --yes"

@@ -11,7 +11,7 @@ install_powerlevel9k() {
     declare -r PREZTO_PROMPT_DIR="${HOME}/.zprezto/modules/prompt/functions"
 
     execute \
-        "rm ${POWERLEVEL9K_DIR} \
+        "rm -rf ${POWERLEVEL9K_DIR} \
             && git clone --quiet ${POWERLEVEL9K_URL} ${POWERLEVEL9K_DIR}" \
         "Clone to ${POWERLEVEL9K_DIR}" \
         || return 1

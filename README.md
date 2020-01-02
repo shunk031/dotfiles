@@ -61,6 +61,14 @@ $ docker run -it -v $(pwd):/root/dotfiles dotfiles /bin/bash
 $ bash setup.sh
 ```
 
+## Acknowledgements
+
+Inspiration and code was taken from many sources, including:
+
+- [alrra/dotfiles](https://github.com/alrra/dotfiles): macOS / Ubuntu dotfiles from [@alrra](https://github.com/alrra).
+- [b4b4r07/dotfiles](https://github.com/b4b4r07/dotfiles): A repository that gathered files starting with dot from [@b4b4r07](https://github.com/b4b4r07).
+- [da-edra/dotfiles](https://github.com/da-edra/dotfiles): Arch Linux config from [@da-edra](https://github.com/da-edra).
+
 ## License
 
 The code is available under the [MIT license](https://github.com/shunk031/dotfiles/blob/master/LICENSE).

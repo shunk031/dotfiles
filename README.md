@@ -55,6 +55,7 @@ To set up the dotfiles run the appropriate snippet in the terminal:
 Build a test environment using docker to validate that it is set up correctly in the new environment.
 
 ```shell
+$ cd .dotfiles
 $ docker build -t dotfiles .
 $ docker run -it -v $(pwd):/root/dotfiles dotfiles /bin/bash
 $ bash setup.sh

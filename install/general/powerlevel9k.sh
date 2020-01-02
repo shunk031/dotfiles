@@ -28,3 +28,5 @@ main() {
     print_in_purple "\n   powerlevel9k\n\n"
     install_powerlevel9k
 }
+
+main

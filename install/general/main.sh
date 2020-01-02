@@ -5,6 +5,7 @@ main() {
 
     bash "${GENERAL_DIR}"/powerline_font.sh
     # bash "${GENERAL_DIR}/fzf.sh"
+    bash "${GENERAL_DIR}"/docker_completion.sh
 
     bash "${GENERAL_DIR}"/zplugin.sh
     bash "${GENERAL_DIR}"/prezto.sh

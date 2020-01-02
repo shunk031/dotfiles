@@ -4,7 +4,7 @@ main() {
     declare -r GENERAL_DIR="${DOTPATH}/install/general"
 
     bash "${GENERAL_DIR}"/powerline_font.sh
-    # bash "${GENERAL_DIR}/fzf.sh"
+    bash "${GENERAL_DIR}/fzf.sh"
 
     bash "${GENERAL_DIR}"/zplugin.sh
     bash "${GENERAL_DIR}"/prezto.sh
@@ -14,7 +14,7 @@ main() {
     bash "${GENERAL_DIR}"/goenv.sh
     bash "${GENERAL_DIR}"/nodenv.sh
 
-    # bash ${GENERAL_DIR}/spacemacs.sh
+    bash "${GENERAL_DIR}"/spacemacs.sh
 }
 
 main

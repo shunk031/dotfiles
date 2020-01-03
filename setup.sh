@@ -26,7 +26,7 @@ declare -r GITHUB_REPOSITORY="shunk031/dotfiles"
 
 declare -r DOTFILES_ORIGIN="git@github.com:$GITHUB_REPOSITORY.git"
 declare -r DOTFILES_TARBALL_URL="https://github.com/$GITHUB_REPOSITORY/tarball/master"
-declare -r DOTFILES_UTILS_URL="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/master/install/utils.sh"
+declare -r DOTFILES_UTIL_URL="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/master/install/util.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -123,12 +123,12 @@ download_dotfiles() {
     print_result $? "Remove archive\n"
 }
 
-download_utils() {
+download_util() {
     local tmp_file=""
 
     tmp_file="$(mktemp /tmp/XXXXX)"
 
-    download "$DOTFILES_UTILS_URL" "$tmp_file" \
+    download "${DOTFILES_UTIL_URL}" "${tmp_file}" \
         && . "$tmp_file" \
         && rm -rf "$tmp_file" \
         && return 0
@@ -202,15 +202,15 @@ main() {
     # Ensure that the following actions
     # are made relative to this file's path.
 
-    # cd "$(dirname "${BASH_SOURCE[0]}")" \
-    #     || exit 1
+    cd "$(dirname "${BASH_SOURCE[0]}")" \
+        || exit 1
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Load utils
     if [ -x "install/util.sh" ]; then
         . "install/util.sh" || exit 1
     else
-        download_utils || exit 1
+        download_util || exit 1
     fi
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

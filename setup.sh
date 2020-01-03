@@ -241,7 +241,9 @@ main() {
     printf "%s" "${BASH_SOURCE[0]}" | grep "setup.sh" &> /dev/null \
         || download_dotfiles
 
-    make install
+    make deploy
+    make init
+    make local
 
     # Restart shell if specified "bash -c $(curl -L {URL})"
     # not restart:

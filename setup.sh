@@ -121,6 +121,11 @@ download_dotfiles() {
 
     rm -rf "$tmp_file"
     print_result $? "Remove archive\n"
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    cd "$dotfiles_directory" \
+        || return 1
 }
 
 download_util() {
@@ -236,9 +241,7 @@ main() {
     printf "%s" "${BASH_SOURCE[0]}" | grep "setup.sh" &> /dev/null \
         || download_dotfiles
 
-    make deploy
-    make local
-    make init
+    make install
 
     # Restart shell if specified "bash -c $(curl -L {URL})"
     # not restart:

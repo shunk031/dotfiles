@@ -34,6 +34,7 @@ install: ## Run make update, deploy, init
 	update
 	deploy
 	init
+	local
 	@exec $$SHELL
 
 clean: ## Remove the dot files and this repo

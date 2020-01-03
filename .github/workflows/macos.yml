@@ -24,4 +24,4 @@ jobs:
         run: bash setup.sh
 
       - name: Setup dotfiles with snippet
-        run: bash -c "$(curl -LsS http://shunk031.me/dotfiles/setup.sh) --yes"
+        run: bash -cex "$(curl -LsS http://shunk031.me/dotfiles/setup.sh) --yes"

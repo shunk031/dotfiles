@@ -22,5 +22,3 @@ jobs:
 
       - name: Setup dotfiles
         run: bash setup.sh
-
-      

@@ -66,7 +66,7 @@
     :init
     (company-fix-mode t)))
 
-(defun my-company-config/init-company-box ()
+(defun my-company-config/post-init-company-box ()
   (use-package company-box
     :diminish
     :hook (company-mode . company-box-mode)

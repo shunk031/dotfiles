@@ -16,7 +16,7 @@ install_emacs() {
     brew_install "Emacs plus" "emacs-plus"
 
     execute \
-        "ln -s ${EMACS_DIR} ${APP_DIR}" \
+        "ln -sf ${EMACS_DIR} ${APP_DIR}" \
         "Symbolic link ${EMACS_DIR} to ${APP_DIR}" \
         || return 1
 }

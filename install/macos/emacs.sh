@@ -25,3 +25,5 @@ main() {
     print_in_purple "\n   Emacs\n\n"
     install_emacs
 }
+
+main

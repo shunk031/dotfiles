@@ -11,7 +11,7 @@ install_spacemacs() {
 
     execute \
         "rm -rf ${SPACEMACS_DIR} \
-            && git clone --quiet ${SPACEMACS_URL} ${SPACEMACS_DIR}" \
+            && git clone --quiet -b develop ${SPACEMACS_URL} ${SPACEMACS_DIR}" \
         "Install to ${SPACEMACS_DIR}" \
         || return 1
 }

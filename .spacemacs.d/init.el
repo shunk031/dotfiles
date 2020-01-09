@@ -520,6 +520,7 @@ Put your configuration code here, except for variables that should be set
 before packages are loaded."
 
   (spacemacs/toggle-smartparens-globally-on)
+  (spacemacs/toggle-which-key-off)
 
   (setq lsp-enable-snippet nil)
   (setq wgrep-auto-save-buffer t)
@@ -656,3 +657,19 @@ This function is called at the very end of Spacemacs initialization."
    '(ivy-posframe-border ((t (:background "#6272a4"))))
    '(ivy-posframe-cursor ((t (:background "#61bfff")))))
   )
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (yapfify yaml-mode ws-butler winum which-key wgrep web-mode volatile-highlights vmd-mode vi-tilde-fringe uuidgen use-package unfill toc-org tagedit ssh-config-mode spaceline powerline smex smeargle smart-newline slim-mode showkey scss-mode sass-mode reveal-in-osx-finder restart-emacs request rainbow-mode rainbow-delimiters pyvenv pytest pyenv-mode py-isort py-autopep8 pug-mode pip-requirements persp-mode pcre2el pbcopy paradox spinner pangu-spacing osx-trash osx-dictionary orgit org-plus-contrib org-bullets open-junk-file neotree mwim multiple-cursors mozc-popup mozc-el-extensions mozc move-text mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup macrostep lorem-ipsum live-py-mode linum-relative link-hint launchctl ivy-posframe ivy-hydra insert-shebang indent-guide import-popwin popwin hydra lv hy-mode dash-functional hungry-delete hl-todo highlight-symbol highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-make haml-mode google-translate golden-ratio go-guru go-eldoc gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md fuzzy flyspell-correct-ivy flyspell-correct flycheck-pos-tip flycheck flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit magit git-commit with-editor evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu emmet-mode elisp-slime-nav electric-operator dumb-jump dockerfile-mode docker transient tablist json-mode docker-tramp json-snatcher json-reformat disaster diminish cython-mode csv-mode counsel-projectile projectile pkg-info epl counsel-ghq counsel swiper copy-file-on-save company-web web-completion-data company-statistics company-shell company-quickhelp pos-tip company-posframe posframe company-go go-mode company-flx flx company-c-headers company-anaconda company command-log-mode column-enforce-mode cmake-mode clean-aindent-mode clang-format bind-map bind-key avy-migemo migemo auto-yasnippet yasnippet auto-highlight-symbol auto-dictionary auto-compile packed async anaconda-mode pythonic f s all-the-icons-ivy ivy all-the-icons memoize aggressive-indent adaptive-wrap ace-window ace-link avy ace-jump-mode ace-isearch ac-ispell auto-complete popup solarized-theme dash))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ivy-posframe ((t (:background "#282a36"))))
+ '(ivy-posframe-border ((t (:background "#6272a4"))))
+ '(ivy-posframe-cursor ((t (:background "#61bfff")))))

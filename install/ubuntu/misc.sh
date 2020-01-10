@@ -21,7 +21,7 @@ install_hadolint() {
 
     execute \
         "curl -sL -o ${HADOLINT_DIR} ${HADOLINT_URL} \
-              chmod 700 ${HADOLINT_DIR}/hadolint" \
+              && chmod 700 ${HADOLINT_DIR}/hadolint" \
         "Install hadolint" \
         || return 1
 }

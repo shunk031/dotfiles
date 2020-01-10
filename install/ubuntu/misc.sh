@@ -20,7 +20,7 @@ install_hadolint() {
     declare -r HADOLINT_URL="https://github.com/hadolint/hadolint/releases/download/${latest_relaase}/hadolint-$(uname -s)-$(uname -m)"
 
     execute \
-        "curl -sL -o ${HADOLINT_DIR} ${HADOLINT_URL} \
+        "curl -sL -o ${HADOLINT_DIR}/hadolint ${HADOLINT_URL} \
               && chmod 700 ${HADOLINT_DIR}/hadolint" \
         "Install hadolint" \
         || return 1

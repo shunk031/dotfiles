@@ -12,6 +12,8 @@ main() {
     # General requirements
     bash "${DOTPATH}"/install/general/main.sh
 
+    bash "${UBUNTU_DIR}"/misc.sh
+
     bash "${UBUNTU_DIR}"/zsh.sh
     bash "${UBUNTU_DIR}"/emacs.sh
     bash "${UBUNTU_DIR}"/tmux.sh

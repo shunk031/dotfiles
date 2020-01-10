@@ -8,7 +8,6 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 main() {
     declare -r MACOS_DIR="${DOTPATH}/install/macos"
-
     # General requirements
     bash "${DOTPATH}"/install/general/main.sh
 

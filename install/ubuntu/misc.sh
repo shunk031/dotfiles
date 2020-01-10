@@ -2,7 +2,7 @@
 
 cd "$(dirname "${BASH_SOURCE[0]}")" \
     && . "${DOTPATH}"/install/util.sh \
-    && . "${DOTPATH}"/install/macos/util.sh
+    && . "${DOTPATH}"/install/ubuntu/util.sh
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -13,8 +13,11 @@ get_latest_release() {
 }
 
 install_hadolint() {
+
+    latest_relaase=$(get_latest_release "hadolint/hadolint")
+
     declare -r HADOLINT_DIR="${DOTPATH}/bin"
-    declare -r HADOLINT_URL="https://github.com/hadolint/hadolint/releases/download/$(get_latest_relase)/hadolint-$(uname -s)-$(uname -m)"
+    declare -r HADOLINT_URL="https://github.com/hadolint/hadolint/releases/download/${latest_relaase}/hadolint-$(uname -s)-$(uname -m)"
 
     execute \
         "curl -sL -o ${HADOLINT_DIR} ${HADOLINT_URL} \

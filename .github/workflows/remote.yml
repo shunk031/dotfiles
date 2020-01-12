@@ -1,0 +1,16 @@
+name: Snippet install
+on:
+  push:
+    branchs: master
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macOS-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup dotfiles with snippet
+        run: bash -cex "$(curl -LsS http://shunk031.me/dotfiles/setup.sh) --yes"

@@ -11,9 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup dotfiles with snippet
-        run: bash -cex "$(wget -qO - http://shunk031.me/dotfiles/setup.sh) --yes"
-
       - name: Checkout repository
         uses: actions/checkout@v1
 

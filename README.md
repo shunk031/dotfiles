@@ -1,5 +1,3 @@
-# dotfiles
-
 ![](https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/header.png)
 
 ---
@@ -17,11 +15,13 @@
 
 ![](https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/mac.png)
 
+# dotfiles
+
 ## Setup
 
 To set up the dotfiles run the appropriate snippet in the terminal:
 
-| OS     | Snippet                                                        |
+| OS     | <a href="https://github.com/shunk031/dotfiles/actions?query=workflow%3A%22Snippet+install%22"><img src=https://github.com/shunk031/dotfiles/workflows/Snippet%20install/badge.svg alt="Build Status"></a> |
 |--------|----------------------------------------------------------------|
 | MacOS  | `bash -c "$(curl -LsS http://shunk031.me/dotfiles/setup.sh)"`  |
 | Ubuntu | `bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"` |

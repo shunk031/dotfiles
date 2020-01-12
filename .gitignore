@@ -7,6 +7,7 @@
 
 # for some files
 README.html
+hadolint
 .secret.zsh
 .pypirc
 

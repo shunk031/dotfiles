@@ -252,7 +252,7 @@ main() {
         print_in_yellow "Now continue with Rebooting your shell"
     else
         print_success "Restarting your shell..."
-        exec "${SHELL:-$(which zsh)}"
+        exec "${SHELL:-$(command -v zsh)}"
     fi
 }
 

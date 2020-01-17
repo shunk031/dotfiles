@@ -1,12 +1,15 @@
 [user]
 	name = Shunsuke KITADA
 	email = shunsuke.kitada.0831@gmail.com
+
 [color]
 	ui = auto
 [url "git@github.com:"]
 	pushinsteadof = https://github.com/
+
 [alias]
 	lg = log --all --oneline --graph --decorate
+
 [ghq]
 	root=~/ghq
 	root=~/.go/src

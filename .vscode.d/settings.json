@@ -1,0 +1,21 @@
+{
+    "editor.cursorStyle": "block",
+    "workbench.colorTheme": "Solarized Dark+",
+    "workbench.startupEditor": "newUntitledFile",
+    "editor.formatOnSave": true,
+    "editor.minimap.enabled": false,
+    "editor.formatOnType": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "window.zoomLevel": 0,
+    "workbench.colorCustomizations": {
+        "editorCursor.foreground": "#FFFF00",
+    },
+    "python.formatting.provider": "black",
+    "python.linting.flake8Args": [
+        "--ignore=E501,W503"
+    ],
+    "workbench.activityBar.visible": true,
+    "window.title": "${folderPath}${separator}${activeEditorShort}${separator}${rootName}"
+}

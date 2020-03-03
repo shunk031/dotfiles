@@ -39,22 +39,10 @@ This function should only modify configuration layer settings."
      ;; Uncomment some layer names and press `SPC f e R' (Vim style) or
      ;; `M-m f e R' (Emacs style) to install them.
      ;; ----------------------------------------------------------------
-     (auto-completion
-      :variables
-      auto-completion-tab-key-behavior 'complete
-      auto-completion-enable-snippets-in-popup t
-      auto-completion-enable-help-tooltip t
-      auto-completion-enable-sort-by-usage t
-      spacemacs-default-company-backends '(company-ispell company-files))
 
-     (ivy
-      :variables
-      ivy-height 30
-      ivy-re-builders-alist '(
-                              (counsel-ghq . ivy--regex-fuzzy)
-                              (t . spacemacs/ivy--regex-plus))
-      ivy-enable-advanced-buffer-information t)
-
+     ;; ----------------------------------------------------------------
+     ;; Language layer
+     ;; ----------------------------------------------------------------
      (python
       :variables
       ;; python-backend 'anaconda
@@ -63,18 +51,51 @@ This function should only modify configuration layer settings."
       python-format-on-save t
       python-sort-imports-on-save t)
 
-     (c-c++ :variables
-            c-c++-default-mode-for-headers 'c++-mode
-            c-c++-enable-clang-support t)
+     (go
+      :variables
+      go-backend 'lsp
+      go-format-before-save t
+      gofmt-command "goimports")
 
-     (go :variables
-         go-backend 'lsp
-         go-format-before-save t
-         gofmt-command "goimports")
+     (c-c++
+      :variables
+      c-c++-default-mode-for-headers 'c++-mode
+      c-c++-enable-clang-support t)
 
-     (json :variables json-fmt-tool 'web-beautify)
-     (lsp :variables lsp-ui-doc-enable nil)
-     (markdown :variables markdown-live-preview-engine 'vmd)
+     (json
+      :variables
+      json-fmt-tool 'web-beautify)
+
+     (markdown
+      :variables
+      markdown-live-preview-engine 'vmd)
+
+     emacs-lisp
+     shell-scripts
+     html
+     yaml
+
+     ;; ----------------------------------------------------------------
+     ;; Completion layer
+     ;; ----------------------------------------------------------------
+     (auto-completion
+      :variables
+      auto-completion-tab-key-behavior 'complete
+      auto-completion-enable-snippets-in-popup t
+      auto-completion-enable-help-tooltip t
+      auto-completion-enable-sort-by-usage t
+      spacemacs-default-company-backends '(company-ispell company-files))
+
+     (lsp
+      :variables
+      lsp-ui-doc-enable nil)
+
+     (ivy :variables
+          ivy-height 30
+          ivy-re-builders-alist '(
+                                  (counsel-ghq . ivy--regex-fuzzy)
+                                  (t . spacemacs/ivy--regex-plus))
+          ivy-enable-advanced-buffer-information t)
 
      jsonnet
      osx
@@ -82,20 +103,11 @@ This function should only modify configuration layer settings."
      better-defaults
      dap
      docker
-     emacs-lisp
      git
-     html
-     yaml
-     lsp
-     shell-scripts
-     ;; org
-     ;; (shell :variables
-     ;;        shell-default-height 30
-     ;;        shell-default-position 'bottom)
      spell-checking
      syntax-checking
      treemacs
-     ;; version-control
+
      ;; ----------------------------------------------------------------
      ;; Private layer
      ;; ----------------------------------------------------------------

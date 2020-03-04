@@ -32,7 +32,7 @@ install_vscode() {
         "Symbolic link ${VSCODE_SETTINGS} to ${APP_DIR}" \
         || return 1
 
-    < "${VSCODE_DIR}/extensions" | grep -v '^#' | xargs -L1 "${CODE_COMMAND}" --install-extension
+     grep -v '^#' "${VSCODE_DIR}/extensions" | xargs -L1 "${CODE_COMMAND}" --install-extension
 
     # execute \
     #     "cat ${VSCODE_DIR}/extensions | grep -v '^#' | xargs -L1 ${CODE_COMMAND} --install-extension" \

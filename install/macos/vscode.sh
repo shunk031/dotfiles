@@ -13,7 +13,7 @@ install_vscode() {
     brew_install "Visual Studio Code" "visual-studio-code" "homebrew/cask" "cask"
 
     execute \
-        "ln -sf ${VSCODE_DIR} ${APP_DIR}" \
+        "ln -fnsv ${VSCODE_DIR} ${APP_DIR}" \
         "Symbolic link ${VSCODE_DIR} to ${APP_DIR}" \
         || return 1
 

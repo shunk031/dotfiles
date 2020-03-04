@@ -16,7 +16,7 @@ install_vscode() {
     brew_install "Visual Studio Code" "visual-studio-code" "homebrew/cask" "cask"
 
     execute \
-        "mkdir -p ${APPD_DIR}" \
+        "mkdir -p ${APP_DIR}" \
         "Make directory to ${APP_DIR}" \
         || return 1
 

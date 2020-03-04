@@ -8,7 +8,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 install_vscode() {
     declare -r VSCODE_DIR="${DOTPATH}"/.vscode.d
-    declare -r APP_DIR="~/Library/Application\ Support/Code/User"
+    declare -r APP_DIR="${HOME}/Library/Application\ Support/Code/User"
 
     brew_install "Visual Studio Code" "visual-studio-code" "caskroom/cask" "cask"
 

@@ -16,6 +16,11 @@ install_vscode() {
     brew_install "Visual Studio Code" "visual-studio-code" "homebrew/cask" "cask"
 
     execute \
+        "mkdir -p ${APPD_DIR}" \
+        "Make directory to ${APP_DIR}" \
+        || return 1
+
+    execute \
         "ln -sf ${VSCODE_SETTINGS} ${APP_DIR}" \
         "Symbolic link ${VSCODE_SETTINGS} to ${APP_DIR}" \
         || return 1

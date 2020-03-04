@@ -10,7 +10,7 @@ install_vscode() {
     declare -r VSCODE_DIR="${DOTPATH}"/.vscode.d
     declare -r APP_DIR="${HOME}/Library/Application\ Support/Code/User"
 
-    brew_install "Visual Studio Code" "visual-studio-code" "cask"
+    brew_install "Visual Studio Code" "visual-studio-code" "homebrew/cask" "cask"
 
     execute \
         "ln -sf ${VSCODE_DIR} ${APP_DIR}" \

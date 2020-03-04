@@ -18,4 +18,8 @@
         "key": "ctrl+x p",
         "command": "workbench.action.navigateBack"
     },
+    {
+        "key": "ctrl+x m",
+        "command": "workbench.view.scm"
+    }
 ]

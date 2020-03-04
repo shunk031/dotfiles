@@ -10,11 +10,19 @@ install_vscode() {
     declare -r VSCODE_DIR="${DOTPATH}"/.vscode.d
     declare -r APP_DIR="${HOME}/Library/Application\ Support/Code/User"
 
+    declare -r VSCODE_SETTINGS="${VSCODE_DIR}"/settings.json
+    declare -r VSCODE_KEYBINDINGS="${VSCODE_DIR}"/keybindings.json
+
     brew_install "Visual Studio Code" "visual-studio-code" "homebrew/cask" "cask"
 
     execute \
-        "ln -fnsv ${VSCODE_DIR} ${APP_DIR}" \
-        "Symbolic link ${VSCODE_DIR} to ${APP_DIR}" \
+        "ln -sf ${VSCODE_SETTINGS} ${APP_DIR}" \
+        "Symbolic link ${VSCODE_SETTINGS} to ${APP_DIR}" \
+        || return 1
+
+    execute \
+        "ln -sf ${VSCODE_KEYBINDINGS} ${APP_DIR}" \
+        "Symbolic link ${VSCODE_SETTINGS} to ${APP_DIR}" \
         || return 1
 
     execute \

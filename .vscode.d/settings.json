@@ -20,5 +20,21 @@
     "window.title": "${folderPath}${separator}${activeEditorShort}${separator}${rootName}",
     "python.linting.flake8Enabled": true,
     "python.jediEnabled": false,
-    "python.linting.pylintEnabled": false
+    "python.linting.pylintEnabled": false,
+    "files.exclude": {
+        "**/dataset/**/*.{png,zip,jpg,npz}": true,
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "**/dataset/**/*.{png,zip,jpg,npz}": true,
+    },
+    "remote.containers.defaultExtensions": [
+        "christian-kohler.path-intellisense",
+        "davidhouchin.whitespace-plus",
+        "JoeBerria.statusbarerror",
+        "ms-python.python",
+        "streetsidesoftware.code-spell-checker",
+    ]
 }

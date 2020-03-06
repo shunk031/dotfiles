@@ -17,5 +17,6 @@
         "--ignore=E501,W503"
     ],
     "workbench.activityBar.visible": true,
-    "window.title": "${folderPath}${separator}${activeEditorShort}${separator}${rootName}"
+    "window.title": "${folderPath}${separator}${activeEditorShort}${separator}${rootName}",
+    "python.linting.flake8Enabled": true
 }

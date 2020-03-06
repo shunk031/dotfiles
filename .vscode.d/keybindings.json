@@ -21,5 +21,10 @@
     {
         "key": "ctrl+x m",
         "command": "workbench.view.scm"
+    },
+    {
+        "key": "ctrl+c ;",
+        "command": "editor.action.commentLine",
+        "when": "editorTextFocus && !editorReadonly"
     }
 ]

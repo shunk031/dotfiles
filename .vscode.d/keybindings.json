@@ -26,5 +26,17 @@
         "key": "ctrl+c ;",
         "command": "editor.action.commentLine",
         "when": "editorTextFocus && !editorReadonly"
+    },
+    {
+        "key": "cmd+w",
+        "command": "-workbench.action.closeWindow",
+    },
+    {
+        "key": "cmd+w",
+        "command": "-workbench.action.closeActiveEditor"
+    },
+    {
+        "key": "cmd+w",
+        "command": "-workbench.action.closeGroup",
     }
 ]

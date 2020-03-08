@@ -36,5 +36,10 @@
         "JoeBerria.statusbarerror",
         "ms-python.python",
         "streetsidesoftware.code-spell-checker",
+    ],
+    "cSpell.userWords": [
+        "allennlp",
+        "conv",
+        "lstm"
     ]
 }

@@ -38,5 +38,10 @@
     {
         "key": "cmd+w",
         "command": "-workbench.action.closeGroup",
+    },
+    {
+        "key": "cmd+w",
+        "command": "emacs-mcx.copyRegion",
+        "when": "editorTextFocus"
     }
 ]

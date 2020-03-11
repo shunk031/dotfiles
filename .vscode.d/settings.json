@@ -44,6 +44,10 @@
         "lstm",
         "ndarray",
         "numpy",
-        "sklearn"
-    ]
+        "sklearn",
+        "lstm",
+        "relu",
+        "zfill"
+    ],
+    "terminal.external.osxExec": "Terminal.app"
 }

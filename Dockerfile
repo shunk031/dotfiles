@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     sudo \
     git \
     fontconfig \
-    language-pack-en
+    language-pack-en \
+    python
 
-WORKDIR root/dotfiles
+WORKDIR /root/dotfiles

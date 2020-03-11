@@ -9,6 +9,8 @@ install_powerline() {
     declare -r POWERLINE_FONT_DIR="${DOTPATH}/.github/powerline_fonts"
     declare -r POWERLINE_FONT_URL="https://github.com/powerline/fonts.git"
 
+    git clone ${POWERLINE_FONT_URL} ${POWERLINE_FONT_DIR} --depth=1
+
     execute \
         "rm -rf ${POWERLINE_FONT_DIR} \
             && git clone --quiet ${POWERLINE_FONT_URL} ${POWERLINE_FONT_DIR} --depth=1" \

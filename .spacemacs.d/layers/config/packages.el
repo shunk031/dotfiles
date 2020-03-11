@@ -222,6 +222,10 @@
 (defun config/post-init-undo-tree ()
   (setq undo-tree-visualizer-timestamps nil)
   (setq undo-tree-visualizer-diff nil)
+  ;; (spacemacs|use-package-add-hook popwin
+  ;;   :post-config
+  ;;   (push '(" *undo-tree*" :width 0.3 :position right) popwin:special-display-config)
+  ;;   )
   )
 
 (defun config/init-view-mode ()

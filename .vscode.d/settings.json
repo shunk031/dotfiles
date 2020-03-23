@@ -1,26 +1,11 @@
 {
     "editor.cursorStyle": "block",
-    "workbench.colorTheme": "Solarized Dark+",
-    "workbench.startupEditor": "newUntitledFile",
     "editor.formatOnSave": true,
     "editor.minimap.enabled": false,
     "editor.formatOnType": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
     },
-    "window.zoomLevel": 0,
-    "workbench.colorCustomizations": {
-        "editorCursor.foreground": "#FFFF00",
-    },
-    "python.formatting.provider": "black",
-    "python.linting.flake8Args": [
-        "--ignore=E501,W503"
-    ],
-    "workbench.activityBar.visible": false,
-    "window.title": "${folderPath}${separator}${activeEditorShort}${separator}${rootName}",
-    "python.linting.flake8Enabled": true,
-    "python.jediEnabled": false,
-    "python.linting.pylintEnabled": false,
     "files.exclude": {
         "**/dataset/**/*.{png,zip,jpg,npz}": true,
     },
@@ -37,17 +22,41 @@
         "ms-python.python",
         "streetsidesoftware.code-spell-checker",
     ],
+    "python.formatting.provider": "black",
+    "python.linting.flake8Enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.jediEnabled": false,
+    "python.linting.flake8Args": [
+        "--ignore=E501,W503"
+    ],
+    "python.sortImports.args": [
+        "-m 3"
+    ],
+    "statusbarerror.wholeLine.show": true,
+    "window.zoomLevel": 0,
+    "window.title": "${folderPath}${separator}${activeEditorShort}${separator}${rootName}",
+    "workbench.colorTheme": "Solarized Dark+",
+    "workbench.startupEditor": "newUntitledFile",
+    "workbench.colorCustomizations": {
+        "editorCursor.foreground": "#FFFF00",
+    },
+    "workbench.activityBar.visible": true,
     "cSpell.userWords": [
         "allennlp",
         "conv",
+        "cuda",
+        "cudnn",
+        "eltwise",
+        "imap",
         "ipdb",
+        "jsonnet",
         "lstm",
         "ndarray",
         "numpy",
-        "sklearn",
-        "lstm",
         "relu",
+        "sklearn",
+        "tqdm",
         "zfill"
     ],
-    "terminal.external.osxExec": "Terminal.app"
+    "terminal.external.osxExec": "Terminal.app",
 }

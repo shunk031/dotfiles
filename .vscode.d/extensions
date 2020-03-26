@@ -1,8 +1,12 @@
+baurine.vscode-pangu
 christian-kohler.path-intellisense
 CoenraadS.bracket-pair-colorizer-2
 davidhouchin.whitespace-plus
+exiasr.hadolint
 heptio.jsonnet
-JoeBerria.statusbarerror
+kamikillerto.vscode-colorize
+kimgronqvist.vscode-ido
+lucax88x.codeacejumper
 mosapride.zenkaku
 ms-azuretools.vscode-docker
 ms-python.python
@@ -11,7 +15,9 @@ ms-vscode-remote.remote-ssh
 ms-vscode-remote.remote-ssh-edit
 ms-vscode-remote.remote-wsl
 ms-vscode-remote.vscode-remote-extensionpack
+redhat.vscode-yaml
 ryanolsonx.solarized
 streetsidesoftware.code-spell-checker
 tuttieee.emacs-mcx
+usernamehw.errorlens
 vscode-icons-team.vscode-icons

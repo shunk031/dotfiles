@@ -9,6 +9,7 @@
     "files.exclude": {
         "**/dataset/**/*.{png,zip,jpg,npz}": true,
     },
+    "files.insertFinalNewline": true,
     "files.watcherExclude": {
         "**/.git/objects/**": true,
         "**/.git/subtree-cache/**": true,
@@ -59,5 +60,4 @@
         "zfill"
     ],
     "terminal.external.osxExec": "Terminal.app",
-    "files.insertFinalNewline": true,
 }

@@ -43,5 +43,28 @@
         "key": "cmd+w",
         "command": "emacs-mcx.copyRegion",
         "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+x ctrl+f",
+        "command": "-workbench.action.quickOpen"
+    },
+    {
+        "key": "ctrl+x ctrl+f",
+        "command": "extension.ido"
+    },
+    {
+        "key": "ctrl+i",
+        "command": "extension.ido-select-item",
+        "when": "idoMode"
+    },
+    {
+        "key": "ctrl+p",
+        "command": "-workbench.action.quickOpenNavigatePrevious",
+        "when": "inQuickOpen",
+    },
+    {
+        "key": "ctrl+n",
+        "command": "-workbench.action.quickOpenNavigateNext",
+        "when": "inQuickOpen",
     }
 ]

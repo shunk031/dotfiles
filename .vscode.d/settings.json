@@ -18,9 +18,10 @@
     "remote.containers.defaultExtensions": [
         "christian-kohler.path-intellisense",
         "davidhouchin.whitespace-plus",
-        "JoeBerria.statusbarerror",
         "ms-python.python",
         "streetsidesoftware.code-spell-checker",
+        "usernamehw.errorlens",
+        "kimgronqvist.vscode-ido",
     ],
     "python.formatting.provider": "black",
     "python.linting.flake8Enabled": true,
@@ -32,9 +33,8 @@
     "python.sortImports.args": [
         "-m 3"
     ],
-    "statusbarerror.wholeLine.show": true,
     "window.zoomLevel": 0,
-    "window.title": "${folderPath}${separator}${activeEditorShort}${separator}${rootName}",
+    "window.title": "${folderPath}${separator}${activeEditorLong}${separator}${rootName}",
     "workbench.colorTheme": "Solarized Dark+",
     "workbench.startupEditor": "newUntitledFile",
     "workbench.colorCustomizations": {
@@ -59,4 +59,5 @@
         "zfill"
     ],
     "terminal.external.osxExec": "Terminal.app",
+    "files.insertFinalNewline": true,
 }

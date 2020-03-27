@@ -1,70 +1,74 @@
 // Place your key bindings in this file to override the defaults
 [
     {
-        "key": "ctrl+i",
         "command": "editor.action.indentLines",
+        "key": "ctrl+i",
         "when": "editorTextFocus && !editorReadonly"
     },
     {
-        "key": "cmd+.",
         "command": "editor.action.revealDefinition",
+        "key": "cmd+.",
         "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
     },
     {
+        "command": "workbench.action.navigateBack",
         "key": "cmd+,",
-        "command": "workbench.action.navigateBack"
     },
     {
+        "command": "workbench.action.navigateBack",
         "key": "ctrl+x p",
-        "command": "workbench.action.navigateBack"
     },
     {
         "key": "ctrl+x m",
         "command": "workbench.view.scm"
     },
     {
-        "key": "ctrl+c ;",
         "command": "editor.action.commentLine",
+        "key": "ctrl+c ;",
         "when": "editorTextFocus && !editorReadonly"
     },
     {
-        "key": "cmd+w",
         "command": "-workbench.action.closeWindow",
+        "key": "cmd+w",
     },
     {
+        "command": "-workbench.action.closeActiveEditor",
         "key": "cmd+w",
-        "command": "-workbench.action.closeActiveEditor"
     },
     {
-        "key": "cmd+w",
         "command": "-workbench.action.closeGroup",
+        "key": "cmd+w",
     },
     {
-        "key": "cmd+w",
         "command": "emacs-mcx.copyRegion",
+        "key": "cmd+w",
         "when": "editorTextFocus"
     },
     {
+        "command": "-workbench.action.quickOpen",
         "key": "ctrl+x ctrl+f",
-        "command": "-workbench.action.quickOpen"
     },
     {
+        "command": "extension.ido",
         "key": "ctrl+x ctrl+f",
-        "command": "extension.ido"
     },
     {
-        "key": "ctrl+i",
         "command": "extension.ido-select-item",
-        "when": "idoMode"
+        "key": "ctrl+i",
+        "when": "idoMode && !editorTextFocus",
     },
     {
-        "key": "ctrl+p",
         "command": "-workbench.action.quickOpenNavigatePrevious",
+        "key": "ctrl+p",
         "when": "inQuickOpen",
     },
     {
-        "key": "ctrl+n",
         "command": "-workbench.action.quickOpenNavigateNext",
+        "key": "ctrl+n",
         "when": "inQuickOpen",
+    },
+    {
+        "command": "workbench.action.quickOpen",
+        "key": "ctrl+x ctrl+r"
     }
 ]

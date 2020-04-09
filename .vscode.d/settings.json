@@ -1,5 +1,8 @@
 {
+    "editor.autoClosingQuotes": "always",
     "editor.cursorStyle": "block",
+    // "editor.cursorSmoothCaretAnimation": true,
+    "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
     "editor.minimap.enabled": false,
     "editor.formatOnType": true,
@@ -24,6 +27,8 @@
         "usernamehw.errorlens",
         "kimgronqvist.vscode-ido",
     ],
+    "pangu.auto_space_on_save": true,
+    "pangu.auto_space_on_save_ext": [],
     "python.formatting.provider": "black",
     "python.linting.flake8Enabled": true,
     "python.linting.pylintEnabled": false,
@@ -34,30 +39,20 @@
     "python.sortImports.args": [
         "-m 3"
     ],
+    "telemetry.enableTelemetry": false,
     "window.zoomLevel": 0,
     "window.title": "${folderPath}${separator}${activeEditorLong}${separator}${rootName}",
+    "workbench.editor.highlightModifiedTabs": true,
+    "workbench.editor.limit.value": 100,
     "workbench.colorTheme": "Solarized Dark+",
     "workbench.startupEditor": "newUntitledFile",
     "workbench.colorCustomizations": {
         "editorCursor.foreground": "#FFFF00",
     },
     "workbench.activityBar.visible": true,
-    "cSpell.userWords": [
-        "allennlp",
-        "conv",
-        "cuda",
-        "cudnn",
-        "eltwise",
-        "imap",
-        "ipdb",
-        "jsonnet",
-        "lstm",
-        "ndarray",
-        "numpy",
-        "relu",
-        "sklearn",
-        "tqdm",
-        "zfill"
-    ],
     "terminal.external.osxExec": "Terminal.app",
+    "shellcheck.disableVersionCheck": true,
+    "[python]": {
+        "editor.formatOnPaste": false
+    },
 }

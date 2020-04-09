@@ -70,5 +70,9 @@
     {
         "command": "workbench.action.quickOpen",
         "key": "ctrl+x ctrl+r"
+    },
+    {
+        "command": "copyFilePath",
+        "key": "ctrl+c 0"
     }
 ]

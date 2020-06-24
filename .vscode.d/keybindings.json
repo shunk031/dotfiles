@@ -6,6 +6,11 @@
         "when": "editorTextFocus && !editorReadonly"
     },
     {
+        "key": "cmd+i",
+        "command": "insertBestCompletion",
+        "when": "atEndOfWord && textInputFocus && !hasOtherSuggestions && !inSnippetMode && !suggestWidgetVisible && config.editor.tabCompletion == 'on'"
+    },
+    {
         "command": "editor.action.revealDefinition",
         "key": "cmd+.",
         "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"

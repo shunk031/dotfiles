@@ -1,14 +1,15 @@
 {
     "editor.autoClosingQuotes": "always",
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
     "editor.cursorStyle": "block",
     // "editor.cursorSmoothCaretAnimation": true,
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
     "editor.minimap.enabled": false,
     "editor.formatOnType": true,
-    "editor.codeActionsOnSave": {
-        "source.organizeImports": true
-    },
+    "editor.tabCompletion": "on",
     "files.exclude": {
         "**/dataset/**/*.{png,zip,jpg,npz}": true,
     },
@@ -55,4 +56,6 @@
     "[python]": {
         "editor.formatOnPaste": false
     },
+    "vsicons.dontShowNewVersionMessage": true,
+    "emacs-mcx.useMetaPrefixEscape": true,
 }

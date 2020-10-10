@@ -7,7 +7,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 install_powerlevel9k_requirements() {
-    brew_install "Roboto Mono Nerd Font" "font-robotomono-nerd-font-mono" "homebrew/cask-fonts" "cask"
+    brew_install "Roboto Mono Nerd Font" "font-robotomono-nerd-font-mono"
 }
 
 main() {

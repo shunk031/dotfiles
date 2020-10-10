@@ -3,11 +3,10 @@ name: MacOS
 on:
   push:
   schedule:
-    - cron: "0 0 15 * *"
+    - cron: "0 0 * * 5"
 
 jobs:
   build:
-
     runs-on: macOS-latest
 
     steps:

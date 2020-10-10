@@ -7,7 +7,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 install_powerlevel9k_requirements() {
-    brew_install "Nerd Fonts" "font-hack-nerd-font" "homebrew/cask" "cask"
+    brew_install "Nerd Fonts" "font-hack-nerd-font" "homebrew/cask-fonts" "cask"
 }
 
 main() {

@@ -7,11 +7,11 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 install_powerlevel9k_requirements() {
-    brew_install "Roboto Mono Nerd Font" "font-robotomono-nerd-font-mono"
+    brew_install "Nerd Fonts" "font-hack-nerd-font" "homebrew/cask" "cask"
 }
 
 main() {
-    print_in_purple "\n   Install spacemacs requirements\n\n"
+    print_in_purple "\n   Install powerlevel9k requirements\n\n"
     install_powerlevel9k_requirements
 }
 

@@ -8,17 +8,19 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 install_ghq() {
 
+    declare -r GOLANG_VERSION="1.15"
+
     if ! package_is_installed "golang"; then
         install_package "software-properties-common" "software-properties-common"
 
         add_ppa "longsleep/golang-backports" \
-            || print_error "golang 1.13"
+            || print_error "golang ${GOLANG_VERSION}"
 
         update &> /dev/null \
-            || print_error "golang 1.13 (resync package index files)"
+            || print_error "golang ${GOLANG_VERSION} (resync package index files)"
     fi
 
-    install_package "golang 1.13" "golang"
+    install_package "golang ${GOLANG_VERSION}" "golang-go"
 
     execute \
         "go get github.com/motemen/ghq && mkdir -p ${HOME}/ghq" \

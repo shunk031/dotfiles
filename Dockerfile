@@ -13,4 +13,8 @@ RUN apt-get update && apt-get install -y \
     language-pack-en \
     python
 
-WORKDIR /root/dotfiles
+ARG EXEC_USER=shunk031
+RUN useradd --create-home ${EXEC_USER}
+USER ${EXEC_USER}
+
+WORKDIR /home/${EXEC_USER}

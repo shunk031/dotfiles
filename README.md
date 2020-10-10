@@ -53,8 +53,8 @@ Build a test environment using docker to validate that it is set up correctly in
 
 ```shell
 $ cd .dotfiles
-$ docker build -t dotfiles .
-$ docker run -it -v $(pwd):/root/dotfiles dotfiles /bin/bash
+$ docker build -t dotfiles . --build-arg EXEC_USER=$(whoami)
+$ docker run -it dotfiles /bin/bash
 $ bash setup.sh
 ```
 

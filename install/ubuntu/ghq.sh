@@ -22,8 +22,6 @@ install_ghq() {
 
     install_package "golang ${GOLANG_VERSION}" "golang-go"
 
-    go version
-
     execute \
         "go get github.com/motemen/ghq && mkdir -p ${HOME}/ghq" \
         "ghq" \

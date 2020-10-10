@@ -12,7 +12,7 @@ fpath=(~/bin $fpath)
 
 # for golang
 export PATH=${PATH}:/usr/local/go/bin
-export GOPATH=$HOME/.go
+export GOPATH=$HOME/ghq
 export PATH=${PATH}:$GOPATH/bin
 export GOROOT=`go env GOROOT`
 

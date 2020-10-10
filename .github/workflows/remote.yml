@@ -1,7 +1,7 @@
 name: Snippet install
 on:
   push:
-    branchs: master
+    branches: [master]
 
 jobs:
   build:

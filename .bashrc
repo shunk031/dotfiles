@@ -131,8 +131,7 @@ eval "$(goenv init -)"
 
 export PS1='[\h: \w]\n\$ '
 export PYENV_VIRTUALENV_DISABLE_PROMPT=1
-
-pyenv_virtualenv_update_prompt() {
+function pyenv_virtualenv_update_prompt() {
     RED='\[\e[0;31m\]'
     GREEN='\[\e[0;32m\]'
     BLUE='\[\e[0;34m\]'
@@ -158,6 +157,24 @@ pyenv_virtualenv_update_prompt() {
     export PS1
 }
 export PROMPT_COMMAND="$PROMPT_COMMAND pyenv_virtualenv_update_prompt;"
+
+# for sharing history between panes/windiws in tmux session
+function tac {
+    exec sed '1!G;h;$!d' ${@+"$@"}
+}
+function share_history {
+    history -a
+    tac ~/.bash_history | awk '!a[$0]++' | tac > ~/.bash_history.tmp
+
+    [ -f ~/.bash_history.tmp ] && \
+        mv ~/.bash_history{.tmp,} && \
+        history -c && \
+    	history -r
+}
+export PROMPT_COMMAND="$PROMPT_COMMAND share_history;"
+
+# eval "$(ssh-agent)" > /dev/null 2>&1
+# ssh-add ~/.ssh/id_rsa_github > /dev/null 2>&1
 
 alias ns='watch -n 1 "nvidia-smi"'
 

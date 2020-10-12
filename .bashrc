@@ -176,6 +176,35 @@ export PROMPT_COMMAND="$PROMPT_COMMAND share_history;"
 # eval "$(ssh-agent)" > /dev/null 2>&1
 # ssh-add ~/.ssh/id_rsa_github > /dev/null 2>&1
 
+# helper function with ghq and fzf
+function dev() {
+    if ! (type ghq &> /dev/null && type fzf &> /dev/null)
+    then
+        echo "You need to install ghq & fzf before use this command."
+        echo ""
+        echo "INSTALL ghq:"
+        echo "  go get github.com/motemen/ghq"
+        echo ""
+        echo "INSTALL fzf:"
+        echo "  brew install fzf"
+        echo ""
+        echo "for more information, see"
+        echo "- https://github.com/junegunn/fzf#installation"
+        echo "- https://github.com/motemen/ghq#installation"
+        return
+    fi
+
+    moveto=$(ghq root)/$(ghq list | fzf --reverse)
+    cd $moveto
+
+    # rename session if in tmux
+    if [[ ! -z ${TMUX} ]]
+    then
+        repo_name=${moveto##*/}
+        tmux rename-session ${repo_name//./-}
+    fi
+}
+
 alias ns='watch -n 1 "nvidia-smi"'
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash

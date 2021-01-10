@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"path"
 )
 
-const DOTFILES_LOGO = `
+const DotfilesLogo = `
                           /$$                                      /$$
                          | $$                                     | $$
      /$$$$$$$  /$$$$$$  /$$$$$$   /$$   /$$  /$$$$$$      /$$$$$$$| $$$$$$$
@@ -22,9 +24,14 @@ const DOTFILES_LOGO = `
                 2. Symlink dotfiles to your home directory
 `
 
-const GITHUB_REPOSITORY = "shunk031/dotfiles"
-const DOTFILES_ORIGIN = "git@github.com:" + GITHUB_REPOSITORY + ".git"
-const DOTFILES_DIRECTORY = "$HOME/.dotfiles"
+const GitHubRepository = "shunk031/dotfiles"
+
+var (
+	DotfilesOrigin     = "git@github.com:" + GitHubRepository + ".git"
+	DotfilesDirectory  = path.Join(os.Getenv("HOME"), ".dotfiles")
+	DotfilesTarballUrl = path.Join("https://github.com", GitHubRepository, "tarball/master")
+	IsSkipQuestions    = false
+)
 
 func verifyOS() error {
 	const minimumMacosVersion = "10.10"
@@ -50,12 +57,31 @@ func verifyOS() error {
 	}
 }
 
+func download(url string, output string) error {
+	msg := fmt.Sprintf("Download from %s to %s", url, output)
+
+	var err error
+	if cmdExists("curl") {
+		err = execute(msg, "curl", "-LsSo", output, url)
+		//                            │││└─ write output to file
+		//                            ││└─ show error messages
+		//                            │└─ don't show the progress meter
+		//                            └─ follow redirects
+	} else if cmdExists("wget") {
+		err = execute(msg, "wget", "-qO", output, url)
+		//                            │└─ write output to file
+		//                            └─ don't show output
+	}
+	return err
+}
+
 func main() {
-	fmt.Println(DOTFILES_LOGO)
+	fmt.Println(DotfilesLogo)
 
 	err := verifyOS()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	downloadDotfiles()
 }

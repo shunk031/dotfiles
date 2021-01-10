@@ -6,5 +6,6 @@ require (
 	github.com/briandowns/spinner v1.12.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/shirou/gopsutil v3.20.12+incompatible
+	github.com/stretchr/testify v1.6.1
 	golang.org/x/sys v0.0.0-20210110051926-789bb1bd4061 // indirect
 )

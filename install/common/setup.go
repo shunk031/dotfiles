@@ -1,5 +1,6 @@
 package common
 
+// Setup ...
 func Setup() {
 
 	// for powerline
@@ -15,6 +16,8 @@ func Setup() {
 	InstallPowerlevel10k()
 	// for docker completion
 	InstallDockerCompletion()
+	// for TPM
+	InstallTPM()
 
 	// for pyenv
 	InstallPyenv()

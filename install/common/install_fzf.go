@@ -14,7 +14,7 @@ func installFzf() {
 
 	msg := fmt.Sprintf("Clone to %s", fzfDir)
 	cmdRm := fmt.Sprintf("rm -rf %s", fzfDir)
-	cmdGit := fmt.Sprintf("git clone --quiet %s %s --depth=1", fzfURL, fzfDir)
+	cmdGit := fmt.Sprintf("git clone --quiet %s %s", fzfURL, fzfDir)
 
 	err := util.Execute(msg, "/bin/bash", "-c", fmt.Sprintf("%s; %s", cmdRm, cmdGit))
 	if err != nil {

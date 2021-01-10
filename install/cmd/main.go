@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
+	"path/filepath"
 	"shunk031/dotfiles/install/common"
 	"shunk031/dotfiles/install/macos"
 	"shunk031/dotfiles/install/ubuntu"
 	"shunk031/dotfiles/install/util"
 )
 
-const DotfilesLogo = `
+const dotfilesLogo = `
                           /$$                                      /$$
                          | $$                                     | $$
      /$$$$$$$  /$$$$$$  /$$$$$$   /$$   /$$  /$$$$$$      /$$$$$$$| $$$$$$$
@@ -28,14 +28,7 @@ const DotfilesLogo = `
                 2. Symlink dotfiles to your home directory
 `
 
-const GitHubRepository = "shunk031/dotfiles"
-
-var (
-	DotfilesOrigin     = "git@github.com:" + GitHubRepository + ".git"
-	DotfilesDirectory  = path.Join(os.Getenv("HOME"), ".dotfiles")
-	DotfilesTarballUrl = path.Join("https://github.com", GitHubRepository, "tarball/master")
-	IsSkipQuestions    = false
-)
+const gitHubRepository = "shunk031/dotfiles"
 
 func verifyOS() error {
 	const minimumMacosVersion = "10.10"
@@ -62,7 +55,14 @@ func verifyOS() error {
 }
 
 func main() {
-	fmt.Println(DotfilesLogo)
+	fmt.Println(dotfilesLogo)
+
+	var (
+		DotfilesOrigin     = "git@github.com:" + GitHubRepository + ".git"
+		DotfilesDirectory  = filepath.Join(os.Getenv("HOME"), ".dotfiles")
+		DotfilesTarballURL = filepath.Join("https://github.com", GitHubRepository, "tarball/master")
+		IsSkipQuestions    = false
+	)
 
 	err := verifyOS()
 	if err != nil {
@@ -71,7 +71,7 @@ func main() {
 
 	util.DownloadDotfiles(
 		DotfilesDirectory,
-		DotfilesTarballUrl,
+		DotfilesTarballURL,
 		IsSkipQuestions,
 	)
 

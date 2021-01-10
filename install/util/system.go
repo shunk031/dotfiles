@@ -2,11 +2,10 @@ package util
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -80,13 +79,23 @@ func GetOSVersion() string {
 }
 
 func IsSupportedVersion(osVersion string, minOSVersion string) bool {
-	v1 := strings.Split(osVersion, ".")
-	v2 := strings.Split(minOSVersion, ".")
+	v1x := strings.Split(osVersion, ".")
+	v2x := strings.Split(minOSVersion, ".")
 
-	for i := 0; i < len(v1); i++ {
-		if v1[i] < v2[i] {
+	for i := 0; i < len(v1x); i++ {
+		v1, err := strconv.Atoi(v1x[i])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		v2, err := strconv.Atoi(v2x[i])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if v1 < v2 {
 			return false
-		} else if v1[i] > v2[i] {
+		} else if v1 > v2 {
 			return true
 		}
 	}
@@ -110,17 +119,12 @@ func execute(cmd string, arg ...string) error {
 }
 
 func Execute(msg string, cmd string, arg ...string) error {
-	tmpFile, err := ioutil.TempFile("/tmp/", "XXXXX")
-	if err != nil {
-		return err
-	}
-	defer os.Remove(tmpFile.Name())
 
 	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
 	s.Suffix = fmt.Sprintf(" %s", msg)
 
 	s.Start()
-	err = execute(cmd)
+	err := execute(cmd)
 	s.Stop()
 
 	printResult(msg, err)

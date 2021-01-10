@@ -104,4 +104,7 @@ func DownloadDotfiles(dotfilesDir string, tarballUrl string, isSkipQuestions boo
 	err = extract(tmpFile.Name(), dotfilesDir)
 	printResult("Extract archive", err)
 
+	if err := tmpFile.Close(); err != nil {
+		log.Fatal(err)
+	}
 }

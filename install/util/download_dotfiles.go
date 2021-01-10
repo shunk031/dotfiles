@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 )
 
 // func makeDotfilesDirectory() {
-// 	err := execute("Make directory", "mkdir", "-p", DotfilesDirectory)
+// 	err := Execute("Make directory", "mkdir", "-p", DotfilesDirectory)
 // 	if err != nil {
 // 		log.Fatal(err)
 // 	}
@@ -20,7 +20,25 @@ import (
 // 	printResult("Extract archive", err)
 // }
 
-func downloadDotfiles() {
+func download(url string, output string) error {
+	msg := fmt.Sprintf("Download from %s to %s", url, output)
+
+	var err error
+	if CmdExists("curl") {
+		err = Execute(msg, "curl", "-LsSo", output, url)
+		//                            │││└─ write output to file
+		//                            ││└─ show error messages
+		//                            │└─ don't show the progress meter
+		//                            └─ follow redirects
+	} else if CmdExists("wget") {
+		err = Execute(msg, "wget", "-qO", output, url)
+		//                            │└─ write output to file
+		//                            └─ don't show output
+	}
+	return err
+}
+
+func DownloadDotfiles(dotfilesDir string, tarballUrl string, isSkipQuestions bool) {
 	printInPurple("• Download and extract archive")
 
 	tmpFile, err := ioutil.TempFile("/tmp/", "XXXXX")
@@ -28,18 +46,19 @@ func downloadDotfiles() {
 		log.Fatal(err)
 	}
 	defer os.Remove(tmpFile.Name())
+	defer printResult("Remove archive", nil)
 
-	err = download(DotfilesTarballUrl, tmpFile.Name())
+	err = download(tarballUrl, tmpFile.Name())
 	printResult("Download archive\n", err)
 
-	if !IsSkipQuestions {
-		msg := fmt.Sprintf("Do you want to store the dotfiles in '%s'", DotfilesDirectory)
+	if !isSkipQuestions {
+		msg := fmt.Sprintf("Do you want to store the dotfiles in '%s'", dotfilesDir)
 		answerIsYes := askForConfirmation(msg)
 		if !answerIsYes {
 			for {
-				DotfilesDirectory = ""
-				DotfilesDirectory = ask("Please specify another location for the dotfiles (path): ")
-				if DotfilesDirectory != "" {
+				dotfilesDir = ""
+				dotfilesDir = ask("Please specify another location for the dotfiles (path): ")
+				if dotfilesDir != "" {
 					break
 				}
 			}
@@ -51,7 +70,7 @@ func downloadDotfiles() {
 		// 		msg := fmt.Sprintf("'%s' already exists, do you want to overwrite it?", DotfilesDirectory)
 		// 		answerIsYes := askForConfirmation(msg)
 		// 		if answerIsYes {
-		// 			err := execute("Remove directory", "rm", "-rf", DotfilesDirectory)
+		// 			err := Execute("Remove directory", "rm", "-rf", DotfilesDirectory)
 		// 			if err != nil {
 		// 				log.Fatal(err)
 		// 			}
@@ -66,23 +85,23 @@ func downloadDotfiles() {
 		// 	}
 		// }
 	} else {
-		err := execute("Remove directory", "rm", "-rf", DotfilesDirectory)
+		err := Execute("Remove directory", "rm", "-rf", dotfilesDir)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	err = execute("Make directory", "mkdir", "-p", DotfilesDirectory)
+	err = Execute("Make directory", "mkdir", "-p", dotfilesDir)
 	if err != nil {
 		log.Fatal(err)
 	}
-	printResult(fmt.Sprintf("Create '%s'", DotfilesDirectory), err)
+	printResult(fmt.Sprintf("Create '%s'", dotfilesDir), err)
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	// Extract archive in the `dotfiles` directory.
 
-	err = extract(tmpFile.Name(), DotfilesDirectory)
+	err = extract(tmpFile.Name(), dotfilesDir)
 	printResult("Extract archive", err)
 
 }

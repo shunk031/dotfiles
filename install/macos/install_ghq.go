@@ -1,0 +1,5 @@
+package macos
+
+func installGhq() {
+
+}

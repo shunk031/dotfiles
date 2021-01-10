@@ -5,6 +5,10 @@ import (
 	"log"
 	"os"
 	"path"
+	"shunk031/dotfiles/install/common"
+	"shunk031/dotfiles/install/macos"
+	"shunk031/dotfiles/install/ubuntu"
+	"shunk031/dotfiles/install/util"
 )
 
 const DotfilesLogo = `
@@ -37,17 +41,17 @@ func verifyOS() error {
 	const minimumMacosVersion = "10.10"
 	const minimumUbuntuVersion = "18.04"
 
-	osName := getOS()
-	osVersion := getOSVersion()
+	osName := util.GetOS()
+	osVersion := util.GetOSVersion()
 
 	if osName == "macos" {
-		if isSupportedVersion(osVersion, minimumMacosVersion) {
+		if util.IsSupportedVersion(osVersion, minimumMacosVersion) {
 			return nil
 		} else {
 			return fmt.Errorf("Sorry, this script is intended only for macOS %s", minimumMacosVersion)
 		}
 	} else if osName == "ubuntu" {
-		if isSupportedVersion(osVersion, minimumUbuntuVersion) {
+		if util.IsSupportedVersion(osVersion, minimumUbuntuVersion) {
 			return nil
 		} else {
 			return fmt.Errorf("Sorry, this script is intended only for Ubuntu %s+", minimumUbuntuVersion)
@@ -55,24 +59,6 @@ func verifyOS() error {
 	} else {
 		return fmt.Errorf("Sorry, this script is intended only for macOS and Ubuntu")
 	}
-}
-
-func download(url string, output string) error {
-	msg := fmt.Sprintf("Download from %s to %s", url, output)
-
-	var err error
-	if cmdExists("curl") {
-		err = execute(msg, "curl", "-LsSo", output, url)
-		//                            │││└─ write output to file
-		//                            ││└─ show error messages
-		//                            │└─ don't show the progress meter
-		//                            └─ follow redirects
-	} else if cmdExists("wget") {
-		err = execute(msg, "wget", "-qO", output, url)
-		//                            │└─ write output to file
-		//                            └─ don't show output
-	}
-	return err
 }
 
 func main() {
@@ -83,5 +69,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	downloadDotfiles()
+	util.DownloadDotfiles(
+		DotfilesDirectory,
+		DotfilesTarballUrl,
+		IsSkipQuestions,
+	)
+
+	util.PrintInPurple("\n• Installs\n")
+
+	// OS common setup
+	common.Setup()
+
+	// OS specific setup
+	osName := util.GetOS()
+	if osName == "macos" {
+		macos.Setup()
+	} else if osName == "ubuntu" {
+		ubuntu.Setup()
+	}
 }

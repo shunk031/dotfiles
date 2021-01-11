@@ -53,3 +53,7 @@ func printResult(s string, err error) {
 func PrintResult(s string, err error) {
 	printResult(s, err)
 }
+
+func PrintSuccess(s string) {
+	printSuccess(s)
+}

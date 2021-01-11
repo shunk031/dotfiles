@@ -2,16 +2,12 @@ package macos
 
 func Setup() {
 	InstallXCode()
-	InstallHomeBrew()
+	InstallHomebrew()
 	InstallMisc()
 
 	InstallEmacs()
 	InstallTmux()
 	InstallGhq()
-	InstallVscode()
-
-	InstallPyenvRequirements()
-	InstallRbenvRequirements()
 
 	InstallSpacemacsRequirements()
 	InstallPowerlevel10kRequirements()

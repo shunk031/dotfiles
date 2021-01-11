@@ -8,6 +8,24 @@ import (
 	"shunk031/dotfiles/install/util"
 )
 
+func installTmuxMemCPULoad() {
+	dir := filepath.Join(os.Getenv("DOTPATH"), ".github", "tmux-mem-cpu-load")
+	URL := "https://github.com/thewtex/tmux-mem-cpu-load.git"
+
+	msg := "Install tmux mem cpu load"
+	cmdRm := fmt.Sprintf("rm -rf %s", dir)
+	cmdGit := fmt.Sprintf("git clone --quiet %s %s", URL, dir)
+	cmdCd := fmt.Sprintf("cd %s", dir)
+	cmdCMake := "cmake ."
+	cmdMakeInstall := "sudo make install"
+
+	cmd := fmt.Sprintf("%s; %s; %s; %s; %s", cmdRm, cmdGit, cmdCd, cmdCMake, cmdMakeInstall)
+	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func installTpm() {
 	tpmDir := filepath.Join(os.Getenv("HOME"), ".tmux", "plugins", "tpm")
 	tpmURL := "https://github.com/tmux-plugins/tpm"
@@ -34,6 +52,8 @@ func installTpmPlugin() {
 
 func InstallTPM() {
 	util.PrintInPurple("For tpm")
+
+	installTmuxMemCPULoad()
 	installTpm()
 	installTpmPlugin()
 }

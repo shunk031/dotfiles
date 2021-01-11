@@ -121,7 +121,8 @@ func execute(cmd string, arg ...string) error {
 func Execute(msg string, cmd string, arg ...string) error {
 
 	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
-	s.Suffix = fmt.Sprintf(" %s", msg)
+	s.Prefix = "  ["
+	s.Suffix = fmt.Sprintf("] %s", msg)
 
 	s.Start()
 	err := execute(cmd)

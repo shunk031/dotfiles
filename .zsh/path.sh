@@ -1,3 +1,11 @@
+# for homebrew
+export HOMEBREW_PREFIX="/opt/homebrew"
+export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
+export HOMEBREW_REPOSITORY="/opt/homebrew"
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin${PATH+:$PATH}"
+export MANPATH="/opt/homebrew/share/man${MANPATH+:$MANPATH}:"ex
+export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
+
 # for local bin
 export PATH=${PATH}:~/.local/bin
 
@@ -15,9 +23,3 @@ export PATH=${PATH}:/usr/local/go/bin
 export GOPATH=$HOME/ghq
 export PATH=${PATH}:$GOPATH/bin
 export GOROOT=`go env GOROOT`
-
-# for Android SDK
-# export PATH=${PATH}:~/Android/Sdk/tools:~/Android/Sdk/platform-tools
-
-# for my scripts
-# export PATH=${PATH}:~/dotfiles/emacs.d/etc

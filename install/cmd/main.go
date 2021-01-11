@@ -58,9 +58,9 @@ func main() {
 	fmt.Println(dotfilesLogo)
 
 	var (
-		DotfilesOrigin     = "git@github.com:" + GitHubRepository + ".git"
+		// DotfilesOrigin     = "git@github.com:" + gitHubRepository + ".git"
 		DotfilesDirectory  = filepath.Join(os.Getenv("HOME"), ".dotfiles")
-		DotfilesTarballURL = filepath.Join("https://github.com", GitHubRepository, "tarball/master")
+		DotfilesTarballURL = filepath.Join("https://github.com", gitHubRepository, "tarball/master")
 		IsSkipQuestions    = false
 	)
 

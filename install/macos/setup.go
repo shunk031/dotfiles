@@ -1,5 +1,6 @@
 package macos
 
+// Setup ...
 func Setup() {
 	InstallXCode()
 	InstallHomebrew()

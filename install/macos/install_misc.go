@@ -2,18 +2,6 @@ package macos
 
 import "shunk031/dotfiles/install/util"
 
-func unique(strSlice []string) []string {
-	keys := make(map[string]bool)
-	list := []string{}
-	for _, entry := range strSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
-}
-
 func InstallMisc() {
 	util.PrintInPurple("Miscellaneous")
 
@@ -41,7 +29,7 @@ func InstallMisc() {
 
 	}
 
-	formulas = unique(formulas)
+	formulas = util.Unique(formulas)
 	for _, formula := range formulas {
 		brew.Install(formula, formula)
 	}
@@ -57,7 +45,7 @@ func InstallMisc() {
 		"iterm2",
 	}
 
-	caskFormulas = unique(caskFormulas)
+	caskFormulas = util.Unique(caskFormulas)
 	for _, formula := range caskFormulas {
 		brew.InstallWithCask(formula, formula)
 	}

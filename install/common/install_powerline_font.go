@@ -3,13 +3,14 @@ package common
 import (
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"shunk031/dotfiles/install/util"
 )
 
 func installPowerline() {
 
-	fontDir := filepath.Join("DOTPATH", ".github/powerline_fonts")
+	fontDir := filepath.Join(os.Getenv("DOTPATH"), ".github/powerline_fonts")
 	fontURL := "https://github.com/powerline/fonts.git"
 
 	msg := fmt.Sprintf("Clone to %s", fontDir)
@@ -28,7 +29,7 @@ func installPowerline() {
 }
 
 func installAwesomePowerline() {
-	fontDir := filepath.Join("DOTPATH", ".github", "awesome_powerline_fonts")
+	fontDir := filepath.Join(os.Getenv("DOTPATH"), ".github", "awesome_powerline_fonts")
 	fontURL := "https://github.com/gabrielelana/awesome-terminal-fonts"
 
 	msg := fmt.Sprintf("Clone to %s", fontDir)

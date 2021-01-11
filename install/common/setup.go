@@ -16,8 +16,9 @@ func Setup() {
 	InstallPowerlevel10k()
 	// for docker completion
 	InstallDockerCompletion()
+
 	// for TPM
-	InstallTPM()
+	// InstallTPM() // will be installed in the setup phase in each OS.
 
 	// for pyenv
 	InstallPyenv()

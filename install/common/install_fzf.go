@@ -26,7 +26,6 @@ func installFzf() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 func InstallFzf() {

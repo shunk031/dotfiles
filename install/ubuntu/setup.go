@@ -9,10 +9,6 @@ func Setup() {
 	InstallGolang()
 	InstallGhq()
 
-	InstallPyenvRequirements()
-	installRbenvRequirements()
-
 	InstallSpacemacsRequirements()
 	InstallPowerlevel10kRequirements()
-
 }

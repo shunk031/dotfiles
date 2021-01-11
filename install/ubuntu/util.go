@@ -65,3 +65,12 @@ func (a AptCmd) Upgrade() {
 		log.Println(err)
 	}
 }
+
+func (a AptCmd) AddPpa(repo string) {
+	msg := fmt.Sprintf("APT (add apt repository)")
+	cmd := fmt.Sprintf("sudo add-apt-repository -y ppa:%s", repo)
+	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	if err != nil {
+		log.Fatal(err)
+	}
+}

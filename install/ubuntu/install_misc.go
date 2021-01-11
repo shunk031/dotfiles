@@ -32,9 +32,38 @@ func InstallMisc() {
 
 	pkgs := []string{
 		"zsh",
-		"gcc",
 		"build-essential",
 		"cmake",
+		"gcc",
+		// for pyenv and pyenv-virtualenv
+		"libssl-dev",
+		"zlib1g-dev",
+		"libbz2-dev",
+		"libreadline-dev",
+		"libsqlite3-dev",
+		"wget",
+		"curl",
+		"llvm",
+		"libncurses5-dev",
+		"xz-utils",
+		"tk-dev",
+		"libxml2-dev",
+		"libxmlsec1-dev",
+		"libffi-dev",
+		"liblzma-dev",
+		// for rbenv and ruby-build
+		"autoconf",
+		"bison",
+		"build-essential",
+		"libssl-dev",
+		"libyaml-dev",
+		"libreadline6-dev",
+		"zlib1g-dev",
+		"libncurses5-dev",
+		"libffi-dev",
+		"libgdbm6",
+		"libgdbm-dev",
+		"libdb-dev",
 	}
 
 	pkgs = util.Unique(pkgs)

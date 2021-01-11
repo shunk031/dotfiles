@@ -4,7 +4,7 @@ import "shunk031/dotfiles/install/util"
 
 func installEmacs() {
 	apt := AptCmd{}
-	apt.Install("emacs", "Emacs", "")
+	apt.Install("emacs", "Emacs")
 }
 
 func InstallEmacs() {

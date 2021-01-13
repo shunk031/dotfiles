@@ -6,13 +6,13 @@ import (
 )
 
 func (t Tmux) installTmux() {
-	util.PrintInPurple("tmux")
 
 	brew := HomebrewCmd{}
 	brew.Install("tmux", "tmux")
 	brew.Install("reattach-to-user-namespace", "tmux (pasteboard)")
 
-	common.InstallTPM()
+	tpm := common.NewTpm()
+	tpm.Install()
 }
 
 type Tmux struct {

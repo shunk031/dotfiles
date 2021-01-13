@@ -12,7 +12,8 @@ func (t Tmux) installTmux() {
 	apt.Install("tmux", "tmux")
 	apt.Install("xsel", "tmux (pasteboard)")
 
-	common.InstallTPM()
+	tpm := common.NewTpm()
+	tpm.Install()
 }
 
 type Tmux struct {

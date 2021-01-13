@@ -8,7 +8,7 @@ import (
 	"shunk031/dotfiles/install/util"
 )
 
-func installTmuxMemCPULoad() {
+func (t Tpm) installTmuxMemCPULoad() {
 	dir := filepath.Join(os.Getenv("DOTPATH"), ".github", "tmux-mem-cpu-load")
 	URL := "https://github.com/thewtex/tmux-mem-cpu-load.git"
 
@@ -26,7 +26,7 @@ func installTmuxMemCPULoad() {
 	}
 }
 
-func installTpm() {
+func (t Tpm) installTpm() {
 	tpmDir := filepath.Join(os.Getenv("HOME"), ".tmux", "plugins", "tpm")
 	tpmURL := "https://github.com/tmux-plugins/tpm"
 
@@ -41,7 +41,7 @@ func installTpm() {
 	}
 }
 
-func installTpmPlugin() {
+func (t Tpm) installTpmPlugin() {
 	tpmDir := filepath.Join(os.Getenv("HOME"), ".tmux", "plugins", "tpm")
 	scriptPath := filepath.Join(tpmDir, "scripts", "install_plugins.sh")
 
@@ -52,10 +52,18 @@ func installTpmPlugin() {
 	}
 }
 
-func InstallTPM() {
-	util.PrintInPurple("For tpm")
+type Tpm struct {
+	util.Helper
+}
 
-	installTmuxMemCPULoad()
-	installTpm()
-	installTpmPlugin()
+func (t Tpm) Install() {
+	t.Print()
+	t.installTmuxMemCPULoad()
+	t.installTpm()
+	t.installTpmPlugin()
+}
+
+func NewTpm() SetupCommon {
+	helper := util.Helper{"tpm"}
+	return Tpm{helper}
 }

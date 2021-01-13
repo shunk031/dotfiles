@@ -1,14 +1,22 @@
 package ubuntu
 
+type SetupUbuntu interface {
+	Install()
+}
+
 // Setup ...
 func Setup() {
-	InstallMisc()
-	InstallEmacs()
-	InstallTmux()
 
-	InstallGolang()
-	InstallGhq()
-
-	InstallSpacemacsRequirements()
-	InstallPowerlevel10kRequirements()
+	setupers := []SetupUbuntu{
+		NewMisc(),
+		NewEmacs(),
+		NewTmux(),
+		NewGolang(),
+		NewGhq(),
+		NewSpacemacsRequirements(),
+		NewPowerlevel10kRequirements(),
+	}
+	for _, setuper := range setupers {
+		setuper.Install()
+	}
 }

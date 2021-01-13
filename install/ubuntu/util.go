@@ -26,7 +26,7 @@ func (a AptCmd) InstallWithExtraArgs(pkg string, pkgReadableName string, extraAr
 		//                                                suppress output ─┘│
 		//                      assume "yes" as the answer to all prompts ──┘
 		msg := fmt.Sprintf("Install %s", pkg)
-		err := util.Execute(msg, "/bin/bash", "-c", cmd)
+		err := util.Execute(msg, cmd)
 		if err != nil {
 			log.Println(err)
 		}
@@ -45,7 +45,7 @@ func (a AptCmd) Update() {
 	// Resynchronize the package index files from their sources.
 	msg := fmt.Sprintf("APT (update)")
 	cmd := fmt.Sprintf("sudo apt-get update -qqy")
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Println(err)
 	}
@@ -60,7 +60,7 @@ func (a AptCmd) Upgrade() {
 	cmdApt := fmt.Sprintf("sudo apt-get -o Dpkg::Options::=\"--force-confnew\" upgrade -qqy")
 
 	cmd := fmt.Sprintf("%s; %s", cmdExport, cmdApt)
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Println(err)
 	}
@@ -69,7 +69,7 @@ func (a AptCmd) Upgrade() {
 func (a AptCmd) AddPpa(repo string) {
 	msg := fmt.Sprintf("APT (add apt repository)")
 	cmd := fmt.Sprintf("sudo add-apt-repository -y ppa:%s", repo)
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}

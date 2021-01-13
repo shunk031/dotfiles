@@ -2,12 +2,21 @@ package ubuntu
 
 import "shunk031/dotfiles/install/util"
 
-func installEmacs() {
+func (e Emacs) installEmacs() {
 	apt := AptCmd{}
 	apt.Install("emacs", "Emacs")
 }
 
-func InstallEmacs() {
-	util.PrintInPurple("Emacs")
-	installEmacs()
+type Emacs struct {
+	util.Helper
+}
+
+func (e Emacs) Install() {
+	e.Print()
+	e.installEmacs()
+}
+
+func NewEmacs() SetupUbuntu {
+	helper := util.Helper{"emacs"}
+	return Emacs{helper}
 }

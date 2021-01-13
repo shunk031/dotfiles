@@ -4,7 +4,7 @@ import (
 	"shunk031/dotfiles/install/util"
 )
 
-func installGolang() {
+func (g Golang) installGolang() {
 
 	apt := AptCmd{}
 	if !packageIsInstalled("golang") {
@@ -19,7 +19,16 @@ func installGolang() {
 
 }
 
-func InstallGolang() {
-	util.PrintInPurple("Golang")
-	installGolang()
+type Golang struct {
+	util.Helper
+}
+
+func (g Golang) Install() {
+	g.Print()
+	g.installGolang()
+}
+
+func NewGolang() SetupUbuntu {
+	helper := util.Helper{"golang"}
+	return Golang{helper}
 }

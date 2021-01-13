@@ -8,7 +8,7 @@ import (
 	"shunk031/dotfiles/install/util"
 )
 
-func installHadlint() {
+func (m Misc) installHadlint() {
 	hadlintDir := filepath.Join(os.Getenv("DOTPATH"), "bin")
 	hadlintFile := filepath.Join(hadlintDir, "hadlint")
 	hadlintURL := "https://github.com/hadolint/hadolint/releases/latest/download/hadolint-$(uname -s)-$(uname -m)"
@@ -18,15 +18,15 @@ func installHadlint() {
 	cmdChmod := fmt.Sprintf("chmod 700 %s", hadlintFile)
 
 	cmd := fmt.Sprintf("%s; %s", cmdCurl, cmdChmod)
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func InstallMisc() {
-	util.PrintInPurple("Miscellaneous")
-	installHadlint()
+func (m Misc) InstallMisc() {
+
+	m.installHadlint()
 
 	apt := AptCmd{}
 
@@ -70,4 +70,18 @@ func InstallMisc() {
 	for _, pkg := range pkgs {
 		apt.Install(pkg, pkg)
 	}
+}
+
+type Misc struct {
+	util.Helper
+}
+
+func (m Misc) Install() {
+	m.Print()
+
+}
+
+func NewMisc() SetupUbuntu {
+	helper := util.Helper{"miscellaneous"}
+	return Misc{helper}
 }

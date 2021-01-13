@@ -8,7 +8,7 @@ import (
 	"shunk031/dotfiles/install/util"
 )
 
-func installSourceCodeProFont() {
+func (s SpacemacsRequirements) installSourceCodeProFont() {
 	dir := filepath.Join(os.Getenv("HOME"), ".font", "adobe-fonts", "source-code-pro")
 	URL := "https://github.com/adobe-fonts/source-code-pro.git"
 
@@ -18,14 +18,23 @@ func installSourceCodeProFont() {
 	cmdFc := fmt.Sprintf("fc-cache -f %s", dir)
 
 	cmd := fmt.Sprintf("%s; %s; %s", cmdRm, cmdGit, cmdFc)
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 }
 
-func InstallSpacemacsRequirements() {
-	util.PrintInPurple("Requirements for Spacemacs")
-	installSourceCodeProFont()
+type SpacemacsRequirements struct {
+	util.Helper
+}
+
+func (s SpacemacsRequirements) Install() {
+	s.Print()
+	s.installSourceCodeProFont()
+}
+
+func NewSpacemacsRequirements() SetupUbuntu {
+	helper := util.Helper{"spacemacs requirements"}
+	return SpacemacsRequirements{helper}
 }

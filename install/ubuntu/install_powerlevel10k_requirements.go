@@ -8,7 +8,7 @@ import (
 	"shunk031/dotfiles/install/util"
 )
 
-func installNerdFont() {
+func (p Powerlevel10kRequirements) installNerdFont() {
 	fontDir := filepath.Join(os.Getenv("HOME"), ".local", "share", "fonts")
 	fontURL := "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Medium/complete/Roboto%20Mono%20Medium%20Nerd%20Font%20Complete%20Mono.ttf"
 	fontName := "Roboto Mono Nerd Font Complete Mono.ttf"
@@ -19,13 +19,22 @@ func installNerdFont() {
 	cmdCurl := fmt.Sprintf("curl -fLo %s %s", fontName, fontURL)
 
 	cmd := fmt.Sprintf("%s; %s; %s", cmdMkdir, cmdCd, cmdCurl)
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func InstallPowerlevel10kRequirements() {
-	util.PrintInPurple("Requirements for powerlevel10k")
-	installNerdFont()
+type Powerlevel10kRequirements struct {
+	util.Helper
+}
+
+func (p Powerlevel10kRequirements) Install() {
+	p.Print()
+	p.installNerdFont()
+}
+
+func NewPowerlevel10kRequirements() SetupUbuntu {
+	helper := util.Helper{"powerlevel10k requirements"}
+	return Powerlevel10kRequirements{helper}
 }

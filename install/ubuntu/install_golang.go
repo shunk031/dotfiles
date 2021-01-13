@@ -29,6 +29,6 @@ func (g Golang) Install() {
 }
 
 func NewGolang() SetupUbuntu {
-	helper := util.Helper{"golang"}
+	helper := util.Helper{Name: "golang"}
 	return Golang{helper}
 }

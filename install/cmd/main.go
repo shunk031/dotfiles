@@ -28,43 +28,24 @@ const dotfilesLogo = `
                 2. Symlink dotfiles to your home directory
 `
 
-const gitHubRepository = "shunk031/dotfiles"
+const (
+	repository = "shunk031/dotfiles"
+	version    = "0.0.1"
+)
 
-func verifyOS() error {
-	const minimumMacosVersion = "10.10"
-	const minimumUbuntuVersion = "18.04"
-
-	osName := util.GetOS()
-	osVersion := util.GetOSVersion()
-
-	if osName == "macos" {
-		if util.IsSupportedVersion(osVersion, minimumMacosVersion) {
-			return nil
-		} else {
-			return fmt.Errorf("Sorry, this script is intended only for macOS %s", minimumMacosVersion)
-		}
-	} else if osName == "ubuntu" {
-		if util.IsSupportedVersion(osVersion, minimumUbuntuVersion) {
-			return nil
-		} else {
-			return fmt.Errorf("Sorry, this script is intended only for Ubuntu %s+", minimumUbuntuVersion)
-		}
-	} else {
-		return fmt.Errorf("Sorry, this script is intended only for macOS and Ubuntu")
-	}
-}
+var revision = "HEAD"
 
 func main() {
 	fmt.Println(dotfilesLogo)
 
 	var (
-		// DotfilesOrigin     = "git@github.com:" + gitHubRepository + ".git"
+		// DotfilesOrigin     = "git@github.com:" + repository + ".git"
 		DotfilesDirectory  = filepath.Join(os.Getenv("HOME"), ".dotfiles")
-		DotfilesTarballURL = filepath.Join("https://github.com", gitHubRepository, "tarball/master")
+		DotfilesTarballURL = filepath.Join("https://github.com", repository, "tarball/master")
 		IsSkipQuestions    = false
 	)
 
-	err := verifyOS()
+	err := util.VerifyOS()
 	if err != nil {
 		log.Fatal(err)
 	}

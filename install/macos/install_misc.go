@@ -60,6 +60,6 @@ func (m Misc) Install() {
 }
 
 func NewMisc() SetupMasOS {
-	helper := util.Helper{"miscellaneous"}
+	helper := util.Helper{Name: "miscellaneous"}
 	return Misc{helper}
 }

@@ -35,6 +35,6 @@ func (s SpacemacsRequirements) Install() {
 }
 
 func NewSpacemacsRequirements() SetupUbuntu {
-	helper := util.Helper{"spacemacs requirements"}
+	helper := util.Helper{Name: "spacemacs requirements"}
 	return SpacemacsRequirements{helper}
 }

@@ -33,6 +33,6 @@ func (z Zplugin) Install() {
 }
 
 func NewZplugin() SetupCommon {
-	helper := util.Helper{"zplugin"}
+	helper := util.Helper{Name: "zplugin"}
 	return Zplugin{helper}
 }

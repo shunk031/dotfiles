@@ -18,6 +18,6 @@ func (p Powerlevel10kRequirements) Install() {
 }
 
 func NewPowerlevel10kRequirements() SetupMasOS {
-	helper := util.Helper{"powerlevel10k requirements"}
+	helper := util.Helper{Name: "powerlevel10k requirements"}
 	return Powerlevel10kRequirements{helper}
 }

@@ -18,6 +18,6 @@ func (s SpacemacsRequirements) Install() {
 }
 
 func NewSpacemacsRequirements() SetupMasOS {
-	helper := util.Helper{"spacemacs requirements"}
+	helper := util.Helper{Name: "spacemacs requirements"}
 	return SpacemacsRequirements{helper}
 }

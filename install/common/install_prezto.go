@@ -37,6 +37,6 @@ func (p Prezto) Install() {
 }
 
 func NewPrezto() SetupCommon {
-	helper := util.Helper{"prezto"}
+	helper := util.Helper{Name: "prezto"}
 	return Prezto{helper}
 }

@@ -17,6 +17,6 @@ func (e Emacs) Install() {
 }
 
 func NewEmacs() SetupUbuntu {
-	helper := util.Helper{"emacs"}
+	helper := util.Helper{Name: "emacs"}
 	return Emacs{helper}
 }

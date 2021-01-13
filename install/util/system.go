@@ -13,6 +13,30 @@ import (
 	"github.com/shirou/gopsutil/host"
 )
 
+func VerifyOS() error {
+	const minimumMacosVersion = "10.10"
+	const minimumUbuntuVersion = "18.04"
+
+	osName := GetOS()
+	osVersion := GetOSVersion()
+
+	if osName == "macos" {
+		if IsSupportedVersion(osVersion, minimumMacosVersion) {
+			return nil
+		} else {
+			return fmt.Errorf("Sorry, this script is intended only for macOS %s", minimumMacosVersion)
+		}
+	} else if osName == "ubuntu" {
+		if IsSupportedVersion(osVersion, minimumUbuntuVersion) {
+			return nil
+		} else {
+			return fmt.Errorf("Sorry, this script is intended only for Ubuntu %s+", minimumUbuntuVersion)
+		}
+	} else {
+		return fmt.Errorf("Sorry, this script is intended only for macOS and Ubuntu")
+	}
+}
+
 func CmdExists(c string) bool {
 	cmd := exec.Command("command", "-v", c)
 	if err := cmd.Run(); err != nil {

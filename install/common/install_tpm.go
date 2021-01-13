@@ -64,6 +64,6 @@ func (t Tpm) Install() {
 }
 
 func NewTpm() SetupCommon {
-	helper := util.Helper{"tpm"}
+	helper := util.Helper{Name: "tpm"}
 	return Tpm{helper}
 }

@@ -26,6 +26,6 @@ func (t Tmux) Install() {
 }
 
 func NewTmux() SetupUbuntu {
-	helper := util.Helper{"tmux"}
+	helper := util.Helper{Name: "tmux"}
 	return Tmux{helper}
 }

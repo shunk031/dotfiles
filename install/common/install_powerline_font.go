@@ -75,6 +75,6 @@ func (p PowerlineFont) installAwesomePowerline() {
 }
 
 func NewPowerlineFont() SetupCommon {
-	helper := util.Helper{"powerline font"}
+	helper := util.Helper{Name: "powerline font"}
 	return PowerlineFont{helper}
 }

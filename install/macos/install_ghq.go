@@ -32,6 +32,6 @@ func (g Ghq) Install() {
 }
 
 func NewGhq() SetupMasOS {
-	helper := util.Helper{"ghq"}
+	helper := util.Helper{Name: "ghq"}
 	return Ghq{helper}
 }

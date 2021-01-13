@@ -82,6 +82,6 @@ func (m Misc) Install() {
 }
 
 func NewMisc() SetupUbuntu {
-	helper := util.Helper{"miscellaneous"}
+	helper := util.Helper{Name: "miscellaneous"}
 	return Misc{helper}
 }

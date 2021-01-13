@@ -31,6 +31,6 @@ func (x XCode) agreeWithXcodeLicence() {
 }
 
 func NewXCode() SetupMasOS {
-	helper := util.Helper{"XCode"}
+	helper := util.Helper{Name: "XCode"}
 	return XCode{helper}
 }

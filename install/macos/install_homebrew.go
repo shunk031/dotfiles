@@ -106,6 +106,6 @@ func (h Homebrew) Install() {
 }
 
 func NewHomebrew() SetupMasOS {
-	helper := util.Helper{"homebrew"}
+	helper := util.Helper{Name: "homebrew"}
 	return Homebrew{helper}
 }

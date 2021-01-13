@@ -39,7 +39,7 @@
 (defun migemo/init-migemo ()
   (use-package migemo
     :custom
-    (migemo-command "/usr/local/bin/cmigemo")
+    (migemo-command (executable-find "cmigemo"))
     (migemo-options '("-q" "--emacs"))
     (migemo-user-dictionary nil)
     (migemo-regex-dictionary nil)
@@ -47,7 +47,11 @@
     (migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict")
     :config
     (when (eq system-type 'darwin)
-      (setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict"))
+      (setq migemo-dictionary
+            (concat
+             (file-name-as-directory
+              (shell-command-to-string "printf %s \"$(brew --prefix)\""))
+             "share/migemo/utf-8/migemo-dict")))
     (migemo-init)))
 
 (defun migemo/init-avy-migemo ()

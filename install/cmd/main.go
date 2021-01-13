@@ -75,7 +75,7 @@ func main() {
 		IsSkipQuestions,
 	)
 
-	util.PrintInPurple("\n• Installs\n")
+	util.PrintInPurple("\n• Installs")
 
 	// OS common setup
 	common.Setup()

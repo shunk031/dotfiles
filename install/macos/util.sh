@@ -6,7 +6,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 brew_install() {
-    declare -r CMD="$4"
+    declare -r CASK="$4"
     declare -r CMD_ARGUMENTS="$5"
     declare -r FORMULA="$2"
     declare -r FORMULA_READABLE_NAME="$1"
@@ -38,9 +38,13 @@ brew_install() {
     # shellcheck disable=SC2086
     if brew $CMD list "$FORMULA" &> /dev/null; then
         print_success "$FORMULA_READABLE_NAME"
+    elif [ -n "$CASK" ]; then
+        execute \
+            "brew install --cask $FORMULA $CMD_ARGUMENTS" \
+            "$FORMULA_READABLE_NAME"
     else
         execute \
-            "brew $CMD install $FORMULA $CMD_ARGUMENTS" \
+            "brew install $CMD $FORMULA $CMD_ARGUMENTS" \
             "$FORMULA_READABLE_NAME"
     fi
 }

@@ -1,5 +1,0 @@
-set-option -g default-shell /usr/local/bin/zsh
-
-# clipboard settings for MacOS
-bind-key -T copy-mode M-w send -X copy-pipe-and-cancel "reattach-to-user-namespace pbcopy"
-bind-key -T copy-mode C-w send -X copy-pipe "reattach-to-user-namespace pbcopy"

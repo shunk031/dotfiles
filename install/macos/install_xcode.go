@@ -2,25 +2,35 @@ package macos
 
 import "shunk031/dotfiles/install/util"
 
-func installXCodeCommandLineTools() {
+type XCode struct {
+	util.Helper
+}
+
+func (x XCode) Install() {
+	x.Print()
+
+	x.installXCodeCommandLineTools()
+	x.installXCode()
+	x.setXCodeDeveloperDirectory()
+}
+
+func (x XCode) installXCodeCommandLineTools() {
 
 }
 
-func installXCode() {
+func (x XCode) installXCode() {
 
 }
 
-func setXCodeDeveloperDirectory() {
+func (x XCode) setXCodeDeveloperDirectory() {
 
 }
 
-func agreeWithXcodeLicence() {
+func (x XCode) agreeWithXcodeLicence() {
 
 }
 
-func InstallXCode() {
-	util.PrintInPurple("XCode")
-	installXCodeCommandLineTools()
-	installXCode()
-	setXCodeDeveloperDirectory()
+func NewXCode() SetupMasOS {
+	helper := util.Helper{"XCode"}
+	return XCode{helper}
 }

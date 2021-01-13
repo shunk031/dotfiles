@@ -11,7 +11,8 @@ type HomebrewCmd struct {
 
 func (h HomebrewCmd) Tap(repo string) {
 	msg := fmt.Sprintf("brew tap to %s", repo)
-	err := util.Execute(msg, "/bin/bash", "-c", "brew", "tap", repo)
+	cmd := fmt.Sprintf("brew tap %s", repo)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Println(err)
 	}
@@ -19,21 +20,25 @@ func (h HomebrewCmd) Tap(repo string) {
 
 func (h HomebrewCmd) Link(link string) {
 	msg := fmt.Sprintf("brew link to %s", link)
-	err := util.Execute(msg, "/bin/bash", "-c", "brew", "link", link)
+	cmd := fmt.Sprintf("brew link %s", link)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Println(err)
 	}
 }
 
 func (h HomebrewCmd) Install(formula string, msg string) {
-	err := util.Execute(msg, "/bin/bash", "-c", "brew", "install", formula)
+	cmd := fmt.Sprintf("brew install %s", formula)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 func (h HomebrewCmd) InstallWithCask(formula string, msg string) {
-	err := util.Execute(msg, "/bin/bash", "-c", "brew", "install", "--cask", formula)
+
+	cmd := fmt.Sprintf("brew install --cask %s", formula)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +46,8 @@ func (h HomebrewCmd) InstallWithCask(formula string, msg string) {
 
 func (h HomebrewCmd) Update() {
 	msg := "Homebrew (update)"
-	err := util.Execute(msg, "/bin/bash", "-c", "brew", "upgrade")
+	cmd := fmt.Sprintf("brew upgrade")
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Println(err)
 	}
@@ -50,7 +56,8 @@ func (h HomebrewCmd) Update() {
 
 func (h HomebrewCmd) Upgrade() {
 	msg := "Homebrew (upgrade)"
-	err := util.Execute(msg, "/bin/bash", "-c", "brew", "update")
+	cmd := fmt.Sprintf("brew update")
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Println(err)
 	}

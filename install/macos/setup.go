@@ -1,15 +1,24 @@
 package macos
 
+type SetupMasOS interface {
+	Install()
+}
+
 // Setup ...
 func Setup() {
-	InstallXCode()
-	InstallHomebrew()
-	InstallMisc()
 
-	InstallEmacs()
-	InstallTmux()
-	InstallGhq()
+	setupers := []SetupMasOS{
+		NewXCode(),
+		NewHomebrew(),
+		NewMisc(),
+		NewEmacs(),
+		NewTmux(),
+		NewGhq(),
+		NewSpacemacsRequirements(),
+		NewPowerlevel10kRequirements(),
+	}
 
-	InstallSpacemacsRequirements()
-	InstallPowerlevel10kRequirements()
+	for _, setuper := range setupers {
+		setuper.Install()
+	}
 }

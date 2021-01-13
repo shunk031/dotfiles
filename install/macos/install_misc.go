@@ -2,8 +2,7 @@ package macos
 
 import "shunk031/dotfiles/install/util"
 
-func InstallMisc() {
-	util.PrintInPurple("Miscellaneous")
+func (m Misc) installMisc() {
 
 	brew := HomebrewCmd{}
 
@@ -49,4 +48,18 @@ func InstallMisc() {
 	for _, formula := range caskFormulas {
 		brew.InstallWithCask(formula, formula)
 	}
+}
+
+type Misc struct {
+	util.Helper
+}
+
+func (m Misc) Install() {
+	m.Print()
+	m.installMisc()
+}
+
+func NewMisc() SetupMasOS {
+	helper := util.Helper{"miscellaneous"}
+	return Misc{helper}
 }

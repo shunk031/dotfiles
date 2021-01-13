@@ -27,7 +27,8 @@ func extract(archive string, outputDir string) error {
 	var err error
 	if CmdExists("tar") {
 		msg := fmt.Sprintf("Extract from %s", archive)
-		err = Execute(msg, "tar", "-zxf", archive, "--strip-components", "1", "-C", outputDir)
+		cmd := fmt.Sprintf("tar -zxf %s --strip-components 1 -C %s", archive, outputDir)
+		err = Execute(msg, cmd)
 	}
 	return err
 }
@@ -103,26 +104,28 @@ func IsSupportedVersion(osVersion string, minOSVersion string) bool {
 	return false
 }
 
-func execute(cmd string, arg ...string) error {
+func execute(cmd string) error {
+
 	if false {
-		c := exec.Command(cmd, arg...)
+		c := exec.Command("/bin/bash", "-c", cmd)
 		err := c.Run()
 
 		return err
 
 	} else {
 
-		time.Sleep(2 * time.Second)
+		time.Sleep(5 * time.Second)
 
 		return nil
 	}
 }
 
-func Execute(msg string, cmd string, arg ...string) error {
+func Execute(msg string, cmd string) error {
 
 	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
 	s.Prefix = "  ["
-	s.Suffix = fmt.Sprintf("] %s", msg)
+	// s.Suffix = fmt.Sprintf("] %s", msg)
+	s.Suffix = fmt.Sprintf("] %s", cmd)
 
 	s.Start()
 	err := execute(cmd)

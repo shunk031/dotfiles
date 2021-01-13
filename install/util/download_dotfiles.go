@@ -23,23 +23,25 @@ import (
 func download(url string, output string) error {
 	msg := fmt.Sprintf("Download from %s to %s", url, output)
 
-	var err error
+	var cmd string
 	if CmdExists("curl") {
-		err = Execute(msg, "curl", "-LsSo", output, url)
-		//                            │││└─ write output to file
-		//                            ││└─ show error messages
-		//                            │└─ don't show the progress meter
-		//                            └─ follow redirects
+		cmd = fmt.Sprintf("curl -LsSo %s %s", output, url)
+		//                        │││└─ write output to file
+		//                        ││└─ show error messages
+		//                        │└─ don't show the progress meter
+		//                        └─ follow redirects
 	} else if CmdExists("wget") {
-		err = Execute(msg, "wget", "-qO", output, url)
-		//                            │└─ write output to file
-		//                            └─ don't show output
+		cmd = fmt.Sprintf("wget -qO %s %s", output, url)
+		//                      │└─ write output to file
+		//                      └─ don't show output
+
 	}
+	err := Execute(msg, cmd)
 	return err
 }
 
 func DownloadDotfiles(dotfilesDir string, tarballUrl string, isSkipQuestions bool) {
-	printInPurple("• Download and extract archive")
+	printInPurple("• Download and extract archive\n")
 
 	tmpFile, err := ioutil.TempFile("/tmp/", "XXXXX")
 	if err != nil {
@@ -85,13 +87,15 @@ func DownloadDotfiles(dotfilesDir string, tarballUrl string, isSkipQuestions boo
 		// 	}
 		// }
 	} else {
-		err := Execute("Remove directory", "rm", "-rf", dotfilesDir)
+		cmd := fmt.Sprintf("rm -rf %s", dotfilesDir)
+		err := Execute("Remove directory", cmd)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	err = Execute("Make directory", "mkdir", "-p", dotfilesDir)
+	cmd := fmt.Sprintf("mkdir -p %s", dotfilesDir)
+	err = Execute("Make directory", cmd)
 	if err != nil {
 		log.Fatal(err)
 	}

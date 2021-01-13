@@ -14,7 +14,8 @@ func installDockerCompletion() {
 	outputDir := filepath.Join(compDir, "_docker")
 
 	msg := fmt.Sprintf("Download to %s", compDir)
-	err := util.Execute(msg, "curl", "-fLo", outputDir, compURL)
+	cmd := fmt.Sprintf("curl -fLo %s %s", outputDir, compURL)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -20,7 +20,7 @@ func installTmuxMemCPULoad() {
 	cmdMakeInstall := "sudo make install"
 
 	cmd := fmt.Sprintf("%s; %s; %s; %s; %s", cmdRm, cmdGit, cmdCd, cmdCMake, cmdMakeInstall)
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func installTpm() {
 	cmdGit := fmt.Sprintf("git clone --quiet %s %s", tpmURL, tpmDir)
 
 	cmd := fmt.Sprintf("%s; %s", cmdRm, cmdGit)
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,7 +44,9 @@ func installTpm() {
 func installTpmPlugin() {
 	tpmDir := filepath.Join(os.Getenv("HOME"), ".tmux", "plugins", "tpm")
 	scriptPath := filepath.Join(tpmDir, "scripts", "install_plugins.sh")
-	err := util.Execute("Install tpm plugins", "bash", scriptPath)
+
+	cmd := fmt.Sprintf("bash %s", scriptPath)
+	err := util.Execute("Install tpm plugins", cmd)
 	if err != nil {
 		log.Fatal(err)
 	}

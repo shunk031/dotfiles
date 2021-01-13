@@ -8,7 +8,7 @@ import (
 	"shunk031/dotfiles/install/util"
 )
 
-func installZplugin() {
+func (z Zplugin) installZplugin() {
 	zpluginDir := filepath.Join(os.Getenv("HOME"), ".zplugin/bin")
 	zpluginURL := "https://github.com/zdharma/zplugin.git"
 
@@ -16,13 +16,23 @@ func installZplugin() {
 	cmdRm := fmt.Sprintf("rm -rf %s", zpluginDir)
 	cmdGit := fmt.Sprintf("git clone --quiet %s %s --depth=1", zpluginURL, zpluginDir)
 
-	err := util.Execute(msg, "/bin/bash", "-c", fmt.Sprintf("%s; %s", cmdRm, cmdGit))
+	err := util.Execute(msg, fmt.Sprintf("%s; %s", cmdRm, cmdGit))
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func InstallZplugin() {
-	util.PrintInPurple("For zplugin")
-	installZplugin()
+type Zplugin struct {
+	util.Helper
+}
+
+func (z Zplugin) Install() {
+	z.Print()
+
+	z.installZplugin()
+}
+
+func NewZplugin() SetupCommon {
+	helper := util.Helper{"zplugin"}
+	return Zplugin{helper}
 }

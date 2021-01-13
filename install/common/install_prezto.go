@@ -8,7 +8,7 @@ import (
 	"shunk031/dotfiles/install/util"
 )
 
-func installPrezto() {
+func (p Prezto) installPrezto() {
 	zdotDir := os.Getenv("ZDOTDIR")
 	if zdotDir == "" {
 		zdotDir = os.Getenv("HOME")
@@ -20,14 +20,23 @@ func installPrezto() {
 	cmdRm := fmt.Sprintf("rm -rf %s", preztoDir)
 	cmdGit := fmt.Sprintf("git clone --quiet --recursive %s %s", preztoURL, preztoDir)
 
-	err := util.Execute(msg, "/bin/bash", "-c", fmt.Sprintf("%s; %s", cmdRm, cmdGit))
+	err := util.Execute(msg, fmt.Sprintf("%s; %s", cmdRm, cmdGit))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 }
 
-func InstallPrezto() {
-	util.PrintInPurple("For Prezto")
-	installPrezto()
+type Prezto struct {
+	util.Helper
+}
+
+func (p Prezto) Install() {
+	p.Print()
+	p.installPrezto()
+}
+
+func NewPrezto() SetupCommon {
+	helper := util.Helper{"prezto"}
+	return Prezto{helper}
 }

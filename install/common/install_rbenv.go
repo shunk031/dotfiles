@@ -20,7 +20,7 @@ func installRbenv() {
 	cmdMake := fmt.Sprintf("make -C src")
 
 	cmd := fmt.Sprintf("%s; %s; %s; %s; %s", cmdRm, cmdGit, cmdCd, cmdConfigure, cmdMake)
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func installRubyBuild() {
 	cmdGit := fmt.Sprintf("git clone --quiet %s %s", rubyBuildURL, rubyBuildDir)
 
 	cmd := fmt.Sprintf("%s; %s", cmdRm, cmdGit)
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}

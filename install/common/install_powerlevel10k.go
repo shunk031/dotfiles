@@ -16,7 +16,7 @@ func installPowerlevel10k() {
 	cmdRm := fmt.Sprintf("rm -rf %s", p10kDir)
 	cmdGit := fmt.Sprintf("git clone --quiet %s %s", p10kURL, p10kDir)
 
-	err := util.Execute(msg, "/bin/bash", "-c", fmt.Sprintf("%s; %s", cmdRm, cmdGit))
+	err := util.Execute(msg, fmt.Sprintf("%s; %s", cmdRm, cmdGit))
 	if err != nil {
 		log.Fatal(err)
 	}

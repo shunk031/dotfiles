@@ -17,7 +17,7 @@ func installSpacemacs() {
 	cmdGit := fmt.Sprintf("git clone --quiet %s %s", spacemacsURL, spacemacsDir)
 
 	cmd := fmt.Sprintf("%s; %s", cmdRm, cmdGit)
-	err := util.Execute(msg, "/bin/bash", "-c", cmd)
+	err := util.Execute(msg, cmd)
 	if err != nil {
 		log.Fatal(err)
 	}

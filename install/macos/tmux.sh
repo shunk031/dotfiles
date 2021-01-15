@@ -13,8 +13,7 @@ install_tmux_mem_cpu_load() {
     brew_install "cmake" "cmake"
 
     execute \
-        "rm -rf ${TMUX_MEM_CPU_LOAD_DIR} \
-            && git clone --quiet ${TMUX_MEM_CPU_LOAD_URL} ${TMUX_MEM_CPU_LOAD_DIR} \
+        "git clone --quiet ${TMUX_MEM_CPU_LOAD_URL} ${TMUX_MEM_CPU_LOAD_DIR} \
             && cd ${TMUX_MEM_CPU_LOAD_DIR} \
             && cmake . \
             && make \

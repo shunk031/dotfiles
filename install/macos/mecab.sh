@@ -17,3 +17,5 @@ main() {
     install_mecab
     bash "${DOTPATH}"/install/general/mecab_ipadic_neologd.sh
 }
+
+main

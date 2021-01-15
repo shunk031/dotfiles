@@ -15,8 +15,6 @@ main() {
     print_in_purple "\n   Install mecab\n\n"
 
     install_mecab
-    pwd
-    ls "${DOTPATH}"/install/general
     bash "${DOTPATH}"/install/general/mecab_ipadic_neologd.sh
 }
 

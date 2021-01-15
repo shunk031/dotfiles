@@ -11,7 +11,7 @@ install_mecab_ipadic_negolod() {
 
     execute \
         "git clone --quiet --depth 1 ${MECAB_IPADIC_NEOLOGD_URL} ${MECAB_IPADIC_NEOLOGD_DIR}" \
-        "Clone to ${MECAB_IPADICT_NEOLOGD_DIR}" \
+        "Clone to ${MECAB_IPADIC_NEOLOGD_DIR}" \
         || return 1
 
     execute \

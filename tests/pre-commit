@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+readonly BRANCH_NAME_RULES='^(all|macos|ubuntu)\/[a-z0-9._-]+$'
+readonly BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+readonly BRANCH_NAME_LENGTH=$(echo ${BRANCH_NAME} | grep -E ${BRANCH_NAME_RULES} | wc -c | tr -d ' ')
+
+if [ ${BRANCH_NAME_LENGTH} -eq 0 ] ; then
+    echo ""
+    echo -e '\033[0;31;43m ERROR! \033[m in pre-commit hook.'
+    echo ""
+    echo -e "Your branch name "'\033[1m'${BRANCH_NAME}'\033[m'" is not suitable for our rule."
+    echo "Please fix your branch name before commiting!"
+    echo ""
+    echo "Abort commiting."
+    echo ""
+    exit 1
+fi

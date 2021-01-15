@@ -6,7 +6,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 install_mecab_ipadic_negolod() {
-    declare -r MECAB_IPADIC_NEOLOGD_DIR="$(mktemp -d mecab-ipadic-neologd-XXXXXXXXXX)"
+    declare -r MECAB_IPADIC_NEOLOGD_DIR="$(mktemp -d /tmp/mecab-ipadic-neologd-XXXXXXXXXX)"
     declare -r MECAB_IPADIC_NEOLOGD_URL="https://github.com/neologd/mecab-ipadic-neologd.git"
 
     execute \

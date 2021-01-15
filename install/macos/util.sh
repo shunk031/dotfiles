@@ -69,13 +69,23 @@ brew_tap() {
 }
 
 brew_update() {
-    execute \
-        "brew update" \
-        "Homebrew (update)"
+    # if in the workflow, then not execute
+    if [[ -z "$GITHUB_ACTIONS" ]]; then
+        execute \
+            "brew update" \
+            "Homebrew (update)"
+    else
+        print_success "Homebrew (update)"
+    fi
 }
 
 brew_upgrade() {
-    execute \
-        "brew upgrade" \
-        "Homebrew (upgrade)"
+    # if in the workflow, then not execute
+    if [[ -z "$GITHUB_ACTIONS" ]]; then
+        execute \
+            "brew upgrade" \
+            "Homebrew (upgrade)"
+    else
+        print_success "Homebrew (upgrade)"
+    fi
 }

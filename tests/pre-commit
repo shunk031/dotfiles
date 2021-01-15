@@ -8,7 +8,8 @@ if [ ${BRANCH_NAME_LENGTH} -eq 0 ] ; then
     echo ""
     echo -e '\033[0;31;43m ERROR! \033[m in pre-commit hook.'
     echo ""
-    echo -e "Your branch name "'\033[1m'${BRANCH_NAME}'\033[m'" is not suitable for our rule."
+    echo -e "There is something wrong with your branch name: "'\033[1m'${BRANCH_NAME}'\033[m'"."
+    echo -e "Branch names in this project must adhere to this contract: "'\033[1m'${BRANCH_NAME_RULES}'\033[m'"."
     echo "Please fix your branch name before commiting!"
     echo ""
     echo "Abort commiting."

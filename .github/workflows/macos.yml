@@ -2,6 +2,9 @@ name: MacOS
 
 on:
   push:
+    branches:
+      - "macos/*"
+      - "all/*"
   schedule:
     - cron: "0 0 * * 5"
 

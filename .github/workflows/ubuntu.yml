@@ -2,6 +2,9 @@ name: Ubuntu
 
 on:
   push:
+    branches:
+      - "ubuntu/*"
+      - "all/*"
   schedule:
     - cron: "0 0 * * 5"
 

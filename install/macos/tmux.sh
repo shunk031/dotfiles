@@ -7,7 +7,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 install_tmux_mem_cpu_load() {
-    declare -r TMUX_MEM_CPU_LOAD_DIR="$(mktemp -d -t tmux-mem-cpu-load-XXXXXXXXXX)"
+    declare -r TMUX_MEM_CPU_LOAD_DIR="$(mktemp -d tmux-mem-cpu-load-XXXXXXXXXX)"
     declare -r TMUX_MEM_CPU_LOAD_URL="https://github.com/thewtex/tmux-mem-cpu-load.git"
 
     brew_install "cmake" "cmake"

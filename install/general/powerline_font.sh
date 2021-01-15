@@ -6,7 +6,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 install_powerline() {
-    declare -r POWERLINE_FONT_DIR="$(mktemp -d powerline-XXXXXXXXXX)"
+    declare -r POWERLINE_FONT_DIR="$(mktemp -d /tmp/powerline-XXXXXXXXXX)"
     declare -r POWERLINE_FONT_URL="https://github.com/powerline/fonts.git"
 
     execute \
@@ -20,7 +20,7 @@ install_powerline() {
 }
 
 install_awesome_powerline() {
-    declare -r AWESOME_POWERLINE_FONT_DIR="$(mktemp -d awesome-terminal-fonts-XXXXXXXXXX)"
+    declare -r AWESOME_POWERLINE_FONT_DIR="$(mktemp -d /tmp/awesome-terminal-fonts-XXXXXXXXXX)"
     declare -r AWESOME_POWERLINE_FONT_URL="https://github.com/gabrielelana/awesome-terminal-fonts"
 
     execute \

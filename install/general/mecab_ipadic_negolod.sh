@@ -16,7 +16,7 @@ install_mecab_ipadic_negolod() {
 
     execute \
         "cd ${MECAB_IPADIC_NEOLOGD_DIR} \
-            && ./bin/install-mecab-ipadic-neologd -n" \
+            && ./bin/install-mecab-ipadic-neologd -n -y" \
         "Install" \
         || return 1
 }

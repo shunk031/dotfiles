@@ -38,6 +38,14 @@ setup_git_config() {
     print_result $? "${GIT_IGNORE_DST_PATH}"
 }
 
+add_pre_commit_hook_to_dotfiles() {
+    declare -r PRE_COMMIT_FILE="${DOTPATH}/tests/pre-commit"
+    declare -r GIT_HOOK_DIR="${DOTPATH}/.git/hooks"
+
+    cp "${PRE_COMMIT_FILE}" "${GIT_CONFIG_DIR}"
+    print_result $? "${GIT_HOOK_DIR}"
+}
+
 main() {
     print_in_purple "\n • Create local config files\n\n"
 
@@ -45,6 +53,7 @@ main() {
     create_pypirc
 
     setup_git_config
+    add_pre_commit_hook_to_dotfiles
 }
 
 main

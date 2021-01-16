@@ -2,14 +2,14 @@
 
 readonly BRANCH_NAME_RULES='^(feature|all|macos|ubuntu)\/[a-z0-9._-]+$'
 readonly BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
-readonly BRANCH_NAME_LENGTH=$(echo ${BRANCH_NAME} | grep -E ${BRANCH_NAME_RULES} | wc -c | tr -d ' ')
+readonly BRANCH_NAME_LENGTH=$(echo "${BRANCH_NAME}" | grep -E "${BRANCH_NAME_RULES}" | wc -c | tr -d ' ')
 
-if [ ${BRANCH_NAME_LENGTH} -eq 0 ] ; then
+if [ "${BRANCH_NAME_LENGTH}" -eq 0 ] ; then
     echo ""
     echo -e '\033[0;31;43m ERROR! \033[m in pre-commit hook.'
     echo ""
-    echo -e "There is something wrong with your branch name: "'\033[1m'${BRANCH_NAME}'\033[m'"."
-    echo -e "Branch names in this project must adhere to this contract: "'\033[1m'${BRANCH_NAME_RULES}'\033[m'"."
+    echo -e "There is something wrong with your branch name: "'\033[1m'"${BRANCH_NAME}"'\033[m'"."
+    echo -e "Branch names in this project must adhere to this contract: "'\033[1m'"${BRANCH_NAME_RULES}"'\033[m'"."
     echo "Please fix your branch name before commiting!"
     echo ""
     echo "Abort commiting."

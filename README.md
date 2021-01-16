@@ -59,11 +59,11 @@ To set up the dotfiles run the appropriate snippet in the terminal:
 1. Under the `General` tab in `Preferences`, check the box labeled `"Load preferences from a custom folder or URL:"`
 2. Press `"Browse"` and point it to `~/.dotfiles/machines/macos/com.googlecode.iterm2.plist`
 
-#### for Profiles
-1. Under the `Profiles` tab, 
-2. Press "Other Actions..." and "Import JSON profiles", then point it to `~/.dotfiles/machines/macos/hotkey_window.json`
+##### for Profiles
+1. Under the `Profiles` tab, press `Other Actions...`.
+2. Select `Import JSON profiles...`, then point it to `~/.dotfiles/machines/macos/hotkey_window.json`
 
-- Restart iTerm2.
+- Then, restart iTerm2.
 
 ## Test with Docker
 

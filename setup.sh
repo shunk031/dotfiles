@@ -68,8 +68,8 @@ download_dotfiles() {
 
     tmp_file="$(mktemp /tmp/XXXXX)"
 
-    download "$DOTFILES_TARBALL_URL" "$tmp_file"
-    print_result $? "Download archive" "true"
+    git clone --quiet "${DOTFILES_ORIGIN}" "${tmp_file}"
+    print_result $? "Clone from ${DOTFILES_ORIGIN} to ${tmp_file}" "true"
     printf "\n"
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -107,20 +107,20 @@ download_dotfiles() {
         rm -rf "$dotfiles_directory" &> /dev/null
     fi
 
-    mkdir -p "$dotfiles_directory"
+    mv "${tmp_file}" "${dotfiles_directory}"
     print_result $? "Create '$dotfiles_directory'" "true"
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Extract archive in the `dotfiles` directory.
 
-    extract "$tmp_file" "$dotfiles_directory"
-    print_result $? "Extract archive" "true"
+    # extract "$tmp_file" "$dotfiles_directory"
+    # print_result $? "Extract archive" "true"
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    rm -rf "$tmp_file"
-    print_result $? "Remove archive\n"
+    # rm -rf "$tmp_file"
+    # print_result $? "Remove archive\n"
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

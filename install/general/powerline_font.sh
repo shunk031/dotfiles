@@ -6,12 +6,11 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 install_powerline() {
-    declare -r POWERLINE_FONT_DIR="${DOTPATH}/.github/powerline_fonts"
+    declare -r POWERLINE_FONT_DIR="$(mktemp -d /tmp/powerline-XXXXXXXXXX)"
     declare -r POWERLINE_FONT_URL="https://github.com/powerline/fonts.git"
 
     execute \
-        "rm -rf ${POWERLINE_FONT_DIR} \
-            && git clone --quiet ${POWERLINE_FONT_URL} ${POWERLINE_FONT_DIR} --depth=1" \
+        "git clone --quiet  --depth 1 ${POWERLINE_FONT_URL} ${POWERLINE_FONT_DIR}" \
         "Clone to ${POWERLINE_FONT_DIR}"
 
     execute \
@@ -21,12 +20,11 @@ install_powerline() {
 }
 
 install_awesome_powerline() {
-    declare -r AWESOME_POWERLINE_FONT_DIR="${DOTPATH}/.github/awesome_powerline_fonts"
+    declare -r AWESOME_POWERLINE_FONT_DIR="$(mktemp -d /tmp/awesome-terminal-fonts-XXXXXXXXXX)"
     declare -r AWESOME_POWERLINE_FONT_URL="https://github.com/gabrielelana/awesome-terminal-fonts"
 
     execute \
-        "rm -rf ${AWESOME_POWERLINE_FONT_DIR} \
-            && git clone --quiet ${AWESOME_POWERLINE_FONT_URL} ${AWESOME_POWERLINE_FONT_DIR}" \
+        "git clone --quiet ${AWESOME_POWERLINE_FONT_URL} ${AWESOME_POWERLINE_FONT_DIR}" \
         "Clone to ${AWESOME_POWERLINE_FONT_DIR}"
 
     execute \

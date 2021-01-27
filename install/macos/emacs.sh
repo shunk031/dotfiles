@@ -9,7 +9,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 install_emacs() {
 
-    declare -r APP_DIR="~/Applications"
+    declare -r APP_DIR="${HOME}/Applications"
 
     declare -r EMACS_PLUS_VERSION="28"
     declare -r EMACS_VERSION="${EMACS_PLUS_VERSION}.0.50"

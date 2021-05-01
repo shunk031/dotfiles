@@ -29,5 +29,6 @@ install_hadolint() {
 print_in_purple "\n   Miscellaneous\n\n"
 
 install_package "shellcheck" "shellcheck"
+install_package "exa" "exa"
 
 install_hadolint

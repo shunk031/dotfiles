@@ -46,6 +46,7 @@ To set up the dotfiles run the appropriate snippet in the terminal:
 | [ghq](https://github.com/motemen/ghq)  | Remote repository management made easy |
 | [fzf](https://github.com/junegunn/fzf) | A command-line fuzzy finder            |
 | [ag](https://github.com/ggreer/the_silver_searcher) | The Silver Searcher - a code-searching tool similar to ack, but faster. |
+| [exa](https://github.com/ogham/exa) | A modern replacement for ‘ls’. |
 
 ### For MacOS Apps
 

@@ -1,6 +1,6 @@
 DOTPATH    := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 CANDIDATES := $(wildcard .??*) bin
-EXCLUSIONS := .DS_Store .git .gitmodules .secret.zsh.example .pypirc.example .github .vscode
+EXCLUSIONS := .DS_Store .git .gitmodules .gitignore .secret.zsh.example .pypirc.example .github .vscode
 DOTFILES   := $(sort $(filter-out $(EXCLUSIONS), $(CANDIDATES)))
 
 .DEFAULT_GOAL := help

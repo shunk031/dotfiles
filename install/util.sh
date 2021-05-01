@@ -68,7 +68,7 @@ execute() {
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Execute commands in background
-
+    # shellcheck disable=SC2261
     eval "$CMDS" \
         &> /dev/null \
         2> "$TMP_FILE" &

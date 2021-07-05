@@ -48,6 +48,20 @@ source-safe "{HOME}/.secret.zsh"
 source-safe "${HOME}/.fzf.zsh"
 
 #
+# OS specific settings
+#
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    source-safe "${HOME}/.zsh/linux.sh"
+
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    source-safe "${HOME}/.zsh/macos.sh"
+
+else
+    # Unknown
+fi
+
+#
 # Auto load some functions
 #
 

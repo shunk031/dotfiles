@@ -10,10 +10,10 @@ README.html
 hadolint
 .secret.zsh
 .pypirc
+tmux-mem-cpu-load
 
 # for some directories
 powerline_fonts/
-tmux-mem-cpu-load/
 
 # for tmux log
 tmux-*.log

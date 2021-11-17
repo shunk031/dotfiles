@@ -25,6 +25,20 @@ install_tpm_plugins() {
         || return 1
 }
 
+install_tmux_mem_cpu_load() {
+    declare -r TMUX_MEM_CPU_LOAD_DIR="$(mktemp -d /tmp/tmux-mem-cpu-load-XXXXXXXXXX)"
+    declare -r TMUX_MEM_CPU_LOAD_URL="https://github.com/thewtex/tmux-mem-cpu-load.git"
+
+    execute \
+        "git clone --quiet ${TMUX_MEM_CPU_LOAD_URL} ${TMUX_MEM_CPU_LOAD_DIR} \
+            && cd ${TMUX_MEM_CPU_LOAD_DIR} \
+            && cmake . -DCMAKE_INSTALL_PREFIX=$HOME \
+            && make \
+            && make install" \
+        "tmux mem cpu load" \
+        || return 1
+}
+
 main() {
     print_in_purple "\n   tpm\n\n"
     install_tpm

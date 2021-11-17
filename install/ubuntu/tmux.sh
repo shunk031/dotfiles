@@ -15,7 +15,6 @@ main() {
     # install_package "gcc" "gcc"
     install_package "cmake" "cmake"
 
-    install_tmux_mem_cpu_load
     bash "${DOTPATH}"/install/general/tpm.sh
 }
 

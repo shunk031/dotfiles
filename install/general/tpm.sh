@@ -43,6 +43,7 @@ main() {
     print_in_purple "\n   tpm\n\n"
     install_tpm
     install_tpm_plugins
+    install_tmux_mem_cpu_load
 }
 
 main

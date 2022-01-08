@@ -27,3 +27,6 @@ jobs:
 
       - name: Setup dotfiles
         run: bash setup.sh
+      
+      - name: Test
+        run: make test

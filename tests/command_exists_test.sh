@@ -5,6 +5,9 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 function test_command_exists() {
     
+    # restart the zsh
+    exec "${SHELL:-$(command -v zsh)}"
+
     local cmds=(
         "git"
         "fzf"

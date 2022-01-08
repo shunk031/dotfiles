@@ -22,7 +22,9 @@ init: ## Setup environment settings
 	@echo ''
 
 test: ## Test dotfiles and init scripts
-	@echo "test is inactive temporarily"
+	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/tests/file_check_test.sh
+	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/tests/command_exists_test.sh
+	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/tests/module_exists_test.sh
 
 update: ## Fetch changes for this repo
 	git pull origin master

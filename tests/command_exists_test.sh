@@ -12,6 +12,7 @@ function test_command_exists() {
     do
         if ! cmd_exists "$cmd"; then
             echo "$cmd does not exists."
+            which "$cmd"
             exit 1
         fi
     done

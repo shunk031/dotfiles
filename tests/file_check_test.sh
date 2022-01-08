@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+cd "$(dirname "${BASH_SOURCE[0]}")" \
+    && . "${DOTPATH}"/install/util.sh
+
 function test_file_check() {
     
     local dotfiles=(
@@ -26,6 +29,7 @@ function test_file_check() {
         fi
 
     done
+    print_result $? "Done \`test_file_check\`"
 }
 
 # test_file_check

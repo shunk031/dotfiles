@@ -15,6 +15,7 @@ function test_command_exists() {
             exit 1
         fi
     done
+    print_result $? "Done \`test_command_exists\`"
 }
 
 test_command_exists

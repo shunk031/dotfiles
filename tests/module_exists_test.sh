@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+cd "$(dirname "${BASH_SOURCE[0]}")" \
+    && . "${DOTPATH}"/install/util.sh
+
 function test_module_exists() {
     local modules=(
         # for zplugin
@@ -27,6 +30,7 @@ function test_module_exists() {
             exit 1
         fi
     done
+    print_result $? "Done \`test_module_exists\`"
 }
 
 test_module_exists

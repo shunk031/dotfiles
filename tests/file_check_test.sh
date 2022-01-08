@@ -18,7 +18,7 @@ function test_file_check() {
         "$HOME/.zshrc"
     )
 
-    for dotfile in ${dotfiles[@]}
+    for dotfile in "${dotfiles[@]}"
     do
         if [ ! -f "$dotfile" ]; then
             echo "$dotfile does not exists."

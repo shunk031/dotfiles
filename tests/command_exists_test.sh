@@ -8,7 +8,7 @@ function test_command_exists() {
     local cmds=(
         "fzf"
     )
-    for cmd in ${cmds[@]}
+    for cmd in "${cmds[@]}"
     do
         if ! cmd_exists "$cmd"; then
             echo "$cmd does not exists."

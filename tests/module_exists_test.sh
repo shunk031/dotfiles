@@ -20,7 +20,7 @@ function test_module_exists() {
         "${HOME}/.emacs.d"
     )
     
-    for module in ${modules[@]}
+    for module in "${modules[@]}"
     do
         if [ ! -e "$module" ]; then
             echo "$module does not exists."

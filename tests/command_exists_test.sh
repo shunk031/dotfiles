@@ -6,13 +6,13 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 function test_command_exists() {
     
     local cmds=(
+        "git"
         "fzf"
     )
     for cmd in "${cmds[@]}"
     do
         if ! cmd_exists "$cmd"; then
             echo "$cmd does not exists."
-            command -v "$cmd"
             exit 1
         fi
     done

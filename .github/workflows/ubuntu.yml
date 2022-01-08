@@ -16,8 +16,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v1
 
-      - name: Run shellcheck
-        run: ./tests/shellcheck.sh
+      - name: Lint
+        run: make lint
 
       - name: Setup dotfiles
         run: bash setup.sh

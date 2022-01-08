@@ -21,7 +21,10 @@ init: ## Setup environment settings
 	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/install/main.sh
 	@echo ''
 
-test: ## Test dotfiles and init scripts
+lint: # Check the format with shellcheck
+	@DOTPATH=$(DOTPATH) $(DOTPATH)/tests/shellcheck.sh
+
+test: ## Test dotfiles
 	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/tests/file_check_test.sh
 	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/tests/command_exists_test.sh
 	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/tests/module_exists_test.sh

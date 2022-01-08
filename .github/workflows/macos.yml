@@ -19,11 +19,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v1
 
-      - name: Install shellcheck
-        run: brew install shellcheck
-
-      - name: Run shellcheck
-        run: ./tests/shellcheck.sh
+      - name: Lint
+        run: brew install shellcheck && make lint
 
       - name: Setup dotfiles
         run: bash setup.sh

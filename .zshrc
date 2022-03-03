@@ -48,6 +48,12 @@ source-safe "{HOME}/.secret.zsh"
 source-safe "${HOME}/.fzf.zsh"
 
 #
+# docker (lima)
+#
+
+source-safe "${HOME}/.zsh/docker.sh"
+
+#
 # OS specific settings
 #
 
@@ -59,6 +65,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
 
 else
     # Unknown
+	:
 fi
 
 #

@@ -55,6 +55,7 @@ const hosts = [
   // academic sites
   "www.sciencedirect.com",
   "ieeexplore.ieee.org",
+  "dl.acm.org",
   "www.ncbi.nlm.nih.gov",
   "www.spiedigitallibrary.org",
   "analyticalsciencejournals.onlinelibrary.wiley.com"

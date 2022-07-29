@@ -1,20 +1,27 @@
-From ubuntu:latest
+FROM ubuntu:20.04
 
-ENV LANG en_US.UTF-8
-ENV TERM screen-256color
+ARG USERNAME=shunk031
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    wget \
-    sudo \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     git \
-    fontconfig \
-    language-pack-en \
-    python
+    sudo \
+    build-essential \
+	ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-ARG EXEC_USER=shunk031
-RUN useradd --create-home ${EXEC_USER}
-USER ${EXEC_USER}
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME\
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
 
-WORKDIR /home/${EXEC_USER}
+ARG BATS_VERSION=v1.3.0
+ARG BATS_URL=https://github.com/bats-core/bats-core.git
+ARG BATS_DIR=/home/${USERNAME}/bats-core
+RUN git clone -c http.sslverify=false --depth 1 --branch ${BATS_VERSION} ${BATS_URL} ${BATS_DIR}
+
+USER $USERNAME
+WORKDIR /home/$USERNAME

@@ -11,6 +11,10 @@ install_iterm2() {
     declare -r DST_JSON="${HOME}"/Library/Application\ Support/iTerm2/DynamicProfiles/hotkey_window.json
 
     brew_install "iterm2" "iterm2" "homebrew/cask" "cask"
+
+    # Open the app so the preference files get initialized
+    open -g "/Applications/iTerm.app" && sleep 2
+
     execute \
         "ln -sfnv $SRC_JSON $DST_JSON" \
         "Create symbolic link from $SRC_JSON to $DST_JSON" || return 1

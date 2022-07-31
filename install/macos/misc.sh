@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "${DOTPATH}"/install/util.sh \
-    && . "${DOTPATH}"/install/macos/util.sh
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "${DOTPATH}"/install/util.sh &&
+    . "${DOTPATH}"/install/macos/util.sh
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -17,7 +17,6 @@ brew_install "shellcheck" "shellcheck"
 brew_install "hadolint" "hadolint"
 brew_install "htop" "htop"
 brew_install "exa" "exa"
-brew_install "iterm2" "iterm2" "homebrew/cask" "cask"
 brew_install "cmigemo" "cmigemo"
 brew_install "hugo" "hugo"
 brew_install "1password" "1password" "homebrew/cask" "cask"

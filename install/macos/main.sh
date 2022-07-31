@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "${DOTPATH}"/install/util.sh \
-    && . "${DOTPATH}"/install/macos/util.sh
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "${DOTPATH}"/install/util.sh &&
+    . "${DOTPATH}"/install/macos/util.sh
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -13,6 +13,7 @@ main() {
 
     bash "${MACOS_DIR}"/xcode.sh
     bash "${MACOS_DIR}"/homebrew.sh
+    bash "${MACOS_DIR}"/iterm2.sh
     bash "${MACOS_DIR}"/misc.sh
 
     bash "${MACOS_DIR}"/zsh.sh

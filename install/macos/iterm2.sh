@@ -8,7 +8,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" &&
 
 install_iterm2() {
     declare -r SRC_JSON="${DOTPATH}"/machines/macos/hotkey_window.json
-    declare -r DST_JSON="${HOME}"/Library/Application\ Support/iTerm2/DynamicProfiles/hotkey_window.json
+    declare -r DST_JSON="$HOME/Library/Application\ Support/iTerm2/DynamicProfiles/hotkey_window.json"
 
     brew_install "iterm2" "iterm2" "homebrew/cask" "cask"
 

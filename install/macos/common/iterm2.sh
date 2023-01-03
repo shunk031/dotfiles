@@ -7,17 +7,19 @@ function install_item2() {
 }
 
 function initialize_iterm2() {
-    while ! open -gnF "/Applications/iTerm.app"; do
+    while ! open -g "/Applications/iTerm.app"; do
         sleep 2
     done
 }
 
 function symlinc_config() {
     local iterm2_config_name="hotkey_window.json"
+    local iterm2_config_dir="${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles"
 
     local src_json_path="${HOME%/}/.config/iterm2/${iterm2_config_name}"
-    local dst_json_path="${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles/${iterm2_config_name}"
+    local dst_json_path="${iterm2_config_dir}/${iterm2_config_name}"
 
+    mkdir -p "${iterm2_config_dir}"
     ln -sfnv "${src_json_path}" "${dst_json_path}"
 }
 

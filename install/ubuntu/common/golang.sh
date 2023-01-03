@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
-
 function get_latest_version() {
     local version
     version="$(curl https://go.dev/VERSION?m=text)"
@@ -18,10 +16,15 @@ function install_golang() {
     rm -f "${tmp_file}"
 }
 
+function uninstall_golang() {
+    sudo rm -rf /usr/local/go
+}
+
 function main() {
     install_golang
 }
 
 if [ ${#BASH_SOURCE[@]} = 1 ]; then
+    set -Eeuox pipefail
     main
 fi

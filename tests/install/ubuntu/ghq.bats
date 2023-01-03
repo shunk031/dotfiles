@@ -2,12 +2,17 @@
 
 function setup() {
     . "$(chezmoi source-path)/install/ubuntu/common/golang.sh"
-    main
+    main # install golang
 
     . "$(chezmoi source-path)/install/ubuntu/common/ghq.sh"
 }
 
+function teardown() {
+    uninstall_golang
+    uninstall_ghq
+}
+
 @test "install ghq" {
-    main
-    [ -x "$(command -v ghq)" ]
+    main # install ghq
+    [ -x "$(command -v ${HOME}/ghq/bin/ghq)" ]
 }

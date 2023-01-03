@@ -2,22 +2,49 @@ name: Ubuntu
 
 on:
   push:
-    branches:
-      - "ubuntu/*"
-      - "all/*"
-  schedule:
-    - cron: "0 0 * * 5"
+    branches: [master]
+    paths-ignore:
+      - 'README.md'
+      - 'Dockerfile'
+      - 'install/macos/**'
+      - '.chezmoiscripts/macos'
+      - 'dot_tmux.conf.d/os/macos.conf'
+      - 'test/install/macos'
+      
+  pull_request:
+    branches: [master]
+    paths-ignore:
+      - 'README.md'
+      - 'Dockerfile'
+      - 'install/macos/**'
+      - '.chezmoiscripts/macos'
+      - 'dot_tmux.conf.d/os/macos.conf'
+      - 'test/install/macos'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        system: [server, client]
 
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v1
+      
+      - name: Install chezomi
+        run: sudo sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
+      
+      - name: Setup for chezmoi
+        run: |
+          mkdir -p "${HOME%/}/.local/share"
 
-      - name: Run shellcheck
-        run: ./tests/shellcheck.sh
+          src_dir="${HOME%/}/work/dotfiles/dotfiles"
+          dst_dir="${HOME%/}/.local/share/chezmoi"
+          ln -sfnv "${src_dir}" "${dst_dir}"
 
-      - name: Setup dotfiles
-        run: bash setup.sh
+      - name: run chezmoi init
+        env: 
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          SYSTEM: ${{ matrix.system }}
+        run: printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | chezmoi --no-tty init --apply

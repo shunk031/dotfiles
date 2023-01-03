@@ -7,7 +7,7 @@ function install_item2() {
 }
 
 function initialize_iterm2() {
-    while ! open -g "/Applications/iTerm.app"; do
+    while ! open -Fn "/Applications/iTerm.app"; do
         sleep 2
     done
 }

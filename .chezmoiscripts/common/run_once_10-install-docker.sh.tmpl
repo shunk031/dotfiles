@@ -1,0 +1,7 @@
+{{ if eq .system "client" -}}
+{{   if eq .chezmoi.os "darwin" -}}
+{{     include "install/macos/common/docker.sh" }}
+{{   else if eq .chezmoi.osRelease.id "ubuntu" -}}
+{{     include "install/ubuntu/client/docker.sh" }}
+{{   end -}}
+{{ end -}}

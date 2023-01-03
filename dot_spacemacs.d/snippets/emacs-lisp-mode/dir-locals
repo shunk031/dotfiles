@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: dir-locals
+# key: dir
+# --
+((nil . ((copy-file-on-save-dest-dir . "/scp:${1:dest-server}:${2:path-to-your-proj}")
+         (copy-file-on-save-ignore-patterns . ("${3:/cache}")))))

@@ -9,6 +9,7 @@ function install_apt_packages() {
         "htop"
         "shellcheck"
         "openssh-client"
+        "vim"
         "zsh"
     )
     for package in "${packages[@]}"; do

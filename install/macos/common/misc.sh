@@ -10,6 +10,7 @@ function install_brew_packages() {
         "htop"
         "shellcheck"
         "tailscale"
+        "vim"
         "zsh"
     )
     for package in "${packages[@]}"; do

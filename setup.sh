@@ -16,7 +16,8 @@ declare -r DOTFILES_LOGO='
                                            | $$
                                            |__/
 
-                     *** This is dotfiles setup script ***
+             *** This is setup script for my dotfiles setup ***            
+                     https://github.com/shunk031/dotfiles
 '
 
 declare -r DOTFILES_REPO_URL="https://github.com/shunk031/dotfiles"

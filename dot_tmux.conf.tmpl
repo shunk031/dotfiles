@@ -1,4 +1,5 @@
 {{- /* 
+
     Choices: client and server
 
     macos, ubuntu (client) -> client 
@@ -11,5 +12,5 @@
 {{ else if eq .system "server" -}}
 {{   include "dot_tmux.conf.d/system/server.conf" }}
 {{ else -}}
-
+run-shell 'echo "Invalid system: {{ .system }}" && exit 1'
 {{ end -}}

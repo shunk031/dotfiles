@@ -7,7 +7,9 @@ function install_item2() {
 }
 
 function initialize_iterm2() {
-    open -g "/Applications/iTerm.app" && sleep 2
+    while ! open -g "/Applications/iTerm.app"; do
+        sleep 2
+    done
 }
 
 function symlinc_config() {

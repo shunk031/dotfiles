@@ -7,9 +7,9 @@ on:
       - 'README.md'
       - 'Dockerfile'
       - 'install/ubuntu/**'
-      - '.chezmoiscripts/ubuntu'
+      - '.chezmoiscripts/ubuntu/**'
       - 'dot_tmux.conf.d/os/ubuntu.conf'
-      - 'test/install/ubuntu'
+      - 'test/install/ubuntu/**'
       
   pull_request:
     branches: [master]
@@ -17,9 +17,9 @@ on:
       - 'README.md'
       - 'Dockerfile'
       - 'install/ubuntu/**'
-      - '.chezmoiscripts/ubuntu'
+      - '.chezmoiscripts/ubuntu/**'
       - 'dot_tmux.conf.d/os/ubuntu.conf'
-      - 'test/install/ubuntu'
+      - 'test/install/ubuntu/**'
 
 jobs:
   build:

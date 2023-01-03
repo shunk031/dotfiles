@@ -7,9 +7,9 @@ on:
       - 'README.md'
       - 'Dockerfile'
       - 'install/macos/**'
-      - '.chezmoiscripts/macos'
+      - '.chezmoiscripts/macos/**'
       - 'dot_tmux.conf.d/os/macos.conf'
-      - 'test/install/macos'
+      - 'test/install/macos/**'
       
   pull_request:
     branches: [master]
@@ -17,9 +17,9 @@ on:
       - 'README.md'
       - 'Dockerfile'
       - 'install/macos/**'
-      - '.chezmoiscripts/macos'
+      - '.chezmoiscripts/macos/**'
       - 'dot_tmux.conf.d/os/macos.conf'
-      - 'test/install/macos'
+      - 'test/install/macos/**'
 
 jobs:
   build:

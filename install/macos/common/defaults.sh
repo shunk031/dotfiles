@@ -42,6 +42,7 @@ function defaults_dock() {
     defaults write com.apple.dock persistent-others -array ""
 
     function dock_item() {
+        local app_file_path="$1"
         printf '
         <dict>
             <key>tile-data</key>
@@ -52,7 +53,7 @@ function defaults_dock() {
                             <key>_CFURLStringType</key><integer>0</integer>
                         </dict>
                 </dict>
-        </dict>', "$1"
+        </dict>', "${app_file_path}"
     }
 
     defaults write com.apple.dock persistent-apps -array \

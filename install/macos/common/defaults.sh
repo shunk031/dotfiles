@@ -10,6 +10,8 @@ function defaults_ui() {
 
 function defaults_trackpad() {
 
+    defaults write -g com.apple.trackpad.scaling 2
+
     # Trackpad: enable tap to click for this user and for the login screen
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
@@ -35,6 +37,10 @@ function defaults_screencapture() {
     # Save screenshots to ${HOME}/Pictures/
     defaults write com.apple.screencapture location -string "${HOME}/Pictures/"
     defaults write com.apple.screencapture name -string "Screen Shot"
+}
+
+function defaults_assistant() {
+    defaults write com.apple.assistant.support "Assistant Enabled" -bool false
 }
 
 function kill_affected_applications() {
@@ -63,6 +69,8 @@ function main() {
     defaults_ui
     defaults_dock
     defaults_finder
+    defaults_trackpad
+    defaults_assistant
     defaults_screencapture
 
     kill_affected_applications

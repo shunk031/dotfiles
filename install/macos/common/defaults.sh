@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -Euox pipefail
+set -Eeuox pipefail
 
 function defaults_ui() {
     # Display battery percentage
@@ -88,7 +88,7 @@ function kill_affected_applications() {
         "Twitter"
     )
     for app in "${apps[@]}"; do
-        killall "${app}" &>/dev/null
+        killall "${app}" >/dev/null 2>&1
     done
 }
 

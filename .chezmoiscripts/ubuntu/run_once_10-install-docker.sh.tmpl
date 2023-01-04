@@ -1,0 +1,7 @@
+{{ if eq .chezmoi.os "linux" -}}
+{{   if (or (eq .chezmoi.osRelease.id "ubuntu") (eq .chezmoi.osRelease.id "debian")) -}}
+{{     if eq .system "client" -}}
+{{       include "install/ubuntu/client/docker.sh" }}
+{{     end -}}
+{{   end -}}
+{{ end -}}

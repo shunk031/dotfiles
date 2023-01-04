@@ -54,7 +54,11 @@ function defaults_dock() {
 }
 
 function defaults_input_sources() {
-    defaults write com.apple.HIToolbox AppleGlobalTextInputProperties -dict TextInputGlobalPropertyPerContextInput -int 1
+    # Enable `Automatically switch to a document's input source'`
+    defaults write com.apple.HIToolbox AppleGlobalTextInputProperties -dict TextInputGlobalPropertyPerContextInput -bool true
+
+    # `Select the previous input source` as Command + `
+    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 "<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array><integer>96</integer><integer>50</integer><integer>1048576</integer></array><key>type</key><string>standard</string></dict></dict>"
 }
 
 function defaults_finder() {

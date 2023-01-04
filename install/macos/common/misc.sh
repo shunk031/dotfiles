@@ -52,8 +52,6 @@ function setup_spectacle() {
 function main() {
     install_brew_packages
     install_brew_cask_packages
-
-    setup_spectacle
 }
 
 if [ ${#BASH_SOURCE[@]} = 1 ]; then

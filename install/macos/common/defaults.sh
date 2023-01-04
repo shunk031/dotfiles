@@ -40,27 +40,18 @@ function defaults_screencapture() {
 function kill_affected_applications() {
     local apps=(
         "Activity Monitor"
-        "Address Book"
         "Calendar"
         "cfprefsd"
-        "Contacts"
         "Dock"
         "Finder"
         "Google Chrome Canary"
         "Google Chrome"
-        "Mail"
-        "Messages"
-        "Opera"
-        "Photos"
-        "Safari"
         "SizeUp"
         "Spectacle"
         "SystemUIServer"
         "Terminal"
         "Transmission"
-        "Tweetbot"
         "Twitter"
-        "iCal"
     )
     for app in "${apps[@]}"; do
         killall "${app}" &>/dev/null

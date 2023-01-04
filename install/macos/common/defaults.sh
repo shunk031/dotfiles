@@ -44,11 +44,11 @@ function defaults_dock() {
     }
 
     defaults write com.apple.dock persistent-apps -array \
-        "$(dock_item /Applications/Google\ Chrome.app)" \
-        "$(dock_item /Applications/Visual\ Studio\ Code.app)" \
-        "$(dock_item /Applications/Slack.app)" \
-        "$(dock_item /Applications/iTerm.app)" \
-        "$(dock_item /System/Applications/System%20Preferences.app/)"
+        "$(dock_item file:///Applications/Google\ Chrome.app)" \
+        "$(dock_item file:///Applications/Visual\ Studio\ Code.app)" \
+        "$(dock_item file:///Applications/Slack.app)" \
+        "$(dock_item file:///Applications/iTerm.app)" \
+        "$(dock_item file:///System/Applications/System\ Preferences.app/)"
 }
 
 function defaults_finder() {

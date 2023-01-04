@@ -106,6 +106,21 @@ function defaults_input_sources() {
             <key>Bundle ID</key><string>com.google.inputmethod.Japanese</string>
             <key>InputSourceKind</key><string>Keyboard Input Method</string>
         </dict>"
+
+    defaults delete com.apple.HIToolbox AppleInputSourceHistory
+    defaults write com.apple.HIToolbox AppleInputSourceHistory -array-add \
+        "<dict>
+            <key>InputSourceKind</key><string>Keyboard Layout</string>
+            <key>KeyboardLayout ID</key><integer>0</integer>
+            <key>KeyboardLayout Name</key><string>U.S.</string>
+        </dict>"
+    defaults write com.apple.HIToolbox AppleInputSourceHistory -array-add \
+        "<dict>
+            <key>Bundle ID</key><string>com.google.inputmethod.Japanese</string>
+            <key>Input Mode</key><string>com.apple.inputmethod.Japanese</string>
+            <key>InputSourceKind</key><string>Input Mode</string>
+        </dict>"
+
 }
 
 function defaults_finder() {

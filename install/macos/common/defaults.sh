@@ -128,6 +128,7 @@ function defaults_assistant() {
 
 function defaults_iterm2() {
     defaults write com.googlecode.iterm2 PrefsCustomFolder "${HOME}/.config/iterm2/"
+    defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
 }
 
 function kill_affected_applications() {

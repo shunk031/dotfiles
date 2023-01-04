@@ -125,6 +125,10 @@ function defaults_assistant() {
     defaults write com.apple.HIToolbox AppleDictationAutoEnable -bool false
 }
 
+function defaults_iterm2() {
+    defaults write com.googlecode.iterm2 PrefsCustomFolder "${HOME}/.config/iterm2/"
+}
+
 function kill_affected_applications() {
     local apps=(
         "Activity Monitor"
@@ -150,6 +154,7 @@ function main() {
 
     defaults_ui
     defaults_dock
+    defaults_iterm2
     defaults_finder
     defaults_keyboard
     defaults_trackpad

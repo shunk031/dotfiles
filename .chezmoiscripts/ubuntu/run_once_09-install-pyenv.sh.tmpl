@@ -2,6 +2,4 @@
 {{   if (or (eq .chezmoi.osRelease.id "ubuntu") (eq .chezmoi.osRelease.id "debian")) -}}
 {{     include "install/ubuntu/common/pyenv.sh" }}
 {{   end -}}
-{{ else if eq .chezmoi.os "darwin" -}}
-{{   include "install/macos/common/pyenv.sh" }}
 {{ end -}}

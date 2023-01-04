@@ -8,7 +8,7 @@ function is_homebrew_exists() {
 
 function install_homebrew() {
     if ! is_homebrew_exists; then
-        printf "\n" | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
 }
 

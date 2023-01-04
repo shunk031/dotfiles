@@ -1,0 +1,17 @@
+{{- $email := "" -}}
+{{- if hasKey . "email" -}}
+{{-   $email = .email -}}
+{{- else -}}
+{{-   $email = promptString "Email address" -}}
+{{- end -}}
+
+{{- $system := "" -}}
+{{- if hasKey . "system" -}}
+{{-   $system = .system -}}
+{{- else -}}
+{{-   $system = promptString "System (client or server)" -}}
+{{- end -}}
+
+[data]
+    email = {{ $email | quote }}
+    system = {{ $system | quote }}

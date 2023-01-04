@@ -1,0 +1,16 @@
+[".emacs.d"]
+    type = "git-repo"
+    url = "https://github.com/syl20bnr/spacemacs"
+    refreshPeriod = "168h"
+
+[".zprezto"]
+    type = "git-repo"
+    url = "https://github.com/sorin-ionescu/prezto"
+    refreshPeriod = "168h"
+    [".zprezto".clone]
+        args = ["--recursive"]
+
+[".zprezto/modules/fzf"]
+    type = "git-repo"
+    url = "https://github.com/lildude/fzf-prezto.git"
+    refreshPeriod = "168h"

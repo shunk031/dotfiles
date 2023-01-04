@@ -1,0 +1,12 @@
+README.md
+Dockerfile
+LICENSE
+setup.sh
+
+install/
+networks/
+tests/
+
+.git/
+.github/
+.vscode/

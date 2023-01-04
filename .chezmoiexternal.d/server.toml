@@ -1,0 +1,8 @@
+[".local/bin/nvinfo"]
+    type = "file"
+    url = "https://github.com/shunk031/nvinfo-go/releases/latest/download/nvinfo_linux_x86_64.tar.gz"
+    executable = true
+    refreshPeriod = "168h"
+    [".local/bin/nvinfo".filter]
+        command = "tar"
+        args = ["--extract", "--file", "/dev/stdin", "--gzip", "--to-stdout", "nvinfo"]

@@ -1,0 +1,24 @@
+name: Snippet install
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+  schedule:
+    - cron: "0 0 * * 5"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+        system: [client, server]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup dotfiles with snippet
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          SYSTEM: ${{ matrix.system }}
+        run: | 
+          printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | bash -c "$(curl -fsL http://shunk031.me/dotfiles-chezmoi/setup.sh)"

@@ -8,6 +8,15 @@ function defaults_ui() {
     defaults write ~/Library/Preferences/ByHost/com.apple.controlcenter.plist BatteryShowPercentage -bool true
 }
 
+function defaults_trackpad() {
+
+    # Trackpad: enable tap to click for this user and for the login screen
+    defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+    defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+    defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+
+}
+
 function defaults_dock() {
     # Automatically hide and show the Dock
     defaults write com.apple.dock autohide -bool true
@@ -68,6 +77,6 @@ function main() {
     kill_affected_applications
 }
 
-# if [ ${#BASH_SOURCE[@]} = 1 ]; then
-#     main
-# fi
+if [ ${#BASH_SOURCE[@]} = 1 ]; then
+    main
+fi

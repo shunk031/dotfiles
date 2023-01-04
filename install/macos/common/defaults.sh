@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+set -Euox pipefail
 
 function defaults_ui() {
     # Display battery percentage

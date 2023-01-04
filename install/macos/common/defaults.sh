@@ -53,6 +53,10 @@ function defaults_dock() {
         "$(dock_item /System/Applications/System\ Preferences.app/)"
 }
 
+function defaults_input_sources() {
+    defaults write com.apple.HIToolbox AppleGlobalTextInputProperties -dict TextInputGlobalPropertyPerContextInput -int 1
+}
+
 function defaults_finder() {
     # Show all filename extensions
     defaults write NSGlobalDomain AppleShowAllExtensions -bool true
@@ -100,6 +104,7 @@ function main() {
     defaults_keyboard
     defaults_trackpad
     defaults_assistant
+    defaults_input_sources
     defaults_screencapture
 
     kill_affected_applications

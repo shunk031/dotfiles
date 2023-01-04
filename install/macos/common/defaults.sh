@@ -68,7 +68,7 @@ function defaults_screencapture() {
 
 function defaults_assistant() {
     defaults write com.apple.assistant.support "Assistant Enabled" -bool false
-    defaults write com.apple.assistant.support "Dictation Enabled" -bool false
+    defaults write com.apple.HIToolbox AppleDictationAutoEnable -bool false
 }
 
 function kill_affected_applications() {

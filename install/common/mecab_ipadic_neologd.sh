@@ -29,6 +29,6 @@ function main() {
     rm -rf "${tmp_dir}"
 }
 
-# if [ ${#BASH_SOURCE[@]} = 1 ]; then
-#     main
-# fi
+if [ ${#BASH_SOURCE[@]} = 1 ]; then
+    main
+fi

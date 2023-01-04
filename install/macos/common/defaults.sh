@@ -35,6 +35,20 @@ function defaults_dock() {
     defaults write com.apple.dock autohide -bool true
     # Set the icon size of Dock items to 30 pixels
     defaults write com.apple.dock tilesize -int 30
+
+    # Remove all the icons in the Dock
+    defaults write com.apple.dock persistent-apps -array ""
+
+    function doc_item() {
+        printf '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>%s</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>', "$1"
+    }
+
+    defaults write com.apple.dock persistent-apps -array \
+        "$(dock_item /Applications/Google\ Chrome.app)" \
+        "$(dock_item /Applications/Visual\ Studio\ Code.app)" \
+        "$(dock_item /Applications/Slack.app)" \
+        "$(dock_item /Applications/iTerm.app)" \
+        "$(dock_item /System/Applications/System%20Preferences.app/)"
 }
 
 function defaults_finder() {

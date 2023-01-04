@@ -8,6 +8,13 @@ function defaults_ui() {
     defaults write ~/Library/Preferences/ByHost/com.apple.controlcenter.plist BatteryShowPercentage -bool true
 }
 
+function defaults_keyboard() {
+    # Set a blazingly fast keyboard repeat rate
+    defaults write NSGlobalDomain KeyRepeat -int 2
+    # Set a shorter Delay until key repeat
+    defaults write NSGlobalDomain InitialKeyRepeat -int 25
+}
+
 function defaults_trackpad() {
 
     defaults write -g com.apple.trackpad.scaling 2
@@ -41,6 +48,7 @@ function defaults_screencapture() {
 
 function defaults_assistant() {
     defaults write com.apple.assistant.support "Assistant Enabled" -bool false
+    defaults write com.apple.assistant.support "Dictation Enabled" -bool false
 }
 
 function kill_affected_applications() {
@@ -69,6 +77,7 @@ function main() {
     defaults_ui
     defaults_dock
     defaults_finder
+    defaults_keyboard
     defaults_trackpad
     defaults_assistant
     defaults_screencapture

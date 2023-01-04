@@ -38,6 +38,8 @@ function defaults_dock() {
 
     # Remove all the icons in the Dock
     defaults write com.apple.dock persistent-apps -array ""
+    defaults write com.apple.dock recent-apps -array ""
+    defaults write com.apple.dock persistent-others -array ""
 
     function dock_item() {
         printf '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>%s</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>', "$1"

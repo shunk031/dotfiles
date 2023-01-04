@@ -45,9 +45,15 @@ function install_brew_cask_packages() {
     done
 }
 
+function setup_spectacle() {
+    open /Applications/Spectacle.app/
+}
+
 function main() {
     install_brew_packages
     install_brew_cask_packages
+
+    setup_spectacle
 }
 
 if [ ${#BASH_SOURCE[@]} = 1 ]; then

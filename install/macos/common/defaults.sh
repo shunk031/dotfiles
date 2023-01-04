@@ -20,10 +20,10 @@ function defaults_trackpad() {
     defaults write -g com.apple.trackpad.scaling 2
 
     # Trackpad: enable tap to click for this user and for the login screen
+    defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+    defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
     defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
-    defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
-    defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 
     # Enable 3-fingers drag
     defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -bool true

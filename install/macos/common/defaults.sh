@@ -42,7 +42,17 @@ function defaults_dock() {
     defaults write com.apple.dock persistent-others -array ""
 
     function dock_item() {
-        printf '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>%s</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>', "$1"
+        printf '
+        <dict>
+            <key>tile-data</key>
+                <dict>
+                    <key>file-data</key>
+                        <dict>
+                            <key>_CFURLString</key><string>%s</string>
+                            <key>_CFURLStringType</key><integer>0</integer>
+                        </dict>
+                </dict>
+        </dict>', "$1"
     }
 
     defaults write com.apple.dock persistent-apps -array \
@@ -58,7 +68,43 @@ function defaults_input_sources() {
     defaults write com.apple.HIToolbox AppleGlobalTextInputProperties -dict TextInputGlobalPropertyPerContextInput -bool true
 
     # `Select the previous input source` as Command + `
-    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 "<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array><integer>96</integer><integer>50</integer><integer>1048576</integer></array><key>type</key><string>standard</string></dict></dict>"
+    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 \
+        "<dict>
+            <key>enabled</key><true/>
+            <key>value</key>
+                <dict>
+                    <key>parameters</key>
+                        <array>
+                            <integer>96</integer>
+                            <integer>50</integer>
+                            <integer>1048576</integer>
+                        </array>
+                    <key>type</key>
+                        <string>standard</string>
+                </dict>
+        </dict>"
+
+    # Temporarily delete IME input language settings
+    defaults delete com.apple.HIToolbox AppleEnabledInputSources
+    # Add US IME input source
+    defaults write com.apple.HIToolbox AppleEnabledInputSources -array-add \
+        "<dict>
+            <key>InputSourceKind</key><string>Keyboard Layout</string>
+            <key>KeyboardLayout ID</key><integer>0</integer>
+            <key>KeyboardLayout Name</key><string>U.S.</string>
+        </dict>"
+    # Add Google Japanese IME input source
+    defaults write com.apple.HIToolbox AppleEnabledInputSources -array-add \
+        "<dict>
+            <key>Bundle ID</key><string>com.google.inputmethod.Japanese</string>
+            <key>Input Mode</key><string>com.apple.inputmethod.Japanese</string>
+            <key>InputSourceKind</key><string>Input Mode</string>
+        </dict>"
+    defaults write com.apple.HIToolbox AppleEnabledInputSources -array-add \
+        "<dict>
+            <key>Bundle ID</key><string>com.google.inputmethod.Japanese</string>
+            <key>InputSourceKind</key><string>Keyboard Input Method</string>
+        </dict>"
 }
 
 function defaults_finder() {

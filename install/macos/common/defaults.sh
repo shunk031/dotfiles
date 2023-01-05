@@ -60,12 +60,26 @@ function defaults_dock() {
         </dict>', "${app_file_path}"
     }
 
+    function get_system_app_path() {
+        local system_preferences_path="/System/Applications/System\ Preferences.app/)"
+        local system_settings_path="/System/Applications/System\ Settings.app/)"
+
+        if [ -e "${system_preferences_path}" ]; then
+            echo "${system_preferences_path}"
+        elif [ -e "${system_settings_path}" ]; then
+            echo "${system_settings_path}"
+        else
+            echo "Could not found system app ${system_preferences_path} and ${system_settings_path}"
+            exit 1
+        fi
+    }
+
     defaults write com.apple.dock persistent-apps -array \
         "$(dock_item /Applications/Google\ Chrome.app)" \
         "$(dock_item /Applications/Visual\ Studio\ Code.app)" \
         "$(dock_item /Applications/Slack.app)" \
         "$(dock_item /Applications/iTerm.app)" \
-        "$(dock_item /System/Applications/System\ Preferences.app/)"
+        "$(dock_item "$(get_system_app_path)")"
 }
 
 function defaults_input_sources() {
@@ -147,7 +161,7 @@ function kill_affected_applications() {
         "SizeUp"
         "Spectacle"
         "SystemUIServer"
-        "Terminal"
+        # "Terminal" # disable because the setup script is running in the Terminal
         "Transmission"
         "Twitter"
     )

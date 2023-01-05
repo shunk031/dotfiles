@@ -69,7 +69,7 @@ function defaults_dock() {
         elif [ -e "${system_settings_path}" ]; then
             echo "${system_settings_path}"
         else
-            echo "Could not found system app ${system_preferences_path} and ${system_settings_path}"
+            echo "Could not found system app ${system_preferences_path} and ${system_settings_path}" >&2
             exit 1
         fi
     }

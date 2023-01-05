@@ -7,6 +7,6 @@
 {{ else if eq .chezmoi.os "darwin" -}}
 {{   include "install/macos/common/font.sh" }}
 {{ else -}}
-    echo "Invalid OS: {{ .chezmoi.os }}"
+    echo "Invalid OS: {{ .chezmoi.os }}" >&2
     exit 1
 {{ end -}}

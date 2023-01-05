@@ -1,5 +1,5 @@
 {{ if eq .chezmoi.os "linux" -}}
-{{   if (or (eq .chezmoi.osRelease.id "ubuntu") (eq .chezmoi.osRelease.id "debian")) -}}
+{{   if eq .chezmoi.osRelease.idLike "debian" -}}
 {{     include "install/ubuntu/common/tmux.sh" }}
 {{   end -}}
 {{ end -}}

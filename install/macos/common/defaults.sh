@@ -147,7 +147,7 @@ function kill_affected_applications() {
         "SizeUp"
         "Spectacle"
         "SystemUIServer"
-        # "Terminal"
+        # "Terminal" # disable because the setup script is running in the Terminal
         "Transmission"
         "Twitter"
     )

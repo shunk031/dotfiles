@@ -127,10 +127,23 @@ function defaults_input_sources() {
 }
 
 function defaults_finder() {
+
+    # Set Home directory as the default location for new Finder windows
+    defaults write com.apple.finder NewWindowTarget -string "PfHm"
+    defaults write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
+
     # Show all filename extensions
     defaults write NSGlobalDomain AppleShowAllExtensions -bool true
     # Disable the warning when changing a file extension
     defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
+    # Show status bar
+    defaults write com.apple.finder ShowStatusBar -bool true
+    # Show path bar
+    defaults write com.apple.finder ShowPathbar -bool true
+
+    # Avoid creating .DS_Store files on network or USB volumes
+    defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+    defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 }
 
 function defaults_screencapture() {

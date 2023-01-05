@@ -61,8 +61,8 @@ function defaults_dock() {
     }
 
     function get_system_app_path() {
-        local system_preferences_path="/System/Applications/System\ Preferences.app/)"
-        local system_settings_path="/System/Applications/System\ Settings.app/)"
+        local system_preferences_path="/System/Applications/System Preferences.app/"
+        local system_settings_path="/System/Applications/System Settings.app/"
 
         if [ -e "${system_preferences_path}" ]; then
             echo "${system_preferences_path}"
@@ -144,11 +144,6 @@ function defaults_assistant() {
     defaults write com.apple.HIToolbox AppleDictationAutoEnable -bool false
 }
 
-function defaults_iterm2() {
-    defaults write com.googlecode.iterm2 PrefsCustomFolder "${HOME}/.config/iterm2/"
-    defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
-}
-
 function kill_affected_applications() {
     local apps=(
         "Activity Monitor"
@@ -156,8 +151,8 @@ function kill_affected_applications() {
         "cfprefsd"
         "Dock"
         "Finder"
-        "Google Chrome Canary"
-        "Google Chrome"
+        # "Google Chrome Canary"
+        # "Google Chrome"
         "SizeUp"
         "Spectacle"
         "SystemUIServer"
@@ -174,7 +169,6 @@ function main() {
 
     defaults_ui
     defaults_dock
-    defaults_iterm2
     defaults_finder
     defaults_keyboard
     defaults_trackpad

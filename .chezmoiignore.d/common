@@ -3,7 +3,7 @@ Dockerfile
 LICENSE
 
 setup.sh
-my.com.googlecode.iterm2.plist
+com.googlecode.iterm2.plist
 
 install/
 networks/

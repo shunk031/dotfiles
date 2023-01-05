@@ -34,6 +34,7 @@ function install_docker_cli() {
     local home_bin_dir="${HOME%/}/.local/bin"
     local home_bin_path="${home_bin_dir%/}/docker"
 
+    mkdir -p "${home_bin_dir}"
     mv -v "${tgz_bin_path}" "${home_bin_path}"
 
     rm -rfv "${tmp_dir}"

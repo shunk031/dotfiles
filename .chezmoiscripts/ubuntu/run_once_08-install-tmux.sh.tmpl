@@ -2,6 +2,8 @@
 {{   if (or (eq .chezmoi.osRelease.id "ubuntu") (eq .chezmoi.osRelease.id "debian")) -}}
 {{     include "install/ubuntu/common/tmux.sh" }}
 {{   end -}}
-{{ else if eq .chezmoi.os "darwin" -}}
-{{   include "install/macos/common/tmux.sh" }}
+{{ end -}}
+
+{{ if eq .system "client" -}}
+{{   include "install/common/tpm.sh" }}
 {{ end -}}

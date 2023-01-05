@@ -45,9 +45,20 @@ function install_brew_cask_packages() {
     done
 }
 
+function setup_spectacle() {
+    open /Applications/Spectacle.app/
+}
+
+function setup_google_chrome() {
+    open "/Applications/Google Chrome.app" --args --make-default-browser
+}
+
 function main() {
     install_brew_packages
     install_brew_cask_packages
+
+    # setup_spectacle
+    # setup_google_chrome
 }
 
 if [ ${#BASH_SOURCE[@]} = 1 ]; then

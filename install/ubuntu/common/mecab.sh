@@ -10,6 +10,6 @@ function main() {
     install_mecab
 }
 
-# if [ ${#BASH_SOURCE[@]} = 1 ]; then
-#     main
-# fi
+if [ ${#BASH_SOURCE[@]} = 1 ]; then
+    main
+fi

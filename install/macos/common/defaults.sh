@@ -147,7 +147,7 @@ function kill_affected_applications() {
         "SizeUp"
         "Spectacle"
         "SystemUIServer"
-        "Terminal"
+        # "Terminal"
         "Transmission"
         "Twitter"
     )

@@ -58,7 +58,7 @@ function initialize_os_env() {
     elif [ "${ostype}" == "Linux" ]; then
         initialize_linux
     else
-        echo "Invalid OS type: ${ostype}"
+        echo "Invalid OS type: ${ostype}" >&2
         exit 1
     fi
 }
@@ -92,7 +92,7 @@ function restart_shell_system() {
         /bin/bash --login
 
     else
-        echo "Invalid system: ${system}; expected \`client\` or \`server\`"
+        echo "Invalid system: ${system}; expected \`client\` or \`server\`" >&2
         exit 1
     fi
 }

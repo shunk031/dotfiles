@@ -26,12 +26,18 @@ function install_1password7() {
     run_mas_install "${app_id}"
 }
 
+function install_xcode() {
+    local app_id="497799835"
+    run_mas_install "${app_id}"
+}
+
 function main() {
     install_mas
 
     if ! "${CI:-false}"; then
         install_bandwidth_plus
         install_line
+        # install_xcode
     fi
 }
 

@@ -141,6 +141,9 @@ function defaults_finder() {
     # Show path bar
     defaults write com.apple.finder ShowPathbar -bool true
 
+    defaults write com.apple.finder FXPreferredGroupBy -string "Name"
+    defaults write com.apple.finder FXArrangeGroupViewBy -string "Name"
+
     # Avoid creating .DS_Store files on network or USB volumes
     defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
     defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true

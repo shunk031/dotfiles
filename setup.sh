@@ -64,12 +64,25 @@ function initialize_os_env() {
 }
 
 function initialize_dotfiles() {
+    function keepalive_sudo() {
+        # Might as well ask for password up-front, right?
+        sudo -v
+
+        # Keep-alive: update existing sudo time stamp if set, otherwise do nothing.
+        while true; do
+            sudo -n true
+            sleep 60
+            kill -0 "$$" || exit
+        done 2>/dev/null &
+    }
     function run_chezmoi() {
         sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "${DOTFILES_REPO_URL}"
     }
     function cleanup_chezmoi() {
         rm -f "${HOME}/bin/chezmoi"
     }
+
+    keepalive_sudo
     run_chezmoi
     cleanup_chezmoi
 }

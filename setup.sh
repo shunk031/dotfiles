@@ -114,8 +114,8 @@ function main() {
     echo "$DOTFILES_LOGO"
 
     initialize_os_env
-    # initialize_dotfiles
-    # restart_shell
+    initialize_dotfiles
+    restart_shell
 }
 
 main "$@"

@@ -25,7 +25,11 @@ function symlinc_config() {
 
 function main() {
     install_item2
-    initialize_iterm2
+    # # Disable to avoid the following error message:
+    # # > Failed to load preferences from custom directory.
+    # # > Failling back to local copy.
+    # # This is because chezmoi create dotfiles after running the chezmoi scripts.
+    # initialize_iterm2
     symlinc_config
 }
 

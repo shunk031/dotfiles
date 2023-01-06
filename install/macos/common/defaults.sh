@@ -13,6 +13,11 @@ function defaults_keyboard() {
     defaults write NSGlobalDomain KeyRepeat -int 2
     # Set a shorter Delay until key repeat
     defaults write NSGlobalDomain InitialKeyRepeat -int 25
+
+    # Change Caps to Ctrl
+    # ref. https://stackoverflow.com/a/46460200
+    hidutil property --set \
+        '{"UserKeyMapping": [{"HIDKeyboardModifierMappingSrc": 0x700000039, "HIDKeyboardModifierMappingDst": 0x7000000e0 }] }'
 }
 
 function defaults_trackpad() {

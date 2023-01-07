@@ -43,5 +43,4 @@ jobs:
       - name: run chezmoi init
         env: 
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          SYSTEM: client
-        run: printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | chezmoi --no-tty init --apply
+        run: printf '${EMAIL_ADDRESS}\n' | chezmoi --no-tty init --apply

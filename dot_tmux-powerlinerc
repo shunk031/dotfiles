@@ -1,4 +1,5 @@
--*- mode: shell-script -*-
+#!/usr/bin/env bash
+
 # Default Theme
 
 if patched_font_in_use; then

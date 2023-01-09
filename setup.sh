@@ -141,17 +141,6 @@ function initialize_dotfiles() {
     cleanup_chezmoi
 }
 
-function post_processes() {
-    function install_tmux_plugins() {
-        local dir="${TMUX_PLUGIN_MANAGER_PATH:-${HOME%/}/.tmux.plugins}"
-        local cmd="${dir%/}/tpm/scripts/install_plugins.sh"
-
-        exec "${cmd}"
-    }
-
-    install_tmux_plugins
-}
-
 function get_system_from_chezmoi() {
     local system
     system=$(chezmoi data | jq -r '.system')
@@ -193,8 +182,8 @@ function main() {
 
     initialize_os_env
     initialize_dotfiles
-    restart_shell
-    post_processes
+
+    # restart_shell # Disabled because the at_exit function does not work properly.
 }
 
 main "$@"

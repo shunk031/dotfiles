@@ -1,0 +1,7 @@
+Host *
+  AddKeysToAgent yes
+  IgnoreUnknown UseKeychain, AddKeysToAgent
+  UseKeychain yes
+  AddKeysToAgent yes
+
+Include conf.d/*.conf

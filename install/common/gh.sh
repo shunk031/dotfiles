@@ -12,10 +12,12 @@ function add_ssh_key_to_github() {
 }
 
 function main() {
-    login_to_github
-    add_ssh_key_to_github
+    if ! "${CI:-false}"; then
+        login_to_github
+        add_ssh_key_to_github
+    fi
 }
 
-# if [ ${#BASH_SOURCE[@]} = 1 ]; then
-#     main
-# fi
+if [ ${#BASH_SOURCE[@]} = 1 ]; then
+    main
+fi

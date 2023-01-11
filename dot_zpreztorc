@@ -42,9 +42,10 @@ zstyle ':prezto:load' pmodule \
   'completion' \
   'prompt' \
   'python' \
+  'fzf' \
+  'fzf-tab' \
   'syntax-highlighting' \
-  'autosuggestions' \
-  'fzf'
+  'autosuggestions'
 
 #
 # Autosuggestions

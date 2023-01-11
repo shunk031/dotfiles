@@ -14,3 +14,8 @@
     type = "git-repo"
     url = "https://github.com/lildude/fzf-prezto.git"
     refreshPeriod = "168h"
+
+[".zprezto/contrib/fzf-tab"]
+    type = "git-repo"
+    url = "https://github.com/Aloxaf/fzf-tab"
+    refreshPeriod = "168h"

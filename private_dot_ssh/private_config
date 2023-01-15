@@ -1,6 +1,5 @@
 Host *
-  AddKeysToAgent yes
-  IgnoreUnknown UseKeychain, AddKeysToAgent
+  IgnoreUnknown UseKeychain,AddKeysToAgent
   UseKeychain yes
   AddKeysToAgent yes
 

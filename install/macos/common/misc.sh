@@ -5,6 +5,7 @@ set -Eeuox pipefail
 function install_brew_packages() {
     local packages=(
         "exa"
+        "imagemagick"
         "jq"
         "hugo"
         "htop"

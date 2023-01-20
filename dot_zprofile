@@ -61,7 +61,7 @@ path=(
 
 # Set the list of directories that Zsh searches for functions.
 fpath=(
-    ${HOME}/.local/bin
+    ${HOME}/.local/bin/common
     $fpath
 )
 

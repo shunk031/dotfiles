@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# set -Eeuox pipefail
+
 # Add homebrew to the PATH
 eval "$(brew shellenv)"
 
@@ -10,4 +12,5 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
 
 # for lima docker
-export DOCKER_HOST=$(limactl list docker_x86_64 --format 'unix://{{.Dir}}/sock/docker.sock')
+DOCKER_HOST=$(limactl list docker_x86_64 --format 'unix://{{.Dir}}/sock/docker.sock')
+export DOCKER_HOST

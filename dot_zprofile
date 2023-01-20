@@ -51,18 +51,23 @@ typeset -gU cdpath fpath mailpath path
 
 # Set the list of directories that Zsh searches for programs.
 path=(
-    ${HOME}/ghq
-    ${HOME}/.local/bin
+    # ${HOME}/.local/bin
     /opt/{homebrew,local}/{,s}bin(N)
     /usr/local/{,s}bin(N)
     /usr/local/go/bin(N)
+    ${HOME}/ghq
+    ${HOME}/.local/bin/client
+    ${HOME}/.local/bin/common
     $path
 )
 
 # Set the list of directories that Zsh searches for functions.
 fpath=(
-    ${HOME}/.local/bin
+    
+    # ${HOME}/.local/bin/client
+    # ${HOME}/.local/bin/common
     $fpath
+    ${HOME}/.local/bin
 )
 
 #

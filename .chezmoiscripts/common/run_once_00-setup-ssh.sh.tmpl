@@ -2,6 +2,14 @@
 
 set -Eeuox pipefail
 
+{{ if eq .chezmoi.os "linux" -}}
+{{   if eq .chezmoi.osRelease.idLike "debian" -}}
+{{     include "install/ubuntu/common/ssh.sh" }}
+{{   else -}}
+       echo "Invalid linux distribution: {{ .chezmoi.osRelease.id }}"
+{{   end -}}
+{{ end -}}
+
 function run_ssh_keygen() {
     local email="$1"
     local output_keyfile_path="${HOME%/}/.ssh/id_ed25519"

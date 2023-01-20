@@ -1,5 +1,7 @@
 {{ if eq .chezmoi.os "linux" -}}
 {{   if eq .chezmoi.osRelease.idLike "debian" -}}
-{{     include "install/ubuntu/common/mecab.sh" }}
+{{     if eq .system "client" -}}
+{{       include "install/ubuntu/common/mecab.sh" }}
+{{     end -}}
 {{   end -}}
 {{ end -}}

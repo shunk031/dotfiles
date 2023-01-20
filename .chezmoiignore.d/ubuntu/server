@@ -6,6 +6,7 @@
 .zlogout
 .p10k.zsh
 
+.local/bin/client
 .config/iterm2/
 .config/zsh/
 .tmux.conf.d/os/

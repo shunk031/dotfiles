@@ -1,2 +1,4 @@
 .profile
 .tmux.conf.d/system/server.conf
+
+.local/bin/server

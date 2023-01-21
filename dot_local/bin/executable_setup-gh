@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+set -Eeuo pipefail
 
 function login_to_github() {
     gh auth login -h github.com -p https
@@ -16,6 +16,6 @@ function main() {
     add_ssh_key_to_github
 }
 
-# if [ ${#BASH_SOURCE[@]} = 1 ]; then
-#     main
-# fi
+if [ ${#BASH_SOURCE[@]} = 1 ]; then
+    main
+fi

@@ -24,6 +24,6 @@ function main() {
     run_ssh_keygen "${email}"
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "{{ .email }}"
 fi

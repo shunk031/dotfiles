@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -Eeuox pipefail
+fi
 
 function install_pyenv_requirements() {
     sudo apt-get install -y \
@@ -25,6 +27,6 @@ function main() {
     install_pyenv_requirements
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

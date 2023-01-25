@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -Eeuox pipefail
+fi
+
 function get_latest_version() {
     local version
     version="$(curl https://go.dev/VERSION?m=text)"
@@ -24,7 +28,7 @@ function main() {
     install_golang
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     set -Eeuox pipefail
     main
 fi

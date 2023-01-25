@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -Eeuox pipefail
+fi
 
 function install_chezmoi() {
     if ! command -v chezmoi >/dev/null; then
@@ -12,6 +14,6 @@ function main() {
     install_chezmoi
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

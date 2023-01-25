@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -Eeuox pipefail
+fi
 
 function install_mecab() {
     brew install mecab
@@ -15,6 +17,6 @@ function main() {
     install_mecab_ipadic
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

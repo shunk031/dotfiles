@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -Eeuox pipefail
+fi
 
 function defaults_ui() {
     # Display battery percentage
@@ -202,6 +204,6 @@ function main() {
     kill_affected_applications
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -Eeuox pipefail
+fi
 
 function clone_fzf() {
     local fzf_dir="$1"
@@ -33,6 +35,6 @@ function main() {
     install_fzf "${fzf_dir}"
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

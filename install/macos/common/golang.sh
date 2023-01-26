@@ -5,7 +5,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 function is_golang_installed() {
-    command -v go >/dev/null
+    command -v go &>/dev/null
 }
 
 function install_golang() {

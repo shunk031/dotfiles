@@ -4,8 +4,12 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -Eeuox pipefail
 fi
 
+function is_golang_installed() {
+    command -v go >/dev/null
+}
+
 function install_golang() {
-    if ! command -v go >/dev/null; then
+    if ! is_golang_installed; then
         brew install go
     fi
 }

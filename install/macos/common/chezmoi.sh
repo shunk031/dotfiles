@@ -4,8 +4,12 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -Eeuox pipefail
 fi
 
+function is_chezmoi_installed() {
+    command -v chezmoi >/dev/null
+}
+
 function install_chezmoi() {
-    if ! command -v chezmoi >/dev/null; then
+    if ! is_chezmoi_installed; then
         brew install chezmoi
     fi
 }

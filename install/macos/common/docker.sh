@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -Eeuox pipefail
+fi
 
 function get_cpu_arch() {
     local cpu
@@ -17,6 +19,7 @@ function install_docker_cli() {
 
     local tmp_dir
     tmp_dir="$(mktemp -d /tmp/docker-cli-XXXXXXXXXX)"
+    trap 'rm -rf "${tmp_dir}"' EXIT INT TERM HUP
 
     local cpu
     cpu=$(get_cpu_arch)
@@ -36,8 +39,6 @@ function install_docker_cli() {
 
     mkdir -p "${home_bin_dir}"
     mv -v "${tgz_bin_path}" "${home_bin_path}"
-
-    rm -rfv "${tmp_dir}"
 }
 
 function install_docker_compose() {
@@ -65,6 +66,6 @@ function main() {
     install_docker_compose
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -Eeuox pipefail
+fi
+
 function install_ghq() {
     export GOPATH="${HOME}/ghq"
     /usr/local/go/bin/go install github.com/x-motemen/ghq@latest
@@ -13,7 +17,6 @@ function main() {
     install_ghq
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
-    set -Eeuox pipefail
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+set -Eeuo pipefail
+
 if [ "${DOTFILES_DEBUG:-}" ]; then
-    set -Eeuox pipefail
+    set -x
 fi
 
 function install_misc() {

@@ -1,0 +1,8 @@
+{{ if eq .chezmoi.os "linux" -}}
+{{   if eq .chezmoi.osRelease.idLike "debian" -}}
+{{     if eq .system "client" -}}
+{{       include "../install/ubuntu/common/mecab_ipadic_neologd.sh" }}
+{{       include "../install/common/mecab_ipadic_neologd.sh" }}
+{{     end -}}
+{{   end -}}
+{{ end -}}

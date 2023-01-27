@@ -1,0 +1,4 @@
+{{ if eq .chezmoi.os "darwin" -}}
+{{   include "../install/macos/common/mecab_ipadic_neologd.sh" }}
+{{   include "../install/common/mecab_ipadic_neologd.sh" }}
+{{ end -}}

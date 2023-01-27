@@ -29,6 +29,5 @@ function main() {
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    set -Eeuox pipefail
     main
 fi

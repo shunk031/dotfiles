@@ -6,6 +6,14 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+function is_docker_installed() {
+    command -v docker &>/dev/null
+}
+
+function is_docker_compose_installed() {
+    command -v docker-compose &>/dev/null
+}
+
 function get_cpu_arch() {
     local cpu
     cpu=$(uname -m)
@@ -17,6 +25,10 @@ function install_lima() {
 }
 
 function install_docker_cli() {
+    if is_docker_installed; then
+        return 0 # early return
+    fi
+
     local docker_cli_version="20.10.10"
 
     local tmp_dir
@@ -43,6 +55,10 @@ function install_docker_cli() {
 }
 
 function install_docker_compose() {
+    if is_docker_compose_installed; then
+        return 0 # early return
+    fi
+
     local tmp_dir
     tmp_dir="$(mktemp -d /tmp/docker-compose-XXXXXXXXXX)"
 

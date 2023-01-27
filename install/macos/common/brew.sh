@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+set -Eeuo pipefail
+
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -x
+fi
 
 function is_homebrew_exists() {
     command -v brew &>/dev/null
@@ -21,6 +25,6 @@ function main() {
     opt_out_of_analytics
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

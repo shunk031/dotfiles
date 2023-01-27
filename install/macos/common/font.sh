@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+set -Eeuo pipefail
+
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -x
+fi
 
 function install_nerd_font() {
     local font_url="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Medium/complete/Roboto%20Mono%20Medium%20Nerd%20Font%20Complete%20Mono.ttf"
@@ -15,6 +19,6 @@ function main() {
     install_nerd_font
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

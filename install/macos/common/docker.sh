@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+set -Eeuo pipefail
+
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -x
+fi
 
 function get_cpu_arch() {
     local cpu
@@ -36,8 +40,6 @@ function install_docker_cli() {
 
     mkdir -p "${home_bin_dir}"
     mv -v "${tgz_bin_path}" "${home_bin_path}"
-
-    rm -rfv "${tmp_dir}"
 }
 
 function install_docker_compose() {
@@ -65,6 +67,6 @@ function main() {
     install_docker_compose
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

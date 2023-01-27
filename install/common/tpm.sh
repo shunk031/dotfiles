@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -Eeuox pipefail
+fi
+
+function is_tmux_mem_cpu_load_installed() {
+    command -v "tmux-mem-cpu-load" &>/dev/null
+}
 
 function clone_tpm() {
     local dir="$1"
@@ -23,11 +29,17 @@ function install_tpm() {
 
     local dir="${TMUX_PLUGIN_MANAGER_PATH%/}/tpm/"
 
-    clone_tpm "${dir}"
-    install_tpm_plugins "${dir}"
+    if [ ! "${DOTFILES_DEBUG:-}" ] && [ -d "${dir}" ]; then
+        clone_tpm "${dir}"
+        install_tpm_plugins "${dir}"
+    fi
 }
 
 function install_tmux_mem_cpu_load() {
+    if [ ! "${DOTFILES_DEBUG:-}" ] && is_tmux_mem_cpu_load_installed; then
+        return 0
+    fi
+
     local tmux_mem_cpu_load_url="https://github.com/thewtex/tmux-mem-cpu-load.git"
 
     local tmp_dir
@@ -46,6 +58,6 @@ function main() {
     install_tmux_mem_cpu_load
 }
 
-if [ ${#BASH_SOURCE[@]} = 1 ]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi

@@ -7,7 +7,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 function is_chezmoi_installed() {
-    command -v chezmoi >/dev/null
+    command -v chezmoi &>/dev/null
 }
 
 function install_chezmoi() {

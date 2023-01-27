@@ -1,0 +1,12 @@
+{{ if eq .chezmoi.os "linux" -}}
+{{   if eq .chezmoi.osRelease.idLike "debian" -}}
+{{     include "../install/ubuntu/common/misc.sh" }}
+{{   else -}}
+       echo "Invalid linux distribution: {{ .chezmoi.osRelease.id }}"
+{{   end -}}
+{{ else if eq .chezmoi.os "darwin" -}}
+{{   include "../install/macos/common/misc.sh" }}
+{{ else -}}
+    echo "Invalid OS: {{ .chezmoi.os }}" >&2
+    exit 1
+{{ end -}}

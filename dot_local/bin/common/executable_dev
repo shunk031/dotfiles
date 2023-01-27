@@ -1,0 +1,32 @@
+#!/usr/bin/env zsh
+
+function dev() {
+    if ! (type ghq &>/dev/null && type fzf &>/dev/null); then
+        echo "You need to install ghq & fzf before use this command."
+        echo ""
+        echo "INSTALL ghq:"
+        echo "  go get github.com/motemen/ghq"
+        echo ""
+        echo "INSTALL fzf:"
+        echo "  brew install fzf"
+        echo ""
+        echo "for more information, see"
+        echo "- https://github.com/junegunn/fzf#installation"
+        echo "- https://github.com/motemen/ghq#installation"
+        return
+    fi
+
+    local moveto
+    moveto="$(ghq root)/$(ghq list | fzf --reverse)"
+    cd "${moveto}" || exit 1
+
+    # rename session if in tmux
+    if [[ -n ${TMUX} ]]; then
+        local repo_name
+        repo_name="${moveto##*/}"
+
+        tmux rename-session "${repo_name//./-}"
+    fi
+}
+
+dev

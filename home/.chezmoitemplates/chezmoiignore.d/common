@@ -1,14 +1,1 @@
-README.md
-Dockerfile
-LICENSE
-
-setup.sh
 com.googlecode.iterm2.plist
-
-install/
-networks/
-tests/
-
-.git/
-.github/
-.vscode/

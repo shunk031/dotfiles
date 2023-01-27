@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+set -Eeuo pipefail
+
 if [ "${DOTFILES_DEBUG:-}" ]; then
-    set -Eeuox pipefail
+    set -x
 fi
 
 function get_latest_version() {
@@ -29,6 +31,5 @@ function main() {
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    set -Eeuox pipefail
     main
 fi

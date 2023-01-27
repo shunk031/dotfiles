@@ -15,7 +15,7 @@ source-safe() { if [ -f "$1" ]; then source "$1"; fi; }
 # aliases
 #
 
-source-safe "${HOME}/.local/bin/alias.sh"
+source-safe "${HOME}/.local/bin/client/alias.sh"
 
 #
 # prezto
@@ -39,17 +39,17 @@ source-safe "${HOME}/.fzf.zsh"
 # golang
 #
 
-source-safe "${HOME}/.local/bin/golang.sh"
+source-safe "${HOME}/.local/bin/client/golang.sh"
 
 #
 # OS specific settings
 #
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    source-safe "${HOME}/.local/bin/linux.sh"
+    source-safe "${HOME}/.local/bin/client/linux.sh"
 
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-    source-safe "${HOME}/.local/bin/macos.sh"
+    source-safe "${HOME}/.local/bin/client/macos.sh"
 
 else
     # Unknown

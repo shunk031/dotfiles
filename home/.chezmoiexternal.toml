@@ -1,7 +1,7 @@
-{{ include ".chezmoiexternal.d/common.toml" }}
+{{ template "chezmoiexternal.d/common.toml" . }}
 {{ if eq .system "server" -}}
-{{ include ".chezmoiexternal.d/server.toml" }}
+{{   template "chezmoiexternal.d/server.toml" . }}
 {{ end -}}
 {{ if (or (eq .chezmoi.os "darwin") (eq .system "client")) -}}
-{{ include ".chezmoiexternal.d/macos_client.toml" -}}
+{{   template "chezmoiexternal.d/macos_client.toml" . -}}
 {{ end -}}

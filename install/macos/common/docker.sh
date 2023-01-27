@@ -21,7 +21,6 @@ function install_docker_cli() {
 
     local tmp_dir
     tmp_dir="$(mktemp -d /tmp/docker-cli-XXXXXXXXXX)"
-    trap 'rm -rf "${tmp_dir}"' EXIT INT TERM HUP
 
     local cpu
     cpu=$(get_cpu_arch)

@@ -43,4 +43,5 @@ jobs:
       - name: run chezmoi init
         env: 
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          DOTFILES_DEBUG: 1
         run: printf '${EMAIL_ADDRESS}\n' | chezmoi --no-tty init --apply

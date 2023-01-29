@@ -19,14 +19,14 @@ function install_fzf() {
     local fzf_dir="$1"
     local install_fzf_path="${fzf_dir%/}/install"
 
-    "${install_fzf_path}" --key-bindings --completion --no-update-rc
+    exec "${install_fzf_path}" --key-bindings --completion --no-update-rc
 }
 
 function uninstall_fzf() {
     local fzf_dir="${HOME%/}/.fzf"
     local uninstall_fzf_path="${fzf_dir%/}/uninstall"
 
-    "${uninstall_fzf_path}"
+    exec "${uninstall_fzf_path}"
 }
 
 function main() {

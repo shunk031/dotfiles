@@ -33,8 +33,6 @@ mounts:
   writable: true
 - location: "~/.local/share/chezmoi"
   writable: true
-- location: "~/.local/share/share"
-  writable: true
 
 # containerd is managed by Docker, not by Lima, so the values are set to false here.
 containerd:

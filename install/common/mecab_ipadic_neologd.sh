@@ -23,7 +23,7 @@ function install_mecab_ipadic_neologd() {
     local dir="$1"
     local install_cmd_path="${dir%/}/bin/install-mecab-ipadic-neologd"
 
-    "${install_cmd_path}" -n -y
+    exec "${install_cmd_path}" -n -y
 }
 
 function main() {

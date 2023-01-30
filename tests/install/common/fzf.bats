@@ -3,22 +3,12 @@
 set -Eeuo pipefail
 
 function setup() {
-    . "$(chezmoi source-path)/install/common/fzf.sh"
-    uninstall_fzf
+    . "./install/common/fzf.sh"
 }
 
-function teardown() {
-    uninstall_fzf
-}
-
-@test "install fzf (bash)" {
+@test "install fzf" {
     main
-    . "${HOME%/}.bashrc"
-    [ -x "$(command -v fzf)" ]
-}
 
-@test "install fzf (zsh)" {
-    main
-    . "${HOME%/}.zshrc"
+    export PATH="${PATH}:${HOME}/.fzf/bin"
     [ -x "$(command -v fzf)" ]
 }

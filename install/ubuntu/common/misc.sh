@@ -12,7 +12,6 @@ function install_apt_packages() {
         "jq"
         "htop"
         "shellcheck"
-        "openssh-client"
         "vim"
         "zsh"
     )

@@ -8,7 +8,7 @@ fi
 
 function install_brew_packages() {
     local packages=(
-        "bats"
+        "bats-core"
         "exa"
         "imagemagick"
         "jq"

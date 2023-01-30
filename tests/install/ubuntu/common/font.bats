@@ -1,10 +1,10 @@
 #!/usr/bin/env bats
 
 function setup() {
-    . "$(chezmoi source-path)/install/ubuntu/common/font.sh"
+    . "./install/ubuntu/common/font.sh"
 }
 
-@test "install nerd fonr" {
+@test "install nerd font" {
     main
     [ -e "${HOME%/}/.local/share/fonts/Roboto Mono Nerd Font Complete.ttf" ]
 }

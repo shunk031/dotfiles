@@ -118,60 +118,21 @@ if ! shopt -oq posix; then
     fi
 fi
 
-# setting for pyenv and pyenv-virtualenv
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+# for pyenv and pyenv-virtualenv
+# shellcheck source=./dot_local/bin/server/pyenv.sh
+source "${HOME%/}/.local/bin/server/pyenv.sh"
 
-# settings for cudnnenv
-export PATH=/usr/local/cuda/bin:$PATH
-export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
-export CUDA_HOME=/usr/local/cuda
+# for CUDA
+# shellcheck source=./dot_local/bin/server/cuda.sh
+source "${HOME%/}/.local/bin/server/cuda.sh"
 
 # for prompt
-export PS1='[\h: \w]\n\$ '
-export PYENV_VIRTUALENV_DISABLE_PROMPT=1
-function pyenv_virtualenv_update_prompt() {
-    RED='\[\e[0;31m\]'
-    GREEN='\[\e[0;32m\]'
-    BLUE='\[\e[0;34m\]'
-    RESET='\[\e[0m\]'
-    [ -z "$PYENV_VIRTUALENV_ORIGINAL_PS1" ] && export PYENV_VIRTUALENV_ORIGINAL_PS1="$PS1"
-    [ -z "$PYENV_VIRTUALENV_GLOBAL_NAME" ] && export PYENV_VIRTUALENV_GLOBAL_NAME="$(pyenv global)"
-    VENV_NAME="$(pyenv version-name)"
-    VENV_NAME="${VENV_NAME##*/}"
-    GLOBAL_NAME="$PYENV_VIRTUALENV_GLOBAL_NAME"
-
-    # non-global versions:
-    COLOR="$BLUE"
-    # global version:
-    [ "$VENV_NAME" == "$GLOBAL_NAME" ] && COLOR="$RED"
-    # virtual envs:
-    [ "${VIRTUAL_ENV##*/}" == "$VENV_NAME" ] && COLOR="$GREEN"
-
-    if [ -z "$COLOR" ]; then
-        PS1="$PYENV_VIRTUALENV_ORIGINAL_PS1"
-    else
-        PS1="($COLOR${VENV_NAME}$RESET) $PYENV_VIRTUALENV_ORIGINAL_PS1"
-    fi
-    export PS1
-}
-export PROMPT_COMMAND="$PROMPT_COMMAND pyenv_virtualenv_update_prompt;"
+# shellcheck source=./dot_local/bin/server/prompt.sh
+source "${HOME%/}/.local/bin/server/prompt.sh"
 
 # for sharing history between panes/windiws in tmux session
-function tac {
-    exec sed '1!G;h;$!d' ${@+"$@"}
-}
-
-function share_history {
-    history -a
-    tac ~/.bash_history | awk '!a[$0]++' | tac >~/.bash_history.tmp
-
-    [ -f ~/.bash_history.tmp ] &&
-        mv ~/.bash_history{.tmp,} &&
-        history -c &&
-        history -r
-}
-export PROMPT_COMMAND="$PROMPT_COMMAND share_history;"
+# shellcheck source=./dot_local/bin/server/history.sh
+source "${HOME%/}/.local/bin/server/history.sh"
 
 # aliases
 alias ns='watch -n 1 "nvidia-smi"'

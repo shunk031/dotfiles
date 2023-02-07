@@ -134,60 +134,29 @@ source "${HOME%/}/.local/bin/server/prompt.sh"
 # shellcheck source=./dot_local/bin/server/history.sh
 source "${HOME%/}/.local/bin/server/history.sh"
 
-# aliases
-alias ns='watch -n 1 "nvidia-smi"'
-# alias ls="exa --long --group --header --binary --time-style=long-iso --icons"
-
-eval "$(ssh-agent)" >/dev/null 2>&1
-ssh-add ~/.ssh/id_rsa_github >/dev/null 2>&1
-
-export PIPENV_CACHE_DIR=/data/pink/cache/pipenv
+# for ssh agent
+# shellcheck source=./dot_local/bin/server/ssh_agent.sh
+source "${HOME%/}/.local/bin/server/ssh_agent.sh"
 
 # for golang
-export GOPATH="${HOME}/go"
-export PATH="${PATH}:/usr/local/go/bin"
-export PATH="${PATH}:${GOPATH}/bin"
+# shellcheck source=./dot_local/bin/server/golang.sh
+source "${HOME%/}/.local/bin/server/golang.sh"
 
-function ghq-path() {
-    local repo_name
-    repo_name=$(ghq list | fzf --reverse)
+# for aliases
+# shellcheck source=./dot_local/bin/server/aliases.sh
+source "${HOME%/}/.local/bin/server/aliases.sh"
 
-    if [[ -n "$repo_name" ]]; then
-        for repo_root in $(ghq root --all); do
-            local repo_path="${repo_root}/${repo_name}"
-            if [[ -d "${repo_path}" ]]; then
-                echo "${repo_path}"
-                return 0
-            fi
-        done
-    fi
-    return 1
-}
+# for secrets (e.g., slack, wandb, zenodo API)
+# shellcheck source=./dot_local/bin/server/secrets.sh
+source "${HOME%/}/.local/bin/server/secrets.sh"
 
-function dev() {
-    local moveto
-    moveto=$(ghq-path "$@")
-    cd "${moveto}" || exit 1
+# for cache directories
+# shellcheck source=./dot_local/bin/server/cache.sh
+source "${HOME%/}/.local/bin/server/cache.sh"
 
-    # rename session if in tmux
-    if [[ -n ${TMUX} ]]; then
-        local repo_name="${moveto##*/}"
-        tmux rename-session "${repo_name//./-}"
-    fi
-}
-
-# for slack api
-export SLACK_TOKEN=""
-
-# for wandb
-export WANDB_API_KEY=""
-
-# for zenodo
-export ZENODO_TOKEN=""
-
-# for huggingface datasets
-export HF_DATASETS_CACHE="${HOME%/}/.cache/huggingface/datasets"
-export TRANSFORMERS_CACHE="${HOME%/}/.cache/huggingface/hub"
+# for dev command
+# shellcheck source=./dot_local/bin/common/executable_dev
+source "${HOME%/}/.local/bin/common/dev"
 
 # for fzf
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash

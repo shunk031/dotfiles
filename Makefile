@@ -23,13 +23,13 @@ docker:
 # Chezmoi
 #
 
-.PHONY: apply
-apply:
+.PHONY: update
+update:
 	chezmoi apply --verbose
 
 .PHONY: watch
 watch:
-	watchexec -- chezmoi apply --verbose
+	DOTFILES_DEBUG=1 watchexec -- chezmoi apply --verbose
 
 .PHONY: reset
 reset:

@@ -1,10 +1,12 @@
+#!/usr/bin/env zsh
+
 export GOPATH="${HOME}/ghq"
 
 typeset -gU path
 path=(
-    ${GOPATH}/bin
-    /usr/local/go/bin
     $path
+    ${GOPATH}/bin(N-/)
+    /usr/local/go/bin(N-/)
 )
 
 export GOROOT=$(go env GOROOT)

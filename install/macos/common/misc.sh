@@ -16,6 +16,7 @@ function install_brew_packages() {
         "shellcheck"
         "tailscale"
         "vim"
+        "watchexec"
         "zsh"
     )
     for package in "${packages[@]}"; do

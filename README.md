@@ -54,7 +54,7 @@ Each installation script can be found under the [`./install`](https://github.com
 Updating and testing the dotfiles follows [chezmoi's daily operations](https://www.chezmoi.io/user-guide/daily-operations/).
 To verify that the updated scripts work correctly, run the scripts on the actual local machine and on the docker container.
 
-## Develop the setup scripts
+## 💡 Develop the setup scripts
 
 The setup scripts are stored as shellscripts in an appropriate location under the [`./install`](https://github.com/shunk031/dotfiles/tree/master/install) directory.
 After verifying that the shellscript works, store the [chezmoi template](https://www.chezmoi.io/user-guide/templating/)-based file, which is based on the shellscript, in an appropriate location under the [`./home/.chezmoiscripts`](https://github.com/shunk031/dotfiles/tree/master/home/.chezmoiscripts) directory.
@@ -77,7 +77,7 @@ make watch
 Test the executation of the setup scripts on Ubuntu in its initial state.
 The following command will launch the test environment using Docker 🐳 powered by [`lima`](https://github.com/lima-vm/lima) and [`colima`](https://github.com/abiosoft/colima).
 
-```shell
+```console
 make docker
 
 # docker run -it -v "$(pwd):/home/$(whoami)/.local/share/chezmoi" dotfiles /bin/bash --login

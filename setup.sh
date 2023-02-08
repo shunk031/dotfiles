@@ -140,7 +140,13 @@ function initialize_dotfiles() {
         fi
 
         # run the chezmoi init command with/without the `--no-tty` option
-        sh -c "$(curl -fsLS get.chezmoi.io)" -- init "${DOTFILES_REPO_URL}" --apply --purge-binary "${no_tty_option}"
+        # chezmoi init has `--purge-binary` option to remove its own binary;
+        # however this option will disturb testing by the CI because it displays prompt.
+        sh -c "$(curl -fsLS get.chezmoi.io)" -- init "${DOTFILES_REPO_URL}" --apply "${no_tty_option}"
+    }
+    function cleanup_chezmoi() {
+        # remove the chezmoi binary without prompt as described above.
+        rm -f "${HOME}/bin/chezmoi"
     }
 
     if ! "${CI:-false}"; then
@@ -151,6 +157,7 @@ function initialize_dotfiles() {
     fi
 
     run_chezmoi
+    cleanup_chezmoi
 }
 
 function get_system_from_chezmoi() {

@@ -9,7 +9,6 @@ fi
 function install_apt_packages() {
     local packages=(
         "exa"
-        "fonts-hack-ttf"
         "jq"
         "htop"
         "shellcheck"

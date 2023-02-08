@@ -44,7 +44,7 @@ function install_brew_cask_packages() {
     )
     for package in "${packages[@]}"; do
         if ${CI:-false}; then
-            brew info "${package}"
+            brew info --cask "${package}"
         else
             brew install --cask "${package}"
         fi

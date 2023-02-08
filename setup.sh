@@ -157,6 +157,7 @@ function initialize_dotfiles() {
     fi
 
     run_chezmoi
+    cleanup_chezmoi
 }
 
 function get_system_from_chezmoi() {

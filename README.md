@@ -27,7 +27,7 @@ To set up the dotfiles run the appropriate snippet in the terminal.
 - Configuration snippet of the MacOS environment for client macnine:
 
 ```console
-bash -c "$(curl -LsS http://shunk031.me/dotfiles/setup.sh)"
+bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
 ```
 
 ### 🖥️ `Ubuntu` [![Build Status](https://github.com/shunk031/dotfiles/workflows/Ubuntu/badge.svg)](https://github.com/shunk031/dotfiles/actions?query=workflow%3AUbuntu)

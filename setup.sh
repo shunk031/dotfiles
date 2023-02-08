@@ -130,15 +130,27 @@ function initialize_dotfiles() {
         fi
     }
     function run_chezmoi() {
-        sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "${DOTFILES_REPO_URL}"
-    }
-    function cleanup_chezmoi() {
-        rm -f "${HOME}/bin/chezmoi"
+        # Detect whether `/dev/tty` is available
+        # ref. https://stackoverflow.com/a/69088164
+        local no_tty_option
+        if sh -c ": >/dev/tty" >/dev/null 2>/dev/null; then
+            no_tty_option="" # /dev/tty is available
+        else
+            no_tty_option="--no-tty" # /dev/tty is not available (especially in the CI)
+        fi
+
+        # run the chezmoi init command with/without the `--no-tty` option
+        sh -c "$(curl -fsLS get.chezmoi.io)" -- init "${DOTFILES_REPO_URL}" --apply --purge-binary "${no_tty_option}"
     }
 
-    keepalive_sudo
+    if ! "${CI:-false}"; then
+        # - /dev/tty of the github workflow is not available.
+        # - We can use password-less sudo in the github workflow.
+        # Therefore, skip the sudo keep alive function.
+        keepalive_sudo
+    fi
+
     run_chezmoi
-    cleanup_chezmoi
 }
 
 function get_system_from_chezmoi() {

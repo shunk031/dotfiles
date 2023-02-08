@@ -146,7 +146,13 @@ function initialize_dotfiles() {
         rm -f "${HOME}/bin/chezmoi"
     }
 
-    keepalive_sudo
+    if ! "${CI:-false}"; then
+        # - /dev/tty of the github workflow is not available.
+        # - We can use password-less sudo in the github workflow.
+        # Therefore, skip the sudo keep alive function.
+        keepalive_sudo
+    fi
+
     run_chezmoi
     cleanup_chezmoi
 }

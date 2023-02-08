@@ -43,7 +43,7 @@ bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"
 This repository provides for the installation and setup of each application individually.
 The desired application can be installed as follows (e.g., docker installation on MacOS):
 
-```console
+```shell
 bash install/macos/common/docker.sh
 ```
 
@@ -68,7 +68,7 @@ Below is the correspondence between shellscript and template for docker installa
 Currently, chezmoi does not automatically reflect updated configuration files (ref. [twpayne/chezmoi#2738](https://github.com/twpayne/chezmoi/discussions/2738)).
 The following command will execute the [`chezmoi apply`](https://www.chezmoi.io/reference/commands/apply/) command as soon as the file is modified using [`watchexec`](https://github.com/watchexec/watchexec).
 
-```console
+```shell
 make watch
 ```
 
@@ -77,7 +77,7 @@ make watch
 Test the executation of the setup scripts on Ubuntu in its initial state.
 The following command will launch the test environment using Docker 🐳 powered by [`lima`](https://github.com/lima-vm/lima) and [`colima`](https://github.com/abiosoft/colima).
 
-```console
+```shell
 make docker
 
 # docker run -it -v "$(pwd):/home/$(whoami)/.local/share/chezmoi" dotfiles /bin/bash --login

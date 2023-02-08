@@ -90,6 +90,11 @@ Run the [`chezmoi init --apply`](https://www.chezmoi.io/user-guide/setup/#use-a-
 shunk031@5f93d270cb51:~$ chezmoi init --apply
 ```
 
+## 🦇 [[WIP]](https://github.com/shunk031/dotfiles/pull/109) Unit test with [Bats](https://github.com/bats-core/bats-core)
+
+Test the shellscript for setup with [Bash Automated Testing System (bats)](https://github.com/bats-core/bats-core).
+The scripts for the unit test can be found under [`./tests`](https://github.com/shunk031/dotfiles/tree/master/tests/install) directory.
+
 ## 👏 Acknowledgements
 
 Inspiration and code was taken from many sources, including:

@@ -42,6 +42,12 @@ source-safe "${HOME}/.fzf.zsh"
 source-safe "${HOME}/.local/bin/client/golang.sh"
 
 #
+# rust
+#
+
+source-safe "${HOME}/.local/bin/client/rust.sh"
+
+#
 # OS specific settings
 #
 

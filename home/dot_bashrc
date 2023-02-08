@@ -118,115 +118,45 @@ if ! shopt -oq posix; then
     fi
 fi
 
-# setting for pyenv and pyenv-virtualenv
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+# for pyenv and pyenv-virtualenv
+# shellcheck source=./dot_local/bin/server/pyenv.sh
+source "${HOME%/}/.local/bin/server/pyenv.sh"
 
-# settings for cudnnenv
-export PATH=/usr/local/cuda/bin:$PATH
-export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
-export CUDA_HOME=/usr/local/cuda
+# for CUDA
+# shellcheck source=./dot_local/bin/server/cuda.sh
+source "${HOME%/}/.local/bin/server/cuda.sh"
 
 # for prompt
-export PS1='[\h: \w]\n\$ '
-export PYENV_VIRTUALENV_DISABLE_PROMPT=1
-function pyenv_virtualenv_update_prompt() {
-    RED='\[\e[0;31m\]'
-    GREEN='\[\e[0;32m\]'
-    BLUE='\[\e[0;34m\]'
-    RESET='\[\e[0m\]'
-    [ -z "$PYENV_VIRTUALENV_ORIGINAL_PS1" ] && export PYENV_VIRTUALENV_ORIGINAL_PS1="$PS1"
-    [ -z "$PYENV_VIRTUALENV_GLOBAL_NAME" ] && export PYENV_VIRTUALENV_GLOBAL_NAME="$(pyenv global)"
-    VENV_NAME="$(pyenv version-name)"
-    VENV_NAME="${VENV_NAME##*/}"
-    GLOBAL_NAME="$PYENV_VIRTUALENV_GLOBAL_NAME"
-
-    # non-global versions:
-    COLOR="$BLUE"
-    # global version:
-    [ "$VENV_NAME" == "$GLOBAL_NAME" ] && COLOR="$RED"
-    # virtual envs:
-    [ "${VIRTUAL_ENV##*/}" == "$VENV_NAME" ] && COLOR="$GREEN"
-
-    if [ -z "$COLOR" ]; then
-        PS1="$PYENV_VIRTUALENV_ORIGINAL_PS1"
-    else
-        PS1="($COLOR${VENV_NAME}$RESET) $PYENV_VIRTUALENV_ORIGINAL_PS1"
-    fi
-    export PS1
-}
-export PROMPT_COMMAND="$PROMPT_COMMAND pyenv_virtualenv_update_prompt;"
+# shellcheck source=./dot_local/bin/server/prompt.sh
+source "${HOME%/}/.local/bin/server/prompt.sh"
 
 # for sharing history between panes/windiws in tmux session
-function tac {
-    exec sed '1!G;h;$!d' ${@+"$@"}
-}
+# shellcheck source=./dot_local/bin/server/history.sh
+source "${HOME%/}/.local/bin/server/history.sh"
 
-function share_history {
-    history -a
-    tac ~/.bash_history | awk '!a[$0]++' | tac >~/.bash_history.tmp
-
-    [ -f ~/.bash_history.tmp ] &&
-        mv ~/.bash_history{.tmp,} &&
-        history -c &&
-        history -r
-}
-export PROMPT_COMMAND="$PROMPT_COMMAND share_history;"
-
-# aliases
-alias ns='watch -n 1 "nvidia-smi"'
-# alias ls="exa --long --group --header --binary --time-style=long-iso --icons"
-
-eval "$(ssh-agent)" >/dev/null 2>&1
-ssh-add ~/.ssh/id_rsa_github >/dev/null 2>&1
-
-export PIPENV_CACHE_DIR=/data/pink/cache/pipenv
+# for ssh agent
+# shellcheck source=./dot_local/bin/server/ssh_agent.sh
+source "${HOME%/}/.local/bin/server/ssh_agent.sh"
 
 # for golang
-export GOPATH="${HOME}/go"
-export PATH="${PATH}:/usr/local/go/bin"
-export PATH="${PATH}:${GOPATH}/bin"
+# shellcheck source=./dot_local/bin/server/golang.sh
+source "${HOME%/}/.local/bin/server/golang.sh"
 
-function ghq-path() {
-    local repo_name
-    repo_name=$(ghq list | fzf --reverse)
+# for aliases
+# shellcheck source=./dot_local/bin/server/aliases.sh
+source "${HOME%/}/.local/bin/server/aliases.sh"
 
-    if [[ -n "$repo_name" ]]; then
-        for repo_root in $(ghq root --all); do
-            local repo_path="${repo_root}/${repo_name}"
-            if [[ -d "${repo_path}" ]]; then
-                echo "${repo_path}"
-                return 0
-            fi
-        done
-    fi
-    return 1
-}
+# for secrets (e.g., slack, wandb, zenodo API)
+# shellcheck source=./dot_local/bin/server/secrets.sh
+source "${HOME%/}/.local/bin/server/secrets.sh"
 
-function dev() {
-    local moveto
-    moveto=$(ghq-path "$@")
-    cd "${moveto}" || exit 1
+# for cache directories
+# shellcheck source=./dot_local/bin/server/cache.sh
+source "${HOME%/}/.local/bin/server/cache.sh"
 
-    # rename session if in tmux
-    if [[ -n ${TMUX} ]]; then
-        local repo_name="${moveto##*/}"
-        tmux rename-session "${repo_name//./-}"
-    fi
-}
-
-# for slack api
-export SLACK_TOKEN=""
-
-# for wandb
-export WANDB_API_KEY=""
-
-# for zenodo
-export ZENODO_TOKEN=""
-
-# for huggingface datasets
-export HF_DATASETS_CACHE="${HOME%/}/.cache/huggingface/datasets"
-export TRANSFORMERS_CACHE="${HOME%/}/.cache/huggingface/hub"
+# for dev command
+# shellcheck source=./dot_local/bin/common/executable_dev
+source "${HOME%/}/.local/bin/common/dev"
 
 # for fzf
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash

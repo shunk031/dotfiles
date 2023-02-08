@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths-ignore:
       - 'README.md'
+      - 'Makefile'
       - 'Dockerfile'
       - 'install/macos/**'
       - '.chezmoiscripts/macos/**'
@@ -15,6 +16,7 @@ on:
     branches: [master]
     paths-ignore:
       - 'README.md'
+      - 'Makefile'
       - 'Dockerfile'
       - 'install/macos/**'
       - '.chezmoiscripts/macos/**'

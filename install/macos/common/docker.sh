@@ -24,6 +24,10 @@ function install_lima() {
     brew install lima
 }
 
+function install_colima() {
+    brew install colima
+}
+
 function install_docker_cli() {
     if is_docker_installed; then
         return 0 # early return
@@ -79,6 +83,7 @@ function install_docker_compose() {
 
 function main() {
     install_lima
+    install_colima
     install_docker_cli
     install_docker_compose
 }

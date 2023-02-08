@@ -54,7 +54,7 @@ Each installation script can be found under the [`./install`](https://github.com
 Updating and testing the dotfiles follows [chezmoi's daily operations](https://www.chezmoi.io/user-guide/daily-operations/).
 To verify that the updated scripts work correctly, run the scripts on the actual local machine and on the docker container.
 
-### 💡 Develop the setup scripts
+### 💡 Develop the Setup Scripts
 
 The setup scripts are stored as shellscripts in an appropriate location under the [`./install`](https://github.com/shunk031/dotfiles/tree/master/install) directory.
 After verifying that the shellscript works, store the [chezmoi template](https://www.chezmoi.io/user-guide/templating/)-based file, which is based on the shellscript, in an appropriate location under the [`./home/.chezmoiscripts`](https://github.com/shunk031/dotfiles/tree/master/home/.chezmoiscripts) directory.
@@ -63,7 +63,7 @@ Below is the correspondence between shellscript and template for docker installa
 - The shellscript for docker: [`install/macos/common/docker.sh`](https://github.com/shunk031/dotfiles/blob/master/install/macos/common/docker.sh)
 - The chezmoi template for docker: [`home/.chezmoiscripts/macos/run_once_10-install-docker.sh.tmpl`](https://github.com/shunk031/dotfiles/blob/master/home/.chezmoiscripts/macos/run_once_10-install-docker.sh.tmpl)
 
-### 💾 Test on the local machine
+### 💾 Test on the Local Machine
 
 Currently, chezmoi does not automatically reflect updated configuration files (ref. [twpayne/chezmoi#2738](https://github.com/twpayne/chezmoi/discussions/2738)).
 The following command will execute the [`chezmoi apply`](https://www.chezmoi.io/reference/commands/apply/) command as soon as the file is modified using [`watchexec`](https://github.com/watchexec/watchexec).
@@ -72,7 +72,7 @@ The following command will execute the [`chezmoi apply`](https://www.chezmoi.io/
 make watch
 ```
 
-### 🐳 Test on Docker container
+### 🐳 Test on Docker Container
 
 Test the executation of the setup scripts on Ubuntu in its initial state.
 The following command will launch the test environment using Docker 🐳 powered by [`lima`](https://github.com/lima-vm/lima) and [`colima`](https://github.com/abiosoft/colima).
@@ -90,7 +90,7 @@ Run the [`chezmoi init --apply`](https://www.chezmoi.io/user-guide/setup/#use-a-
 shunk031@5f93d270cb51:~$ chezmoi init --apply
 ```
 
-### 🦇 [[WIP]](https://github.com/shunk031/dotfiles/pull/109) Unit test with [Bats](https://github.com/bats-core/bats-core)
+### 🦇 [[WIP]](https://github.com/shunk031/dotfiles/pull/109) Unit Test with [Bats](https://github.com/bats-core/bats-core)
 
 Test the shellscript for setup with [Bash Automated Testing System (bats)](https://github.com/bats-core/bats-core).
 The scripts for the unit test can be found under [`./tests`](https://github.com/shunk031/dotfiles/tree/master/tests/install) directory.

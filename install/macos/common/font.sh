@@ -6,7 +6,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-function install_nerd_font() {
+function install_nerd_font_roboto_mono() {
     local font_url="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Medium/complete/Roboto%20Mono%20Medium%20Nerd%20Font%20Complete%20Mono.ttf"
     local font_dir="${HOME%/}/Library/Fonts"
     local font_name="Roboto Mono Nerd Font Complete.ttf"
@@ -16,7 +16,7 @@ function install_nerd_font() {
 }
 
 function main() {
-    install_nerd_font
+    install_nerd_font_roboto_mono
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

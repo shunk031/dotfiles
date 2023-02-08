@@ -31,6 +31,7 @@ function install_brew_packages() {
 function install_brew_cask_packages() {
     local packages=(
         "adobe-acrobat-reader"
+        "font-hack-nerd-font"
         "google-chrome"
         "google-drive"
         "google-japanese-ime"

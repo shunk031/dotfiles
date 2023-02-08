@@ -13,7 +13,10 @@
 </div>
 
 This [dotfiles](https://github.com/shunk031/dotfiles) repository is managed with [`chezmoi 🏠`](https://www.chezmoi.io/), a great dotfiles manager.
-The setup scripts are aimed for [MacOS](https://www.apple.com/jp/macos), [Ubuntu Desktop](https://ubuntu.com/desktop), and [Ubuntu Server](https://ubuntu.com/server). The first two (MacOS/Ubuntu Desktop) include settings for `client` machines and the latter one (Ubuntu Server) for `server` machines.
+The setup scripts are aimed for [MacOS](https://www.apple.com/jp/macos), [Ubuntu Desktop](https://ubuntu.com/desktop), and [Ubuntu Server](https://ubuntu.com/server). The first two (MacOS/Ubuntu Desktop) include settings for `client` machines and the latter one (Ubuntu Server) for `server` machines. 
+
+The actual dotfiles exist under the [`home`](https://github.com/shunk031/dotfiles/tree/master/home) directory specified in the [`.chezmoiroot`](https://github.com/shunk031/dotfiles/blob/master/.chezmoiroot).
+See [.chezmoiroot - chezmoi](https://www.chezmoi.io/reference/special-files-and-directories/chezmoiroot/) more detail on the setting.
 
 ## 📥 Setup
 

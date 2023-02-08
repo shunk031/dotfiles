@@ -1,26 +1,27 @@
+<div align="center">
+
 ![](https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/header.png)
-
----
-
-<p align="center">
-  <a href="https://github.com/shunk031/dotfiles/actions?query=workflow%3A%22Snippet+install%22"><img src="https://github.com/shunk031/dotfiles/workflows/Snippet%20install/badge.svg" alt="Build Status"></a>
-  <a href="http://spacemacs.org/"><img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" alt="spacemacs"></a>
-  <a href="https://github.com/zsh-users/zsh"><img src="https://img.shields.io/badge/built%20with-zsh-black.svg" alt="zsh"></a>
-  <a href="https://github.com/sorin-ionescu/prezto"><img src="https://img.shields.io/badge/built%20with-prezto-orange.svg" alt="prezto"></a>
-  <a href="https://github.com/tmux/tmux"><img src="https://img.shields.io/badge/built%20with-tmux-green.svg" alt="tmux"></a>
-</p>
-
----
 
 # 📂 dotfiles
 
-- Managed with [`chezmoi 🏠`](https://www.chezmoi.io/) and MacOS & Ubuntu.
+<a href="https://github.com/shunk031/dotfiles/actions?query=workflow%3A%22Snippet+install%22"><img src="https://github.com/shunk031/dotfiles/workflows/Snippet%20install/badge.svg" alt="Build Status"></a>
+<a href="http://spacemacs.org/"><img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" alt="spacemacs"></a>
+<a href="https://github.com/zsh-users/zsh"><img src="https://img.shields.io/badge/built%20with-zsh-black.svg" alt="zsh"></a>
+<a href="https://github.com/sorin-ionescu/prezto"><img src="https://img.shields.io/badge/built%20with-prezto-orange.svg" alt="prezto"></a>
+<a href="https://github.com/tmux/tmux"><img src="https://img.shields.io/badge/built%20with-tmux-green.svg" alt="tmux"></a>
+
+</div>
+
+This [dotfiles](https://github.com/shunk031/dotfiles) repository is managed with [`chezmoi 🏠`](https://www.chezmoi.io/), a great dotfiles manager.
+The setup scripts are aimed for [MacOS](https://www.apple.com/jp/macos), [Ubuntu Desktop](https://ubuntu.com/desktop), and [Ubuntu Server](https://ubuntu.com/server). The first two (MacOS/Ubuntu Desktop) include settings for `client` machines and the latter one (Ubuntu Server) for `server` machines.
 
 ## 📥 Setup
 
-To set up the dotfiles run the appropriate snippet in the terminal:
+To set up the dotfiles run the appropriate snippet in the terminal.
 
 ### 💻 `MacOS` [![Build Status](https://github.com/shunk031/dotfiles/workflows/MacOS/badge.svg)](https://github.com/shunk031/dotfiles/actions?query=workflow%3AMacOS)
+
+- Configuration snippet of the MacOS environment for client macnine:
 
 ```console
 bash -c "$(curl -LsS http://shunk031.me/dotfiles/setup.sh)"
@@ -28,15 +29,21 @@ bash -c "$(curl -LsS http://shunk031.me/dotfiles/setup.sh)"
 
 ### 🖥️ `Ubuntu` [![Build Status](https://github.com/shunk031/dotfiles/workflows/Ubuntu/badge.svg)](https://github.com/shunk031/dotfiles/actions?query=workflow%3AUbuntu)
 
+- Configuration snippet of the Ubuntu environment for both client and server machine:
+
 ```console
 bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"
 ```
 
 ## 🛠️ Update & Test 🧪
 
+Updating and testing the dotfiles follows [chezmoi's daily operations](https://www.chezmoi.io/user-guide/daily-operations/).
+To verify that the updated scripts work correctly, run the scripts on the actual local machine and on the docker container.
+
 ## 💾 Test on the local machine
 
-- The following command will execute the [`chezmoi apply`](https://www.chezmoi.io/reference/commands/apply/) command as soon as the file is modified using [`watchexec`](https://github.com/watchexec/watchexec).
+Currently, chezmoi does not automatically reflect updated configuration files (ref. [twpayne/chezmoi#2738](https://github.com/twpayne/chezmoi/discussions/2738)).
+The following command will execute the [`chezmoi apply`](https://www.chezmoi.io/reference/commands/apply/) command as soon as the file is modified using [`watchexec`](https://github.com/watchexec/watchexec).
 
 ```console
 make watch
@@ -44,7 +51,8 @@ make watch
 
 ## 🐳 Test on Docker container
 
-- Launch the test environment using Docker 🐳.
+Test the executation of the setup scripts on Ubuntu in its initial state.
+The following command will launch the test environment using Docker 🐳 powered by [`lima`](https://github.com/lima-vm/lima) and [`colima`](https://github.com/abiosoft/colima).
 
 ```shell
 make docker
@@ -53,7 +61,7 @@ make docker
 # shunk031@5f93d270cb51:~$ chezmoi init --apply
 ```
 
-- Run the [`chezmoi init --apply`](https://www.chezmoi.io/user-guide/setup/#use-a-hosted-repo-to-manage-your-dotfiles-across-multiple-machines) command to verify that the system is set up correctly.
+Run the [`chezmoi init --apply`](https://www.chezmoi.io/user-guide/setup/#use-a-hosted-repo-to-manage-your-dotfiles-across-multiple-machines) command to verify that the system is set up correctly.
 
 ```shell
 shunk031@5f93d270cb51:~$ chezmoi init --apply

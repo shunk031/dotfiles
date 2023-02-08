@@ -35,10 +35,30 @@ bash -c "$(curl -LsS http://shunk031.me/dotfiles/setup.sh)"
 bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"
 ```
 
+## ⚙️ Install & Setup Application Individually
+
+This repository provides for the installation and setup of each application individually.
+The desired application can be installed as follows (e.g., docker installation on MacOS):
+
+```console
+bash install/macos/common/docker.sh
+```
+
+Each installation script can be found under the [`./install`](https://github.com/shunk031/dotfiles/tree/master/install) directory.
+
 ## 🛠️ Update & Test 🧪
 
 Updating and testing the dotfiles follows [chezmoi's daily operations](https://www.chezmoi.io/user-guide/daily-operations/).
 To verify that the updated scripts work correctly, run the scripts on the actual local machine and on the docker container.
+
+## Develop the setup scripts
+
+The setup scripts are stored as shellscripts in an appropriate location under the [`./install`](https://github.com/shunk031/dotfiles/tree/master/install) directory.
+After verifying that the shellscript works, store the [chezmoi template](https://www.chezmoi.io/user-guide/templating/)-based file, which is based on the shellscript, in an appropriate location under the [`./home/.chezmoiscripts`](https://github.com/shunk031/dotfiles/tree/master/home/.chezmoiscripts) directory.
+
+Below is the correspondence between shellscript and template for docker installation on MacOS.
+- The shellscript for docker: [`install/macos/common/docker.sh`](https://github.com/shunk031/dotfiles/blob/master/install/macos/common/docker.sh)
+- The chezmoi template for docker: [`home/.chezmoiscripts/macos/run_once_10-install-docker.sh.tmpl`](https://github.com/shunk031/dotfiles/blob/master/home/.chezmoiscripts/macos/run_once_10-install-docker.sh.tmpl)
 
 ## 💾 Test on the local machine
 

@@ -13,12 +13,25 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
         system: [client, server]
+        exclude:
+          - os: macos-latest
+            system: server
 
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup dotfiles with snippet
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          OS: ${{ matrix.os }}
           SYSTEM: ${{ matrix.system }}
         run: | 
-          printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | bash -c "$(curl -fsL http://shunk031.me/dotfiles-chezmoi/setup.sh)"
+          if [ "${OS}" == "macOS-latest" ]; then
+            printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS http://shunk031.me/dotfiles-chezmoi/setup.sh)"
+
+          elif [ "${OS}" == "ubuntu-latest" ]; then
+            printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | bash -c "$(wget -qO - http://shunk031.me/dotfiles-chezmoi/setup.sh)"
+
+          else
+            echo "${OS} not supported"
+            exit 1
+          fi

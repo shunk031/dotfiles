@@ -37,6 +37,6 @@ jobs:
             #              └─ Simulate inputting an email address into the config.
 
           else
-            echo "${OS} not supported"
+            echo "${OS} is not supported" >&2
             exit 1
           fi

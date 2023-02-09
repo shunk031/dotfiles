@@ -11,11 +11,15 @@ function is_age_installed() {
 }
 
 function get_chezmoi_home_dir() {
-    "$(chezmoi data | jq -r '.chezmoi.homeDir')"
+    local home_dir
+    home_dir=$(chezmoi data | jq -r '.chezmoi.homeDir')
+    echo -n "${home_dir}"
 }
 
 function get_chezmoi_source_dir() {
-    "$(chezmoi data | jq -r '.chezmoi.sourceDir')"
+    local source_dir
+    source_dir=$(chezmoi data | jq -r '.chezmoi.sourceDir')
+    echo -n "${source_dir}"
 }
 
 function decrypt_age_private_key() {

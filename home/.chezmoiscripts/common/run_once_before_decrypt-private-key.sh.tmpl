@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -x
+fi
+
+function is_age_installed() {
+    command -v "age" &>/dev/null
+}
+
+function decrypt_age_private_key() {
+    if is_age_installed; then
+        local age_dir="{{ .chezmoi.homeDir }}/.config/age"
+        local age_src_key="{{ .chezmoi.sourceDir }}/.key.txt.age"
+        local age_dst_key="${age_dir}/key.txt"
+
+        if [ ! -f "${age_dst_key}" ]; then
+            mkdir -p "${age_dir}"
+            age --decrypt --output "${age_dst_key}" "${age_src_key}"
+            chmod 600 "${age_dst_key}"
+        fi
+    fi
+}
+
+function main() {
+    decrypt_age_private_key
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main
+fi

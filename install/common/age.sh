@@ -27,7 +27,12 @@ function decrypt_age_private_key() {
     local age_src_key
     local age_dst_key
 
-    if ! "${CI:-false}" && is_age_installed; then
+    if "${CI:-false}"; then
+        # age is currently required tty. The CI does not have tty so return early
+        return 0 # early return
+    fi
+
+    if is_age_installed; then
         age_dir="$(get_chezmoi_home_dir)/.config/age"
         age_src_key="$(get_chezmoi_source_dir)/.key.txt.age"
         age_dst_key="${age_dir}/key.txt"

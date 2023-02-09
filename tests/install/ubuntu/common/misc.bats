@@ -4,7 +4,7 @@ function setup() {
     . "./install/ubuntu/common/misc.sh"
 }
 
-@test "install misc" {
+@test "install misc (ubuntu)" {
     main
     [ -x "$(command -v exa)" ]
     [ -x "$(command -v jq)" ]

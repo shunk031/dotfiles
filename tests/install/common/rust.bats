@@ -2,6 +2,6 @@
 
 set -Eeuo pipefail
 
-@test "install docker" {
+@test "install rust" {
     exit 1
 }

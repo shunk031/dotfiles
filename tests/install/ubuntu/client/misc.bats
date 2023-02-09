@@ -2,6 +2,6 @@
 
 set -Eeuo pipefail
 
-@test "install docker" {
+@test "install misc (ubuntu client)" {
     exit 1
 }

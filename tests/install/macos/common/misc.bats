@@ -3,10 +3,10 @@
 set -Eeuo pipefail
 
 function setup() {
-    . "./install/macos/common/pyenv.sh"
+    . "./install/macos/common/misc.sh"
 }
 
-@test "install pyenv requirements (macos)" {
+@test "install misc (macos)" {
     main
 
     run brew info bats

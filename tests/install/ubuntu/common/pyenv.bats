@@ -4,7 +4,7 @@ function setup() {
     . "./install/ubuntu/common/pyenv.sh"
 }
 
-@test "install pyenv requirements" {
+@test "install pyenv requirements (ubuntu)" {
     main
 
     run dpkg -s 'build-essential'

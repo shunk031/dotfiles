@@ -170,6 +170,22 @@ function defaults_assistant() {
     defaults write com.apple.HIToolbox AppleDictationAutoEnable -bool false
 }
 
+function defaults_iterm2() {
+
+    #
+    # Additional defaults settings can be found in `.chezmoiscripts/macos/run_once_04-install-iterm2.sh.tmpl`
+    #
+
+    # Don’t display the annoying prompt when quitting iTerm
+    defaults write com.googlecode.iterm2 PromptOnQuit -bool false
+
+    # Set the custom fonder to load preferences
+    defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
+
+    # Disable tip of the day
+    defaults write com.googlecode.iterm2 NoSyncTipsDisabled -bool true
+}
+
 function kill_affected_applications() {
     local apps=(
         "Activity Monitor"
@@ -196,6 +212,7 @@ function main() {
     defaults_ui
     defaults_dock
     defaults_finder
+    defaults_iterm2
     defaults_keyboard
     defaults_trackpad
     defaults_assistant

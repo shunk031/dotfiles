@@ -1,15 +1,12 @@
 <div align="center">
-
-![](https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/header.png)
-
-# 📂 dotfiles
+<img src="https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/header.png" alt="shunk031's">
+<h1>📂 dotfiles</h1>
 
 <a href="https://github.com/shunk031/dotfiles/actions?query=workflow%3A%22Snippet+install%22"><img src="https://github.com/shunk031/dotfiles/workflows/Snippet%20install/badge.svg" alt="Build Status"></a>
 <a href="http://spacemacs.org/"><img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" alt="spacemacs"></a>
 <a href="https://github.com/zsh-users/zsh"><img src="https://img.shields.io/badge/built%20with-zsh-black.svg" alt="zsh"></a>
 <a href="https://github.com/sorin-ionescu/prezto"><img src="https://img.shields.io/badge/built%20with-prezto-orange.svg" alt="prezto"></a>
 <a href="https://github.com/tmux/tmux"><img src="https://img.shields.io/badge/built%20with-tmux-green.svg" alt="tmux"></a>
-
 </div>
 
 This [dotfiles](https://github.com/shunk031/dotfiles) repository is managed with [`chezmoi 🏠`](https://www.chezmoi.io/), a great dotfiles manager.
@@ -72,6 +69,9 @@ The following command will execute the [`chezmoi apply`](https://www.chezmoi.io/
 make watch
 ```
 
+The chezmoi documentation mentions automatica application by [`watchman`](https://facebook.github.io/watchman/). 
+See [https://www.chezmoi.io/user-guide/advanced/use-chezmoi-with-watchman/](https://www.chezmoi.io/user-guide/advanced/use-chezmoi-with-watchman/) for more detail.
+
 ### 🐳 Test on Docker Container
 
 Test the executation of the setup scripts on Ubuntu in its initial state.
@@ -81,7 +81,7 @@ The following command will launch the test environment using Docker 🐳 powered
 make docker
 
 # docker run -it -v "$(pwd):/home/$(whoami)/.local/share/chezmoi" dotfiles /bin/bash --login
-# shunk031@5f93d270cb51:~$ chezmoi init --apply
+# shunk031@5f93d270cb51:~$ 
 ```
 
 Run the [`chezmoi init --apply`](https://www.chezmoi.io/user-guide/setup/#use-a-hosted-repo-to-manage-your-dotfiles-across-multiple-machines) command to verify that the system is set up correctly.

@@ -10,11 +10,23 @@ function is_age_installed() {
     command -v "age" &>/dev/null
 }
 
+function get_chezmoi_home_dir() {
+    "$(chezmoi data | jq -r '.chezmoi.homeDir')"
+}
+
+function get_chezmoi_source_dir() {
+    "$(chezmoi data | jq -r '.chezmoi.sourceDir')"
+}
+
 function decrypt_age_private_key() {
+    local age_dir
+    local age_src_key
+    local age_dst_key
+
     if is_age_installed; then
-        local age_dir="{{ .chezmoi.homeDir }}/.config/age"
-        local age_src_key="{{ .chezmoi.sourceDir }}/.key.txt.age"
-        local age_dst_key="${age_dir}/key.txt"
+        age_dir="$(get_chezmoi_home_dir)/.config/age"
+        age_src_key="$(get_chezmoi_source_dir)/.key.txt.age"
+        age_dst_key="${age_dir}/key.txt"
 
         if [ ! -f "${age_dst_key}" ]; then
             mkdir -p "${age_dir}"

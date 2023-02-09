@@ -11,7 +11,7 @@ function install_age() {
 }
 
 function install_jq() {
-    if command -v jq &>/dev/null; then
+    if ! command -v jq &>/dev/null; then
         sudo apt-get install -y jq
     fi
 }

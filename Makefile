@@ -23,6 +23,10 @@ docker:
 # Chezmoi
 #
 
+.PHONY: init
+init:
+	chezmoi init --apply --verbose
+
 .PHONY: update
 update:
 	chezmoi apply --verbose

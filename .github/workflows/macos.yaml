@@ -10,7 +10,7 @@ on:
       - 'install/ubuntu/**'
       - '.chezmoiscripts/ubuntu/**'
       - 'dot_tmux.conf.d/os/ubuntu.conf'
-      - 'test/install/ubuntu/**'
+      - 'tests/install/ubuntu/**'
       
   pull_request:
     branches: [master]
@@ -21,7 +21,7 @@ on:
       - 'install/ubuntu/**'
       - '.chezmoiscripts/ubuntu/**'
       - 'dot_tmux.conf.d/os/ubuntu.conf'
-      - 'test/install/ubuntu/**'
+      - 'tests/install/ubuntu/**'
 
 jobs:
   build:

@@ -7,7 +7,9 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 function install_age() {
-    sudo apt-get install -y age
+    if ! command -v age &>/dev/null; then
+        sudo apt-get install -y age
+    fi
 }
 
 function install_jq() {

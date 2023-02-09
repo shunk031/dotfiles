@@ -7,7 +7,9 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 function install_age() {
-    brew install age
+    if command -v age &>/dev/null; then
+        brew install age
+    fi
 }
 
 function install_jq() {

@@ -20,7 +20,7 @@
     system = {{ $system | quote }}
 
 {{- $CI := (env.Getenv "CI" "false") -}}
-{{- if ne $CI true -}}
+{{- if ne $CI "true" -}}
 encryption = "age"
 [age]
     identity = "~/.config/age/key.txt"

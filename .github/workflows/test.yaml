@@ -3,7 +3,7 @@ name: Unit test
 on: [push, pull_request]
 
 jobs:
-  build:
+  test:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]

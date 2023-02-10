@@ -41,6 +41,13 @@ jobs:
           src_dir="${HOME%/}/work/dotfiles/dotfiles"
           dst_dir="${HOME%/}/.local/share/chezmoi"
           ln -sfnv "${src_dir}" "${dst_dir}"
+          
+      - name: forget the encrypted files
+        run: |
+          # `age` requires a tty, but there is no tty in the github actions.
+          # Therefore, it is currnetly difficult to decrypt the files encrypted with `age` in this workflow.
+          # I decided to temporarily remove the encrypted target files from chezmoi's control.
+          chezmoi forget --force ~/.ssh/age_test.txt.age
 
       - name: run chezmoi init
         env: 

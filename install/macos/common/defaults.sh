@@ -157,6 +157,12 @@ function defaults_finder() {
     # Avoid creating .DS_Store files on network or USB volumes
     defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
     defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+
+    # Disable the warning before emptying the Trash
+    defaults write com.apple.finder WarnOnEmptyTrash -bool false
+
+    # Enabling the “Remove items from the Trash after 30 days”
+    defaults write com.apple.finder FXRemoveOldTrashItems -bool true
 }
 
 function defaults_screencapture() {
@@ -168,6 +174,22 @@ function defaults_screencapture() {
 function defaults_assistant() {
     defaults write com.apple.assistant.support "Assistant Enabled" -bool false
     defaults write com.apple.HIToolbox AppleDictationAutoEnable -bool false
+}
+
+function defaults_iterm2() {
+
+    #
+    # Additional defaults settings can be found in `.chezmoiscripts/macos/run_once_04-install-iterm2.sh.tmpl`
+    #
+
+    # Don’t display the annoying prompt when quitting iTerm
+    defaults write com.googlecode.iterm2 PromptOnQuit -bool false
+
+    # Set the custom fonder to load preferences
+    defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
+
+    # Disable tip of the day
+    defaults write com.googlecode.iterm2 NoSyncTipsDisabled -bool true
 }
 
 function kill_affected_applications() {
@@ -196,6 +218,7 @@ function main() {
     defaults_ui
     defaults_dock
     defaults_finder
+    defaults_iterm2
     defaults_keyboard
     defaults_trackpad
     defaults_assistant

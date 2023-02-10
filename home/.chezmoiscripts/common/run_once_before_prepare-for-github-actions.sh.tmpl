@@ -10,7 +10,7 @@ function remove_encrypted_files() {
     # rm -vf {{ .chezmoi.sourceDir }}/private_dot_ssh/encrypted_*
     # ls {{ .chezmoi.sourceDir }}/private_dot_ssh
 
-    chezmoi forget "{{ .chezmoi.sourceDir }}/.ssh/age_text.txt"
+    chezmoi forget "{{ .chezmoi.sourceDir }}/.ssh/encrypted_age_test.txt.age"
 }
 
 function main() {

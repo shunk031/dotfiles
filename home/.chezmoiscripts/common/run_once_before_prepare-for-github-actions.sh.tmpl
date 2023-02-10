@@ -8,12 +8,13 @@ fi
 
 function remove_encrypted_files() {
     rm -fv "{{ .chezmoi.sourceDir }}/home/private_dot_ssh/encrypted_*"
-
     ls "{{ .chezmoi.sourceDir }}/home/private_dot_ssh"
 }
 
 function main() {
-    remove_encrypted_files
+    if "${CI:-false}"; then
+        remove_encrypted_files
+    fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

@@ -1,3 +1,0 @@
-{{ if ne (env "CI") "true" -}}
-    {{ .chezmoi.sourceDir }}/private_dot_ssh/encrypted_age_test.txt.age
-{{- end }}

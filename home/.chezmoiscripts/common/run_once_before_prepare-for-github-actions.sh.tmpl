@@ -7,7 +7,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 function remove_encrypted_files() {
-    rm -i {{ .chezmoi.sourceDir }}/private_dot_ssh/encrypted_*
+    rm -vf {{ .chezmoi.sourceDir }}/private_dot_ssh/encrypted_*
     ls {{ .chezmoi.sourceDir }}/private_dot_ssh
 }
 

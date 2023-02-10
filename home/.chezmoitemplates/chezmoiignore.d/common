@@ -1,2 +1,6 @@
 com.googlecode.iterm2.plist
 .key.txt.age
+
+{{ if ne (env "CI") "true" -}}
+{{ .chezmoi.sourceDir }}/.ssh/age_text.txt
+{{- end }}

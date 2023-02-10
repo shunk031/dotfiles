@@ -157,6 +157,12 @@ function defaults_finder() {
     # Avoid creating .DS_Store files on network or USB volumes
     defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
     defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+
+    # Disable the warning before emptying the Trash
+    defaults write com.apple.finder WarnOnEmptyTrash -bool false
+
+    # Enabling the “Remove items from the Trash after 30 days”
+    defaults write com.apple.finder FXRemoveOldTrashItems -bool true
 }
 
 function defaults_screencapture() {

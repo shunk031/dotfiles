@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -x
+fi
+
+function remove_encrypted_files() {
+    rm -rfv "{{ .chezmoi.sourceDir }}/private_dot_ssh/encrypted_*"
+}
+
+function main() {
+    remove_encrypted_files
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main
+fi

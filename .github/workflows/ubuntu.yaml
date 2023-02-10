@@ -45,7 +45,7 @@ jobs:
           dst_dir="${HOME%/}/.local/share/chezmoi"
           ln -sfnv "${src_dir}" "${dst_dir}"
       
-      - name: run `chezmoi init`
+      - name: Run `chezmoi init`
         env: 
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           SYSTEM: ${{ matrix.system }}
@@ -59,7 +59,8 @@ jobs:
           # I decided to temporarily remove the encrypted target files from chezmoi's control.
           chezmoi forget --force ~/.ssh/age_test.txt.age
 
-      - name: run `chezmoi apply`
+      - name: Run `chezmoi apply`
         env: 
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           DOTFILES_DEBUG: 1
         run: chezmoi apply --verbose

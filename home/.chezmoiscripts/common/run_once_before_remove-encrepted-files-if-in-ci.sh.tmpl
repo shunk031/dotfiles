@@ -8,6 +8,8 @@ fi
 
 function remove_encrypted_files() {
     rm -rfv "{{ .chezmoi.sourceDir }}/private_dot_ssh/encrypted_*"
+
+    ls "{{ .chezmoi.sourceDir }}/private_dot_ssh"
 }
 
 function main() {

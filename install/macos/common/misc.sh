@@ -65,10 +65,6 @@ function install_brew_cask_packages() {
     done
 }
 
-function setup_spectacle() {
-    open "/Applications/Spectacle.app/"
-}
-
 function setup_google_chrome() {
     open "/Applications/Google Chrome.app" --args --make-default-browser
 }

@@ -31,7 +31,7 @@ function install_tpm() {
 
     local dir="${TMUX_PLUGIN_MANAGER_PATH%/}/tpm/"
 
-    if [ ! "${DOTFILES_DEBUG:-}" ] && [ -d "${dir}" ]; then
+    if [ ! "${DOTFILES_DEBUG:-}" ] || [ ! -d "${dir}" ]; then
         clone_tpm "${dir}"
         install_tpm_plugins "${dir}"
     fi

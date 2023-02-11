@@ -214,7 +214,10 @@ function kill_affected_applications() {
 }
 
 function open_spectacle() {
-    open -g "/Applications/Spectacle.app/"
+    local app_path="/Applications/Spectacle.app/"
+    if [ -e "${app_path}" ]; then
+        open -g "${app_path}"
+    fi
 }
 
 function open_killed_applications() {

@@ -66,7 +66,7 @@ function install_brew_cask_packages() {
 }
 
 function setup_spectacle() {
-    open /Applications/Spectacle.app/
+    open "/Applications/Spectacle.app/"
 }
 
 function setup_google_chrome() {

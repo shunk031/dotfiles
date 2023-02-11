@@ -9,7 +9,8 @@ DOKCER_RAM_GB=4
 
 .PHONY: docker
 docker:
-	@if [[ $$(limactl list colima --format "{{.Status}}") == "Stopped" ]]; then \
+	@status=$$(limactl list colima --format "{{.Status}}")
+	@if [ -z "$(status)" ] || [[ "$(status)" == "Stopped" ]]; then \
 		colima start \
 			--arch $(DOCKER_ARCH) --cpu $(DOCKER_NUM_CPU) --memory $(DOKCER_RAM_GB) \
 			--mount "$${HOME}/ghq/:w" --mount "$${HOME}/.local/share/chezmoi/:w"; \
@@ -37,4 +38,9 @@ watch:
 
 .PHONY: reset
 reset:
+	chezmoi state delete-bucket --bucket=scriptState
+	init
+
+.PHONY: reset-config
+reset-config:
 	chezmoi init --data=false

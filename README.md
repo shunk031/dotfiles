@@ -36,6 +36,12 @@ bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
 bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"
 ```
 
+### Minimal setup
+
+The following is a minimal setup command to install chezmoi and my dotfiles from the github repository on a new empty machine:
+
+> sh -c "$(curl -fsLS get.chezmoi.io)" -- init shunk031 --apply
+
 ## ⚙️ Install & Setup Application Individually
 
 This repository provides for the installation and setup of each application individually.

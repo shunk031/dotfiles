@@ -213,6 +213,17 @@ function kill_affected_applications() {
     done
 }
 
+function open_spectacle() {
+    local app_path="/Applications/Spectacle.app/"
+    if [ -e "${app_path}" ]; then
+        open -g "${app_path}"
+    fi
+}
+
+function open_killed_applications() {
+    open_spectacle
+}
+
 function main() {
 
     defaults_ui
@@ -227,6 +238,7 @@ function main() {
     defaults_screencapture
 
     kill_affected_applications
+    open_killed_applications
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

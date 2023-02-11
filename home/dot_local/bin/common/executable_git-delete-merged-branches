@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+function is_inside_git_repository() {
+    git rev-parse --is-inside-work-tree >/dev/null 2>&1
+}
+
+function get_default_branch() {
+    local default_branch
+
+    default_branch=$(LC_ALL=C git remote show origin)
+    default_branch=$(echo "${default_branch}" | sed -n '/HEAD branch/s/.*: //p')
+    echo -n "${default_branch}"
+}
+
+function git-delete-merged-branches() {
+    # delete all git branches which have been "squash and merge" via GitHub
+    # ref. https://stackoverflow.com/questions/43489303/how-can-i-delete-all-git-branches-which-have-been-squash-and-merge-via-github
+
+    if ! is_inside_git_repository; then
+        return 0
+    fi
+
+    local default_branch
+    default_branch=$(get_default_branch)
+
+    git checkout -q "${default_branch}" &&
+        git for-each-ref refs/heads/ "--format=%(refname:short)" |
+        while read -r branch; do
+            merge_base=$(git merge-base "${default_branch}" "${branch}") &&
+                [[ $(git cherry "${default_branch}" "$(git commit-tree "$(git rev-parse "$branch^{tree}")" -p "${merge_base}" -m _)") == "-"* ]] &&
+                git branch -D "${branch}"
+        done
+}
+
+git-delete-merged-branches

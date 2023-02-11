@@ -23,4 +23,25 @@ function setup() {
     defaults_trackpad
 
     [ $(defaults read -g com.apple.trackpad.scaling) -eq 2 ]
+
+    [ $(defaults read NSGlobalDomain com.apple.mouse.tapBehavior) -eq 1 ]
+    [ $(defaults -currentHost read NSGlobalDomain com.apple.mouse.tapBehavior) -eq 1 ]
+    [ $(defaults read com.apple.AppleMultitouchTrackpad Clicking) -eq 1 ]
+    [ $(defaults read com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking) -eq 1 ]
+
+    [ $(defaults read com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag) -eq 1 ]
+    [ $(defaults read com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag) -eq 1 ]
+}
+
+@test "test for control center" {
+    defaults_controlcenter
+
+    [ $(defaults read com.apple.controlcenter "NSStatusItem Visible Bluetooth") -eq 1 ]
+}
+
+@test "test for dock" {
+    defaults_dock
+
+    [ $(defaults read com.apple.dock autohide) -eq 1 ]
+    [ $(defaults read com.apple.dock tilesize) -eq 30 ]
 }

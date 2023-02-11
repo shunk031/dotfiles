@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -Eeuo pipefail
+set -Eeuox pipefail
 
 # shellcheck disable=SC2016
 declare -r DOTFILES_LOGO='
@@ -142,7 +142,7 @@ function initialize_dotfiles() {
         # run the chezmoi init command with/without the `--no-tty` option
         # chezmoi init has `--purge-binary` option to remove its own binary;
         # however this option will disturb testing by the CI because it displays prompt.
-        sh -c "$(curl -fsLS get.chezmoi.io)" -- init "${DOTFILES_REPO_URL}" --apply "${no_tty_option}"
+        sh -c "$(curl -fsLS get.chezmoi.io)" -- init "${DOTFILES_REPO_URL}" --apply ${no_tty_option}
     }
     function cleanup_chezmoi() {
         # remove the chezmoi binary without prompt as described above.

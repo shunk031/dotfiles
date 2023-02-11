@@ -1,4 +1,4 @@
 {{ if eq .chezmoi.os "darwin" -}}
 {{   include "../install/macos/common/iterm2.sh" }}
-defaults write com.googlecode.iterm2 PrefsCustomFolder "{{ .chezmoi.sourceDir }}/dot_config/iterm2/"
+{{   template "chezmoiscripts/macos/iterm2.sh.tmpl" . }}
 {{- end }}

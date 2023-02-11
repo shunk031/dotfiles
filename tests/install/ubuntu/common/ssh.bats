@@ -1,7 +1,12 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
+function setup() {
+    . "./install/ubuntu/common/ssh.sh"
+}
 
 @test "setup ssh" {
-    exit 1
+    main
+
+    run dpkg -s 'openssh-client'
+    [ "${status}" -eq 0 ]
 }

@@ -2,6 +2,12 @@
 
 set -Eeuo pipefail
 
+function setup() {
+    . "./install/common/rust.sh"
+}
+
 @test "install rust" {
-    exit 1
+    main
+
+    [ -x "$(command -v cargo)" ]
 }

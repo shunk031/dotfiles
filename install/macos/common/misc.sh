@@ -6,6 +6,16 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+function is_formula_installed() {
+    local formula="$1"
+    brew ls --versions "${formula}" >/dev/null
+}
+
+function is_cask_formula_installed() {
+    local formula="$1"
+    brew ls --cask --versions "${formula}" >/dev/null
+}
+
 function install_brew_packages() {
     local packages=(
         "exa"
@@ -23,7 +33,9 @@ function install_brew_packages() {
         if "${CI:-false}"; then
             brew info "${package}"
         else
-            brew install "${package}"
+            if ! is_formula_installed "${package}"; then
+                brew install "${package}"
+            fi
         fi
     done
 }
@@ -46,7 +58,9 @@ function install_brew_cask_packages() {
         if ${CI:-false}; then
             brew info --cask "${package}"
         else
-            brew install --cask "${package}"
+            if ! is_cask_formula_installed "${package}"; then
+                brew install --cask "${package}"
+            fi
         fi
     done
 }

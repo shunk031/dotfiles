@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -Eeuox pipefail
+set -Eeuo pipefail
 
 # shellcheck disable=SC2016
 declare -r DOTFILES_LOGO='

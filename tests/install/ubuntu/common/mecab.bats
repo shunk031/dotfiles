@@ -4,6 +4,10 @@ function setup() {
     . "./install/ubuntu/common/mecab.sh"
 }
 
+function teardown() {
+    uninstall_mecab
+}
+
 @test "install mecab" {
     main
 

@@ -10,6 +10,10 @@ function install_ghq() {
     brew install ghq
 }
 
+function uninstall_ghq() {
+    brew uninstall ghq
+}
+
 function main() {
     install_ghq
 }

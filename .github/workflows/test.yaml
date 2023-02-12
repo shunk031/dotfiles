@@ -28,7 +28,7 @@ jobs:
           sudo ./install.sh /usr/local
       
       - name: Unit test for common scripts
-        run: bats -r tests/install/common
+        run: bats -r tests/install/common --formatter cat
 
       - name: Unit test for OS specific scripts
         env:
@@ -36,11 +36,11 @@ jobs:
           SYSTEM: ${{ matrix.system }}
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
-            bats -r tests/install/macos/common
+            bats -r tests/install/macos/common --formatter cat
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            bats -r tests/install/ubuntu/common
-            bats -r tests/install/ubuntu/${SYSTEM}
+            bats -r tests/install/ubuntu/common --formatter cat
+            bats -r tests/install/ubuntu/${SYSTEM} --formatter cat
 
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2

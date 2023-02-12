@@ -7,6 +7,6 @@ function setup() {
 }
 
 @test "install chezmoi (ubuntu)" {
-    main
+    run main
     [ -x "$(command -v chezmoi)" ]
 }

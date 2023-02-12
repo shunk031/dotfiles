@@ -5,7 +5,7 @@ function setup() {
 }
 
 @test "install golang (ubuntu)" {
-    main
+    run main
     export PATH="${PATH}:/usr/local/go/bin"
     [ -x "$(command -v go)" ]
 }

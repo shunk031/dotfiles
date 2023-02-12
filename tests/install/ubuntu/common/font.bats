@@ -5,7 +5,7 @@ function setup() {
 }
 
 @test "install nerd font" {
-    main
+    run main
 
     [ -e "${HOME%/}/.local/share/fonts/Roboto Mono Nerd Font Complete.ttf" ]
     [ -e "${HOME%/}/.local/share/fonts/Hack Regular Nerd Font Complete Mono.ttf" ]

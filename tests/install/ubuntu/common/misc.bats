@@ -5,7 +5,8 @@ function setup() {
 }
 
 @test "install misc (ubuntu)" {
-    main
+    run main
+
     [ -x "$(command -v exa)" ]
     [ -x "$(command -v jq)" ]
     [ -x "$(command -v htop)" ]

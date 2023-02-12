@@ -13,7 +13,7 @@ function setup() {
 # }
 
 @test "install ghq" {
-    main # install ghq
+    run main
 
     export GOPATH="${HOME%/}/ghq"
     export PATH="${PATH}:${GOPATH}/bin"

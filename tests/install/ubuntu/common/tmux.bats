@@ -9,7 +9,9 @@ set -Eeuo pipefail
     [ -x "$(command -v tmux)" ]
     [ -x "$(command -v xsel)" ]
     [ -x "$(command -v cmake)" ]
+}
 
+@test "install tpm (ubuntu)" {
     . "./install/common/tpm.sh"
     run main
 

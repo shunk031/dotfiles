@@ -7,8 +7,9 @@ function setup() {
 }
 
 @test "install docker" {
-    main
+    run main
 
+    export "${HOME%/}/.local/bin"
     [ -x "$(command -v lima)" ]
     [ -x "$(command -v colima)" ]
     [ -x "$(command -v docker)" ]

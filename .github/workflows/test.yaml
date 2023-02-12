@@ -36,11 +36,11 @@ jobs:
           SYSTEM: ${{ matrix.system }}
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
-            bats -r tests/install/macos/common --formatter cat
+            bats --formatter cat -r tests/install/macos/common
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            bats -r tests/install/ubuntu/common --formatter cat
-            bats -r tests/install/ubuntu/${SYSTEM} --formatter cat
+            bats --formatter cat -r tests/install/ubuntu/common
+            bats --formatter cat -r tests/install/ubuntu/${SYSTEM}
 
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2

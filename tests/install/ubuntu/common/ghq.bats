@@ -7,10 +7,10 @@ function setup() {
     . "./install/ubuntu/common/ghq.sh"
 }
 
-# function teardown() {
-#     uninstall_golang
-#     uninstall_ghq
-# }
+function teardown() {
+    uninstall_golang
+    uninstall_ghq
+}
 
 @test "install ghq" {
     run main

@@ -23,7 +23,7 @@ function install_golang() {
 }
 
 function uninstall_golang() {
-    sudo rm -rf /usr/local/go
+    sudo rm -rfv /usr/local/go
 }
 
 function main() {

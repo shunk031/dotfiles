@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
-
 @test "install tmux requirements (ubuntu)" {
     . "./install/ubuntu/common/tmux.sh"
     run main

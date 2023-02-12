@@ -10,6 +10,9 @@ function is_tmux_mem_cpu_load_installed() {
     command -v "tmux-mem-cpu-load" &>/dev/null
 }
 
+readonly TMUX_PLUGIN_MANAGER_PATH="${HOME%/}/.tmux/plugins"
+readonly TPM_DIR="${TMUX_PLUGIN_MANAGER_PATH}/tpm"
+
 function clone_tpm() {
     local dir="$1"
     local url="https://github.com/tmux-plugins/tpm"
@@ -23,17 +26,15 @@ function install_tpm_plugins() {
     local dir="$1"
     local cmd="${dir%/}/scripts/install_plugins.sh"
 
-    "${cmd}"
+    exec "${cmd}"
 }
 
 function install_tpm() {
-    export TMUX_PLUGIN_MANAGER_PATH="${HOME%/}/.tmux/plugins"
+    export TMUX_PLUGIN_MANAGER_PATH="${TMUX_PLUGIN_MANAGER_PATH}"
 
-    local dir="${TMUX_PLUGIN_MANAGER_PATH%/}/tpm/"
-
-    if [ ! "${DOTFILES_DEBUG:-}" ] || [ ! -d "${dir}" ]; then
-        clone_tpm "${dir}"
-        install_tpm_plugins "${dir}"
+    if [ ! "${DOTFILES_DEBUG:-}" ] || [ ! -d "${TPM_DIR}" ]; then
+        clone_tpm "${TPM_DIR}"
+        install_tpm_plugins "${TPM_DIR}"
     fi
 }
 
@@ -52,6 +53,14 @@ function install_tmux_mem_cpu_load() {
     cmake . -DCMAKE_INSTALL_PREFIX="${HOME%/}/.local/"
     make
     make install
+}
+
+function uninstall_tpm() {
+    rm -rfv "${TPM_DIR}"
+}
+
+function uninstall_tmux_mem_cpu_load() {
+    rm -fv "${HOME%/}/.local/bin/tmux-mem-cpu-load"
 }
 
 function main() {

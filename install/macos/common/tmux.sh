@@ -8,7 +8,7 @@ fi
 
 readonly PACKAGES=(
     "tmux"
-    "git"
+    # "git"
     "reattach-to-user-namespace"
     "cmake"
 )

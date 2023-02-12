@@ -16,6 +16,10 @@ function install_golang() {
     fi
 }
 
+function uninstall_golang() {
+    brew uninstall go
+}
+
 function main() {
     install_golang
 }

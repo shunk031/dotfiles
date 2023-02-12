@@ -12,7 +12,7 @@ function teardown() {
 }
 
 @test "install font" {
-    main
+    run main
 
     [ -e "${HOME%/}/Library/Fonts/Roboto Mono Nerd Font Complete.ttf" ]
     [ -e "${HOME%/}/Library/Fonts/Hack Regular Nerd Font Complete Mono.ttf" ]

@@ -7,7 +7,7 @@ function setup() {
 }
 
 @test "install mecab-ipadic-neologd (macos)" {
-    main
+    run main
 
     [ -x "$(command -v git)" ]
     [ -x "$(command -v curl)" ]

@@ -9,6 +9,6 @@ function teardown() {
 }
 
 @test "install gh" {
-    main
+    run main
     [ -x "$(command -v gh)" ]
 }

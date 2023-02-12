@@ -7,7 +7,7 @@ function setup() {
 }
 
 @test "install misc (macos)" {
-    main
+    run main
 
     run brew info bats
     [ "${status}" -eq 0 ]

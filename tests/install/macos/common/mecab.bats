@@ -5,7 +5,7 @@ function setup() {
 }
 
 @test "install mecab (macos)" {
-    main
+    run main
 
     [ -x "$(command -v mecab)" ]
 

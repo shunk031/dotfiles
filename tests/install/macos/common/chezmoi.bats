@@ -11,7 +11,7 @@ function teardown() {
 }
 
 @test "install chezmoi (macos)" {
-    main
+    run main
 
     [ -x "$(command -v chezmoi)" ]
 }

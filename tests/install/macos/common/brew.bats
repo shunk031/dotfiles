@@ -7,7 +7,7 @@ function setup() {
 }
 
 @test "install brew" {
-    main
+    run main
 
     [ -x "$(command -v brew)" ]
 }

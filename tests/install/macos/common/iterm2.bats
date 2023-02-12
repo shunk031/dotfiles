@@ -9,7 +9,7 @@ function teardown() {
 }
 
 @test "install iterm2" {
-    main
+    run main
 
     [ -e "/Applications/iTerm.app" ]
     [ -e "${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles/hotkey_window.json" ]

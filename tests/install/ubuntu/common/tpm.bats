@@ -3,6 +3,7 @@
 function setup() {
     . "./install/ubuntu/common/tmux.sh"
     main # install tmux
+
     . "./install/common/tpm.sh"
 }
 
@@ -13,7 +14,8 @@ function teardown() {
 }
 
 @test "install tpm (ubuntu)" {
-    run main
+    run install_tpm
+    run install_tmux_mem_cpu_load
 
     [ -e "${HOME%/}/.tmux/plugins/tpm" ]
     export PATH="${PATH}:${HOME%/}/.local/bin"

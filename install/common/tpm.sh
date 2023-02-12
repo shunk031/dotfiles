@@ -6,12 +6,12 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly TMUX_PLUGINS_DIR="${HOME%/}/.tmux/plugins"
+readonly TPM_DIR="${TMUX_PLUGINS_DIR}/tpm"
+
 function is_tmux_mem_cpu_load_installed() {
     command -v "tmux-mem-cpu-load" &>/dev/null
 }
-
-readonly TMUX_PLUGINS_DIR="${HOME%/}/.tmux/plugins"
-readonly TPM_DIR="${TMUX_PLUGINS_DIR}/tpm"
 
 function clone_tpm() {
     local dir="$1"
@@ -39,8 +39,8 @@ function install_tpm() {
 }
 
 function install_tmux_mem_cpu_load() {
-    if [ ! "${DOTFILES_DEBUG:-}" ] && is_tmux_mem_cpu_load_installed; then
-        return 0
+    if [ "${DOTFILES_DEBUG:-}" ] && is_tmux_mem_cpu_load_installed; then
+        return 0 # early return
     fi
 
     local tmux_mem_cpu_load_url="https://github.com/thewtex/tmux-mem-cpu-load.git"

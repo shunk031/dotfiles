@@ -6,28 +6,36 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly FONT_DIR="${HOME%/}/Library/Fonts"
+readonly NERD_FONT_ROBOTO_MONO="Roboto Mono Nerd Font Complete.ttf"
+readonly NERD_FONT_HACK_MONO="Hack Regular Nerd Font Complete Mono.ttf"
+
 function install_font() {
     local font_url="$1"
     local font_name="$2"
 
-    local font_dir="${HOME%/}/Library/Fonts"
-
-    mkdir -p "${font_dir}"
-    curl -fSL "${font_url}" -o "${font_dir%/}/${font_name}"
+    mkdir -p "${FONT_DIR}"
+    curl -fSL "${font_url}" -o "${FONT_DIR%/}/${font_name}"
 }
 
 function install_nerd_font_roboto_mono() {
     local font_url="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Medium/complete/Roboto%20Mono%20Medium%20Nerd%20Font%20Complete%20Mono.ttf"
-    local font_name="Roboto Mono Nerd Font Complete.ttf"
 
-    install_font "${font_url}" "${font_name}"
+    install_font "${font_url}" "${NERD_FONT_ROBOTO_MONO}"
 }
 
 function install_nerd_font_hack_mono() {
     local font_url="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/complete/Hack%20Regular%20Nerd%20Font%20Complete%20Mono.ttf"
-    local font_name="Hack Regular Nerd Font Complete Mono.ttf"
 
-    install_font "${font_url}" "${font_name}"
+    install_font "${font_url}" "${NERD_FONT_HACK_MONO}"
+}
+
+function uninstall_nerd_font_roboto_mono() {
+    rm -fv "${FONT_DIR}/${NERD_FONT_ROBOTO_MONO}"
+}
+
+function uninstall_nerd_font_hack_mono() {
+    rm -fv "${FONT_DIR}/${NERD_FONT_HACK_MONO}"
 }
 
 function main() {

@@ -6,6 +6,11 @@ function setup() {
     . "./install/macos/common/font.sh"
 }
 
+function teardown() {
+    uninstall_nerd_font_roboto_mono
+    uninstall_nerd_font_hack_mono
+}
+
 @test "install font" {
     main
 

@@ -13,7 +13,7 @@ function teardown() {
 }
 
 @test "install tpm (ubuntu)" {
-    main
+    run main
 
     [ -e "${HOME%/}/.tmux/plugins/tpm" ]
     export PATH="${PATH}:${HOME%/}/.local/bin"

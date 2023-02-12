@@ -64,7 +64,6 @@ function uninstall_tmux_mem_cpu_load() {
 }
 
 function main() {
-
     install_tpm
     install_tmux_mem_cpu_load
 }

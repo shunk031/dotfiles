@@ -10,8 +10,8 @@ function is_tmux_mem_cpu_load_installed() {
     command -v "tmux-mem-cpu-load" &>/dev/null
 }
 
-readonly TMUX_PLUGIN_MANAGER_PATH="${HOME%/}/.tmux/plugins"
-readonly TPM_DIR="${TMUX_PLUGIN_MANAGER_PATH}/tpm"
+readonly TMUX_PLUGINS_DIR="${HOME%/}/.tmux/plugins"
+readonly TPM_DIR="${TMUX_PLUGINS_DIR}/tpm"
 
 function clone_tpm() {
     local dir="$1"
@@ -30,7 +30,7 @@ function install_tpm_plugins() {
 }
 
 function install_tpm() {
-    export TMUX_PLUGIN_MANAGER_PATH="${TMUX_PLUGIN_MANAGER_PATH}"
+    export TMUX_PLUGIN_MANAGER_PATH="${TMUX_PLUGINS_DIR}"
 
     if [ ! "${DOTFILES_DEBUG:-}" ] || [ ! -d "${TPM_DIR}" ]; then
         clone_tpm "${TPM_DIR}"

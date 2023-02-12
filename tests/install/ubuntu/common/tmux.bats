@@ -13,6 +13,7 @@ set -Eeuo pipefail
     . "./install/common/tpm.sh"
     run main
 
+    export PATH="${PATH}:${HOME%/}/.local/bin"
     [ -e "${HOME%/}/.tmux/plugins/tpm" ]
     [ -x "$(command -v tmux-mem-cpu-load)" ]
 }

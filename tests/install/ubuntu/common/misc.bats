@@ -4,6 +4,10 @@ function setup() {
     . "./install/ubuntu/common/misc.sh"
 }
 
+function teardown() {
+    uninstall_apt_packages
+}
+
 @test "install misc (ubuntu)" {
     run main
 

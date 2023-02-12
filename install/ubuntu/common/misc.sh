@@ -6,18 +6,21 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly PACKAGES=(
+    "exa"
+    "jq"
+    "htop"
+    "shellcheck"
+    "vim"
+    "zsh"
+)
+
 function install_apt_packages() {
-    local packages=(
-        "exa"
-        "jq"
-        "htop"
-        "shellcheck"
-        "vim"
-        "zsh"
-    )
-    for package in "${packages[@]}"; do
-        sudo apt-get install -y "${package}"
-    done
+    sudo apt-get install -y "${PACKAGES[@]}"
+}
+
+function uninstall_apt_packages() {
+    sudo apt-get remove -y "${PACKAGES[@]}"
 }
 
 function main() {

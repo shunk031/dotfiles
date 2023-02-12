@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 
-set -Eeuox pipefail
-
 function setup() {
     . "./install/ubuntu/common/mecab.sh"
     install_mecab
@@ -10,4 +8,15 @@ function setup() {
 
 @test "install mecab-ipadic-neologd (ubuntu)" {
     main
+
+    run dpkg -s 'git'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'make'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'curl'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'xz-utils'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'file'
+    [ "${status}" -eq 0 ]
 }

@@ -1,7 +1,12 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
+function setup() {
+    . "./install/macos/common/iterm2.sh"
+}
 
 @test "install iterm2" {
-    exit 1
+    main
+
+    [ -e "/Applications/iTerm.app" ]
+    [ -e "${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles/hotkey_window.json" ]
 }

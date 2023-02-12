@@ -2,6 +2,13 @@
 
 set -Eeuo pipefail
 
+function setup() {
+    . "./install/macos/common/font.sh"
+}
+
 @test "install font" {
-    exit 1
+    main
+
+    [ -e "${HOME%/}/Library/Fonts/Roboto Mono Nerd Font Complete.ttf" ]
+    [ -e "${HOME%/}/Library/Fonts/Hack Regular Nerd Font Complete Mono.ttf" ]
 }

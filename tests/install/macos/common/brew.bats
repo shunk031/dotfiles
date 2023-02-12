@@ -2,6 +2,12 @@
 
 set -Eeuo pipefail
 
+function setup() {
+    . "./install/macos/common/brew.sh"
+}
+
 @test "install brew" {
-    exit 1
+    main
+
+    [ -x "$(command -v brew)" ]
 }

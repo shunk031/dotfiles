@@ -1,7 +1,11 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
+function setup() {
+    . "./install/macos/common/golang.sh"
+}
 
-@test "install golang" {
-    exit 1
+@test "install golang (macos)" {
+    main
+    export PATH="${PATH}:/usr/local/go/bin"
+    [ -x "$(command -v go)" ]
 }

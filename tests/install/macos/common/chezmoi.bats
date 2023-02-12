@@ -9,6 +9,5 @@ function setup() {
 @test "install chezmoi (macos)" {
     main
 
-    run brew info chezmoi
-    [ "${status}" -eq 0 ]
+    [ -x "$(command -v chezmoi)" ]
 }

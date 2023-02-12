@@ -1,7 +1,14 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
+function setup() {
+    . "./install/macos/common/mecab.sh"
+}
 
-@test "install mecab" {
-    exit 1
+@test "install mecab (macos)" {
+    main
+
+    [ -x "$(command -v mecab)" ]
+
+    run brew info "mecab-ipadic"
+    [ "${status}" -eq 0 ]
 }

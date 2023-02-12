@@ -1,7 +1,10 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
+function setup() {
+    . "./install/macos/common/ghq.sh"
+}
 
 @test "install ghq" {
-    exit 1
+    main
+    [ -x "$(command -v ghq)" ]
 }

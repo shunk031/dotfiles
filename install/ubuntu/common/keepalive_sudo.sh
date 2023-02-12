@@ -6,6 +6,13 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+function at_exit() {
+    AT_EXIT+="${AT_EXIT:+$'\n'}"
+    AT_EXIT+="${*?}"
+    # shellcheck disable=SC2064
+    trap "${AT_EXIT}" EXIT
+}
+
 function keepalive_sudo_linux() {
     # Might as well ask for password up-front, right?
     echo "Checking for \`sudo\` access which may request your password."

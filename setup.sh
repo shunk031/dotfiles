@@ -22,13 +22,6 @@ declare -r DOTFILES_LOGO='
 
 declare -r DOTFILES_REPO_URL="https://github.com/shunk031/dotfiles"
 
-function at_exit() {
-    AT_EXIT+="${AT_EXIT:+$'\n'}"
-    AT_EXIT+="${*?}"
-    # shellcheck disable=SC2064
-    trap "${AT_EXIT}" EXIT
-}
-
 function get_os_type() {
     uname
 }

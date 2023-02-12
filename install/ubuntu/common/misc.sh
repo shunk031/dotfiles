@@ -16,9 +16,7 @@ function install_apt_packages() {
         "zsh"
     )
     for package in "${packages[@]}"; do
-        if ! ${CI:-false}; then
-            sudo apt-get install -y "${package}"
-        fi
+        sudo apt-get install -y "${package}"
     done
 }
 

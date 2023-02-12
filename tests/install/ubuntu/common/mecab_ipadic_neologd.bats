@@ -4,6 +4,10 @@ function setup() {
     . "./install/ubuntu/common/mecab_ipadic_neologd.sh"
 }
 
+function teardown() {
+    uninstall_mecab_ipadic_neologd_requirements
+}
+
 @test "install mecab-ipadic-neologd (ubuntu)" {
     main
 

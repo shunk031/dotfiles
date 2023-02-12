@@ -14,6 +14,7 @@ readonly PACKAGES=(
 )
 
 function install_tmux() {
+    sudo apt-get update
     sudo apt-get install -y "${PACKAGES[@]}"
 }
 

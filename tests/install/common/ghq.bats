@@ -7,7 +7,7 @@ function setup() {
 }
 
 @test "install ghq (common)" {
-    main
+    run main
 
     [ -d "${HOME%/}/ghq" ]
 }

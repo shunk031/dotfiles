@@ -7,6 +7,6 @@ function setup() {
 }
 
 @test "install mecab-ipadic-neologd (common)" {
-    main
+    run main
     [ is_mecab_ipadic_neologd_installed ]
 }

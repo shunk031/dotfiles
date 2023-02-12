@@ -7,7 +7,7 @@ function setup() {
 }
 
 @test "install fzf" {
-    main
+    run main
 
     export PATH="${PATH}:${HOME}/.fzf/bin"
     [ -x "$(command -v fzf)" ]

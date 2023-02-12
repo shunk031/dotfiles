@@ -6,8 +6,18 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly PACKAGES=(
+    "tmux"
+    "xsel"
+    "cmake"
+)
+
 function install_tmux() {
-    sudo apt-get install -y tmux xsel cmake
+    sudo apt-get install -y "${PACKAGES[@]}"
+}
+
+function uninstall_tmux() {
+    sudo apt-get remove -y "${PACKAGES[@]}"
 }
 
 function main() {

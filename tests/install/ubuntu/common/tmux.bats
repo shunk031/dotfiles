@@ -1,19 +1,17 @@
 #!/usr/bin/env bats
 
-@test "install tmux requirements (ubuntu)" {
+function setup() {
     . "./install/ubuntu/common/tmux.sh"
+}
+
+function teardown() {
+    uninstall_tmux
+}
+
+@test "install tmux requirements (ubuntu)" {
     run main
 
     [ -x "$(command -v tmux)" ]
     [ -x "$(command -v xsel)" ]
     [ -x "$(command -v cmake)" ]
-}
-
-@test "install tpm (ubuntu)" {
-    . "./install/common/tpm.sh"
-    run main
-
-    export PATH="${PATH}:${HOME%/}/.local/bin"
-    [ -e "${HOME%/}/.tmux/plugins/tpm" ]
-    [ -x "$(command -v tmux-mem-cpu-load)" ]
 }

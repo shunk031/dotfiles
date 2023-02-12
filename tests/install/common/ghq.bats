@@ -8,5 +8,6 @@ function setup() {
 
 @test "install ghq (common)" {
     main
+
     [ -d "${HOME%/}/ghq" ]
 }

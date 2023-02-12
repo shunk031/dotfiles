@@ -9,5 +9,6 @@ function setup() {
 @test "install rust" {
     main
 
+    export PATH="${PATH}:${HOME}/.cargo/bin"
     [ -x "$(command -v cargo)" ]
 }

@@ -39,7 +39,7 @@ function install_tpm() {
 }
 
 function install_tmux_mem_cpu_load() {
-    if [ "${DOTFILES_DEBUG:-}" ] && is_tmux_mem_cpu_load_installed; then
+    if [ ! "${DOTFILES_DEBUG:-}" ] && is_tmux_mem_cpu_load_installed; then
         return 0 # early return
     fi
 

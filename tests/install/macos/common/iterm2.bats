@@ -4,6 +4,10 @@ function setup() {
     . "./install/macos/common/iterm2.sh"
 }
 
+function teardown() {
+    uninstall_iterm2
+}
+
 @test "install iterm2" {
     main
 

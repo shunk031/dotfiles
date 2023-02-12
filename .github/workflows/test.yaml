@@ -27,19 +27,19 @@ jobs:
           cd bats-core
           sudo ./install.sh /usr/local
       
-      - name: Unit test with bats
+      - name: Unit test for common scripts
+        run: bats -r tests/install/common
+
+      - name: Unit test for OS specific scripts
         env:
           OS: ${{ matrix.os }}
           SYSTEM: ${{ matrix.system }}
         run: |
-
-          bats -r tests/install/common/
-          
           if [ "${OS}" == "macOS-latest" ]; then
             bats -r tests/install/macos/common
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            bats -r tests/install/ubuntu/common/
+            bats -r tests/install/ubuntu/common
             bats -r tests/install/ubuntu/${SYSTEM}
 
           else

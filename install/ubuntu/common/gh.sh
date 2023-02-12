@@ -16,6 +16,10 @@ function install_gh() {
         sudo apt-get install gh -y
 }
 
+function uninstall_gh() {
+    sudo apt-get remove -y gh
+}
+
 function main() {
     install_gh
 }

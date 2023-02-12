@@ -4,6 +4,10 @@ function setup() {
     . "./install/ubuntu/common/pyenv.sh"
 }
 
+function teardown() {
+    uninstall_pyenv_requirements
+}
+
 @test "install pyenv requirements (ubuntu)" {
     main
 

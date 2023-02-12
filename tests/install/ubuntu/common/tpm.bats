@@ -13,9 +13,9 @@ function teardown() {
 }
 
 @test "install tpm (ubuntu)" {
-    run main
+    main
 
-    export PATH="${PATH}:${HOME%/}/.local/bin"
     [ -e "${HOME%/}/.tmux/plugins/tpm" ]
+    export PATH="${PATH}:${HOME%/}/.local/bin"
     [ -x "$(command -v tmux-mem-cpu-load)" ]
 }

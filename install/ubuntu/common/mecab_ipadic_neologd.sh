@@ -7,7 +7,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly PACKAGES=(
-    "git"
+    # "git"
     "make"
     "curl"
     "xz-utils"

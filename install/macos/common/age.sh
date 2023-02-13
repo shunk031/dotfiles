@@ -6,16 +6,32 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+function is_age_installed() {
+    command -v age &>/dev/null
+}
+
+function is_jq_installed() {
+    command -v jq &>/dev/null
+}
+
 function install_age() {
-    if command -v age &>/dev/null; then
+    if is_age_installed; then
         brew install age
     fi
 }
 
 function install_jq() {
-    if command -v jq &>/dev/null; then
+    if is_jq_installed; then
         brew install jq
     fi
+}
+
+function uninstall_age() {
+    brew uninstall age
+}
+
+function uninstall_jq() {
+    brew uninstall jq
 }
 
 function main() {

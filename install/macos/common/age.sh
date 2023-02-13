@@ -15,13 +15,13 @@ function is_jq_installed() {
 }
 
 function install_age() {
-    if is_age_installed; then
+    if ! is_age_installed; then
         brew install age
     fi
 }
 
 function install_jq() {
-    if is_jq_installed; then
+    if ! is_jq_installed; then
         brew install jq
     fi
 }

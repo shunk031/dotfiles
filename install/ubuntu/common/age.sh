@@ -6,16 +6,32 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+function is_age_installed() {
+    command -v age &>/dev/null
+}
+
+function is_jq_installed() {
+    command -v jq &>/dev/null
+}
+
 function install_age() {
-    if ! command -v age &>/dev/null; then
+    if ! is_age_installed; then
         sudo apt-get install -y age
     fi
 }
 
 function install_jq() {
-    if ! command -v jq &>/dev/null; then
+    if ! is_jq_installed; then
         sudo apt-get install -y jq
     fi
+}
+
+function uninstall_age() {
+    sudo apt-get remove -y age
+}
+
+function uninstall_jq() {
+    sudo apt-get remove -y jq
 }
 
 function main() {

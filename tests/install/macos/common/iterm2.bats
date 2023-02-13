@@ -11,6 +11,8 @@ function teardown() {
 @test "install iterm2" {
     run main
 
+    ls "${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles"
+
     [ -e "/Applications/iTerm.app" ]
-    [ -e "${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles/hotkey_window.json" ]
+    [ -L "${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles/hotkey_window.json" ]
 }

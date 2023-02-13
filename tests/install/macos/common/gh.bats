@@ -5,7 +5,7 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_gh
+    run uninstall_gh
 }
 
 @test "install gh" {

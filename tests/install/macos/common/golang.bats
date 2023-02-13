@@ -5,7 +5,7 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_golang
+    run uninstall_golang
 }
 
 @test "install golang (macos)" {

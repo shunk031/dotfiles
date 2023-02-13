@@ -2,7 +2,7 @@
 
 function setup() {
     . "./install/macos/common/mecab.sh"
-    install_mecab
+    run install_mecab
     . "./install/common/mecab_ipadic_neologd.sh"
 }
 

@@ -5,7 +5,7 @@ function setup() {
 }
 
 @test "install docker" {
-    main
+    run main
 
     run dpkg -s 'docker-ce'
     [ "${status}" -eq 0 ]

@@ -5,8 +5,8 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_nerd_font_roboto_mono
-    uninstall_nerd_font_hack_mono
+    run uninstall_nerd_font_roboto_mono
+    run uninstall_nerd_font_hack_mono
 }
 
 @test "install font" {

@@ -5,7 +5,7 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_ghq
+    run uninstall_ghq
 }
 
 @test "install ghq" {

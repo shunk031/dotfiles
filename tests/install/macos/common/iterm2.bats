@@ -5,7 +5,7 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_iterm2
+    run uninstall_iterm2
 }
 
 @test "install iterm2" {

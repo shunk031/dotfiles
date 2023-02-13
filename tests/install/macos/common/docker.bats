@@ -5,10 +5,10 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_lima
-    uninstall_colima
-    uninstall_docker_cli
-    uninstall_docker_compose
+    run uninstall_lima
+    run uninstall_colima
+    run uninstall_docker_cli
+    run uninstall_docker_compose
 }
 
 @test "install docker" {

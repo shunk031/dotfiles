@@ -5,7 +5,7 @@ function setup() {
 }
 
 @test "install misc (ubuntu client)" {
-    main
+    run main
 
     run dpkg -s 'guake'
     [ "${status}" -eq 0 ]

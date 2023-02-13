@@ -5,7 +5,7 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_chezmoi
+    run uninstall_chezmoi
 }
 
 @test "install chezmoi (macos)" {

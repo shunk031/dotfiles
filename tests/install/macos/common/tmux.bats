@@ -6,8 +6,12 @@ function setup() {
     . "./install/macos/common/tmux.sh"
 }
 
+function teardown() {
+    uninstall_tmux
+}
+
 @test "install tmux (macos)" {
-    main
+    run main
 
     run brew info tmux
     [ "${status}" -eq 0 ]

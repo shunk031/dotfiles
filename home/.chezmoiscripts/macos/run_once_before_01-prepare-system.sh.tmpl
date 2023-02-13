@@ -1,0 +1,5 @@
+{{ if eq .chezmoi.os "darwin" -}}
+{{   if eq .chezmoi.arch "arm64" -}}
+{{     include "../install/macos/arm64/prepare_arm64_system.sh" }}
+{{   end -}}
+{{ end -}}

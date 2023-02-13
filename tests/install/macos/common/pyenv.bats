@@ -1,13 +1,11 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
-
 function setup() {
     . "./install/macos/common/pyenv.sh"
 }
 
 @test "install pyenv requirements (macos)" {
-    main
+    run main
 
     run brew info openssl
     [ "${status}" -eq 0 ]

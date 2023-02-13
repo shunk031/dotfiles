@@ -1,13 +1,11 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
-
 function setup() {
     . "./install/macos/common/tmux.sh"
 }
 
 function teardown() {
-    uninstall_tmux
+    run uninstall_tmux
 }
 
 @test "install tmux (macos)" {

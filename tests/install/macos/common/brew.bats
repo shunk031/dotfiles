@@ -1,13 +1,11 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
-
 function setup() {
     . "./install/macos/common/brew.sh"
 }
 
 @test "install brew" {
-    run main
+    run install_homebrew
 
     [ -x "$(command -v brew)" ]
 }

@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
-
 function setup() {
     . "./install/macos/common/defaults.sh"
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 function setup() {
-    . "./install/macos/common/age.sh"
+    . "./install/ubuntu/common/age.sh"
 }
 
 function teardown() {

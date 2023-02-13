@@ -11,7 +11,7 @@ function teardown() {
 }
 
 @test "install tmux (macos)" {
-    run main
+    run install_tmux
 
     run brew info tmux
     [ "${status}" -eq 0 ]

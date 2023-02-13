@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+function ghq-path() {
+    local repo_name
+    repo_name=$(ghq list | fzf --reverse)
+
+    if [[ -n "$repo_name" ]]; then
+        for repo_root in $(ghq root --all); do
+            local repo_path="${repo_root}/${repo_name}"
+            if [[ -d "${repo_path}" ]]; then
+                echo "${repo_path}"
+                return 0
+            fi
+        done
+    fi
+    return 1
+}
+
+function dev() {
+    local moveto
+    moveto=$(ghq-path)
+    cd "${moveto}" || exit 1
+
+    # rename session if in tmux
+    if [[ -n ${TMUX} ]]; then
+        local repo_name
+        repo_name="${moveto##*/}"
+
+        tmux rename-session "${repo_name//./-}"
+    fi
+}
+
+dev

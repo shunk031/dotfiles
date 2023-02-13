@@ -1,0 +1,5 @@
+.bashrc
+.config/iterm2/
+.tmux.conf.d/system/server.conf
+
+.local/bin/server

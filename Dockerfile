@@ -1,20 +1,33 @@
-From ubuntu:latest
+FROM ubuntu:22.04
 
-ENV LANG en_US.UTF-8
-ENV TERM screen-256color
+ARG USERNAME=shunk031
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
+ENV TZ=Asia/Tokyo
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     curl \
-    wget \
-    sudo \
     git \
-    fontconfig \
-    language-pack-en \
-    python
+    sudo \
+    tzdata \
+    build-essential \
+    ca-certificates
 
-ARG EXEC_USER=shunk031
-RUN useradd --create-home ${EXEC_USER}
-USER ${EXEC_USER}
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -G sudo -s /bin/bash \
+    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
-WORKDIR /home/${EXEC_USER}
+USER $USERNAME
+WORKDIR /home/$USERNAME
+
+RUN sudo sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
+
+RUN mkdir -p ~/.local/share/fonts
+RUN mkdir -p /tmp
+
+RUN git clone https://github.com/bats-core/bats-core.git \
+    && cd bats-core \
+    && sudo ./install.sh /usr/local

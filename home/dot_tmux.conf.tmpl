@@ -1,0 +1,16 @@
+{{- /* 
+
+    Choices: client and server
+
+    macos, ubuntu (client) -> client 
+    ubuntu (server) -> server
+
+*/ -}}
+
+{{ if eq .system "client" -}}
+{{   include "dot_tmux.conf.d/system/client.conf" }}
+{{ else if eq .system "server" -}}
+{{   include "dot_tmux.conf.d/system/server.conf" }}
+{{ else -}}
+run-shell 'echo "Invalid system: {{ .system }}" && exit 1'
+{{ end -}}

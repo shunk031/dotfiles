@@ -1,0 +1,49 @@
+name: MacOS
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - 'README.md'
+      - 'Makefile'
+      - 'Dockerfile'
+      - 'install/ubuntu/**'
+      - '.chezmoiscripts/ubuntu/**'
+      - 'dot_tmux.conf.d/os/ubuntu.conf'
+      - 'tests/install/ubuntu/**'
+      
+  pull_request:
+    branches: [master]
+    paths-ignore:
+      - 'README.md'
+      - 'Makefile'
+      - 'Dockerfile'
+      - 'install/ubuntu/**'
+      - '.chezmoiscripts/ubuntu/**'
+      - 'dot_tmux.conf.d/os/ubuntu.conf'
+      - 'tests/install/ubuntu/**'
+
+jobs:
+  build:
+    runs-on: macOS-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v1
+      
+      - name: Install chezomi
+        run: sudo sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
+      
+      - name: Setup for chezomi
+        run: |
+          mkdir -p "${HOME%/}/.local/bin"
+
+          src_dir="${HOME%/}/work/dotfiles/dotfiles"
+          dst_dir="${HOME%/}/.local/share/chezmoi"
+          ln -sfnv "${src_dir}" "${dst_dir}"
+
+      - name: run chezmoi init
+        env: 
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          DOTFILES_DEBUG: 1
+        run: printf '${EMAIL_ADDRESS}\n' | chezmoi --no-tty init --apply

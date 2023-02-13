@@ -1,0 +1,3 @@
+{{ if eq .chezmoi.os "darwin" -}}
+{{   include "../install/macos/common/mac_app_store.sh" }}
+{{- end }}

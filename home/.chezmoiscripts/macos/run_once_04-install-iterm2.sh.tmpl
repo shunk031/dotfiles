@@ -1,0 +1,4 @@
+{{ if eq .chezmoi.os "darwin" -}}
+{{   include "../install/macos/common/iterm2.sh" }}
+{{   template "chezmoiscripts.d/macos/iterm2.sh.tmpl" . }}
+{{- end }}

@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -Ce
+set -Eeuo pipefail
 
-# shellcheck disable=SC1078,SC1079,SC2016
+# shellcheck disable=SC2016
 declare -r DOTFILES_LOGO='
                           /$$                                      /$$
                          | $$                                     | $$
@@ -16,244 +16,151 @@ declare -r DOTFILES_LOGO='
                                            | $$
                                            |__/
 
-                     *** This is dotfiles setup script ***
-                1. Download https://github.com/shunk031/dotfiles
-                2. Symlink dotfiles to your home directory
-
+             *** This is setup script for my dotfiles setup ***            
+                     https://github.com/shunk031/dotfiles
 '
 
-declare -r GITHUB_REPOSITORY="shunk031/dotfiles"
+declare -r DOTFILES_REPO_URL="https://github.com/shunk031/dotfiles"
 
-declare -r DOTFILES_ORIGIN="git@github.com:$GITHUB_REPOSITORY.git"
-declare -r DOTFILES_TARBALL_URL="https://github.com/$GITHUB_REPOSITORY/tarball/master"
-declare -r DOTFILES_UTIL_URL="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/master/install/util.sh"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-declare dotfiles_directory="$HOME/.dotfiles"
-declare is_skip_questions=false
-
-download() {
-    local url="$1"
-    local output="$2"
-
-    if command -v "curl" &> /dev/null; then
-
-        curl -LsSo "${output}" "${url}" &> /dev/null
-        #     │││└─ write output to file
-        #     ││└─ show error messages
-        #     │└─ don't show the progress meter
-        #     └─ follow redirects
-
-        return $?
-
-    elif command -v "wget" &> /dev/null; then
-
-        wget -qO "$output" "$url" &> /dev/null
-        #     │└─ write output to file
-        #     └─ don't show output
-
-        return $?
-    fi
-
-    return 1
+function at_exit() {
+    AT_EXIT+="${AT_EXIT:+$'\n'}"
+    AT_EXIT+="${*?}"
+    # shellcheck disable=SC2064
+    trap "${AT_EXIT}" EXIT
 }
 
-download_dotfiles() {
-    local tmp_file=""
+function get_os_type() {
+    uname
+}
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function initialize_dotfiles() {
+    function keepalive_sudo() {
+        function keepalive_sudo_linux() {
+            # Might as well ask for password up-front, right?
+            echo "Checking for \`sudo\` access which may request your password."
+            sudo -v
 
-    print_in_purple "\n • Download and extract archive\n\n"
+            # Keep-alive: update existing sudo time stamp if set, otherwise do nothing.
+            while true; do
+                sudo -n true
+                sleep 60
+                kill -0 "$$" || exit
+            done 2>/dev/null &
+        }
+        function keepalive_sudo_macos() {
+            # ref. https://github.com/reitermarkus/dotfiles/blob/master/.sh#L85-L116
+            (
+                builtin read -r -s -p "Password: " </dev/tty
+                builtin echo "add-generic-password -U -s 'dotfiles' -a '${USER}' -w '${REPLY}'"
+            ) | /usr/bin/security -i
+            printf "\n"
+            at_exit "
+                echo -e '\033[0;31mRemoving password from Keychain …\033[0m'
+                /usr/bin/security delete-generic-password -s 'dotfiles' -a '${USER}'
+            "
+            SUDO_ASKPASS="$(/usr/bin/mktemp)"
+            at_exit "
+                echo -e '\033[0;31mDeleting SUDO_ASKPASS script …\033[0m'
+                /bin/rm -f '${SUDO_ASKPASS}'
+            "
+            {
+                echo "#!/bin/sh"
+                echo "/usr/bin/security find-generic-password -s 'dotfiles' -a '${USER}' -w"
+            } >"${SUDO_ASKPASS}"
 
-    tmp_file="$(mktemp /tmp/XXXXX)"
+            /bin/chmod +x "${SUDO_ASKPASS}"
+            export SUDO_ASKPASS
 
-    download "$DOTFILES_TARBALL_URL" "$tmp_file"
-    print_result $? "Download archive" "true"
-    printf "\n"
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    if ! $is_skip_questions; then
-        ask_for_confirmation "Do you want to store the dotfiles in '$dotfiles_directory'?"
-
-        if ! answer_is_yes; then
-            dotfiles_directory=""
-            while [ -z "$dotfiles_directory" ]; do
-                ask "Please specify another location for the dotfiles (path): "
-                dotfiles_directory="$(get_answer)"
-            done
-        fi
-
-        # Ensure the `dotfiles` directory is available
-
-        while [ -e "$dotfiles_directory" ]; do
-            ask_for_confirmation "'$dotfiles_directory' already exists, do you want to overwrite it?"
-            if answer_is_yes; then
-                rm -rf "$dotfiles_directory"
-                break
-            else
-                dotfiles_directory=""
-                while [ -z "$dotfiles_directory" ]; do
-                    ask "Please specify another location for the dotfiles (path): "
-                    dotfiles_directory="$(get_answer)"
-                done
+            if ! /usr/bin/sudo -A -kv 2>/dev/null; then
+                echo -e '\033[0;31mIncorrect password.\033[0m' 1>&2
+                exit 1
             fi
-        done
+        }
 
-        printf "\n"
+        local ostype
+        ostype="$(get_os_type)"
 
-    else
-        rm -rf "$dotfiles_directory" &> /dev/null
-    fi
-
-    mkdir -p "$dotfiles_directory"
-    print_result $? "Create '$dotfiles_directory'" "true"
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    # Extract archive in the `dotfiles` directory.
-
-    extract "$tmp_file" "$dotfiles_directory"
-    print_result $? "Extract archive" "true"
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    rm -rf "$tmp_file"
-    print_result $? "Remove archive\n"
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    cd "$dotfiles_directory" \
-        || return 1
-}
-
-download_util() {
-    local tmp_file=""
-
-    tmp_file="$(mktemp /tmp/XXXXX)"
-
-    download "${DOTFILES_UTIL_URL}" "${tmp_file}" \
-        && . "$tmp_file" \
-        && rm -rf "$tmp_file" \
-        && return 0
-
-    return 1
-}
-
-extract() {
-    local archive="$1"
-    local output_dir="$2"
-
-    if command -v "tar" &> /dev/null; then
-        tar -zxf "$archive" --strip-components 1 -C "$output_dir"
-        return $?
-    fi
-
-    return 1
-}
-
-verify_os() {
-
-    declare -r MINIMUM_MACOS_VERSION="10.10"
-    declare -r MINIMUM_UBUNTU_VERSION="18.04"
-
-    local os_name="$(get_os)"
-    local os_version="$(get_os_version)"
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    # Check if the OS is `macOS` and
-    # it's above the required version.
-
-    if [ "$os_name" == "macos" ]; then
-
-        if is_supported_version "$os_version" "$MINIMUM_MACOS_VERSION"; then
-            return 0
+        if [ "${ostype}" == "Darwin" ]; then
+            keepalive_sudo_macos
+        elif [ "${ostype}" == "Linux" ]; then
+            keepalive_sudo_linux
         else
-            printf "Sorry, this script is intended only for macOS %s+" "$MINIMUM_MACOS_VERSION"
+            echo "Invalid OS type: ${ostype}" >&2
+            exit 1
+        fi
+    }
+    function run_chezmoi() {
+        # Detect whether `/dev/tty` is available
+        # ref. https://stackoverflow.com/a/69088164
+        local no_tty_option
+        if sh -c ": >/dev/tty" >/dev/null 2>/dev/null; then
+            no_tty_option="" # /dev/tty is available
+        else
+            no_tty_option="--no-tty" # /dev/tty is not available (especially in the CI)
         fi
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # run the chezmoi init command with/without the `--no-tty` option
+        # chezmoi init has `--purge-binary` option to remove its own binary;
+        # however this option will disturb testing by the CI because it displays prompt.
+        sh -c "$(curl -fsLS get.chezmoi.io)" -- init "${DOTFILES_REPO_URL}" --apply ${no_tty_option} --use-builtin-git true
+    }
+    function cleanup_chezmoi() {
+        # remove the chezmoi binary without prompt as described above.
+        rm -f "${HOME}/bin/chezmoi"
+    }
 
-    # Check if the OS is `Ubuntu` and
-    # it's above the required version.
-
-    elif [ "$os_name" == "ubuntu" ]; then
-
-        if is_supported_version "$os_version" "$MINIMUM_UBUNTU_VERSION"; then
-            return 0
-        else
-            printf "Sorry, this script is intended only for Ubuntu %s+" "$MINIMUM_UBUNTU_VERSION"
-        fi
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    else
-        printf "Sorry, this script is intended only for macOS and Ubuntu!"
+    if ! "${CI:-false}"; then
+        # - /dev/tty of the github workflow is not available.
+        # - We can use password-less sudo in the github workflow.
+        # Therefore, skip the sudo keep alive function.
+        keepalive_sudo
     fi
-
-    return 1
+    run_chezmoi
+    cleanup_chezmoi
 }
 
-# ----------------------------------------------------------------------
-# | Main                                                               |
-# ----------------------------------------------------------------------
+function get_system_from_chezmoi() {
+    local system
+    system=$(chezmoi data | jq -r '.system')
+    echo "${system}"
+}
 
-main() {
+function restart_shell_system() {
+    local system
+    system=$(get_system_from_chezmoi)
 
-    echo "$DOTFILES_LOGO"
+    # exec shell as login shell (to reload the .zprofile or .profile)
+    if [ "${system}" == "client" ]; then
+        /bin/zsh --login
 
-    # Ensure that the following actions
-    # are made relative to this file's path.
+    elif [ "${system}" == "server" ]; then
+        /bin/bash --login
 
-    cd "$(dirname "${BASH_SOURCE[0]}")" \
-        || exit 1
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # Load utils
-    if [ -x "install/util.sh" ]; then
-        . "install/util.sh" || exit 1
     else
-        download_util || exit 1
+        echo "Invalid system: ${system}; expected \`client\` or \`server\`" >&2
+        exit 1
     fi
+}
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # Ensure the OS is supported and
-    # it's above the required version.
-
-    verify_os \
-        || exit 1
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    skip_questions "$@" \
-        && is_skip_questions=true
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    # ask_for_sudo
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # Check if this script was run directly (./<path>/setup.sh),
-    # and if not, it most likely means that the dotfiles were not
-    # yet set up, and they will need to be downloaded.
-    printf "%s" "${BASH_SOURCE[0]}" | grep "setup.sh" &> /dev/null \
-        || download_dotfiles
-
-    make deploy
-    make init
-    make local
+function restart_shell() {
 
     # Restart shell if specified "bash -c $(curl -L {URL})"
     # not restart:
     #   curl -L {URL} | bash
     if [ -p /dev/stdin ]; then
-        print_in_yellow "Now continue with Rebooting your shell"
+        echo "Now continue with Rebooting your shell"
     else
-        print_success "Restarting your shell..."
-        exec "${SHELL:-$(command -v zsh)}"
+        echo "Restarting your shell..."
+        restart_shell_system
     fi
+}
+
+function main() {
+    echo "$DOTFILES_LOGO"
+
+    initialize_dotfiles
+
+    # restart_shell # Disabled because the at_exit function does not work properly.
 }
 
 main "$@"

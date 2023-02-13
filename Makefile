@@ -1,52 +1,46 @@
-DOTPATH    := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
-CANDIDATES := $(wildcard .??*) bin
-EXCLUSIONS := .DS_Store .git .gitmodules .gitignore .secret.zsh.example .pypirc.example .github .vscode
-DOTFILES   := $(sort $(filter-out $(EXCLUSIONS), $(CANDIDATES)))
+DOCKER_IMAGE_NAME=dotfiles
+DOCKER_ARCH=x86_64
+DOCKER_NUM_CPU=4
+DOKCER_RAM_GB=4
 
-.DEFAULT_GOAL := help
+#
+# Docker
+#
 
-all:
+.PHONY: docker
+docker:
+	@status=$$(limactl list colima --format "{{.Status}}")
+	@if [ -z "$(status)" ] || [[ "$(status)" == "Stopped" ]]; then \
+		colima start \
+			--arch $(DOCKER_ARCH) --cpu $(DOCKER_NUM_CPU) --memory $(DOKCER_RAM_GB) \
+			--mount "$${HOME}/ghq/:w" --mount "$${HOME}/.local/share/chezmoi/:w"; \
+	fi
+	@if ! docker inspect $(DOCKER_IMAGE_NAME) &>/dev/null; then \
+		docker build -t $(DOCKER_IMAGE_NAME) . --build-arg USERNAME="$$(whoami)"; \
+	fi
+	docker run -it -v "$$(pwd):/home/$$(whoami)/.local/share/chezmoi" dotfiles /bin/bash --login
 
-list: ## Show dot files in this repo
-	@$(foreach val, $(DOTFILES), /bin/ls -dF $(val);)
+#
+# Chezmoi
+#
 
-deploy: ## Create symlink to home directory
-	@echo '==> Start to deploy dotfiles to home directory.'
-	@echo ''
-	@$(foreach val, $(DOTFILES), ln -sfnv $(abspath $(val)) $(HOME)/$(val);)
-	@echo ''
+.PHONY: init
+init:
+	chezmoi init --apply --verbose
 
-init: ## Setup environment settings
-	@echo '==> Start to init dotfiles'
-	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/install/main.sh
-	@echo ''
+.PHONY: update
+update:
+	chezmoi apply --verbose
 
-test: ## Test dotfiles and init scripts
-	@echo "test is inactive temporarily"
+.PHONY: watch
+watch:
+	DOTFILES_DEBUG=1 watchexec -- chezmoi apply --verbose
 
-update: ## Fetch changes for this repo
-	git pull origin master
-	git submodule init
-	git submodule update
-	git submodule foreach git pull origin master
-
-install: ## Run make update, deploy, init
-	update
-	deploy
+.PHONY: reset
+reset:
+	chezmoi state delete-bucket --bucket=scriptState
 	init
-	local
-	@exec $$SHELL
 
-clean: ## Remove the dot files and this repo
-	@echo '==> Remove dot files in your home directory.'
-	@-$(foreach val, $(DOTFILES), rm -vrf $(HOME)/$(val);)
-
-help: ## Self-documented Makefile
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
-		| sort \
-		| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
-local:
-	@echo '==> Start to create local config files.'
-	@DOTPATH=$(DOTPATH) bash $(DOTPATH)/install/local.sh
-	@echo ''
+.PHONY: reset-config
+reset-config:
+	chezmoi init --data=false

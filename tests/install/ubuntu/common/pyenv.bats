@@ -1,0 +1,44 @@
+#!/usr/bin/env bats
+
+function setup() {
+    . "./install/ubuntu/common/pyenv.sh"
+}
+
+function teardown() {
+    uninstall_pyenv_requirements
+}
+
+@test "install pyenv requirements (ubuntu)" {
+    main
+
+    run dpkg -s 'build-essential'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'libssl-dev'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'zlib1g-dev'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'libbz2-dev'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'libreadline-dev'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'libsqlite3-dev'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'curl'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'llvm'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'libncursesw5-dev'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'xz-utils'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'tk-dev'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'libxml2-dev'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'libxmlsec1-dev'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'libffi-dev'
+    [ "${status}" -eq 0 ]
+    run dpkg -s 'liblzma-dev'
+    [ "${status}" -eq 0 ]
+}

@@ -1,0 +1,20 @@
+{{- $email := "" -}}
+{{- if hasKey . "email" -}}
+{{-   $email = .email -}}
+{{- else -}}
+{{-   $email = promptString "Email address" -}}
+{{- end -}}
+
+{{- $system := "" -}}
+{{- if hasKey . "system" -}}
+{{-   $system = .system -}}
+{{- /* Set client to the MacOS default system */ -}}
+{{- else if eq .chezmoi.os "darwin" -}}
+{{    $system = "client" -}}
+{{- else -}}
+{{-   $system = promptString "System (client or server)" -}}
+{{- end -}}
+
+[data]
+    email = {{ $email | quote }}
+    system = {{ $system | quote }}

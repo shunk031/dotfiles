@@ -6,8 +6,16 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly ITERM2_CONFIG_NAME="hotkey_window.json"
+readonly ITERM2_CONFIG_DIR="${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles"
+
 function install_item2() {
     brew install --cask iterm2
+}
+
+function uninstall_iterm2() {
+    brew uninstall --cask iterm2
+    rm -fv "${ITERM2_CONFIG_DIR}/${ITERM2_CONFIG_NAME}"
 }
 
 function initialize_iterm2() {
@@ -17,13 +25,11 @@ function initialize_iterm2() {
 }
 
 function symlinc_config() {
-    local iterm2_config_name="hotkey_window.json"
-    local iterm2_config_dir="${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles"
 
-    local src_json_path="${HOME%/}/.config/iterm2/${iterm2_config_name}"
-    local dst_json_path="${iterm2_config_dir}/${iterm2_config_name}"
+    local src_json_path="${HOME%/}/.config/iterm2/${ITERM2_CONFIG_NAME}"
+    local dst_json_path="${ITERM2_CONFIG_DIR}/${ITERM2_CONFIG_NAME}"
 
-    mkdir -p "${iterm2_config_dir}"
+    mkdir -p "${ITERM2_CONFIG_DIR}"
     ln -sfnv "${src_json_path}" "${dst_json_path}"
 }
 

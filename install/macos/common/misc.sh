@@ -18,6 +18,7 @@ function is_cask_formula_installed() {
 
 function install_brew_packages() {
     local packages=(
+        "bats-core"
         "exa"
         "imagemagick"
         "jq"

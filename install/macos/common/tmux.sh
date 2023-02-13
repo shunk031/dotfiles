@@ -6,8 +6,19 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly PACKAGES=(
+    "tmux"
+    # "git"
+    "reattach-to-user-namespace"
+    "cmake"
+)
+
 function install_tmux() {
-    brew install tmux reattach-to-user-namespace cmake
+    brew install "${PACKAGES[@]}"
+}
+
+function uninstall_tmux() {
+    brew uninstall "${PACKAGES[@]}"
 }
 
 function main() {

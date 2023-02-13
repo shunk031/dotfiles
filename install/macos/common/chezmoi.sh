@@ -16,6 +16,10 @@ function install_chezmoi() {
     fi
 }
 
+function uninstall_chezmoi() {
+    brew uninstall chezmoi
+}
+
 function main() {
     install_chezmoi
 }

@@ -6,8 +6,20 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly PACKAGES=(
+    # "git"
+    "make"
+    "curl"
+    "xz-utils"
+    "file"
+)
+
 function install_mecab_ipadic_neologd_requirements() {
-    sudo apt-get install -y git make curl xz-utils file
+    sudo apt-get install -y "${PACKAGES[@]}"
+}
+
+function uninstall_mecab_ipadic_neologd_requirements() {
+    sudo apt-get remove -y "${PACKAGES[@]}"
 }
 
 function main() {

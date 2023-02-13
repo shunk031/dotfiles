@@ -81,6 +81,22 @@ function install_docker_compose() {
     chmod +x "${home_bin_file}"
 }
 
+function uninstall_lima() {
+    brew uninstall lima
+}
+
+function uninstall_colima() {
+    brew uninstall colima
+}
+
+function uninstall_docker_cli() {
+    rm -fv "${HOME%/}/.local/bin/docker"
+}
+
+function uninstall_docker_compose() {
+    rm -fv "${HOME%/}/.local/bin/docker-compose"
+}
+
 function main() {
     install_lima
     install_colima

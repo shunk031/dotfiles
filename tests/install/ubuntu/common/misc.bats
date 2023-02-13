@@ -1,16 +1,20 @@
 #!/usr/bin/env bats
 
 function setup() {
-    . "$(chezmoi source-path)/install/ubuntu/common/misc.sh"
+    . "./install/ubuntu/common/misc.sh"
 }
 
-@test "install misc" {
-    main
-    [ "${status}" -eq 0 ]
+function teardown() {
+    uninstall_apt_packages
+}
+
+@test "install misc (ubuntu)" {
+    run main
+
     [ -x "$(command -v exa)" ]
     [ -x "$(command -v jq)" ]
     [ -x "$(command -v htop)" ]
     [ -x "$(command -v shellcheck)" ]
-    [ -x "$(command -v opensshclient)" ]
+    [ -x "$(command -v vim)" ]
     [ -x "$(command -v zsh)" ]
 }

@@ -1,10 +1,14 @@
 #!/usr/bin/env bats
 
 function setup() {
-    . "$(chezmoi source-path)/install/ubuntu/common/pyenv.sh"
+    . "./install/ubuntu/common/pyenv.sh"
 }
 
-@test "install pyenv requirements" {
+function teardown() {
+    uninstall_pyenv_requirements
+}
+
+@test "install pyenv requirements (ubuntu)" {
     main
 
     run dpkg -s 'build-essential'

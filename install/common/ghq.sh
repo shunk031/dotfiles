@@ -6,9 +6,14 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly GHQ_DIR="${HOME%/}/ghq"
+
 function make_ghq_dir() {
-    local ghq_dir="${HOME%/}/ghq"
-    mkdir -p "${ghq_dir}"
+    mkdir -p "${GHQ_DIR}"
+}
+
+function remove_ghq_dir() {
+    rm -rf "${GHQ_DIR}"
 }
 
 function main() {

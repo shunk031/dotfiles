@@ -1,10 +1,14 @@
 #!/usr/bin/env bats
 
 function setup() {
-    . "$(chezmoi source-path)/install/ubuntu/common/gh.sh"
+    . "./install/ubuntu/common/gh.sh"
+}
+
+function teardown() {
+    uninstall_gh
 }
 
 @test "install gh" {
-    main
+    run main
     [ -x "$(command -v gh)" ]
 }

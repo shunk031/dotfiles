@@ -16,7 +16,7 @@ function teardown() {
 @test "install docker" {
     run main
 
-    export "${HOME%/}/.local/bin"
+    export PATH="${PATH}:${HOME%/}/.local/bin"
     [ -x "$(command -v lima)" ]
     [ -x "$(command -v colima)" ]
     [ -x "$(command -v docker)" ]

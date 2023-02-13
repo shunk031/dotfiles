@@ -6,6 +6,8 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+export TMUX_PLUGIN_MANAGER_PATH="${HOME%/}/.tmux/plugins"
+
 function is_tmux_mem_cpu_load_installed() {
     command -v "tmux-mem-cpu-load" &>/dev/null
 }
@@ -27,11 +29,10 @@ function install_tpm_plugins() {
 }
 
 function install_tpm() {
-    export TMUX_PLUGIN_MANAGER_PATH="${HOME%/}/.tmux/plugins"
 
     local dir="${TMUX_PLUGIN_MANAGER_PATH%/}/tpm/"
 
-    if [ ! "${DOTFILES_DEBUG:-}" ] && [ -d "${dir}" ]; then
+    if [ ! "${DOTFILES_DEBUG:-}" ] || [ ! -d "${dir}" ]; then
         clone_tpm "${dir}"
         install_tpm_plugins "${dir}"
     fi

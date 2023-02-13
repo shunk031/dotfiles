@@ -10,7 +10,7 @@ on:
       - 'install/macos/**'
       - '.chezmoiscripts/macos/**'
       - 'dot_tmux.conf.d/os/macos.conf'
-      - 'test/install/macos/**'
+      - 'tests/install/macos/**'
       
   pull_request:
     branches: [master]
@@ -21,7 +21,7 @@ on:
       - 'install/macos/**'
       - '.chezmoiscripts/macos/**'
       - 'dot_tmux.conf.d/os/macos.conf'
-      - 'test/install/macos/**'
+      - 'tests/install/macos/**'
 
 jobs:
   build:

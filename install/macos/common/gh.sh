@@ -10,6 +10,10 @@ function install_gh() {
     brew install gh
 }
 
+function uninstall_gh() {
+    brew uninstall gh
+}
+
 function main() {
     install_gh
 }

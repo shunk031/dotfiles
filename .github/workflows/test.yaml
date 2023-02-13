@@ -1,0 +1,48 @@
+name: Unit test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+    
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+        system: [client, server]
+        exclude:
+          - os: macos-latest
+            system: server
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v1
+      
+      - name: Install bats
+        run: |
+          git clone https://github.com/bats-core/bats-core.git
+          cd bats-core
+          sudo ./install.sh /usr/local
+      
+      - name: Unit test for common scripts
+        run: bats -r tests/install/common --formatter cat
+
+      - name: Unit test for OS specific scripts
+        env:
+          OS: ${{ matrix.os }}
+          SYSTEM: ${{ matrix.system }}
+        run: |
+          if [ "${OS}" == "macOS-latest" ]; then
+            bats --formatter cat -r tests/install/macos/common
+
+          elif [ "${OS}" == "ubuntu-latest" ]; then
+            bats --formatter cat -r tests/install/ubuntu/common
+            bats --formatter cat -r tests/install/ubuntu/${SYSTEM}
+
+          else
+            echo "${OS} and ${SYSTEM} are not supported" >&2
+            exit 1
+          fi

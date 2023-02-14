@@ -28,43 +28,21 @@ jobs:
     runs-on: macOS-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v1
-      
-      - name: Install chezomi
-        run: sudo sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
-      
-      - name: Setup for chezomi
-        run: |
-          mkdir -p "${HOME%/}/.local/bin"
-
-          src_dir="${HOME%/}/work/dotfiles/dotfiles"
-          dst_dir="${HOME%/}/.local/share/chezmoi"
-          ln -sfnv "${src_dir}" "${dst_dir}"
-      
-      - name: Run `chezmoi init`
-        env: 
+      - name: Setup dotfiles
+        env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           DOTFILES_DEBUG: 1
-        run: printf '${EMAIL_ADDRESS}\n' | chezmoi --no-tty init
-
-      - name: Remove the encrypted files
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          # `age` requires a tty, but there is no tty in the github actions.
-          # Therefore, it is currnetly difficult to decrypt the files encrypted with `age` in this workflow.
-          # I decided to temporarily remove the encrypted target files from chezmoi's control.
+          if [ "${EVENT_NAME}" == "push" ]; then
+            branch_name="${{ github.ref_name }}"
+          elif [ "${EVENT_NAME}" == "pull_request" ]; then
+            branch_name="${{ github.head_ref }}"
+          fi
 
-          chezmoi forget --force ~/.ssh/id_ed25519.pub.age
-          chezmoi forget --force ~/.ssh/id_ed25519.age
-
-          chezmoi forget --force ~/.gnupg/trustdb.gpg.age
-          chezmoi forget --force ~/.gnupg/pubring.kbx.age
-          chezmoi forget --force ~/.gnupg/openpgp-revocs.d/12167BBF66DFD6AB515B12EED55D775A7951407C.rev.age
-          chezmoi forget --force ~/.gnupg/private-keys-v1.d/A1C49BF25D0D1D3318E93EEBC7F237D858D66749.key.age
-          chezmoi forget --force ~/.gnupg/private-keys-v1.d/F1977E27BE90E1EB7CC33D2DD41DB236503275E5.key.age
-
-      - name: Run `chezmoi apply`
-        env: 
-          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          DOTFILES_DEBUG: 1
-        run: chezmoi apply --verbose
+          URL="https://raw.githubusercontent.com/shunk031/dotfiles/${branch_name}/setup.sh"
+          echo "Download setup.sh from ${URL}"
+          
+          printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS $URL)"
+          #              │
+          #              └─ Simulate inputting an email address into the chezmoi's config.

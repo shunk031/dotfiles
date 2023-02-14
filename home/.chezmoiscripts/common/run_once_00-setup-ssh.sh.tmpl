@@ -1,11 +1,3 @@
-#!/usr/bin/env bash
-
-set -Eeuo pipefail
-
-if [ "${DOTFILES_DEBUG:-}" ]; then
-    set -x
-fi
-
 {{ if eq .chezmoi.os "linux" -}}
 {{   if eq .chezmoi.osRelease.idLike "debian" -}}
 {{     include "../install/ubuntu/common/ssh.sh" }}
@@ -13,29 +5,3 @@ fi
        echo "Invalid linux distribution: {{ .chezmoi.osRelease.id }}"
 {{   end -}}
 {{ end -}}
-
-function run_ssh_keygen() {
-    local email="$1"
-    local output_keyfile_path="${HOME%/}/.ssh/id_ed25519"
-
-    if [ ! -e "${output_keyfile_path}" ]; then
-        ssh-keygen -q -t ed25519 -C "\"${email}\"" -N "" -f "${output_keyfile_path}"
-        #           │  │          │                 │     └─ keyfile
-        #           │  │          │                 └─ new_passphrase
-        #           │  │          └─ comment
-        #           │  └─ Specify the type of key to create
-        #           └─ Silence `ssh-keygen`
-    else
-        echo "File ${output_keyfile_path} already exists."
-    fi
-}
-
-function main() {
-    local email="$1"
-
-    run_ssh_keygen "${email}"
-}
-
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "{{ .email }}"
-fi

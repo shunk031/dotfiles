@@ -36,8 +36,15 @@ jobs:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           SYSTEM: ${{ matrix.system }}
           DOTFILES_DEBUG: 1
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          URL"=https://raw.githubusercontent.com/shunk031/dotfiles/${GITHUB_REF_NAME}/setup.sh"
+          if [ "${EVENT_NAME}" == "push" ]; then
+            branch_name="${{ github.ref_name }}"
+          elif [ "${EVENT_NAME}" == "pull_request" ]; then
+            branch_name="${{ github.base_ref }}"
+          fi
+
+          URL"=https://raw.githubusercontent.com/shunk031/dotfiles/${branch_name}/setup.sh"
           printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | bash -c "$(wget -qO - $URL)"
           #              │               │
           #              │               └─ Simulate inputting an system arcitecture into the config.

@@ -1,0 +1,4 @@
+{{ if eq .chezmoi.os "darwin" -}}
+{{   include "../install/macos/common/age.sh" }}
+{{   include "../install/common/age.sh" }}
+{{ end -}}

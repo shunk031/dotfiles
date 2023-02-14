@@ -28,22 +28,21 @@ jobs:
     runs-on: macOS-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v1
-      
-      - name: Install chezomi
-        run: sudo sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
-      
-      - name: Setup for chezomi
-        run: |
-          mkdir -p "${HOME%/}/.local/bin"
-
-          src_dir="${HOME%/}/work/dotfiles/dotfiles"
-          dst_dir="${HOME%/}/.local/share/chezmoi"
-          ln -sfnv "${src_dir}" "${dst_dir}"
-
-      - name: run chezmoi init
-        env: 
+      - name: Setup dotfiles
+        env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           DOTFILES_DEBUG: 1
-        run: printf '${EMAIL_ADDRESS}\n' | chezmoi --no-tty init --apply
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "${EVENT_NAME}" == "push" ]; then
+            branch_name="${{ github.ref_name }}"
+          elif [ "${EVENT_NAME}" == "pull_request" ]; then
+            branch_name="${{ github.head_ref }}"
+          fi
+
+          URL="https://raw.githubusercontent.com/shunk031/dotfiles/${branch_name}/setup.sh"
+          echo "Download setup.sh from ${URL}"
+          
+          printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS $URL)"
+          #              │
+          #              └─ Simulate inputting an email address into the chezmoi's config.

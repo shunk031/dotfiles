@@ -1,0 +1,6 @@
+{{ if eq .chezmoi.os "linux" -}}
+{{   if eq .chezmoi.osRelease.idLike "debian" -}}
+{{     include "../install/ubuntu/common/age.sh" }}
+{{     include "../install/common/age.sh" }}
+{{   end -}}
+{{ end -}}

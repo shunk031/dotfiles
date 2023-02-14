@@ -5,13 +5,14 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_apt_packages
+    run uninstall_apt_packages
 }
 
 @test "install misc (ubuntu)" {
     run main
 
     [ -x "$(command -v exa)" ]
+    [ -x "$(command -v gpg)" ]
     [ -x "$(command -v jq)" ]
     [ -x "$(command -v htop)" ]
     [ -x "$(command -v shellcheck)" ]

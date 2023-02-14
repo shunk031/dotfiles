@@ -7,7 +7,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly PACKAGES=(
-    "openssh-client"
+    openssh-client
 )
 
 function install_openssh() {

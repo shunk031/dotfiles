@@ -7,12 +7,13 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly PACKAGES=(
-    "exa"
-    "jq"
-    "htop"
-    "shellcheck"
-    "vim"
-    "zsh"
+    exa
+    gpg
+    jq
+    htop
+    shellcheck
+    vim
+    zsh
 )
 
 function install_apt_packages() {

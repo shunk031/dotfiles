@@ -7,11 +7,11 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly PACKAGES=(
-    # "git"
-    "make"
-    "curl"
-    "xz-utils"
-    "file"
+    # git
+    make
+    curl
+    xz-utils
+    file
 )
 
 function install_mecab_ipadic_neologd_requirements() {

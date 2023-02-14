@@ -21,6 +21,23 @@ declare -r DOTFILES_LOGO='
 '
 
 declare -r DOTFILES_REPO_URL="https://github.com/shunk031/dotfiles"
+declare -r BRANCH_NAME="${BRANCH_NAME:-master}"
+
+function is_ci() {
+    "${CI:-false}"
+}
+
+function is_tty() {
+    [ -t 0 ]
+}
+
+function is_not_tty() {
+    ! is_tty
+}
+
+function is_ci_or_not_tty() {
+    is_ci || is_not_tty
+}
 
 function at_exit() {
     AT_EXIT+="${AT_EXIT:+$'\n'}"
@@ -33,90 +50,108 @@ function get_os_type() {
     uname
 }
 
-function initialize_dotfiles() {
-    function keepalive_sudo() {
-        function keepalive_sudo_linux() {
-            # Might as well ask for password up-front, right?
-            echo "Checking for \`sudo\` access which may request your password."
-            sudo -v
+function keepalive_sudo_linux() {
+    # Might as well ask for password up-front, right?
+    echo "Checking for \`sudo\` access which may request your password."
+    sudo -v
 
-            # Keep-alive: update existing sudo time stamp if set, otherwise do nothing.
-            while true; do
-                sudo -n true
-                sleep 60
-                kill -0 "$$" || exit
-            done 2>/dev/null &
-        }
-        function keepalive_sudo_macos() {
-            # ref. https://github.com/reitermarkus/dotfiles/blob/master/.sh#L85-L116
-            (
-                builtin read -r -s -p "Password: " </dev/tty
-                builtin echo "add-generic-password -U -s 'dotfiles' -a '${USER}' -w '${REPLY}'"
-            ) | /usr/bin/security -i
-            printf "\n"
-            at_exit "
+    # Keep-alive: update existing sudo time stamp if set, otherwise do nothing.
+    while true; do
+        sudo -n true
+        sleep 60
+        kill -0 "$$" || exit
+    done 2>/dev/null &
+}
+
+function keepalive_sudo_macos() {
+    # ref. https://github.com/reitermarkus/dotfiles/blob/master/.sh#L85-L116
+    (
+        builtin read -r -s -p "Password: " </dev/tty
+        builtin echo "add-generic-password -U -s 'dotfiles' -a '${USER}' -w '${REPLY}'"
+    ) | /usr/bin/security -i
+    printf "\n"
+    at_exit "
                 echo -e '\033[0;31mRemoving password from Keychain …\033[0m'
                 /usr/bin/security delete-generic-password -s 'dotfiles' -a '${USER}'
             "
-            SUDO_ASKPASS="$(/usr/bin/mktemp)"
-            at_exit "
+    SUDO_ASKPASS="$(/usr/bin/mktemp)"
+    at_exit "
                 echo -e '\033[0;31mDeleting SUDO_ASKPASS script …\033[0m'
                 /bin/rm -f '${SUDO_ASKPASS}'
             "
-            {
-                echo "#!/bin/sh"
-                echo "/usr/bin/security find-generic-password -s 'dotfiles' -a '${USER}' -w"
-            } >"${SUDO_ASKPASS}"
+    {
+        echo "#!/bin/sh"
+        echo "/usr/bin/security find-generic-password -s 'dotfiles' -a '${USER}' -w"
+    } >"${SUDO_ASKPASS}"
 
-            /bin/chmod +x "${SUDO_ASKPASS}"
-            export SUDO_ASKPASS
+    /bin/chmod +x "${SUDO_ASKPASS}"
+    export SUDO_ASKPASS
 
-            if ! /usr/bin/sudo -A -kv 2>/dev/null; then
-                echo -e '\033[0;31mIncorrect password.\033[0m' 1>&2
-                exit 1
-            fi
-        }
+    if ! /usr/bin/sudo -A -kv 2>/dev/null; then
+        echo -e '\033[0;31mIncorrect password.\033[0m' 1>&2
+        exit 1
+    fi
+}
 
-        local ostype
-        ostype="$(get_os_type)"
+function keepalive_sudo() {
 
-        if [ "${ostype}" == "Darwin" ]; then
-            keepalive_sudo_macos
-        elif [ "${ostype}" == "Linux" ]; then
-            keepalive_sudo_linux
-        else
-            echo "Invalid OS type: ${ostype}" >&2
-            exit 1
-        fi
-    }
-    function run_chezmoi() {
-        # Detect whether `/dev/tty` is available
-        # ref. https://stackoverflow.com/a/69088164
-        local no_tty_option
-        if sh -c ": >/dev/tty" >/dev/null 2>/dev/null; then
-            no_tty_option="" # /dev/tty is available
-        else
-            no_tty_option="--no-tty" # /dev/tty is not available (especially in the CI)
-        fi
+    local ostype
+    ostype="$(get_os_type)"
 
-        # run the chezmoi init command with/without the `--no-tty` option
-        # chezmoi init has `--purge-binary` option to remove its own binary;
-        # however this option will disturb testing by the CI because it displays prompt.
-        sh -c "$(curl -fsLS get.chezmoi.io)" -- init "${DOTFILES_REPO_URL}" --apply ${no_tty_option} --use-builtin-git true
-    }
-    function cleanup_chezmoi() {
-        # remove the chezmoi binary without prompt as described above.
-        rm -f "${HOME}/bin/chezmoi"
-    }
+    if [ "${ostype}" == "Darwin" ]; then
+        keepalive_sudo_macos
+    elif [ "${ostype}" == "Linux" ]; then
+        keepalive_sudo_linux
+    else
+        echo "Invalid OS type: ${ostype}" >&2
+        exit 1
+    fi
+}
 
-    if ! "${CI:-false}"; then
+function run_chezmoi() {
+    # download the chezmoi binary from the URL
+    sh -c "$(curl -fsLS get.chezmoi.io)"
+    local chezmoi_cmd="${HOME%/}/bin/chezmoi"
+
+    if is_ci_or_not_tty; then
+        no_tty_option="--no-tty" # /dev/tty is not available (especially in the CI)
+    else
+        no_tty_option="" # /dev/tty is available OR not in the CI
+    fi
+    # run `chezmoi init` to setup the source directory,
+    # generate the config file, and optionally update the destination directory
+    # to match the target state.
+    "${chezmoi_cmd}" init "${DOTFILES_REPO_URL}" \
+        --force \
+        --branch "${BRANCH_NAME}" \
+        --use-builtin-git true \
+        ${no_tty_option}
+
+    # the `age` command requires a tty, but there is no tty in the github actions.
+    # Therefore, it is currnetly difficult to decrypt the files encrypted with `age` in this workflow.
+    # I decided to temporarily remove the encrypted target files from chezmoi's control.
+    if is_ci_or_not_tty; then
+        rm -fv "$(chezmoi source-path)"/**/encrypted_*
+    fi
+
+    # run `chezmoi apply` to ensure that target... are in the target state,
+    # updating them if necessary.
+    "${chezmoi_cmd}" apply \
+        ${no_tty_option}
+
+    # purge the binary of the chezmoi cmd
+    rm -fv "${chezmoi_cmd}"
+}
+
+function initialize_dotfiles() {
+
+    if is_ci_or_not_tty; then
         # - /dev/tty of the github workflow is not available.
         # - We can use password-less sudo in the github workflow.
         # Therefore, skip the sudo keep alive function.
         keepalive_sudo
     fi
     run_chezmoi
-    cleanup_chezmoi
 }
 
 function get_system_from_chezmoi() {
@@ -163,4 +198,4 @@ function main() {
     # restart_shell # Disabled because the at_exit function does not work properly.
 }
 
-main "$@"
+main

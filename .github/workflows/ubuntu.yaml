@@ -31,39 +31,14 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v1
-      
-      - name: Install chezomi
-        run: sudo sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
-      
-      - name: Setup for chezmoi
-        run: |
-          mkdir -p "${HOME%/}/.local/share"
-
-          src_dir="${HOME%/}/work/dotfiles/dotfiles"
-          dst_dir="${HOME%/}/.local/share/chezmoi"
-          ln -sfnv "${src_dir}" "${dst_dir}"
-      
-      - name: Run `chezmoi init`
-        env: 
+      - name: Setup dotfiles
+        env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           SYSTEM: ${{ matrix.system }}
           DOTFILES_DEBUG: 1
-        run: printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | chezmoi --no-tty init
-
-      - name: Remove the encrypted files
         run: |
-          # `age` requires a tty, but there is no tty in the github actions.
-          # Therefore, it is currnetly difficult to decrypt the files encrypted with `age` in this workflow.
-          # I decided to temporarily remove the encrypted target files from chezmoi's control.
-          chezmoi forget --force ~/.ssh/id_ed25519.pub.age
-          chezmoi forget --force ~/.ssh/id_ed25519.age
-          chezmoi forget --force ~/.gnupg/trustdb.gpg.age
-          chezmoi forget --force ~/.gnupg/pubring.kbx.age
-
-      - name: Run `chezmoi apply`
-        env: 
-          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          DOTFILES_DEBUG: 1
-        run: chezmoi apply --verbose
+          URL"=https://raw.githubusercontent.com/shunk031/dotfiles/${BRANCH_NAME}/setup.sh"
+          printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | bash -c "$(wget -qO - $URL)"
+          #              │               │
+          #              │               └─ Simulate inputting an system arcitecture into the config.
+          #              └─ Simulate inputting an email address into the config.

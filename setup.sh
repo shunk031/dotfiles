@@ -118,9 +118,6 @@ function run_chezmoi() {
     local chezmoi_cmd
     chezmoi_cmd="./bin/chezmoi"
 
-    ls
-    ls bin
-
     if is_ci_or_not_tty; then
         no_tty_option="--no-tty" # /dev/tty is not available (especially in the CI)
     else
@@ -139,7 +136,7 @@ function run_chezmoi() {
     # Therefore, it is currnetly difficult to decrypt the files encrypted with `age` in this workflow.
     # I decided to temporarily remove the encrypted target files from chezmoi's control.
     if is_ci_or_not_tty; then
-        rm -fv "$(chezmoi source-path)"/**/encrypted_*
+        rm -fv "$(${chezmoi_cmd} source-path)"/**/encrypted_*
     fi
 
     # run `chezmoi apply` to ensure that target... are in the target state,

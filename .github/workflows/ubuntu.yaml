@@ -74,6 +74,7 @@ jobs:
           tool: customSmallerIsBetter
           output-file-path: result.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          gh-pages-branch: master
           auto-push: false
           comment-on-alert: true
           fail-on-alert: true

@@ -2,6 +2,10 @@
 
 set -Eeuo pipefail
 
+if [ "${DOTFILES_DEBUG:-}" ]; then
+    set -x
+fi
+
 # shellcheck disable=SC2016
 declare -r DOTFILES_LOGO='
                           /$$                                      /$$

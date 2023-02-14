@@ -57,7 +57,10 @@ jobs:
           #              │               │
           #              │               └─ Simulate inputting an system arcitecture into the config.
           #              └─ Simulate inputting an email address into the config.
-      
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Run benchmark
         run: |
           $(chezmoi source-path)/../benchmarks/scripts/benchmark.sh > result.json

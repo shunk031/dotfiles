@@ -88,4 +88,4 @@ jobs:
       
       - name: Check
         run: |
-          ls ./dev/bench
+          ls

@@ -72,7 +72,7 @@ jobs:
 
       - name: Dump result.json
         run: cat result.json
-      
+
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -85,7 +85,8 @@ jobs:
           fail-on-alert: true
           alert-threshold: '150%'
           alert-comment-cc-users: "@shunk031"
+          benchmark-data-dir-path: ./benchmarks/results
       
       - name: Check
         run: |
-          ls
+          ls ./benchmarks/results

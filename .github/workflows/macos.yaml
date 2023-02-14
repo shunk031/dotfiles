@@ -52,6 +52,9 @@ jobs:
           #              │
           #              └─ Simulate inputting an email address into the chezmoi's config.
 
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Run benchmark
         run: ./benchmarks/scripts/benchmark.sh > result.json
 

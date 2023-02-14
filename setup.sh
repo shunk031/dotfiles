@@ -139,10 +139,10 @@ function run_chezmoi() {
         rm -fv "$(${chezmoi_cmd} source-path)"/**/encrypted_*
     fi
 
-    ls "$(chezmoi source-path)"/private_dot_ssh
-    ls "$(chezmoi source-path)"/private_dot_gnupg
-    ls "$(chezmoi source-path)"/private_dot_gnupg/private_openpgp-revocs.d
-    ls "$(chezmoi source-path)"/private_dot_gnupg/private_private-keys-v1d.
+    ls "$(${chezmoi_cmd} source-path)"/private_dot_ssh
+    ls "$(${chezmoi_cmd} source-path)"/private_dot_gnupg
+    ls "$(${chezmoi_cmd} source-path)"/private_dot_gnupg/private_openpgp-revocs.d
+    ls "$(${chezmoi_cmd} source-path)"/private_dot_gnupg/private_private-keys-v1d.
 
     # run `chezmoi apply` to ensure that target... are in the target state,
     # updating them if necessary.

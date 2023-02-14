@@ -59,6 +59,7 @@ jobs:
       
       - name: Run benchmark
         run: |
+          ls $(chezmoi source-path)/../
           $(chezmoi source-path)/../benchmarks/scripts/benchmark.sh > result.json
 
       - name: Dump result.json

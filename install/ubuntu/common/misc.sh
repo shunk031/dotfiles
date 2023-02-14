@@ -8,6 +8,7 @@ fi
 
 readonly PACKAGES=(
     exa
+    gpg
     jq
     htop
     shellcheck

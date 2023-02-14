@@ -12,6 +12,7 @@ function teardown() {
     run main
 
     [ -x "$(command -v exa)" ]
+    [ -x "$(command -v gpg)" ]
     [ -x "$(command -v jq)" ]
     [ -x "$(command -v htop)" ]
     [ -x "$(command -v shellcheck)" ]

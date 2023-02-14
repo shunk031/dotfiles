@@ -26,8 +26,11 @@ function initialize_iterm2() {
 
 function symlinc_config() {
 
-    local src_json_path="${HOME%/}/.config/iterm2/${ITERM2_CONFIG_NAME}"
-    local dst_json_path="${ITERM2_CONFIG_DIR}/${ITERM2_CONFIG_NAME}"
+    local src_json_path
+    local dst_json_path
+
+    src_json_path="$(chezmoi source-path)/dot_config/iterm2/${ITERM2_CONFIG_NAME}"
+    dst_json_path="${ITERM2_CONFIG_DIR}/${ITERM2_CONFIG_NAME}"
 
     mkdir -p "${ITERM2_CONFIG_DIR}"
     ln -sfnv "${src_json_path}" "${dst_json_path}"

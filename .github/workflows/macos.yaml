@@ -23,6 +23,11 @@ on:
       - 'dot_tmux.conf.d/os/ubuntu.conf'
       - 'tests/install/ubuntu/**'
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: macOS-latest
@@ -46,3 +51,10 @@ jobs:
           printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS $URL)"
           #              │
           #              └─ Simulate inputting an email address into the chezmoi's config.
+
+      - name: Run benchmark
+        run: ./benchmarks/scripts/benchmark.sh > result.json
+
+      - name: Dump result.json
+        run: cat result.json
+      

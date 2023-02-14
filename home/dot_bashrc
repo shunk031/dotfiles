@@ -158,5 +158,9 @@ source "${HOME%/}/.local/bin/server/cache.sh"
 # shellcheck source=./dot_local/bin/common/executable_dev
 source "${HOME%/}/.local/bin/common/dev"
 
+# for gpg
+# shellcheck source=./dot_local/bin/common/gpg.sh
+source "${HOME%/}/.local/bin/common/gpg.sh"
+
 # for fzf
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash

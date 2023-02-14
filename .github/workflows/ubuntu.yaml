@@ -59,6 +59,8 @@ jobs:
           # I decided to temporarily remove the encrypted target files from chezmoi's control.
           chezmoi forget --force ~/.ssh/id_ed25519.pub.age
           chezmoi forget --force ~/.ssh/id_ed25519.age
+          chezmoi forget --force ~/.gnupg/trustdb.gpg.age
+          chezmoi forget --force ~/.gnupg/pubring.kbx.age
 
       - name: Run `chezmoi apply`
         env: 

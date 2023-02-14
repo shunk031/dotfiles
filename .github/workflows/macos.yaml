@@ -53,7 +53,8 @@ jobs:
           #              └─ Simulate inputting an email address into the chezmoi's config.
 
       - name: Run benchmark
-        run: ./benchmarks/scripts/benchmark.sh > result.json
+        run: |
+          $(chezmoi source-path)/../benchmarks/scripts/benchmark.sh > result.json
 
       - name: Dump result.json
         run: cat result.json

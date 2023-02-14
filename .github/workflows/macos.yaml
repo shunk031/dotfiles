@@ -52,7 +52,12 @@ jobs:
           printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS $URL)"
           #              │
           #              └─ Simulate inputting an email address into the chezmoi's config.
-      
+
+      - name: Unset gpg
+        run: |
+          git config --global --unset commit.gpgsign
+          git config --global --unset user.signingkey
+
       - name: Checkout
         uses: actions/checkout@v2
 

@@ -118,6 +118,9 @@ function run_chezmoi() {
     local chezmoi_cmd
     chezmoi_cmd="./bin/chezmoi"
 
+    ls
+    ls bin
+
     if is_ci_or_not_tty; then
         no_tty_option="--no-tty" # /dev/tty is not available (especially in the CI)
     else

@@ -45,6 +45,8 @@ jobs:
           fi
 
           URL="https://raw.githubusercontent.com/shunk031/dotfiles/${branch_name}/setup.sh"
+          echo "Download setup.sh from ${URL}"
+
           printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | bash -c "$(wget -qO - $URL)"
           #              │               │
           #              │               └─ Simulate inputting an system arcitecture into the config.

@@ -139,11 +139,6 @@ function run_chezmoi() {
         find "$(${chezmoi_cmd} source-path)" -type f -name "encrypted_*" -exec rm -fv {} +
     fi
 
-    ls "$(${chezmoi_cmd} source-path)"/private_dot_ssh
-    ls "$(${chezmoi_cmd} source-path)"/private_dot_gnupg
-    ls "$(${chezmoi_cmd} source-path)"/private_dot_gnupg/private_openpgp-revocs.d
-    ls "$(${chezmoi_cmd} source-path)"/private_dot_gnupg/private_private-keys-v1.d
-
     # run `chezmoi apply` to ensure that target... are in the target state,
     # updating them if necessary.
     "${chezmoi_cmd}" apply \
@@ -155,7 +150,7 @@ function run_chezmoi() {
 
 function initialize_dotfiles() {
 
-    if is_ci_or_not_tty; then
+    if ! is_ci_or_not_tty; then
         # - /dev/tty of the github workflow is not available.
         # - We can use password-less sudo in the github workflow.
         # Therefore, skip the sudo keep alive function.

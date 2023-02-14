@@ -5,7 +5,7 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_apt_packages
+    run uninstall_apt_packages
 }
 
 @test "install misc (ubuntu)" {

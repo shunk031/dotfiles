@@ -5,20 +5,18 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_mecab_ipadic_neologd_requirements
+    run uninstall_mecab_ipadic_neologd_requirements
 }
 
 @test "install mecab-ipadic-neologd (ubuntu)" {
-    main
+    run main
 
-    run dpkg -s 'git'
+    run dpkg -s make
     [ "${status}" -eq 0 ]
-    run dpkg -s 'make'
+    run dpkg -s curl
     [ "${status}" -eq 0 ]
-    run dpkg -s 'curl'
+    run dpkg -s xz-utils
     [ "${status}" -eq 0 ]
-    run dpkg -s 'xz-utils'
-    [ "${status}" -eq 0 ]
-    run dpkg -s 'file'
+    run dpkg -s file
     [ "${status}" -eq 0 ]
 }

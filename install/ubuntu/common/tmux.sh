@@ -7,10 +7,10 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly PACKAGES=(
-    "tmux"
-    # "git"
-    "xsel"
-    "cmake"
+    tmux
+    # git
+    xsel
+    cmake
 )
 
 function install_tmux() {

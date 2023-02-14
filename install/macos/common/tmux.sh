@@ -7,10 +7,10 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly PACKAGES=(
-    "tmux"
-    # "git"
-    "reattach-to-user-namespace"
-    "cmake"
+    tmux
+    # git
+    reattach-to-user-namespace
+    cmake
 )
 
 function install_tmux() {

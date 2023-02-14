@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+chezmoi-cd() {
+    cd "$(chezmoi source-path)" || return
+}
+
+chezmoi-cd

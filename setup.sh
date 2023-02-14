@@ -116,7 +116,7 @@ function run_chezmoi() {
     # download the chezmoi binary from the URL
     sh -c "$(curl -fsLS get.chezmoi.io)"
     local chezmoi_cmd
-    chezmoi_cmd="$(pwd)/bin/chezmoi"
+    chezmoi_cmd="./bin/chezmoi"
 
     if is_ci_or_not_tty; then
         no_tty_option="--no-tty" # /dev/tty is not available (especially in the CI)

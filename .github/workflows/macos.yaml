@@ -28,18 +28,12 @@ jobs:
     runs-on: macOS-latest
 
     steps:
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
-
       - name: Setup dotfiles
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          BRANCH_NAME: ${{ steps.extract_branch.outputs.branch }}
           DOTFILES_DEBUG: 1
         run: |
-          URL"=https://raw.githubusercontent.com/shunk031/dotfiles/${BRANCH_NAME}/setup.sh"
+          URL"=https://raw.githubusercontent.com/shunk031/dotfiles/${GITHUB_REF_NAME}/setup.sh"
           printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS $URL)"
           #              │
           #              └─ Simulate inputting an email address into the chezmoi's config.

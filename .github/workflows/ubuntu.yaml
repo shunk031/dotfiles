@@ -57,6 +57,11 @@ jobs:
           #              │               │
           #              │               └─ Simulate inputting an system arcitecture into the config.
           #              └─ Simulate inputting an email address into the config.
+      
+      - name: Unset gpg
+        run: |
+          git config --global --unset commit.gpgsign
+          git config --global --unset user.signingkey
 
       - name: Checkout
         uses: actions/checkout@v2

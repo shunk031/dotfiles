@@ -10,6 +10,7 @@ BENCHMARK_RESULT_DIR="$(chezmoi source-path)/../benchmarks/results"
 readonly BENCHMARK_RESULT_DIR
 
 function prepare_benchmark() {
+    ls "${BENCHMARK_RESULT_DIR}"
     find "${BENCHMARK_RESULT_DIR}" -type f -exec rm -f {} +
 }
 

@@ -9,6 +9,7 @@ fi
 readonly BREW_PACKAGES=(
     bats-core
     exa
+    gpg
     imagemagick
     jq
     hugo

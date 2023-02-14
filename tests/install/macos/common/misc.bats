@@ -14,6 +14,8 @@ function setup() {
     [ "${status}" -eq 0 ]
     run brew info exa
     [ "${status}" -eq 0 ]
+    run brew info gpg
+    [ "${status}" -eq 0 ]
     run brew info imagemagick
     [ "${status}" -eq 0 ]
     run brew info jq

@@ -6,64 +6,74 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-function is_formula_installed() {
-    local formula="$1"
-    brew ls --versions "${formula}" >/dev/null
-}
+readonly BREW_PACKAGES=(
+    bats-core
+    exa
+    imagemagick
+    jq
+    hugo
+    htop
+    shellcheck
+    tailscale
+    vim
+    watchexec
+    zsh
+)
 
-function is_cask_formula_installed() {
-    local formula="$1"
-    brew ls --cask --versions "${formula}" >/dev/null
+readonly CASK_PACKAGES=(
+    adobe-acrobat-reader
+    google-chrome
+    google-drive
+    google-japanese-ime
+    slack
+    spectacle
+    spotify
+    vlc
+    visual-studio-code
+    zotero
+    zoom
+)
+
+function is_brew_package_installed() {
+    local package="$1"
+
+    brew list "${package}" &>/dev/null
 }
 
 function install_brew_packages() {
-    local packages=(
-        "bats-core"
-        "exa"
-        "imagemagick"
-        "jq"
-        "hugo"
-        "htop"
-        "shellcheck"
-        "tailscale"
-        "vim"
-        "watchexec"
-        "zsh"
-    )
-    for package in "${packages[@]}"; do
-        if "${CI:-false}"; then
-            brew info "${package}"
-        else
-            if ! is_formula_installed "${package}"; then
-                brew install "${package}"
-            fi
+    local missing_packages=()
+
+    for package in "${BREW_PACKAGES[@]}"; do
+        if ! is_brew_package_installed "${package}"; then
+            missing_packages+=("${package}")
         fi
     done
+
+    if [[ ${#missing_packages[@]} -gt 0 ]]; then
+        if "${CI:-false}"; then
+            brew info "${missing_packages[@]}"
+        else
+            brew install --force "${missing_packages[@]}"
+        fi
+    fi
 }
 
 function install_brew_cask_packages() {
-    local packages=(
-        "adobe-acrobat-reader"
-        "google-chrome"
-        "google-drive"
-        "google-japanese-ime"
-        "slack"
-        "spectacle"
-        "spotify"
-        "vlc"
-        "visual-studio-code"
-        "zotero"
-        "zoom"
-    )
-    for package in "${packages[@]}"; do
-        if ${CI:-false}; then
-            brew info --cask "${package}"
-        else
-            if ! is_cask_formula_installed "${package}"; then
-                brew install --cask "${package}"
-            fi
+    local missing_packages=()
+
+    for package in "${CASK_PACKAGES[@]}"; do
+        if ! is_brew_package_installed "${package}"; then
+            missing_packages+=("${package}")
         fi
     done
+
+    if [[ ${#missing_packages[@]} -gt 0 ]]; then
+        if "${CI:-false}"; then
+            brew info --cask "${missing_packages[@]}"
+        else
+            brew install --cask --force "${missing_packages[@]}"
+        fi
+    fi
 }
 
 function setup_google_chrome() {
@@ -74,7 +84,6 @@ function main() {
     install_brew_packages
     install_brew_cask_packages
 
-    # setup_spectacle
     # setup_google_chrome
 }
 

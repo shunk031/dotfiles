@@ -35,6 +35,8 @@ jobs:
         system: [server, client]
 
     runs-on: ubuntu-latest
+    env:
+      RESULT_JSON: result.json
     steps:
       - name: Setup dotfiles
         env:
@@ -60,8 +62,23 @@ jobs:
       
       - name: Run benchmark
         run: |
-          ls $(chezmoi source-path)/../
-          $(chezmoi source-path)/../benchmarks/scripts/benchmark.sh > result.json
+          $(chezmoi source-path)/../benchmarks/scripts/benchmark.sh > "${RESULT_JSON}"
 
       - name: Dump result.json
-        run: cat result.json
+        run: cat "${RESULT_JSON}"
+      
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: customSmallerIsBetter
+          output-file-path: "${RESULT_JSON}"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-threshold: '150%'
+          alert-comment-cc-users: "@shunk031"
+      
+      - name: Check
+        run: |
+          ls ./dev/benchmark

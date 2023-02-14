@@ -6,8 +6,17 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly PACKAGES=(
+    guake
+    gparted
+)
+
 function install_misc() {
-    sudo apt-get install -y guake gparted
+    sudo apt-get install -y "${PACKAGES[@]}"
+}
+
+function uninstall_misc() {
+    sudo apt-get remove -y "${PACKAGES[@]}"
 }
 
 function main() {

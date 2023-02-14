@@ -7,9 +7,9 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly PACKAGES=(
-    "mecab"
-    "libmecab-dev"
-    "mecab-ipadic-utf8"
+    mecab
+    libmecab-dev
+    mecab-ipadic-utf8
 )
 
 function install_mecab() {

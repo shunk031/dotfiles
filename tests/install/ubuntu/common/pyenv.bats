@@ -5,40 +5,40 @@ function setup() {
 }
 
 function teardown() {
-    uninstall_pyenv_requirements
+    run uninstall_pyenv_requirements
 }
 
 @test "install pyenv requirements (ubuntu)" {
-    main
+    run main
 
-    run dpkg -s 'build-essential'
+    run dpkg -s build-essential
     [ "${status}" -eq 0 ]
-    run dpkg -s 'libssl-dev'
+    run dpkg -s libssl-dev
     [ "${status}" -eq 0 ]
-    run dpkg -s 'zlib1g-dev'
+    run dpkg -s zlib1g-dev
     [ "${status}" -eq 0 ]
-    run dpkg -s 'libbz2-dev'
+    run dpkg -s libbz2-dev
     [ "${status}" -eq 0 ]
-    run dpkg -s 'libreadline-dev'
+    run dpkg -s libreadline-dev
     [ "${status}" -eq 0 ]
-    run dpkg -s 'libsqlite3-dev'
+    run dpkg -s libsqlite3-dev
     [ "${status}" -eq 0 ]
-    run dpkg -s 'curl'
+    run dpkg -s curl
     [ "${status}" -eq 0 ]
-    run dpkg -s 'llvm'
+    run dpkg -s llvm
     [ "${status}" -eq 0 ]
-    run dpkg -s 'libncursesw5-dev'
+    run dpkg -s libncursesw5-dev
     [ "${status}" -eq 0 ]
-    run dpkg -s 'xz-utils'
+    run dpkg -s xz-utils
     [ "${status}" -eq 0 ]
-    run dpkg -s 'tk-dev'
+    run dpkg -s tk-dev
     [ "${status}" -eq 0 ]
-    run dpkg -s 'libxml2-dev'
+    run dpkg -s libxml2-dev
     [ "${status}" -eq 0 ]
-    run dpkg -s 'libxmlsec1-dev'
+    run dpkg -s libxmlsec1-dev
     [ "${status}" -eq 0 ]
-    run dpkg -s 'libffi-dev'
+    run dpkg -s libffi-dev
     [ "${status}" -eq 0 ]
-    run dpkg -s 'liblzma-dev'
+    run dpkg -s liblzma-dev
     [ "${status}" -eq 0 ]
 }

@@ -14,6 +14,7 @@ readonly BREW_PACKAGES=(
     jq
     hugo
     htop
+    pinentry-mac
     shellcheck
     tailscale
     vim

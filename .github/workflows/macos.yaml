@@ -55,9 +55,7 @@ jobs:
 
       - name: Unset gpg
         run: |
-          git config -l
-          git config --global --unset commit.gpgsign
-          git config --global --unset user.signingkey
+          git config --global commit.gpgsign false
 
       - name: Checkout
         uses: actions/checkout@v2

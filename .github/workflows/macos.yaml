@@ -75,7 +75,7 @@ jobs:
           tool: customSmallerIsBetter
           output-file-path: result.json
           github-token: ${{ secrets.MY_DOTFILES_BENCHMARK }}
-          gh-repository: https://github.com/shunk031/my-dotfiles-benchmarks
+          gh-repository: "github.com/shunk031/my-dotfiles-benchmarks"
           gh-pages-branch: master
           auto-push: true
           comment-on-alert: true

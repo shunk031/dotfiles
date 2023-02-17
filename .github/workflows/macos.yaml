@@ -72,17 +72,15 @@ jobs:
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
+          name: MacOS benchmark
           tool: customSmallerIsBetter
           output-file-path: result.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.MY_DOTFILES_BENCHMARK }}
+          gh-repository: https://github.com/shunk031/my-dotfiles-benchmarks
           gh-pages-branch: master
-          auto-push: false
+          auto-push: true
           comment-on-alert: true
           fail-on-alert: true
-          alert-threshold: '150%'
+          alert-threshold: "150%"
           alert-comment-cc-users: "@shunk031"
-          benchmark-data-dir-path: ./benchmarks/results
-      
-      - name: Check
-        run: |
-          ls ./benchmarks/results
+          benchmark-data-dir-path: "."

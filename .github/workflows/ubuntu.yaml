@@ -57,32 +57,3 @@ jobs:
           #              │               │
           #              │               └─ Simulate inputting an system arcitecture into the config.
           #              └─ Simulate inputting an email address into the config.
-      
-      - name: Unset gpg
-        run: |
-          git config --global --unset commit.gpgsign
-          git config --global --unset user.signingkey
-
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Run benchmark
-        run: |
-          $(chezmoi source-path)/../benchmarks/scripts/benchmark.sh > result.json
-
-      - name: Dump result.json
-        run: cat result.json
-
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          tool: customSmallerIsBetter
-          output-file-path: result.json
-          github-token: ${{ secrets.MY_DOTFILES_DENCHMARKS_SECRETS }}
-          gh-pages-branch: master
-          auto-push: true
-          comment-on-alert: true
-          fail-on-alert: true
-          alert-threshold: "150%"
-          alert-comment-cc-users: "@shunk031"
-          benchmark-data-dir-path: "."

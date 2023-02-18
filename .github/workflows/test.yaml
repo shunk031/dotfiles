@@ -27,8 +27,25 @@ jobs:
           cd bats-core
           sudo ./install.sh /usr/local
       
+      - name: Install kcov
+        env:
+          OS: ${{ matrix.os }}
+        run: |
+          if [ "${OS}" == "macOS-latest" ]; then
+            brew install kcov
+          elif [ "${OS}" == "ubuntu-latest" ]; then
+            sudo apt-get install -y kcov
+          else
+            echo "${OS} and ${SYSTEM} are not supported" >&2
+            exit 1
+          fi
+
       - name: Unit test for common scripts
-        run: bats -r tests/install/common --formatter cat
+        run: |
+          kcov --clean \
+            --include-path=install/common/ \
+            ./coverage_common \
+            bats -r tests/install/common/
 
       - name: Unit test for OS specific scripts
         env:
@@ -36,13 +53,58 @@ jobs:
           SYSTEM: ${{ matrix.system }}
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
-            bats --formatter cat -r tests/install/macos/common
+            kcov --clean \
+              --include-path=install/macos/common/ \
+              ./coverage_macos_common \
+              bats -r tests/install/macos/common/
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            bats --formatter cat -r tests/install/ubuntu/common
-            bats --formatter cat -r tests/install/ubuntu/${SYSTEM}
+            kcov --clean \
+              --include-path=install/ubuntu/common/ \
+              ./coverage_ubuntu_common \
+              bats -r tests/install/ubuntu/common/
+
+            kcov --clean \
+              --include-path=install/ubuntu/${SYSTEM}/ \
+              ./coverage_ubuntu_${SYSTEM} \
+              bats -r tests/install/ubuntu/${SYSTEM}/
 
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2
             exit 1
           fi
+      
+      - name: Merge coverage results
+        env:
+          OS: ${{ matrix.os }}
+          SYSTEM: ${{ matrix.system }}
+        run: |
+          if [ "${OS}" == "macOS-latest" ]; then
+            kcov --merge ./coverage \
+              ./coverage_common \
+              ./coverage_macos_common
+
+          elif [ "${OS}" == "ubuntu-latest" ]; then
+            kcov --merge ./coverage \
+              ./coverage_common \
+              ./coverage_ubuntu_common \
+              ./coverage_ubuntu_${SYSTEM}
+
+          else
+            echo "${OS} and ${SYSTEM} are not supported" >&2
+            exit 1
+          fi
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          OS: ${{ matrix.os }}
+          SYSTEM: ${{ matrix.system }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./coverage
+          env_vars: OS,SYSTEM
+          fail_ci_if_error: true
+          flags: unittests
+          name: codecov-dotfiles
+          verbose: true

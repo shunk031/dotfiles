@@ -1,16 +1,36 @@
 <div align="center">
-<img src="https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/header.png" alt="shunk031's">
-<h1>📂 dotfiles</h1>
-
-<a href="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml"><img src="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml/badge.svg" alt="Snippet install"></a>
-<a href="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml"><img src="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml/badge.svg"></a>
-<a href="http://spacemacs.org/"><img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" alt="spacemacs"></a>
-<a href="https://github.com/zsh-users/zsh"><img src="https://img.shields.io/badge/built%20with-zsh-black.svg" alt="zsh"></a>
-<a href="https://github.com/sorin-ionescu/prezto"><img src="https://img.shields.io/badge/built%20with-prezto-orange.svg" alt="prezto"></a>
-<a href="https://github.com/tmux/tmux"><img src="https://img.shields.io/badge/built%20with-tmux-green.svg" alt="tmux"></a>
+    <img src="https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/header.png" alt="shunk031's">
+    <h1>📂 dotfiles</h1>
+    <div>
+        <a href="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml">
+            <img src="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml/badge.svg" alt="Snippet install">
+        </a>
+        <a href="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml">
+            <img src="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml/badge.svg">
+        </a>
+        <a href="https://codecov.io/gh/shunk031/dotfiles" > 
+            <img src="https://codecov.io/gh/shunk031/dotfiles/branch/master/graph/badge.svg?token=4VUJWKGAR7"/>
+        </a>
+    </div>
+    <div>
+        <a href="http://spacemacs.org/">
+            <img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" alt="spacemacs">
+        </a>
+        <a href="https://github.com/zsh-users/zsh">
+            <img src="https://img.shields.io/badge/built%20with-zsh-black.svg" alt="zsh">
+        </a>
+        <a href="https://github.com/sorin-ionescu/prezto">
+            <img src="https://img.shields.io/badge/built%20with-prezto-orange.svg" alt="prezto">
+        </a>
+        <a href="https://github.com/tmux/tmux">
+            <img src="https://img.shields.io/badge/built%20with-tmux-green.svg" alt="tmux">
+        </a>
+    </div>
 </div>
 
-This [dotfiles](https://github.com/shunk031/dotfiles) repository is managed with [`chezmoi 🏠`](https://www.chezmoi.io/), a great dotfiles manager.
+## 🗿 Overview
+
+This [dotfiles](https://github.com/shunk031/dotfiles) repository is managed with [`chezmoi🏠`](https://www.chezmoi.io/), a great dotfiles manager.
 The setup scripts are aimed for [MacOS](https://www.apple.com/jp/macos), [Ubuntu Desktop](https://ubuntu.com/desktop), and [Ubuntu Server](https://ubuntu.com/server). The first two (MacOS/Ubuntu Desktop) include settings for `client` machines and the latter one (Ubuntu Server) for `server` machines. 
 
 The actual dotfiles exist under the [`home`](https://github.com/shunk031/dotfiles/tree/master/home) directory specified in the [`.chezmoiroot`](https://github.com/shunk031/dotfiles/blob/master/.chezmoiroot).

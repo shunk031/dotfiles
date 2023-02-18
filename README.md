@@ -2,12 +2,28 @@
 <img src="https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/header.png" alt="shunk031's">
 <h1>📂 dotfiles</h1>
 
-<a href="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml"><img src="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml/badge.svg" alt="Snippet install"></a>
-<a href="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml"><img src="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml/badge.svg"></a>
-<a href="http://spacemacs.org/"><img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" alt="spacemacs"></a>
-<a href="https://github.com/zsh-users/zsh"><img src="https://img.shields.io/badge/built%20with-zsh-black.svg" alt="zsh"></a>
-<a href="https://github.com/sorin-ionescu/prezto"><img src="https://img.shields.io/badge/built%20with-prezto-orange.svg" alt="prezto"></a>
-<a href="https://github.com/tmux/tmux"><img src="https://img.shields.io/badge/built%20with-tmux-green.svg" alt="tmux"></a>
+<a href="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml">
+    <img src="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml/badge.svg" alt="Snippet install">
+</a>
+<a href="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml">
+    <img src="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml/badge.svg">
+</a>
+<a href="https://codecov.io/gh/shunk031/dotfiles" > 
+    <img src="https://codecov.io/gh/shunk031/dotfiles/branch/master/graph/badge.svg?token=4VUJWKGAR7"/>
+</a>
+
+<a href="http://spacemacs.org/">
+    <img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" alt="spacemacs">
+</a>
+<a href="https://github.com/zsh-users/zsh">
+    <img src="https://img.shields.io/badge/built%20with-zsh-black.svg" alt="zsh">
+</a>
+<a href="https://github.com/sorin-ionescu/prezto">
+    <img src="https://img.shields.io/badge/built%20with-prezto-orange.svg" alt="prezto">
+</a>
+<a href="https://github.com/tmux/tmux">
+    <img src="https://img.shields.io/badge/built%20with-tmux-green.svg" alt="tmux">
+</a>
 </div>
 
 This [dotfiles](https://github.com/shunk031/dotfiles) repository is managed with [`chezmoi 🏠`](https://www.chezmoi.io/), a great dotfiles manager.

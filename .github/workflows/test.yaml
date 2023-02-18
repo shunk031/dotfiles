@@ -33,9 +33,9 @@ jobs:
       - name: Install kcov
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
-            brew install kcov
+            brew install kcov parallel
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            sudo apt-get install -y kcov
+            sudo apt-get install -y kcov parallel
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2
             exit 1
@@ -46,7 +46,7 @@ jobs:
           kcov --clean \
             --include-path=install/common/ \
             ./coverage_common \
-            bats -r tests/install/common/
+            bats -j 4 -r tests/install/common/
 
       - name: Unit test for OS specific scripts
         run: |
@@ -54,18 +54,18 @@ jobs:
             kcov --clean \
               --include-path=install/macos/common/ \
               ./coverage_macos_common \
-              bats -r tests/install/macos/common/
+              bats -j 4 -r tests/install/macos/common/
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
             kcov --clean \
               --include-path=install/ubuntu/common/ \
               ./coverage_ubuntu_common \
-              bats -r tests/install/ubuntu/common/
+              bats -j 4 -r tests/install/ubuntu/common/
 
             kcov --clean \
               --include-path=install/ubuntu/${SYSTEM}/ \
               ./coverage_ubuntu_${SYSTEM} \
-              bats -r tests/install/ubuntu/${SYSTEM}/
+              bats -j 4 -r tests/install/ubuntu/${SYSTEM}/
 
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2

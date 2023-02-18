@@ -88,4 +88,4 @@ jobs:
         # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           repository="https://shunk031:${{ secrets.MY_DOTFILES_BENCHMARK }}@github.com/shunk031/my-dotfiles-benchmarks.git"
-          git push "${repository}" master:master
+          git push "${repository}" master

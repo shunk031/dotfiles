@@ -23,11 +23,6 @@ on:
       - 'dot_tmux.conf.d/os/ubuntu.conf'
       - 'tests/install/ubuntu/**'
 
-# permissions:
-#   contents: read
-#   pages: write
-#   id-token: write
-
 jobs:
   build:
     runs-on: macOS-latest
@@ -70,7 +65,7 @@ jobs:
       
       - name: Set flag for auto-push in the benchmark action
         run:
-          if [ ${{ github.event_name }} == 'push' ] && [ ${{ github.ref }} == 'refs/heads/master' ]; then
+          if [[ ${{ github.event_name }} == 'push' ]] && [[ ${{ github.ref }} == 'refs/heads/master' ]]; then
             echo "auto_push=true" >> $GITHUB_ENV
           else
             echo "auto_push=false" >> $GITHUB_ENV

@@ -104,7 +104,7 @@ The scripts for the unit test can be found under [`./tests`](https://github.com/
 
 ## Measure the startup speed of the dotfiles
 
-The startup speed of zsh on MacOS with this dotfile is continuously measured at [shunk031.me/my-dotfiles-benchmarks/](https://shunk031.me/my-dotfiles-benchmarks/).
+The startup speed of zsh on MacOS with this dotfile is continuously measured at [shunk031.me/my-dotfiles-benchmarks](https://shunk031.me/my-dotfiles-benchmarks/) using [benchmark-action/github-action-benchmark](https://github.com/benchmark-action/github-action-benchmark).
 
 ## 👏 Acknowledgements
 

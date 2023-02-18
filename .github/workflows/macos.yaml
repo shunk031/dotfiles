@@ -23,10 +23,10 @@ on:
       - 'dot_tmux.conf.d/os/ubuntu.conf'
       - 'tests/install/ubuntu/**'
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# permissions:
+#   contents: read
+#   pages: write
+#   id-token: write
 
 jobs:
   build:

@@ -24,18 +24,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v1
       
-      - name: Install bats
-        run: |
-          git clone https://github.com/bats-core/bats-core.git
-          cd bats-core
-          sudo ./install.sh /usr/local
-      
       - name: Install kcov
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
-            brew install kcov parallel
+            brew install bats-core kcov parallel
+
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            sudo apt-get install -y kcov parallel
+            sudo apt-get install -y bats kcov parallel
+            
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2
             exit 1

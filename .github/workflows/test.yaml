@@ -17,6 +17,9 @@ jobs:
             system: server
 
     runs-on: ${{ matrix.os }}
+    env:
+        OS: ${{ matrix.os }}
+        SYSTEM: ${{ matrix.system }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v1
@@ -28,8 +31,6 @@ jobs:
           sudo ./install.sh /usr/local
       
       - name: Install kcov
-        env:
-          OS: ${{ matrix.os }}
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
             brew install kcov
@@ -48,9 +49,6 @@ jobs:
             bats -r tests/install/common/
 
       - name: Unit test for OS specific scripts
-        env:
-          OS: ${{ matrix.os }}
-          SYSTEM: ${{ matrix.system }}
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
             kcov --clean \
@@ -75,9 +73,6 @@ jobs:
           fi
       
       - name: Merge coverage results
-        env:
-          OS: ${{ matrix.os }}
-          SYSTEM: ${{ matrix.system }}
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
             kcov --merge ./coverage \
@@ -108,9 +103,6 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
-        env:
-          OS: ${{ matrix.os }}
-          SYSTEM: ${{ matrix.system }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           directory: ./coverage

@@ -102,7 +102,7 @@ shunk031@5f93d270cb51:~$ chezmoi init --apply
 Test the shellscript for setup with [Bash Automated Testing System (bats)](https://github.com/bats-core/bats-core).
 The scripts for the unit test can be found under [`./tests`](https://github.com/shunk031/dotfiles/tree/master/tests/install) directory.
 
-## Measure the startup speed of the dotfiles
+## 📊 Measure the startup speed of the dotfiles
 
 The startup speed of zsh on MacOS with this dotfile is continuously measured at [shunk031.me/my-dotfiles-benchmarks](https://shunk031.me/my-dotfiles-benchmarks/) using [benchmark-action/github-action-benchmark](https://github.com/benchmark-action/github-action-benchmark).
 

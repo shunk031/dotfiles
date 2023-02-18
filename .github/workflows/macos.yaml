@@ -77,9 +77,15 @@ jobs:
           github-token: ${{ secrets.MY_DOTFILES_BENCHMARK }}
           gh-repository: "github.com/shunk031/my-dotfiles-benchmarks"
           gh-pages-branch: master
-          auto-push: true
+          auto-push: false
           comment-on-alert: true
           fail-on-alert: true
           alert-threshold: "150%"
           alert-comment-cc-users: "@shunk031"
           benchmark-data-dir-path: "."
+
+      - name: Push benchmark result
+        # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          repository="https://shunk031:${{ secrets.MY_DOTFILES_BENCHMARK }}@github.com/shunk031/my-dotfiles-benchmarks.git"
+          git push "${repository}" master:master

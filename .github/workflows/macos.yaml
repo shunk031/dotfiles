@@ -67,6 +67,14 @@ jobs:
 
       - name: Dump result.json
         run: cat result.json
+      
+      - name: Set flag for auto-push in the benchmark action
+        run:
+          if [ ${{ github.event_name }} == 'push' ] && [ ${{ github.ref }} == 'refs/heads/master' ]; then
+            echo "auto_push=true" >> $GITHUB_ENV
+          else
+            echo "auto_push=false" >> $GITHUB_ENV
+          fi
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -76,15 +84,9 @@ jobs:
           output-file-path: result.json
           github-token: ${{ secrets.MY_DOTFILES_BENCHMARK }}
           gh-repository: "github.com/shunk031/my-dotfiles-benchmarks"
-          auto-push: false
+          auto-push: ${{ env.auto_push }}
           comment-on-alert: true
           fail-on-alert: true
           alert-threshold: "150%"
           alert-comment-cc-users: "@shunk031"
           benchmark-data-dir-path: "."
-
-      - name: Push benchmark result
-        # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run: |
-          repository='https://shunk031:${{ secrets.MY_DOTFILES_BENCHMARK }}@github.com/shunk031/my-dotfiles-benchmarks.git'
-          git push "${repository}" gh-pages:gh-pages

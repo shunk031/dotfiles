@@ -6,7 +6,8 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-BENCHMARK_RESULT_DIR="$(chezmoi source-path)/../benchmarks/results"
+DEFAULT_BENCHMARK_RESULT_DIR="$(chezmoi source-path)/../benchmarks/results"
+BENCHMARK_RESULT_DIR="${BENCHMARK_RESULT_DIR:-${DEFAULT_BENCHMARK_RESULT_DIR}}"
 readonly BENCHMARK_RESULT_DIR
 
 function prepare_benchmark() {

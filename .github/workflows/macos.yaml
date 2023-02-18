@@ -76,7 +76,6 @@ jobs:
           output-file-path: result.json
           github-token: ${{ secrets.MY_DOTFILES_BENCHMARK }}
           gh-repository: "github.com/shunk031/my-dotfiles-benchmarks"
-          gh-pages-branch: master
           auto-push: false
           comment-on-alert: true
           fail-on-alert: true
@@ -88,4 +87,4 @@ jobs:
         # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           repository='https://shunk031:${{ secrets.MY_DOTFILES_BENCHMARK }}@github.com/shunk031/my-dotfiles-benchmarks.git'
-          git push "${repository}" master:master
+          git push "${repository}" gh-pages:gh-pages

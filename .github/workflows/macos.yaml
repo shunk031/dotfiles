@@ -74,6 +74,7 @@ jobs:
           name: MacOS benchmark
           tool: customSmallerIsBetter
           output-file-path: result.json
+          github-token: ${{ secrets.MY_DOTFILES_BENCHMARK }}
           gh-repository: "github.com/shunk031/my-dotfiles-benchmarks"
           gh-pages-branch: master
           auto-push: false

@@ -3,7 +3,9 @@
 readonly SCRIPT_PATH="./install/common/tpm.sh"
 
 function setup() {
-    bash "./install/ubuntu/common/tmux.sh" # install tmux
+    source "./install/ubuntu/common/tmux.sh"
+    main # install tmux
+
     source "${SCRIPT_PATH}"
 }
 

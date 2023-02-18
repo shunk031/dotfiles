@@ -3,7 +3,9 @@
 readonly SCRIPT_PATH="./install/ubuntu/common/ghq.sh"
 
 function setup() {
-    bash "./install/ubuntu/common/golang.sh" # install golang
+    source "./install/ubuntu/common/golang.sh"
+    main # install golang
+
     source "${SCRIPT_PATH}"
 }
 

@@ -24,7 +24,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v1
       
-      - name: Install kcov
+      - name: Install tools
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
             brew install bats-core kcov parallel
@@ -42,7 +42,7 @@ jobs:
           kcov --clean \
             --include-path=install/common/ \
             ./coverage_common \
-            bats -j 4 -r tests/install/common/
+            bats -r tests/install/common/
 
       - name: Unit test for OS specific scripts
         run: |
@@ -50,18 +50,18 @@ jobs:
             kcov --clean \
               --include-path=install/macos/common/ \
               ./coverage_macos_common \
-              bats -j 4 -r tests/install/macos/common/
+              bats -r tests/install/macos/common/
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
             kcov --clean \
               --include-path=install/ubuntu/common/ \
               ./coverage_ubuntu_common \
-              bats -j 4 -r tests/install/ubuntu/common/
+              bats -r tests/install/ubuntu/common/
 
             kcov --clean \
               --include-path=install/ubuntu/${SYSTEM}/ \
               ./coverage_ubuntu_${SYSTEM} \
-              bats -j 4 -r tests/install/ubuntu/${SYSTEM}/
+              bats -r tests/install/ubuntu/${SYSTEM}/
 
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2

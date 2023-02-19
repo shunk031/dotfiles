@@ -1,18 +1,19 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/ubuntu/common/age.sh"
+
 function setup() {
-    . "./install/ubuntu/common/age.sh"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {
-    uninstall_age
-    uninstall_jq
+    run uninstall_age
+    run uninstall_jq
 }
 
-@test "install age (ubuntu)" {
-    run install_age
-    [ -x "$(command -v age)" ]
+@test "[ubuntu-common] age" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
-    run install_jq
+    [ -x "$(command -v age)" ]
     [ -x "$(command -v jq)" ]
 }

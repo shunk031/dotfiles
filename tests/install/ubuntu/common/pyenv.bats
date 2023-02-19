@@ -1,15 +1,43 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/ubuntu/common/pyenv.sh"
+
 function setup() {
-    . "./install/ubuntu/common/pyenv.sh"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {
     run uninstall_pyenv_requirements
 }
 
-@test "install pyenv requirements (ubuntu)" {
-    run main
+@test "PACKAGES" {
+    num_packages="${#PACKAGES[@]}"
+    [ $num_packages -eq 15 ]
+
+    expected_packages=(
+        build-essential
+        libssl-dev
+        zlib1g-dev
+        libbz2-dev
+        libreadline-dev
+        libsqlite3-dev
+        curl
+        llvm
+        libncursesw5-dev
+        xz-utils
+        tk-dev
+        libxml2-dev
+        libxmlsec1-dev
+        libffi-dev
+        liblzma-dev
+    )
+    for ((i = 0; i < ${#expected_packages[*]}; ++i)); do
+        [ "${PACKAGES[$i]}" == "${expected_packages[$i]}" ]
+    done
+}
+
+@test "[ubuntu-common] pyenv" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run dpkg -s build-essential
     [ "${status}" -eq 0 ]

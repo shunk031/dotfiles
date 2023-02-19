@@ -1,19 +1,25 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/ubuntu/common/ghq.sh"
+
 function setup() {
-    . "./install/ubuntu/common/golang.sh"
+    load "./install/ubuntu/common/golang.sh"
     main # install golang
 
-    . "./install/ubuntu/common/ghq.sh"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {
-    uninstall_golang
-    uninstall_ghq
+    run uninstall_golang
+    run uninstall_ghq
+
+    # reset PATH
+    PATH=$(getconf PATH)
+    export PATH
 }
 
-@test "install ghq" {
-    run main
+@test "[ubuntu-common] ghq" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     export GOPATH="${HOME%/}/ghq"
     export PATH="${PATH}:${GOPATH}/bin"

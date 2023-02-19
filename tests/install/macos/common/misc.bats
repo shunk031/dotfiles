@@ -1,11 +1,13 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/macos/common/misc.sh"
+
 function setup() {
-    . "./install/macos/common/misc.sh"
+    source "${SCRIPT_PATH}"
 }
 
-@test "install misc (macos)" {
-    run main
+@test "[macos] misc" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     #
     # brew packages

@@ -1,12 +1,13 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/macos/common/mac_app_store.sh"
+
 function setup() {
-    . "./install/macos/common/mac_app_store.sh"
+    source "${SCRIPT_PATH}"
 }
 
-@test "install mas" {
-    run main
-    [ "${status}" -eq 0 ]
+@test "[macos] mac app store" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     #
     # On CI, since it does not log into the app store,

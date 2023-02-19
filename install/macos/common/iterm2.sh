@@ -29,7 +29,7 @@ function symlinc_config() {
     local src_json_path
     local dst_json_path
 
-    src_json_path="$(chezmoi source-path)/dot_config/iterm2/${ITERM2_CONFIG_NAME}"
+    src_json_path="${HOME%/}/.local/share/chezmoi/dot_config/iterm2/${ITERM2_CONFIG_NAME}"
     dst_json_path="${ITERM2_CONFIG_DIR}/${ITERM2_CONFIG_NAME}"
 
     mkdir -p "${ITERM2_CONFIG_DIR}"

@@ -1,15 +1,21 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/ubuntu/common/ssh.sh"
+
 function setup() {
-    . "./install/ubuntu/common/ssh.sh"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {
-    uninstall_openssh
+    run uninstall_openssh
 }
 
-@test "setup ssh" {
-    main
+@test "PACKAGES" {
+    [ ${#PACKAGES[@]} -eq 1 ]
+}
+
+@test "[ubuntu-common] ssh" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run dpkg -s 'openssh-client'
     [ "${status}" -eq 0 ]

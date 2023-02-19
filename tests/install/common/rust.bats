@@ -1,13 +1,21 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
+readonly SCRIPT_PATH="./install/common/rust.sh"
 
 function setup() {
-    . "./install/common/rust.sh"
+    source "${SCRIPT_PATH}"
 }
 
-@test "install rust" {
-    run main
+function teardown() {
+    uninstall_rust
+
+    # reset PATH
+    PATH=$(getconf PATH)
+    export PATH
+}
+
+@test "[common] rust" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     export PATH="${PATH}:${HOME}/.cargo/bin"
     [ -x "$(command -v cargo)" ]

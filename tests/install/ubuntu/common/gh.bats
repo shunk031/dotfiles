@@ -1,14 +1,16 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/ubuntu/common/gh.sh"
+
 function setup() {
-    . "./install/ubuntu/common/gh.sh"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {
-    uninstall_gh
+    run uninstall_gh
 }
 
-@test "install gh" {
-    run main
+@test "[ubuntu-common] gh" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
     [ -x "$(command -v gh)" ]
 }

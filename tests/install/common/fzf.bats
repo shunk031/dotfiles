@@ -1,13 +1,21 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
+readonly SCRIPT_PATH="install/common/fzf.sh"
 
 function setup() {
-    . "./install/common/fzf.sh"
+    source "${SCRIPT_PATH}"
 }
 
-@test "install fzf" {
-    run main
+function teardown() {
+    run uninstall_fzf
+
+    # reset PATH
+    PATH=$(getconf PATH)
+    export PATH
+}
+
+@test "[common] fzf" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     export PATH="${PATH}:${HOME}/.fzf/bin"
     [ -x "$(command -v fzf)" ]

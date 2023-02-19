@@ -122,6 +122,12 @@ shunk031@5f93d270cb51:~$ chezmoi init --apply
 Test the shellscript for setup with [Bash Automated Testing System (bats)](https://github.com/bats-core/bats-core).
 The scripts for the unit test can be found under [`./tests`](https://github.com/shunk031/dotfiles/tree/master/tests/install) directory.
 
+### 📦 Continuously monitor code coverage with Codecov [![codecov](https://codecov.io/gh/shunk031/dotfiles/branch/master/graph/badge.svg?token=4VUJWKGAR7)](https://codecov.io/gh/shunk031/dotfiles)
+
+The code coverage of the [`./install`](https://github.com/shunk031/dotfiles/tree/master/install) scripts are continuously monitored at [app.codecov.io/gh/shunk031/dotfiles](https://app.codecov.io/gh/shunk031/dotfiles). The following Icicle graph represents the code coverage of the scripts:
+
+![](https://codecov.io/gh/shunk031/dotfiles/branch/master/graphs/icicle.svg?token=4VUJWKGAR7)
+
 ## 📊 Measure the startup speed of the dotfiles
 
 The startup speed of zsh on MacOS with this dotfile is continuously measured at [shunk031.me/my-dotfiles-benchmarks](https://shunk031.me/my-dotfiles-benchmarks/) using [benchmark-action/github-action-benchmark](https://github.com/benchmark-action/github-action-benchmark).

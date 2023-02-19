@@ -12,6 +12,10 @@ function install_rust() {
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
 }
 
+function uninstall_rust() {
+    rustup self uninstall
+}
+
 function main() {
     install_rust
 }

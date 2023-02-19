@@ -1,15 +1,22 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/ubuntu/common/golang.sh"
+
 function setup() {
-    . "./install/ubuntu/common/golang.sh"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {
-    uninstall_golang
+    run uninstall_golang
+
+    # reset PATH
+    PATH=$(getconf PATH)
+    export PATH
 }
 
-@test "install golang (ubuntu)" {
-    run main
+@test "[ubuntu-common] golang" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
+
     export PATH="${PATH}:/usr/local/go/bin"
     [ -x "$(command -v go)" ]
 }

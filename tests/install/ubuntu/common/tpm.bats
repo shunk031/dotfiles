@@ -1,21 +1,26 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/common/tpm.sh"
+
 function setup() {
-    . "./install/ubuntu/common/tmux.sh"
+    source "./install/ubuntu/common/tmux.sh"
     main # install tmux
 
-    . "./install/common/tpm.sh"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {
-    uninstall_tmux
-    uninstall_tpm
-    uninstall_tmux_mem_cpu_load
+    run uninstall_tmux
+    run uninstall_tpm
+    run uninstall_tmux_mem_cpu_load
+
+    # reset PATH
+    PATH=$(getconf PATH)
+    export PATH
 }
 
-@test "install tpm (ubuntu)" {
-    run install_tpm
-    run install_tmux_mem_cpu_load
+@test "[ubuntu-common] tpm" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -e "${HOME%/}/.tmux/plugins/tpm" ]
     export PATH="${PATH}:${HOME%/}/.local/bin"

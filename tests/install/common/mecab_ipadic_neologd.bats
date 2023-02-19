@@ -1,12 +1,12 @@
 #!/usr/bin/env bats
 
-set -Eeuo pipefail
+readonly SCRIPT_PATH="./install/common/mecab_ipadic_neologd.sh"
 
 function setup() {
-    . "./install/common/mecab_ipadic_neologd.sh"
+    source "${SCRIPT_PATH}"
 }
 
-@test "install mecab-ipadic-neologd (common)" {
-    run main
+@test "[common] mecab-ipadic-neologd" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
     [ is_mecab_ipadic_neologd_installed ]
 }

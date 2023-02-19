@@ -1,15 +1,17 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/ubuntu/common/mecab.sh"
+
 function setup() {
-    . "./install/ubuntu/common/mecab.sh"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {
-    uninstall_mecab
+    run uninstall_mecab
 }
 
-@test "install mecab" {
-    main
+@test "[ubuntu-common] mecab" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run dpkg -s mecab
     [ "${status}" -eq 0 ]

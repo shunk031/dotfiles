@@ -1,7 +1,9 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/macos/common/defaults.sh"
+
 function setup() {
-    . "./install/macos/common/defaults.sh"
+    source "${SCRIPT_PATH}"
 }
 
 @test "test for ui" {

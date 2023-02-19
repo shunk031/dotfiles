@@ -24,18 +24,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v1
       
-      - name: Install bats
-        run: |
-          git clone https://github.com/bats-core/bats-core.git
-          cd bats-core
-          sudo ./install.sh /usr/local
-      
-      - name: Install kcov
+      - name: Install tools
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
-            brew install kcov
+            brew install bats-core kcov parallel
+
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            sudo apt-get install -y kcov
+            sudo apt-get install -y bats kcov parallel
+            
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2
             exit 1
@@ -47,6 +43,7 @@ jobs:
             --include-path=install/common/ \
             ./coverage_common \
             bats -r tests/install/common/
+          # bats -r tests/install/common/
 
       - name: Unit test for OS specific scripts
         run: |
@@ -55,17 +52,20 @@ jobs:
               --include-path=install/macos/common/ \
               ./coverage_macos_common \
               bats -r tests/install/macos/common/
+            # bats -r tests/install/macos/common/
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
             kcov --clean \
               --include-path=install/ubuntu/common/ \
               ./coverage_ubuntu_common \
               bats -r tests/install/ubuntu/common/
+            # bats -r tests/install/ubuntu/common/
 
             kcov --clean \
               --include-path=install/ubuntu/${SYSTEM}/ \
               ./coverage_ubuntu_${SYSTEM} \
               bats -r tests/install/ubuntu/${SYSTEM}/
+            # bats -r tests/install/ubuntu/${SYSTEM}/
 
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2
@@ -105,9 +105,20 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./coverage
+          # directory: ./coverage/kcov-merged
+          files: ./coverage/kcov-merged/cobertura.xml
           env_vars: OS,SYSTEM
           fail_ci_if_error: true
           flags: ${{ env.flags }}
           name: codecov-dotfiles
           verbose: true
+        # run: |
+        #   bash <(curl -s https://codecov.io/bash) \
+        #     -n "codecov-dotfiles"             `# Custom defined name of the upload. Visible in Codecov UI.` \
+        #     -s ./coverage/kcov-merged         `# Directory to search for coverage reports.` \
+        #     -t ${{ secrets.CODECOV_TOKEN }}   `# Set the private repository token.` \
+        #     -e OS,SYSTEM                      `# Specify environment variables to be included with this build.` \
+        #     -C ${{ github.sha }}              `# Specify the commit sha.` \
+        #     -F ${{ env.flags }}               `# Flag the upload to group coverage metrics.` \
+        #     -Z                                `# Exit with 1 if not successful. Default will Exit with 0.` \
+        #     -v                                `# Verbose mode.`

@@ -6,8 +6,18 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly PACKAGES=(
+    # git
+    curl
+    xz
+)
+
 function install_mecab_ipadic_neologd_requirements() {
-    brew install git curl xz
+    brew install "${PACKAGES[@]}"
+}
+
+function uninstall_mecab_ipadic_neologd_requirements() {
+    brew uninstall "${PACKAGES[@]}"
 }
 
 function main() {

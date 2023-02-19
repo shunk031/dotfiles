@@ -11,9 +11,11 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
     git \
+    bats \
     kcov \
     sudo \
     tzdata \
+    parallel \
     build-essential \
     ca-certificates
 
@@ -22,13 +24,9 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 USER $USERNAME
-WORKDIR /home/$USERNAME
+WORKDIR /home/$USERNAME/.local/share/chezmoi
 
 RUN sudo sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
 
 RUN mkdir -p ~/.local/share/fonts
 RUN mkdir -p /tmp
-
-RUN git clone https://github.com/bats-core/bats-core.git \
-    && cd bats-core \
-    && sudo ./install.sh /usr/local

@@ -6,6 +6,13 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly PACKAGES=(
+    docker-ce
+    docker-ce-cli
+    containerd.io
+    docker-compose-plugin
+)
+
 function uninstall_old_docker() {
     local packages=(
         "docker"
@@ -46,11 +53,12 @@ function install_docker_engine() {
     sudo apt-get update
 
     # Install Docker Engine, containerd, and Docker Compose.
-    sudo apt-get install -y \
-        docker-ce \
-        docker-ce-cli \
-        containerd.io \
-        docker-compose-plugin
+    sudo apt-get install -y "${PACKAGES[@]}"
+
+}
+
+function uninstall_docker_engine() {
+    sudo apt-get remove -y "${PACKAGES[@]}"
 }
 
 function main() {

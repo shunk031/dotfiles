@@ -26,7 +26,7 @@ function install_tpm_plugins() {
     local dir="$1"
     local cmd="${dir%/}/scripts/install_plugins.sh"
 
-    exec "${cmd}"
+    "${cmd}"
 }
 
 function install_tpm() {
@@ -40,6 +40,7 @@ function install_tpm() {
 
 function install_tmux_mem_cpu_load() {
     if [ ! "${DOTFILES_DEBUG:-}" ] && is_tmux_mem_cpu_load_installed; then
+        echo "DOTFILES_DEBUG: ${DOTFILES_DEBUG}, is_tmux_mem_cpu_load_installed: $(is_tmux_mem_cpu_load_installed)"
         return 0 # early return
     fi
 

@@ -1,11 +1,13 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/macos/common/mecab.sh"
+
 function setup() {
-    . "./install/macos/common/mecab.sh"
+    load "${SCRIPT_PATH}"
 }
 
 @test "install mecab (macos)" {
-    run main
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -x "$(command -v mecab)" ]
 

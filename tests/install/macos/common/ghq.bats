@@ -1,14 +1,16 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/macos/common/ghq.sh"
+
 function setup() {
-    . "./install/macos/common/ghq.sh"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
     run uninstall_ghq
 }
 
-@test "install ghq" {
-    run main
+@test "run as shellscript" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
     [ -x "$(command -v ghq)" ]
 }

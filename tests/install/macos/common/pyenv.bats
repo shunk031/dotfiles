@@ -1,11 +1,13 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/macos/common/pyenv.sh"
+
 function setup() {
-    . "./install/macos/common/pyenv.sh"
+    load "${SCRIPT_PATH}"
 }
 
-@test "install pyenv requirements (macos)" {
-    run main
+@test "run as shellscript" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run brew info openssl
     [ "${status}" -eq 0 ]

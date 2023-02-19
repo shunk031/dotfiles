@@ -1,15 +1,17 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/macos/common/tmux.sh"
+
 function setup() {
-    . "./install/macos/common/tmux.sh"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
     run uninstall_tmux
 }
 
-@test "install tmux (macos)" {
-    run install_tmux
+@test "run as shellscript" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run brew info tmux
     [ "${status}" -eq 0 ]

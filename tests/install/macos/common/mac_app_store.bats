@@ -1,11 +1,13 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/macos/common/mac_app_store.sh"
+
 function setup() {
-    . "./install/macos/common/mac_app_store.sh"
+    .load "${SCRIPT_PATH}"
 }
 
 @test "install mas" {
-    run main
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
 
     #

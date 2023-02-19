@@ -1,7 +1,9 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/macos/common/font.sh"
+
 function setup() {
-    . "./install/macos/common/font.sh"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
@@ -10,7 +12,7 @@ function teardown() {
 }
 
 @test "install font" {
-    run main
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -e "${HOME%/}/Library/Fonts/Roboto Mono Nerd Font Complete.ttf" ]
     [ -e "${HOME%/}/Library/Fonts/Hack Regular Nerd Font Complete Mono.ttf" ]

@@ -1,14 +1,16 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/macos/common/gh.sh"
+
 function setup() {
-    . "./install/macos/common/gh.sh"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
     run uninstall_gh
 }
 
-@test "install gh" {
-    run main
+@test "run as shellscript" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
     [ -x "$(command -v gh)" ]
 }

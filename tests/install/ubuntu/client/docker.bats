@@ -1,11 +1,17 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH="./install/ubuntu/client/docker.sh"
+
 function setup() {
-    . "./install/ubuntu/client/docker.sh"
+    load "${SCRIPT_PATH}"
 }
 
-@test "install docker" {
-    run main
+function teardown() {
+    run uninstall_docker_engine
+}
+
+@test "run as shellscript" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run dpkg -s 'docker-ce'
     [ "${status}" -eq 0 ]

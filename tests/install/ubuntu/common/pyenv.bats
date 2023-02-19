@@ -36,7 +36,7 @@ function teardown() {
     done
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-common] pyenv" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run dpkg -s build-essential

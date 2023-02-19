@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_docker_engine
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-client] docker" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run dpkg -s 'docker-ce'

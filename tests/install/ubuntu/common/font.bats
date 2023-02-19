@@ -11,7 +11,7 @@ function teardown() {
     run uninstall_nerd_font_hack_mono
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-common] font" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -e "${HOME%/}/.local/share/fonts/Roboto Mono Nerd Font Complete.ttf" ]

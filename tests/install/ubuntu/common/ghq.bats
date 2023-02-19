@@ -18,7 +18,7 @@ function teardown() {
     export PATH
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-common] ghq" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     export GOPATH="${HOME%/}/ghq"

@@ -19,7 +19,7 @@ function teardown() {
     export PATH
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-common] tpm" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -e "${HOME%/}/.tmux/plugins/tpm" ]

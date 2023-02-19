@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_mecab
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-common] mecab" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run dpkg -s mecab

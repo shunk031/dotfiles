@@ -10,7 +10,7 @@ function teardown() {
     run remove_ghq_dir
 }
 
-@test "run as shellscript" {
+@test "[common] ghq" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -d "${HOME%/}/ghq" ]

@@ -14,7 +14,7 @@ function teardown() {
     [ ${#PACKAGES[@]} -eq 3 ]
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-common] tmux" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -x "$(command -v tmux)" ]

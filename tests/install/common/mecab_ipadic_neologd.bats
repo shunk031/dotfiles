@@ -6,7 +6,7 @@ function setup() {
     source "${SCRIPT_PATH}"
 }
 
-@test "run as shellscript" {
+@test "[common] mecab-ipadic-neologd" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
     [ is_mecab_ipadic_neologd_installed ]
 }

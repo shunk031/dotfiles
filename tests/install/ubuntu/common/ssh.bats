@@ -14,7 +14,7 @@ function teardown() {
     [ ${#PACKAGES[@]} -eq 1 ]
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-common] ssh" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run dpkg -s 'openssh-client'

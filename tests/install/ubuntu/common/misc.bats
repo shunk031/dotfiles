@@ -28,7 +28,7 @@ function teardown() {
     done
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-common] misc" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -x "$(command -v exa)" ]

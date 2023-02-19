@@ -23,7 +23,7 @@ function teardown() {
     done
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-client] misc" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run dpkg -s guake

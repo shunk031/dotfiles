@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_gh
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-common] gh" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
     [ -x "$(command -v gh)" ]
 }

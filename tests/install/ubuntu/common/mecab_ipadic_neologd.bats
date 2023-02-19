@@ -25,7 +25,7 @@ function teardown() {
     done
 }
 
-@test "run as shellscript" {
+@test "[ubuntu-common] mecab-ipadic-neologd" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run dpkg -s make

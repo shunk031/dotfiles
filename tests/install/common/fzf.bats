@@ -14,7 +14,7 @@ function teardown() {
     export PATH
 }
 
-@test "run as shellscript" {
+@test "[common] fzf" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     export PATH="${PATH}:${HOME}/.fzf/bin"

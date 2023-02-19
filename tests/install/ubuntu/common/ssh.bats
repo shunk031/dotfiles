@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/ubuntu/common/ssh.sh"
 
 function setup() {
-    source "${SCRIPT_PATH}"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
@@ -12,28 +12,6 @@ function teardown() {
 
 @test "PACKAGES" {
     [ ${#PACKAGES[@]} -eq 1 ]
-}
-
-@test "install_openssh" {
-    run install_openssh
-
-    run dpkg -s 'openssh-client'
-    [ "${status}" -eq 0 ]
-}
-
-@test "main" {
-    run main
-
-    run dpkg -s 'openssh-client'
-    [ "${status}" -eq 0 ]
-}
-
-@test "main with set -x" {
-    set -x
-    run main
-
-    run dpkg -s 'openssh-client'
-    [ "${status}" -eq 0 ]
 }
 
 @test "run as shellscript" {

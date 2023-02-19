@@ -3,21 +3,11 @@
 readonly SCRIPT_PATH="./install/ubuntu/common/chezmoi.sh"
 
 function setup() {
-    source "${SCRIPT_PATH}"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
     run uninstall_chezmoi
-}
-
-@test "install_chezmoi" {
-    run install_chezmoi
-    [ -x "$(command -v chezmoi)" ]
-}
-
-@test "main" {
-    run main
-    [ -x "$(command -v chezmoi)" ]
 }
 
 @test "run as shellscript" {

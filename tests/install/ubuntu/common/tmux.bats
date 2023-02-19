@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/ubuntu/common/tmux.sh"
 
 function setup() {
-    source "${SCRIPT_PATH}"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
@@ -12,22 +12,6 @@ function teardown() {
 
 @test "PACKAGES" {
     [ ${#PACKAGES[@]} -eq 3 ]
-}
-
-@test "main" {
-    run main
-
-    [ -x "$(command -v tmux)" ]
-    [ -x "$(command -v xsel)" ]
-    [ -x "$(command -v cmake)" ]
-}
-
-@test "main with set -x" {
-    run main
-
-    [ -x "$(command -v tmux)" ]
-    [ -x "$(command -v xsel)" ]
-    [ -x "$(command -v cmake)" ]
 }
 
 @test "run as shellscript" {

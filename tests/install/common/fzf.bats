@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/common/fzf.sh"
 
 function setup() {
-    source "${SCRIPT_PATH}"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
@@ -12,13 +12,6 @@ function teardown() {
     # reset PATH
     PATH=$(getconf PATH)
     export PATH
-}
-
-@test "main" {
-    run main
-
-    export PATH="${PATH}:${HOME}/.fzf/bin"
-    [ -x "$(command -v fzf)" ]
 }
 
 @test "run as shellscript" {

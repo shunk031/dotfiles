@@ -6,7 +6,7 @@ function setup() {
     source "./install/ubuntu/common/tmux.sh"
     main # install tmux
 
-    source "${SCRIPT_PATH}"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
@@ -17,25 +17,6 @@ function teardown() {
     # reset PATH
     PATH=$(getconf PATH)
     export PATH
-}
-
-@test "install_tpm" {
-    run install_tpm
-    [ -e "${HOME%/}/.tmux/plugins/tpm" ]
-}
-
-@test "install_tmux_mem_cpu_load" {
-    run install_tmux_mem_cpu_load
-    export PATH="${PATH}:${HOME%/}/.local/bin"
-    [ -x "$(command -v tmux-mem-cpu-load)" ]
-}
-
-@test "main" {
-    run main
-
-    [ -e "${HOME%/}/.tmux/plugins/tpm" ]
-    export PATH="${PATH}:${HOME%/}/.local/bin"
-    [ -x "$(command -v tmux-mem-cpu-load)" ]
 }
 
 @test "run as shellscript" {

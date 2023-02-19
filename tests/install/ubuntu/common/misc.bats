@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/ubuntu/common/misc.sh"
 
 function setup() {
-    source "${SCRIPT_PATH}"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
@@ -11,31 +11,21 @@ function teardown() {
 }
 
 @test "PACKAGES" {
-    [ ${#PACKAGES[@]} -eq 7 ]
-}
+    num_packages="${#PACKAGES[@]}"
+    [ $num_packages -eq 7 ]
 
-@test "install_apt_packages" {
-    run install_apt_packages
-
-    [ -x "$(command -v exa)" ]
-    [ -x "$(command -v gpg)" ]
-    [ -x "$(command -v jq)" ]
-    [ -x "$(command -v htop)" ]
-    [ -x "$(command -v shellcheck)" ]
-    [ -x "$(command -v vim)" ]
-    [ -x "$(command -v zsh)" ]
-}
-
-@test "main" {
-    run main
-
-    [ -x "$(command -v exa)" ]
-    [ -x "$(command -v gpg)" ]
-    [ -x "$(command -v jq)" ]
-    [ -x "$(command -v htop)" ]
-    [ -x "$(command -v shellcheck)" ]
-    [ -x "$(command -v vim)" ]
-    [ -x "$(command -v zsh)" ]
+    expected_packages=(
+        exa
+        gpg
+        jq
+        htop
+        shellcheck
+        vim
+        zsh
+    )
+    for ((i = 0; i < ${#expected_packages[*]}; ++i)); do
+        [ "${PACKAGES[$i]}" -eq "${expected_packages[$i]}"]
+    done
 }
 
 @test "run as shellscript" {

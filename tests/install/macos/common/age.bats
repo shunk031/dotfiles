@@ -1,18 +1,19 @@
 #!/usr/bin/env bats
 
+readonly SCRIPT_PATH"./install/macos/common/age.sh"
+
 function setup() {
-    . "./install/macos/common/age.sh"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
-    uninstall_age
-    uninstall_jq
+    run uninstall_age
+    run uninstall_jq
 }
 
-@test "install age (macos)" {
-    run install_age
-    [ -x "$(command -v age)" ]
+@test "run as shellscript" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
-    run install_jq
+    [ -x "$(command -v age)" ]
     [ -x "$(command -v jq)" ]
 }

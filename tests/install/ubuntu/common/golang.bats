@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/ubuntu/common/golang.sh"
 
 function setup() {
-    source "${SCRIPT_PATH}"
+    load "${SCRIPT_PATH}"
 }
 
 function teardown() {
@@ -12,25 +12,6 @@ function teardown() {
     # reset PATH
     PATH=$(getconf PATH)
     export PATH
-}
-
-@test "get_latest_version" {
-    run get_latest_version
-    [ "${status}" -eq 0 ]
-}
-
-@test "install_golang" {
-    run install_golang
-
-    export PATH="${PATH}:/usr/local/go/bin"
-    [ -x "$(command -v go)" ]
-}
-
-@test "main" {
-    run main
-
-    export PATH="${PATH}:/usr/local/go/bin"
-    [ -x "$(command -v go)" ]
 }
 
 @test "run as shellscript" {

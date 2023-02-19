@@ -6,7 +6,7 @@ function setup() {
     source "./install/ubuntu/common/tmux.sh"
     main # install tmux
 
-    load "${SCRIPT_PATH}"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {

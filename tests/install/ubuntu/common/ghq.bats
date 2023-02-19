@@ -6,7 +6,7 @@ function setup() {
     load "./install/ubuntu/common/golang.sh"
     main # install golang
 
-    load "${SCRIPT_PATH}"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {

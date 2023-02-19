@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/macos/common/gh.sh"
 
 function setup() {
-    load "${SCRIPT_PATH}"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {

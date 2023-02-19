@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/ubuntu/common/age.sh"
 
 function setup() {
-    load "${SCRIPT_PATH}"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {

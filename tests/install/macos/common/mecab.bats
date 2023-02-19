@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/macos/common/mecab.sh"
 
 function setup() {
-    load "${SCRIPT_PATH}"
+    source "${SCRIPT_PATH}"
 }
 
 @test "install mecab (macos)" {

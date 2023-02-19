@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/macos/common/mac_app_store.sh"
 
 function setup() {
-    .load "${SCRIPT_PATH}"
+    .source "${SCRIPT_PATH}"
 }
 
 @test "install mas" {

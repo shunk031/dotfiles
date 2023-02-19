@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./install/common/fzf.sh"
+readonly SCRIPT_PATH="install/common/fzf.sh"
 
 function setup() {
-    load "${SCRIPT_PATH}"
+    source "${SCRIPT_PATH}"
 }
 
 function teardown() {

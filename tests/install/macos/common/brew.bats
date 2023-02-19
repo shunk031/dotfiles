@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/macos/common/brew.sh"
 
 function setup() {
-    load "${SCRIPT_PATH}"
+    source "${SCRIPT_PATH}"
 }
 
 @test "run as shellscript" {

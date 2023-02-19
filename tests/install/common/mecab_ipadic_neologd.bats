@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/common/mecab_ipadic_neologd.sh"
 
 function setup() {
-    load "${SCRIPT_PATH}"
+    source "${SCRIPT_PATH}"
 }
 
 @test "run as shellscript" {

@@ -8,7 +8,6 @@ function setup() {
 
 @test "install mas" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
-    [ "${status}" -eq 0 ]
 
     #
     # On CI, since it does not log into the app store,

@@ -21,7 +21,7 @@ function teardown() {
         file
     )
     for ((i = 0; i < ${#expected_packages[*]}; ++i)); do
-        [ "${PACKAGES[$i]}" -eq "${expected_packages[$i]}" ]
+        [ "${PACKAGES[$i]}" == "${expected_packages[$i]}" ]
     done
 }
 

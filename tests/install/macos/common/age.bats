@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH"./install/macos/common/age.sh"
+readonly SCRIPT_PATH="./install/macos/common/age.sh"
 
 function setup() {
     source "${SCRIPT_PATH}"

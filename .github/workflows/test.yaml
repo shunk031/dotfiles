@@ -102,22 +102,23 @@ jobs:
           fi
 
       - name: Upload coverage to Codecov
-        # uses: codecov/codecov-action@v3
-        # with:
-        #   token: ${{ secrets.CODECOV_TOKEN }}
-        #   directory: ./coverage/kcov-merged
-        #   env_vars: OS,SYSTEM
-        #   fail_ci_if_error: true
-        #   flags: ${{ env.flags }}
-        #   name: codecov-dotfiles
-        #   verbose: true
-        run: |
-          bash <(curl -s https://codecov.io/bash) \
-            -n "codecov-dotfiles"             `# Custom defined name of the upload. Visible in Codecov UI.` \
-            -s ./coverage/kcov-merged         `# Directory to search for coverage reports.` \
-            -t ${{ secrets.CODECOV_TOKEN }}   `# Set the private repository token.` \
-            -e OS,SYSTEM                      `# Specify environment variables to be included with this build.` \
-            -C ${{ github.sha }}              `# Specify the commit sha.` \
-            -F ${{ env.flags }}               `# Flag the upload to group coverage metrics.` \
-            -Z                                `# Exit with 1 if not successful. Default will Exit with 0.` \
-            -v                                `# Verbose mode.`
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # directory: ./coverage/kcov-merged
+          files: ./coverage/kcov-merged/cobertura.xml
+          env_vars: OS,SYSTEM
+          fail_ci_if_error: true
+          flags: ${{ env.flags }}
+          name: codecov-dotfiles
+          verbose: true
+        # run: |
+        #   bash <(curl -s https://codecov.io/bash) \
+        #     -n "codecov-dotfiles"             `# Custom defined name of the upload. Visible in Codecov UI.` \
+        #     -s ./coverage/kcov-merged         `# Directory to search for coverage reports.` \
+        #     -t ${{ secrets.CODECOV_TOKEN }}   `# Set the private repository token.` \
+        #     -e OS,SYSTEM                      `# Specify environment variables to be included with this build.` \
+        #     -C ${{ github.sha }}              `# Specify the commit sha.` \
+        #     -F ${{ env.flags }}               `# Flag the upload to group coverage metrics.` \
+        #     -Z                                `# Exit with 1 if not successful. Default will Exit with 0.` \
+        #     -v                                `# Verbose mode.`

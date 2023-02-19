@@ -43,70 +43,71 @@ jobs:
             --include-path=install/common/ \
             ./coverage_common \
             bats -r tests/install/common/
+          # bats -r tests/install/common/
 
       - name: Unit test for OS specific scripts
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
-            # kcov --clean \
-            #   --include-path=install/macos/common/ \
-            #   ./coverage_macos_common \
-            #   bats -r tests/install/macos/common/
-            bats -r tests/install/macos/common/
+            kcov --clean \
+              --include-path=install/macos/common/ \
+              ./coverage_macos_common \
+              bats -r tests/install/macos/common/
+            # bats -r tests/install/macos/common/
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            # kcov --clean \
-            #   --include-path=install/ubuntu/common/ \
-            #   ./coverage_ubuntu_common \
-            #   bats -r tests/install/ubuntu/common/
-            bats -r tests/install/ubuntu/common/
+            kcov --clean \
+              --include-path=install/ubuntu/common/ \
+              ./coverage_ubuntu_common \
+              bats -r tests/install/ubuntu/common/
+            # bats -r tests/install/ubuntu/common/
 
-            # kcov --clean \
-            #   --include-path=install/ubuntu/${SYSTEM}/ \
-            #   ./coverage_ubuntu_${SYSTEM} \
-            #   bats -r tests/install/ubuntu/${SYSTEM}/
-            bats -r tests/install/ubuntu/${SYSTEM}/
+            kcov --clean \
+              --include-path=install/ubuntu/${SYSTEM}/ \
+              ./coverage_ubuntu_${SYSTEM} \
+              bats -r tests/install/ubuntu/${SYSTEM}/
+            # bats -r tests/install/ubuntu/${SYSTEM}/
 
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2
             exit 1
           fi
       
-      # - name: Merge coverage results
-      #   run: |
-      #     if [ "${OS}" == "macOS-latest" ]; then
-      #       kcov --merge ./coverage \
-      #         ./coverage_common \
-      #         ./coverage_macos_common
+      - name: Merge coverage results
+        run: |
+          if [ "${OS}" == "macOS-latest" ]; then
+            kcov --merge ./coverage \
+              ./coverage_common \
+              ./coverage_macos_common
 
-      #     elif [ "${OS}" == "ubuntu-latest" ]; then
-      #       kcov --merge ./coverage \
-      #         ./coverage_common \
-      #         ./coverage_ubuntu_common \
-      #         ./coverage_ubuntu_${SYSTEM}
+          elif [ "${OS}" == "ubuntu-latest" ]; then
+            kcov --merge ./coverage \
+              ./coverage_common \
+              ./coverage_ubuntu_common \
+              ./coverage_ubuntu_${SYSTEM}
 
-      #     else
-      #       echo "${OS} and ${SYSTEM} are not supported" >&2
-      #       exit 1
-      #     fi
+          else
+            echo "${OS} and ${SYSTEM} are not supported" >&2
+            exit 1
+          fi
 
-      # - name: Set flag for codecov
-      #   run: |
-      #     if [ "${OS}" == "macOS-latest" ]; then
-      #       echo "flags=${OS}" >> $GITHUB_ENV
-      #     elif [ "${OS}" == "ubuntu-latest" ]; then
-      #       echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV
-      #     else
-      #       echo "${OS} and ${SYSTEM} are not supported" >&2
-      #       exit 1
-      #     fi
+      - name: Set flag for codecov
+        run: |
+          if [ "${OS}" == "macOS-latest" ]; then
+            echo "flags=${OS}" >> $GITHUB_ENV
+          elif [ "${OS}" == "ubuntu-latest" ]; then
+            echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV
+          else
+            echo "${OS} and ${SYSTEM} are not supported" >&2
+            exit 1
+          fi
 
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v3
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     directory: ./coverage
-      #     env_vars: OS,SYSTEM
-      #     fail_ci_if_error: true
-      #     flags: ${{ env.flags }}
-      #     name: codecov-dotfiles
-      #     verbose: true
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./coverage
+          env_vars: OS,SYSTEM
+          fail_ci_if_error: true
+          flags: ${{ env.flags }}
+          name: codecov-dotfiles
+          verbose: true

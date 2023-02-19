@@ -39,10 +39,11 @@ jobs:
 
       - name: Unit test for common scripts
         run: |
-          kcov --clean \
-            --include-path=install/common/ \
-            ./coverage_common \
-            bats -r tests/install/common/
+          # kcov --clean \
+          #   --include-path=install/common/ \
+          #   ./coverage_common \
+          #   bats -r tests/install/common/
+          bats -r tests/install/common/
 
       - name: Unit test for OS specific scripts
         run: |

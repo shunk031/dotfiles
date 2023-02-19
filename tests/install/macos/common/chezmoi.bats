@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_chezmoi
 }
 
-@test "run as shellscript" {
+@test "[macos] chezmoi" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
     [ -x "$(command -v chezmoi)" ]
 }

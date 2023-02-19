@@ -6,7 +6,7 @@ function setup() {
     source "${SCRIPT_PATH}"
 }
 
-@test "run as shellscript" {
+@test "[macos] brew" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -x "$(command -v brew)" ]

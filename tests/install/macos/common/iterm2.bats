@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_iterm2
 }
 
-@test "run as shellscript" {
+@test "[macos] iterm2" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -e "/Applications/iTerm.app" ]

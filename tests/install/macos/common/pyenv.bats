@@ -6,7 +6,7 @@ function setup() {
     source "${SCRIPT_PATH}"
 }
 
-@test "run as shellscript" {
+@test "[macos] pyenv" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run brew info openssl

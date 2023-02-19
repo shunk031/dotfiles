@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_ghq
 }
 
-@test "run as shellscript" {
+@test "[macos] ghq" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
     [ -x "$(command -v ghq)" ]
 }

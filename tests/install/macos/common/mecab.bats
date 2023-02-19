@@ -6,7 +6,7 @@ function setup() {
     source "${SCRIPT_PATH}"
 }
 
-@test "install mecab (macos)" {
+@test "[macos] mecab" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -x "$(command -v mecab)" ]

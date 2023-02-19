@@ -17,7 +17,7 @@ function teardown() {
     export PATH
 }
 
-@test "install docker" {
+@test "[macos] docker" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     export PATH="${PATH}:${HOME%/}/.local/bin"

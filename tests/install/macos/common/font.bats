@@ -11,7 +11,7 @@ function teardown() {
     run uninstall_nerd_font_hack_mono
 }
 
-@test "install font" {
+@test "[macos] font" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -e "${HOME%/}/Library/Fonts/Roboto Mono Nerd Font Complete.ttf" ]

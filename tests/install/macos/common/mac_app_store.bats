@@ -6,7 +6,7 @@ function setup() {
     source "${SCRIPT_PATH}"
 }
 
-@test "install mas" {
+@test "[macos] mac app store" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     #

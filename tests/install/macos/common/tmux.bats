@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_tmux
 }
 
-@test "run as shellscript" {
+@test "[macos] tmux" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     run brew info tmux

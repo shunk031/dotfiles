@@ -11,7 +11,7 @@ function teardown() {
     run uninstall_jq
 }
 
-@test "run as shellscript" {
+@test "[macos] age" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -x "$(command -v age)" ]

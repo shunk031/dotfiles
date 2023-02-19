@@ -12,7 +12,7 @@ function teardown() {
 
 @test "PACKAGES" {
     num_packages="${#PACKAGES[@]}"
-    [ $num_packages -eq 7 ]
+    [ $num_packages -eq 2 ]
 
     expected_packages=(
         guake

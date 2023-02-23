@@ -6,8 +6,14 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+function is_mas_installed() {
+    common -v mas &>/dev/null
+}
+
 function install_mas() {
-    brew install mas
+    if ! is_mas_installed; then
+        brew install mas
+    fi
 }
 
 function run_mas_install() {
@@ -35,12 +41,18 @@ function install_xcode() {
     run_mas_install "${app_id}"
 }
 
+function install_tailscale() {
+    local app_id="1475387142"
+    run_mas_install "${app_id}"
+}
+
 function main() {
     install_mas
 
     if ! "${CI:-false}"; then
         install_bandwidth_plus
         install_line
+        install_tailscale
         # install_1password7
         # install_xcode
     fi

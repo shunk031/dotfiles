@@ -14,3 +14,9 @@
     type = "git-repo"
     url = "https://github.com/lildude/fzf-prezto.git"
     refreshPeriod = "168h"
+
+[".local/bin/client/git-open"]
+    type = "file"
+    url = "https://raw.githubusercontent.com/paulirish/git-open/master/git-open"
+    executable = true
+    refreshPeriod = "168h"

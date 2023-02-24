@@ -72,7 +72,13 @@ fi
 # Auto load some functions
 #
 
-autoload -Uz dev git-delete-merged-branches chezmoi-cd setup-python-env
+autoload -Uz \
+    dev \
+    git-delete-merged-branches \
+    chezmoi-cd \
+    setup-python-env \
+    connect-hosei-vpn \
+    disconnect-vpn
 
 # To customize prompt, run `p10k configure` or edit ~/.config/powerlevel10k/p10k.zsh
 [[ ! -f ~/.config/powerlevel10k/p10k.zsh ]] || source ~/.config/powerlevel10k/p10k.zsh

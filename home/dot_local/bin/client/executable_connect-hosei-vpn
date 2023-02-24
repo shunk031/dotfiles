@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+readonly HOSEI_VPN_CREDENTIAL_JSON="${HOSEI_VPN_CREDENTIAL_JSON:-${HOME%/}/.config/anyconnect/hosei_credential.json}"
+readonly HOSEI_VPN_HOST="vpn.hosei.ac.jp"
+
+function get-username() {
+    jq <"${HOSEI_VPN_CREDENTIAL_JSON}" -r ".username"
+}
+
+function get-password() {
+    jq <"${HOSEI_VPN_CREDENTIAL_JSON}" -r ".password"
+}
+
+function connect-hosei-vpn() {
+    username=$(get-username)
+    password=$(get-password)
+
+    printf "%s\n%s\ny" "${username}" "${password}" | /opt/cisco/anyconnect/bin/vpn -s connect "${HOSEI_VPN_HOST}"
+}
+
+connect-hosei-vpn

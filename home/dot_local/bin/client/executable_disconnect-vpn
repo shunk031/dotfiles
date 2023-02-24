@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+function disconnect-vpn() {
+    /opt/cisco/anyconnect/bin/vpn disconnect
+}
+
+disconnect-vpn

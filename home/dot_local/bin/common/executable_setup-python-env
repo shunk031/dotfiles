@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+function install_with_pip() {
+    pip install -U pip wheel setuptools poetry
+}
+
+function setup_poetry() {
+    poetry init -n
+    poetry add --group dev flake8 black isort mypy pytest
+}
+
+function setup-python-env() {
+    install_with_pip
+    setup_poetry
+}
+
+setup-python-env

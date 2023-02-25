@@ -4,11 +4,11 @@
 .zshenv
 .zshrc
 .zlogout
-.p10k.zsh
 
-.config/iterm2
-.config/zsh
 .config/anyconnect
+.config/iterm2
+.config/powerlevel10k
+.config/zsh
 
 .tmux.conf.d/os
 .tmux.conf.d/system/client.conf

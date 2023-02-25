@@ -3,6 +3,9 @@
 readonly SCRIPT_PATH="./install/ubuntu/common/misc.sh"
 
 function setup() {
+    load "./install/common/rust.sh"
+    main # install rust
+
     source "${SCRIPT_PATH}"
 }
 
@@ -10,12 +13,11 @@ function teardown() {
     run uninstall_apt_packages
 }
 
-@test "PACKAGES" {
+@test "[ubuntu-common] PACKAGES for misc" {
     num_packages="${#PACKAGES[@]}"
-    [ $num_packages -eq 7 ]
+    [ $num_packages -eq 6 ]
 
     expected_packages=(
-        exa
         gpg
         jq
         htop

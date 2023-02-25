@@ -10,13 +10,14 @@ function teardown() {
     run uninstall_mecab_ipadic_neologd_requirements
 }
 
-@test "PACKAGES" {
+@test "[ubuntu-common] PACKAGES for mecab-ipadic-neologd" {
     num_packages="${#PACKAGES[@]}"
-    [ ${num_packages} -eq 4 ]
+    [ ${num_packages} -eq 3 ]
 
     expected_packages=(
+        # git
         make
-        curl
+        # curl
         xz-utils
         file
     )

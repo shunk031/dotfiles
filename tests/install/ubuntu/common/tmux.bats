@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_tmux
 }
 
-@test "PACKAGES" {
+@test "[ubuntu-common] PACKAGES for tmux" {
     [ ${#PACKAGES[@]} -eq 3 ]
 }
 

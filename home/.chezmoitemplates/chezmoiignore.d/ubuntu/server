@@ -8,6 +8,8 @@
 
 .config/iterm2
 .config/zsh
+.config/anyconnect
+
 .tmux.conf.d/os
 .tmux.conf.d/system/client.conf
 .tmux-powerlinerc

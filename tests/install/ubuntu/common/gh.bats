@@ -12,5 +12,6 @@ function teardown() {
 
 @test "[ubuntu-common] gh" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
+
     [ -x "$(command -v gh)" ]
 }

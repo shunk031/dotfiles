@@ -11,6 +11,9 @@ function setup() {
 
 function teardown() {
     run uninstall_apt_packages
+
+    PATH=$(getconf PATH)
+    export PATH
 }
 
 @test "[ubuntu-common] PACKAGES for misc" {
@@ -33,11 +36,13 @@ function teardown() {
 @test "[ubuntu-common] misc" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
-    [ -x "$(command -v exa)" ]
     [ -x "$(command -v gpg)" ]
     [ -x "$(command -v jq)" ]
     [ -x "$(command -v htop)" ]
     [ -x "$(command -v shellcheck)" ]
     [ -x "$(command -v vim)" ]
     [ -x "$(command -v zsh)" ]
+
+    export PATH="${PATH}:${HOME}/.cargo/bin"
+    [ -x "$(command -v exa)" ]
 }

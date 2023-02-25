@@ -13,7 +13,7 @@ readonly PACKAGES=(
     libbz2-dev
     libreadline-dev
     libsqlite3-dev
-    curl
+    # curl
     llvm
     libncursesw5-dev
     xz-utils

@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_openssh
 }
 
-@test "PACKAGES" {
+@test "[ubuntu-common] PACKAGES for ssh" {
     [ ${#PACKAGES[@]} -eq 1 ]
 }
 

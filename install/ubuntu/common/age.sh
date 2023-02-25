@@ -15,8 +15,10 @@ function is_jq_installed() {
 }
 
 function install_age() {
+    export GOPATH="${HOME%/}/ghq"
+
     if ! is_age_installed; then
-        sudo apt-get install -y age
+        /usr/local/go/bin/go install filippo.io/age/...@latest
     fi
 }
 
@@ -27,7 +29,7 @@ function install_jq() {
 }
 
 function uninstall_age() {
-    sudo apt-get remove -y age
+    rm -v "${GOPATH%/}/bin/age"
 }
 
 function uninstall_jq() {

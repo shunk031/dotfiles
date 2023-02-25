@@ -9,7 +9,7 @@ fi
 readonly PACKAGES=(
     # git
     make
-    curl
+    # curl
     xz-utils
     file
 )

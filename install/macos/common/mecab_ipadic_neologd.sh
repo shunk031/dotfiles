@@ -8,7 +8,7 @@ fi
 
 readonly PACKAGES=(
     # git
-    curl
+    # curl
     xz
 )
 

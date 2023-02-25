@@ -1,6 +1,8 @@
 {{ if eq .chezmoi.os "linux" -}}
 {{   if eq .chezmoi.osRelease.idLike "debian" -}}
-{{     include "../install/ubuntu/common/font.sh" }}
+{{     if eq .system "client" -}}
+{{       include "../install/ubuntu/common/font.sh" }}
+{{     end -}}
 {{   else -}}
        echo "Invalid linux distribution: {{ .chezmoi.osRelease.id }}"
 {{   end -}}

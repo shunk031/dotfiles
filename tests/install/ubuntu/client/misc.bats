@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_misc
 }
 
-@test "PACKAGES" {
+@test "[ubuntu-client] PACKAGES for misc" {
     num_packages="${#PACKAGES[@]}"
     [ $num_packages -eq 2 ]
 

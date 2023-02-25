@@ -7,7 +7,6 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly PACKAGES=(
-    exa
     gpg
     jq
     htop

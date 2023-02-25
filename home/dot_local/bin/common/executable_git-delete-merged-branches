@@ -32,4 +32,6 @@ function git-delete-merged-branches() {
         done
 }
 
-git-delete-merged-branches
+if [ -n "$($SHELL -c "echo ${ZSH_VERSION}")" ]; then
+    git-delete-merged-branches
+fi

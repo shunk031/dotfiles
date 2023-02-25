@@ -12,7 +12,7 @@ function teardown() {
 
 @test "[ubuntu-common] PACKAGES for pyenv" {
     num_packages="${#PACKAGES[@]}"
-    [ $num_packages -eq 15 ]
+    [ $num_packages -eq 14 ]
 
     expected_packages=(
         build-essential

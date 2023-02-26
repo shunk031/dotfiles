@@ -142,6 +142,10 @@ source "${HOME%/}/.local/bin/server/ssh_agent.sh"
 # shellcheck source=./dot_local/bin/server/golang.sh
 source "${HOME%/}/.local/bin/server/golang.sh"
 
+# for golang
+# shellcheck source=./dot_local/bin/server/rust.sh
+source "${HOME%/}/.local/bin/server/rust.sh"
+
 # for aliases
 # shellcheck source=./dot_local/bin/server/aliases.sh
 source "${HOME%/}/.local/bin/server/aliases.sh"

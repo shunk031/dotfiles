@@ -158,6 +158,10 @@ source "${HOME%/}/.local/bin/server/cache.sh"
 # shellcheck source=./dot_local/bin/common/executable_dev
 source "${HOME%/}/.local/bin/common/dev"
 
+# for git-delete-merged-branches command
+# shellcheck source=./dot_local/bin/common/executable_git-delete-merged-branches
+source "${HOME%/}/.local/bin/common/git-delete-merged-branches"
+
 # for gpg
 # shellcheck source=./dot_local/bin/common/gpg.sh
 source "${HOME%/}/.local/bin/common/gpg.sh"

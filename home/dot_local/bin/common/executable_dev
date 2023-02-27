@@ -30,4 +30,6 @@ function dev() {
     fi
 }
 
-dev
+if [ -n "$($SHELL -c "echo ${ZSH_VERSION}")" ]; then
+    dev
+fi

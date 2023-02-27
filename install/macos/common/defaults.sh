@@ -169,6 +169,9 @@ function defaults_screencapture() {
     # Save screenshots to ${HOME}/Pictures/
     defaults write com.apple.screencapture location -string "${HOME}/Pictures/"
     defaults write com.apple.screencapture name -string "Screen Shot"
+
+    # disable the floating screenshot thumbnail
+    defaults write com.apple.screencapture show-thumbnail -bool false
 }
 
 function defaults_assistant() {

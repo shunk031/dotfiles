@@ -4,4 +4,6 @@ chezmoi-cd() {
     cd "$(chezmoi source-path)" || return
 }
 
-chezmoi-cd
+if [ -n "$($SHELL -c "echo ${ZSH_VERSION}")" ]; then
+    chezmoi-cd
+fi

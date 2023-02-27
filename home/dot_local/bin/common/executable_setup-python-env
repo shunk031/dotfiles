@@ -14,6 +14,4 @@ function setup-python-env() {
     setup_poetry
 }
 
-if [ -n "$($SHELL -c "echo ${ZSH_VERSION}")" ]; then
-    setup-python-env
-fi
+setup-python-env

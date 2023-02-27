@@ -118,6 +118,9 @@ if ! shopt -oq posix; then
     fi
 fi
 
+# for my custom functions
+export PATH="${PATH}:${HOME%/}/.local/bin/common"
+
 # for pyenv and pyenv-virtualenv
 # shellcheck source=./dot_local/bin/server/pyenv.sh
 source "${HOME%/}/.local/bin/server/pyenv.sh"
@@ -157,14 +160,6 @@ source "${HOME%/}/.local/bin/server/secrets.sh"
 # for cache directories
 # shellcheck source=./dot_local/bin/server/cache.sh
 source "${HOME%/}/.local/bin/server/cache.sh"
-
-# for dev command
-# shellcheck source=./dot_local/bin/common/executable_dev
-source "${HOME%/}/.local/bin/common/dev"
-
-# for git-delete-merged-branches command
-# shellcheck source=./dot_local/bin/common/executable_git-delete-merged-branches
-source "${HOME%/}/.local/bin/common/git-delete-merged-branches"
 
 # for gpg
 # shellcheck source=./dot_local/bin/common/gpg.sh

@@ -58,7 +58,7 @@ jobs:
       - name: Run benchmark
         run: |
           brew install gnu-time
-          $(chezmoi source-path)/../benchmarks/scripts/benchmark.sh > result.json
+          $(chezmoi source-path)/../scripts/benchmark.sh > result.json
 
       - name: Dump result.json
         run: cat result.json

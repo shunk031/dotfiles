@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./install/common/mecab_ipadic_neologd.sh"
+readonly SCRIPT_PATH="./install/macos/common/mecab_ipadic_neologd.sh"
 
 function setup() {
     source "./install/macos/common/mecab.sh"

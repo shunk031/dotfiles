@@ -11,7 +11,7 @@ BENCHMARK_RESULT_DIR="${BENCHMARK_RESULT_DIR:-${DEFAULT_BENCHMARK_RESULT_DIR}}"
 readonly BENCHMARK_RESULT_DIR
 
 function prepare_benchmark() {
-    ls "${BENCHMARK_RESULT_DIR}"
+    mkdir -p "${BENCHMARK_RESULT_DIR}"
     find "${BENCHMARK_RESULT_DIR}" -type f -exec rm -f {} +
 }
 

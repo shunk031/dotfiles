@@ -40,6 +40,7 @@ jobs:
       - name: Unit test for common scripts
         run: |
           kcov --clean \
+            --debug-force-bash-stderr \
             --include-path=install/common/ \
             ./coverage_common \
             bats -r tests/install/common/
@@ -49,6 +50,7 @@ jobs:
         run: |
           if [ "${OS}" == "macOS-latest" ]; then
             kcov --clean \
+              --debug-force-bash-stderr \
               --include-path=install/macos/common/ \
               ./coverage_macos_common \
               bats -r tests/install/macos/common/
@@ -56,12 +58,14 @@ jobs:
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
             kcov --clean \
+              --debug-force-bash-stderr \
               --include-path=install/ubuntu/common/ \
               ./coverage_ubuntu_common \
               bats -r tests/install/ubuntu/common/
             # bats -r tests/install/ubuntu/common/
 
             kcov --clean \
+              --debug-force-bash-stderr \
               --include-path=install/ubuntu/${SYSTEM}/ \
               ./coverage_ubuntu_${SYSTEM} \
               bats -r tests/install/ubuntu/${SYSTEM}/

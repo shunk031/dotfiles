@@ -1,11 +1,11 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./install/common/mecab_ipadic_neologd.sh"
+readonly SCRIPT_PATH_MACOS="./install/macos/common/mecab_ipadic_neologd.sh"
+readonly SCRIPT_PATH_COMMON="./install/common/mecab_ipadic_neologd.sh"
 
 function setup() {
-    source "./install/macos/common/mecab.sh"
-    run install_mecab
-    source "${SCRIPT_PATH}"
+    source "${SCRIPT_PATH_MACOS}"
+    source "${SCRIPT_PATH_COMMON}"
 }
 
 function teardown() {
@@ -13,8 +13,10 @@ function teardown() {
 }
 
 @test "[macos] mecab-ipadic-neologd" {
-    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH_MACOS}"
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH_COMMON}"
 
+    [ -x "$(command -v git)" ]
     [ -x "$(command -v curl)" ]
     [ -x "$(command -v xz)" ]
 }

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+function run_common_test() {
+    kcov --clean \
+        --debug-force-bash-stderr \
+        --include-path=install/common/ \
+        "./coverage_common" \
+        bats -r "tests/install/common/"
+}
+
+function run_os_specific_test() {
+    if [ "${OS}" == "macOS-latest" ]; then
+        kcov --clean \
+            --debug-force-bash-stderr \
+            --include-path=install/macos/common/ \
+            "./coverage_macos_common" \
+            bats -r "tests/install/macos/common/"
+
+    elif [ "${OS}" == "ubuntu-latest" ]; then
+        kcov --clean \
+            --debug-force-bash-stderr \
+            --include-path=install/ubuntu/common/ \
+            "./coverage_ubuntu_common" \
+            bats -r "tests/install/ubuntu/common/"
+    else
+        echo "${OS} and ${SYSTEM} are not supported" >&2
+        exit 1
+    fi
+}
+
+function merge_coverage_results() {
+    if [ "${OS}" == "macOS-latest" ]; then
+        kcov --merge "./coverage" \
+            "./coverage_common" \
+            "./coverage_macos_common"
+
+    elif [ "${OS}" == "ubuntu-latest" ]; then
+        kcov --merge ./coverage \
+            "./coverage_common" \
+            "./coverage_ubuntu_common" \
+            "./coverage_ubuntu_${SYSTEM}"
+    else
+        echo "${OS} and ${SYSTEM} are not supported" >&2
+        exit 1
+    fi
+}
+
+function main() {
+    run_common_test
+    run_os_specific_test
+    merge_coverage_results
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main
+fi

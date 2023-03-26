@@ -6,13 +6,17 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-DEFAULT_BENCHMARK_RESULT_DIR="$(chezmoi source-path)/../benchmarks/results"
-BENCHMARK_RESULT_DIR="${BENCHMARK_RESULT_DIR:-${DEFAULT_BENCHMARK_RESULT_DIR}}"
-readonly BENCHMARK_RESULT_DIR
-
 function prepare_benchmark() {
-    ls "${BENCHMARK_RESULT_DIR}"
-    find "${BENCHMARK_RESULT_DIR}" -type f -exec rm -f {} +
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+    echo "make temp directory to ${tmp_dir}" >&2
+    echo -n "${tmp_dir}"
+}
+
+function cleanup_result_dir() {
+    local target_dir=$1
+    echo "cleanup ${target_dir}" >&2
+    rm -rf "${target_dir}"
 }
 
 function get_os() {
@@ -32,8 +36,8 @@ function get_time_command() {
 }
 
 function measure_initial_startup_time() {
-
-    local result_file="${BENCHMARK_RESULT_DIR}/zsh-initial-startup-time.txt"
+    local benchmark_result_dir=$1
+    local result_file="${benchmark_result_dir}/zsh-initial-startup-time.txt"
 
     local time_cmd
     time_cmd="$(get_time_command)"
@@ -42,21 +46,23 @@ function measure_initial_startup_time() {
 }
 
 function measure_average_startup_time() {
+    local benchmark_result_dir=$1
 
-    local result_file="${BENCHMARK_RESULT_DIR}/zsh-average-startup-time.txt"
+    local result_file="${benchmark_result_dir}/zsh-average-startup-time.txt"
 
     local time_cmd
     time_cmd="$(get_time_command)"
 
     for i in $(seq 1 10); do
-        "${time_cmd}" --format="%e" --output="${BENCHMARK_RESULT_DIR}/zsh-average-startup-time-${i}.txt" zsh -i -c exit
+        "${time_cmd}" --format="%e" --output="${benchmark_result_dir}/zsh-average-startup-time-${i}.txt" zsh -i -c exit
     done
 }
 
 function record_startup_time() {
+    local benchmark_result_dir=$1
 
-    local initial_file="${BENCHMARK_RESULT_DIR}/zsh-initial-startup-time.txt"
-    local average_file="${BENCHMARK_RESULT_DIR}/zsh-average-startup-time-*.txt"
+    local initial_file="${benchmark_result_dir}/zsh-initial-startup-time.txt"
+    local average_file="${benchmark_result_dir}/zsh-average-startup-time-*.txt"
 
     initial_startup_time=$(cat "${initial_file}")
     # shellcheck disable=SC2086
@@ -80,12 +86,14 @@ EOJ
 }
 
 function main() {
-    prepare_benchmark
+    local tmp_dir
+    tmp_dir=$(prepare_benchmark)
 
-    measure_initial_startup_time
-    measure_average_startup_time
+    measure_initial_startup_time "${tmp_dir}"
+    measure_average_startup_time "${tmp_dir}"
 
-    record_startup_time
+    record_startup_time "${tmp_dir}"
+    cleanup_result_dir "${tmp_dir}"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

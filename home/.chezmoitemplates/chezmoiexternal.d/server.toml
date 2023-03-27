@@ -7,6 +7,15 @@
         command = "tar"
         args = ["--extract", "--file", "/dev/stdin", "--gzip", "--to-stdout", "nvinfo"]
 
+[".local/bin/autocvd"]
+    type = "file"
+    url = "https://github.com/shunk031/autocvd-go/releases/latest/download/autocvd_linux_x86_64.tar.gz"
+    executable = true
+    refreshPeriod = "168h"
+    [".local/bin/autocvd".filter]
+        command = "tar"
+        args = ["--extract", "--file", "/dev/stdin", "--gzip", "--to-stdout", "autocvd"]
+
 [".local/bin/age"]
     type = "file"
     url = "https://github.com/FiloSottile/age/releases/download/v1.1.1/age-v1.1.1-linux-amd64.tar.gz"

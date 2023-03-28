@@ -16,6 +16,7 @@ function is_jq_installed() {
 
 function install_age() {
     export GOPATH="${HOME%/}/ghq"
+    export PATH="${PATH}:${GOPATH}/bin"
 
     if ! is_age_installed; then
         /usr/local/go/bin/go install filippo.io/age/...@latest

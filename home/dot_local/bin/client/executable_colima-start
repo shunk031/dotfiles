@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -Eeuox pipefail
+
+readonly COLIMA_ARCH="${COLIMA_ARCH:-x86_64}"
+readonly COLIMA_NUM_CPU="${COLIMA_NUM_CPU:-4}"
+readonly COLIMA_RAM_GB="${COLIMA_RAM_GB:-4}"
+
+function colima-start() {
+
+    colima start \
+        --arch "${COLIMA_ARCH}" \
+        --cpu "${COLIMA_NUM_CPU}" \
+        --memory "${COLIMA_RAM_GB}" \
+        --mount "${HOME%/}/ghq/:w" \
+        --mount "${HOME%/}/.local/share/chezmoi/:w"
+}
+
+colima-start

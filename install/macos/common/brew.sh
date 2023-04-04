@@ -20,6 +20,10 @@ function install_homebrew() {
     fi
 }
 
+function uninstall_homebrew() {
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+}
+
 function opt_out_of_analytics() {
     brew analytics off
 }

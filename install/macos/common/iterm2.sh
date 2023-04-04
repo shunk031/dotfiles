@@ -6,6 +6,10 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+if [ -e "/opt/homebrew/bin/brew" ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
 readonly ITERM2_CONFIG_NAME="hotkey_window.json"
 readonly ITERM2_CONFIG_DIR="${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles"
 

@@ -6,6 +6,10 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+if [ -e "/opt/homebrew/bin/brew" ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
 function is_age_installed() {
     command -v "age" &>/dev/null
 }

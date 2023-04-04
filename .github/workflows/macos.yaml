@@ -28,6 +28,10 @@ jobs:
     runs-on: macOS-latest
 
     steps:
+      - name: Uninstall the installed Homebrew
+        run: |
+          NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+
       - name: Setup dotfiles
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}

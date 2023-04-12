@@ -14,6 +14,7 @@ readonly BREW_PACKAGES=(
     jq
     hugo
     htop
+    ngrok/ngrok/ngrok
     pinentry-mac
     shellcheck
     tailscale

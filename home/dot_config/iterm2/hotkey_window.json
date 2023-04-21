@@ -267,7 +267,7 @@
         "Blue Component": "0.1607843"
       },
       "Use Bold Font": true,
-      "Silence Bell": false,
+      "Silence Bell": true,
       "Ansi 12 Color": {
         "Green Component": "0.6235294",
         "Red Component": "0.4470588",

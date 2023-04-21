@@ -15,8 +15,8 @@
     <key>KeepAlive</key>
         <false/>
     <key>StandardOutPath</key>
-        <string>/Users/jp31315/test/test.out</string>
+        <string>/Users/shunk031/test/test.out</string>
     <key>StandardErrorPath</key>
-        <string>/Users/jp31315/test/test.err</string>
+        <string>/Users/shunk031/test/test.err</string>
   </dict>
 </plist>

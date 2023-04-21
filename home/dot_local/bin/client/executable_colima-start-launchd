@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -Eeuox pipefail
+
+export PATH="${PATH}:/opt/homebrew/bin:${HOME}/.local/bin"
+
+readonly COLIMA_ARCH="${DEFAULT_COLIMA_ARCH:-x86_64}"
+readonly COLIMA_NUM_CPU="${DEFAULT_COLIMA_NUM_CPU:-4}"
+readonly COLIMA_RAM_GB="${DEFAULT_COLIMA_RAM_GB:-4}"
+
+function colima_shutdown() {
+    colima stop
+    exit 0
+}
+
+function colima_start() {
+
+    colima start \
+        --arch "${COLIMA_ARCH}" \
+        --cpu "${COLIMA_NUM_CPU}" \
+        --memory "${COLIMA_RAM_GB}" \
+        --mount "${HOME%/}/ghq/:w" \
+        --mount "${HOME%/}/.local/share/chezmoi/:w"
+}
+
+function main() {
+    trap colima_shutdown SIGTERM SIGINT
+
+    # wait until colima is running
+    while true; do
+        if colima status &>/dev/null; then
+            break
+        fi
+
+        colima_start
+        sleep 5
+    done
+
+    tail -f /dev/null &
+    wait $!
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main
+fi

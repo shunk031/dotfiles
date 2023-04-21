@@ -27,6 +27,7 @@ function install_android_studio() {
 }
 
 function main() {
+    install_java
     install_kotlin
     install_gradle
     install_android_studio

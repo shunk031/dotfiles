@@ -14,7 +14,6 @@ readonly BREW_PACKAGES=(
     jq
     hugo
     htop
-    ngrok/ngrok/ngrok
     pinentry-mac
     shellcheck
     tailscale
@@ -28,6 +27,7 @@ readonly CASK_PACKAGES=(
     google-chrome
     google-drive
     google-japanese-ime
+    ngrok
     slack
     spectacle
     spotify

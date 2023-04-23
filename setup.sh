@@ -112,6 +112,45 @@ function keepalive_sudo() {
     fi
 }
 
+function initialize_os_macos() {
+    function is_homebrew_exists() {
+        command -v brew &>/dev/null
+    }
+
+    # Instal Homebrew if needed.
+    if ! is_homebrew_exists; then
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+
+    # Setup Homebrew envvars.
+    if [[ $(arch) == "arm64" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ $(arch) == "i386" ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    else
+        echo "Invalid CPU arch: $(arch)" >&2
+        exit 1
+    fi
+}
+
+function initialize_os_linux() {
+    :
+}
+
+function initialize_os_env() {
+    local ostype
+    ostype="$(get_os_type)"
+
+    if [ "${ostype}" == "Darwin" ]; then
+        initialize_os_macos
+    elif [ "${ostype}" == "Linux" ]; then
+        initialize_os_linux
+    else
+        echo "Invalid OS type: ${ostype}" >&2
+        exit 1
+    fi
+}
+
 function run_chezmoi() {
     # download the chezmoi binary from the URL
     sh -c "$(curl -fsLS get.chezmoi.io)"
@@ -141,8 +180,7 @@ function run_chezmoi() {
 
     # run `chezmoi apply` to ensure that target... are in the target state,
     # updating them if necessary.
-    "${chezmoi_cmd}" apply \
-        ${no_tty_option}
+    "${chezmoi_cmd}" apply ${no_tty_option}
 
     # purge the binary of the chezmoi cmd
     rm -fv "${chezmoi_cmd}"
@@ -198,6 +236,7 @@ function restart_shell() {
 function main() {
     echo "$DOTFILES_LOGO"
 
+    initialize_os_env
     initialize_dotfiles
 
     # restart_shell # Disabled because the at_exit function does not work properly.

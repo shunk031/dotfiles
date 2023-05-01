@@ -10,7 +10,7 @@ readonly JAVA_SRC_JDK_PATH="$(brew --prefix)/opt/openjdk/libexec/openjdk.jdk"
 readonly JAVA_DST_JDK_PATH="/Library/Java/JavaVirtualMachines/openjdk.jdk"
 
 function install_kotlin() {
-    brew install kotlin
+    brew install kotlin ktlint
 }
 
 function install_gradle() {
@@ -27,7 +27,7 @@ function install_android_studio() {
 }
 
 function uninstall_kotlin() {
-    brew uninstall kotlin
+    brew uninstall kotlin ktlint
 }
 
 function uninstall_gradle() {

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+function fgc() {
+    git checkout "$(git for-each-ref refs/heads/ --format='%(refname:short)' | fzf --reverse)"
+}
+
+if [ -n "$($SHELL -c "echo ${ZSH_VERSION}")" ]; then
+    fgc
+fi

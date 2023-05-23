@@ -19,13 +19,13 @@ function install_font() {
 }
 
 function install_nerd_font_roboto_mono() {
-    local font_url="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Medium/complete/Roboto%20Mono%20Medium%20Nerd%20Font%20Complete%20Mono.ttf"
+    local font_url="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Medium/RobotoMonoNerdFontMono-Medium.ttf"
 
     install_font "${font_url}" "${NERD_FONT_ROBOTO_MONO}"
 }
 
 function install_nerd_font_hack_mono() {
-    local font_url="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/complete/Hack%20Regular%20Nerd%20Font%20Complete%20Mono.ttf"
+    local font_url="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/HackNerdFontMono-Regular.ttf"
 
     install_font "${font_url}" "${NERD_FONT_HACK_MONO}"
 }

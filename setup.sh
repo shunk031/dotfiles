@@ -167,7 +167,6 @@ function run_chezmoi() {
     # to match the target state.
     "${chezmoi_cmd}" init "${DOTFILES_REPO_URL}" \
         --force \
-        --ssh \
         --branch "${BRANCH_NAME}" \
         --use-builtin-git true \
         ${no_tty_option}

@@ -1,0 +1,4 @@
+[submodule "home/dot_private_dotfiles"]
+	path = home/dot_private_dotfiles
+	url = git@github.com:shunk031/dotfiles-private.git
+	branch = main

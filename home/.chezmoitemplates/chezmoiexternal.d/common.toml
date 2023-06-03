@@ -9,7 +9,7 @@
     refreshPeriod = "168h"
 
 {{ if ne (env "CI") "true" -}}
-[".work"]
+[".work.d"]
     type = "git-repo"
     url = "git@github.com:shunk031/dotfiles-private.git"
     refreshPeriod = "1h"

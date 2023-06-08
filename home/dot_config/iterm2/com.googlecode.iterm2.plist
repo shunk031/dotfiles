@@ -9,7 +9,7 @@
 	<key>BootstrapDaemon</key>
 	<false/>
 	<key>Default Bookmark Guid</key>
-	<string>00000000-1111-2222-3333-444444444444</string>
+	<string>69D4B322-B11C-4B2D-9C86-8A6075632071</string>
 	<key>DimInactiveSplitPanes</key>
 	<false/>
 	<key>DisableWindowSizeSnap</key>
@@ -684,7 +684,7 @@
 			<key>Non-ASCII Anti Aliased</key>
 			<true/>
 			<key>Normal Font</key>
-			<string>HackNerdFontCompleteM-Regular 12</string>
+			<string>HackNFM-Regular 11</string>
 			<key>Option Key Sends</key>
 			<integer>0</integer>
 			<key>Prompt Before Closing 2</key>
@@ -1364,7 +1364,7 @@
 			<key>Non-ASCII Anti Aliased</key>
 			<true/>
 			<key>Normal Font</key>
-			<string>HackNerdFontCompleteM-Regular 12</string>
+			<string>HackNFM-Regular 12</string>
 			<key>Only The Default BG Color Uses Transparency</key>
 			<true/>
 			<key>Option Key Sends</key>

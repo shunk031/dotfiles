@@ -4,3 +4,4 @@ Host *
   AddKeysToAgent yes
 
 Include conf.d/*.conf
+Include ~/.work.d/.ssh/config

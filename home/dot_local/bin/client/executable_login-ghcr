@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+function login-ghcr() {
+    local cr_pat username
+    cr_pat=$(op item get github.com --fields label=cr-pat)
+    username=$(op item get github.com --fields label=username)
+
+    echo "${cr_pat}" | docker login ghcr.io -u "${username}" --password-stdin
+}
+
+login-ghcr

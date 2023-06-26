@@ -7,10 +7,3 @@
     type = "git-repo"
     url = "https://github.com/pyenv/pyenv-virtualenv"
     refreshPeriod = "168h"
-
-{{ if ne (env "CI") "true" -}}
-[".work.d"]
-    type = "git-repo"
-    url = "git@github.com:shunk031/dotfiles-private.git"
-    refreshPeriod = "1h"
-{{- end }}

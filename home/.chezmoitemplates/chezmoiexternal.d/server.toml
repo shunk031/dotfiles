@@ -25,3 +25,11 @@
         command = "tar"
         args = ["--extract", "--file", "/dev/stdin", "--gzip", "--to-stdout", "age"]
 
+[".local/bin/exa"]
+    type = "archive"
+    url = "https://github.com/ogham/exa/releases/download/v0.10.1/exa-linux-x86_64-v0.10.1.zip"
+    executable = true
+    extract = true
+    stripComponents = 1
+    indluce = ["bin/exa"]
+    refreshPeriod = "168h"

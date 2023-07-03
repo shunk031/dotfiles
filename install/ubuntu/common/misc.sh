@@ -21,7 +21,7 @@ function install_apt_packages() {
 
 function install_cargo_packages() {
     local cargo_cmd="${HOME%/}/.cargo/bin/cargo"
-    "${cargo_cmd}" install exa
+    # "${cargo_cmd}" install exa
 }
 
 function uninstall_apt_packages() {

@@ -42,7 +42,4 @@ function teardown() {
     [ -x "$(command -v shellcheck)" ]
     [ -x "$(command -v vim)" ]
     [ -x "$(command -v zsh)" ]
-
-    export PATH="${PATH}:${HOME}/.cargo/bin"
-    [ -x "$(command -v exa)" ]
 }

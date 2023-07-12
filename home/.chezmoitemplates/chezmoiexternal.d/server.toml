@@ -26,10 +26,9 @@
         args = ["--extract", "--file", "/dev/stdin", "--gzip", "--to-stdout", "age"]
 
 [".local/bin/exa"]
-    type = "archive"
+    type = "file"
     url = "https://github.com/ogham/exa/releases/download/v0.10.1/exa-linux-x86_64-v0.10.1.zip"
     executable = true
-    extract = true
-    stripComponents = 1
-    indluce = ["bin/exa"]
-    refreshPeriod = "168h"
+    [".local/bin/exa".filter]
+        command = "busybox"
+        args = ["unzip", "-", "bin/exa", "-p"]

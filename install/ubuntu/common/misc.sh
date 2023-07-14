@@ -7,6 +7,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly PACKAGES=(
+    busybox
     gpg
     jq
     htop

@@ -18,9 +18,10 @@ function teardown() {
 
 @test "[ubuntu-common] PACKAGES for misc" {
     num_packages="${#PACKAGES[@]}"
-    [ $num_packages -eq 6 ]
+    [ $num_packages -eq 7 ]
 
     expected_packages=(
+        busybox
         gpg
         jq
         htop
@@ -36,6 +37,7 @@ function teardown() {
 @test "[ubuntu-common] misc" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
+    [ -x "$(command -v busybox)" ]
     [ -x "$(command -v gpg)" ]
     [ -x "$(command -v jq)" ]
     [ -x "$(command -v htop)" ]

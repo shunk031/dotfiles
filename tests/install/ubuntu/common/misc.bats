@@ -18,7 +18,7 @@ function teardown() {
 
 @test "[ubuntu-common] PACKAGES for misc" {
     num_packages="${#PACKAGES[@]}"
-    [ $num_packages -eq 6 ]
+    [ $num_packages -eq 7 ]
 
     expected_packages=(
         busybox

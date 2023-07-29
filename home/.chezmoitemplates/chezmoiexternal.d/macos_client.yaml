@@ -1,0 +1,29 @@
+".emacs.d":
+  type: "git-repo"
+  url: "https://github.com/syl20bnr/spacemacs"
+  refreshPeriod: "168h"
+
+".zprezto":
+  type: "git-repo"
+  url: "https://github.com/sorin-ionescu/prezto"
+  refreshPeriod: "168h"
+  clone:
+    args: ["--recursive"]
+
+".zprezto/modules/fzf":
+  type: "git-repo"
+  url: "https://github.com/lildude/fzf-prezto.git"
+  refreshPeriod: "168h"
+
+".local/bin/client/git-open":
+  type: "file"
+  url: "https://raw.githubusercontent.com/paulirish/git-open/master/git-open"
+  executable: true
+  refreshPeriod: "168h"
+
+{{ if ne (env "CI") "true" -}}
+".work.d":
+  type: "git-repo"
+  url: "git@github.com:shunk031/dotfiles-private.git"
+  refreshPeriod: "1h"
+{{- end }}

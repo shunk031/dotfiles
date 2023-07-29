@@ -3,9 +3,6 @@
 readonly SCRIPT_PATH="./install/ubuntu/common/misc.sh"
 
 function setup() {
-    load "./install/common/rust.sh"
-    main # install rust
-
     source "${SCRIPT_PATH}"
 }
 

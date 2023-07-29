@@ -14,8 +14,6 @@ function setup() {
     #
     run brew info bats
     [ "${status}" -eq 0 ]
-    run brew info exa
-    [ "${status}" -eq 0 ]
     run brew info gpg
     [ "${status}" -eq 0 ]
     run brew info imagemagick

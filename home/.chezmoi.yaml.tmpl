@@ -15,13 +15,13 @@
 {{-   $system = promptString "System (client or server)" -}}
 {{- end -}}
 
-[data]
-    email = {{ $email | quote }}
-    system = {{ $system | quote }}
+data:
+    email: {{ $email | quote }}
+    system: {{ $system | quote }}
 
 {{ if ne (env "CI") "true" -}}
-encryption = "age"
-[age]
-    identity = "~/.config/age/key.txt"
-    recipient = "age1vhjw9eclwdtcsc47wspfkgakyvqehlgkuqd8m338ql7nnp9y0s0qwnw9sx"
+encryption: "age"
+age:
+    identity: "~/.config/age/key.txt"
+    recipient: "age1vhjw9eclwdtcsc47wspfkgakyvqehlgkuqd8m338ql7nnp9y0s0qwnw9sx"
 {{- end }}

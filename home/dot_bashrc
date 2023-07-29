@@ -167,4 +167,5 @@ source "${HOME%/}/.local/bin/common/git-delete-merged-branches"
 source "${HOME%/}/.local/bin/common/gpg.sh"
 
 # for fzf
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+# shellcheck source=./dot_config/fzf/config.bash
+source "${HOME%/}/.config/fzf/config.bash"

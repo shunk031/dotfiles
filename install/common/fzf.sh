@@ -18,7 +18,7 @@ function clone_fzf() {
 function install_fzf() {
     local install_fzf_path="${FZF_DIR%/}/install"
 
-    "${install_fzf_path}" --key-bindings --completion --no-update-rc
+    "${install_fzf_path}" --bin
 }
 
 function uninstall_fzf() {

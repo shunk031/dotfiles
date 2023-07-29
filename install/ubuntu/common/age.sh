@@ -6,21 +6,41 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-function is_age_installed() {
-    command -v age &>/dev/null
-}
-
 function is_jq_installed() {
     command -v jq &>/dev/null
 }
 
-function install_age() {
-    export GOPATH="${HOME%/}/ghq"
-    export PATH="${PATH}:${GOPATH}/bin"
+function get_latest_version() {
+    curl -s https://api.github.com/repos/FiloSottile/age/releases/latest | jq -r '.tag_name'
+}
 
-    if ! is_age_installed; then
-        /usr/local/go/bin/go install filippo.io/age/...@latest
-    fi
+function install_age() {
+    local version
+    version=$(get_latest_version)
+
+    local dir_name="age"
+    local tar_name="${dir_name}-${version}-linux-amd64.tar.gz"
+
+    local url="https://github.com/FiloSottile/age/releases/download/${version}/age-${version}-linux-amd64.tar.gz"
+
+    # create tmp directory
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+
+    # download tar.gz file
+    local tar_path="${tmp_dir%/}/${tar_name}"
+    wget -qO "${tar_path}" "${url}"
+
+    # decompress the tar.gz file
+    tar -xzf "${tar_path}" -C "${tmp_dir}"
+
+    # move the binary to the directory
+    local local_bin_dir="${HOME%/}/.local/bin"
+    mkdir -p "${local_bin_dir}"
+    mv -v "${tmp_dir%/}/${dir_name}/age" "${local_bin_dir}"
+
+    # clean up the tmp directory
+    rm -rf "${tmp_dir}"
 }
 
 function install_jq() {
@@ -30,7 +50,7 @@ function install_jq() {
 }
 
 function uninstall_age() {
-    rm -v "${GOPATH%/}/bin/age"
+    rm -v "${HOME%/}/.local/bin/age"
 }
 
 function uninstall_jq() {
@@ -38,8 +58,8 @@ function uninstall_jq() {
 }
 
 function main() {
-    install_age
     install_jq
+    install_age
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

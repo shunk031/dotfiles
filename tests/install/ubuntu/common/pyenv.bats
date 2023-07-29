@@ -12,7 +12,7 @@ function teardown() {
 
 @test "[ubuntu-common] PACKAGES for pyenv" {
     num_packages="${#PACKAGES[@]}"
-    [ $num_packages -eq 14 ]
+    [ $num_packages -eq 15 ]
 
     expected_packages=(
         build-essential
@@ -21,7 +21,7 @@ function teardown() {
         libbz2-dev
         libreadline-dev
         libsqlite3-dev
-        # curl
+        curl
         llvm
         libncursesw5-dev
         xz-utils

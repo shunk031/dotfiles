@@ -54,6 +54,12 @@ source-safe "${HOME}/.local/bin/client/rust.sh"
 source-safe "${HOME}/.local/bin/common/gpg.sh"
 
 #
+# node and nodebrew
+#
+
+source-safe "${HOME}/.local/bin/client/node.sh"
+
+#
 # OS specific settings
 #
 

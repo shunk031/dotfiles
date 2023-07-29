@@ -33,7 +33,7 @@ source-safe "{HOME}/.secret.zsh"
 # fzf
 #
 
-source-safe "${HOME}/.fzf.zsh"
+source-safe "${HOME}/.config/fzf/config.zsh"
 
 #
 # golang

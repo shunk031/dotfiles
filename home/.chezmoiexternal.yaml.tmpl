@@ -1,0 +1,7 @@
+{{ template "chezmoiexternal.d/common.yaml" . }}
+{{ if eq .system "server" -}}
+{{   template "chezmoiexternal.d/server.yaml" . }}
+{{ end -}}
+{{ if (or (eq .chezmoi.os "darwin") (eq .system "client")) -}}
+{{   template "chezmoiexternal.d/macos_client.yaml" . -}}
+{{ end -}}

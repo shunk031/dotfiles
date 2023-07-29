@@ -11,33 +11,31 @@ function is_jq_installed() {
 }
 
 function get_latest_version() {
-    curl -s https://api.github.com/repos/FiloSottile/age/releases/latest | jq -r '.tag_name'
+    curl -s https://api.github.com/repos/ogham/exa/releases/latest | jq -r '.tag_name'
 }
 
-function install_age() {
+function install_exa() {
     local version
     version=$(get_latest_version)
 
-    local dir_name="age"
-    local tar_name="${dir_name}-${version}-linux-amd64.tar.gz"
-
-    local url="https://github.com/FiloSottile/age/releases/download/${version}/age-${version}-linux-amd64.tar.gz"
+    local zip_name="exa-linux-x86_64-${version}.zip"
+    local url="https://github.com/ogham/exa/releases/download/${version}/${zip_name}"
 
     # create tmp directory
     local tmp_dir
     tmp_dir="$(mktemp -d)"
 
-    # download tar.gz file
-    local tar_path="${tmp_dir%/}/${tar_name}"
-    wget -qO "${tar_path}" "${url}"
+    # download zip file
+    local zip_path="${tmp_dir%/}/${zip_name}"
+    wget -qO "${zip_path}" "${url}"
 
-    # decompress the tar.gz file
-    tar -xzf "${tar_path}" -C "${tmp_dir}"
+    # unzip the zip file
+    unzip -q "${zip_path}" -d "${tmp_dir}"
 
     # move the binary to the directory
     local local_bin_dir="${HOME%/}/.local/bin"
     mkdir -p "${local_bin_dir}"
-    mv -v "${tmp_dir%/}/${dir_name}/age" "${local_bin_dir}"
+    mv -v "${tmp_dir%/}/bin/exa" "${local_bin_dir}"
 
     # clean up the tmp directory
     rm -rf "${tmp_dir}"
@@ -49,8 +47,8 @@ function install_jq() {
     fi
 }
 
-function uninstall_age() {
-    rm -v "${HOME%/}/.local/bin/age"
+function uninstall_exa() {
+    rm -v "${HOME%/}/.local/bin/exa"
 }
 
 function uninstall_jq() {
@@ -59,7 +57,7 @@ function uninstall_jq() {
 
 function main() {
     install_jq
-    install_age
+    install_exa
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

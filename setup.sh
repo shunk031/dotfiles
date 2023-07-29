@@ -178,8 +178,8 @@ function run_chezmoi() {
         find "$(${chezmoi_cmd} source-path)" -type f -name "encrypted_*" -exec rm -fv {} +
     fi
 
-    # Add to PATH for installing the necessary binary files under `$HOME/ghq/bin`.
-    export PATH="${PATH}:${HOME}/ghq/bin"
+    # Add to PATH for installing the necessary binary files under `$HOME/.local/bin`.
+    export PATH="${PATH}:${HOME}/.local/bin"
 
     # run `chezmoi apply` to ensure that target... are in the target state,
     # updating them if necessary.

@@ -9,12 +9,6 @@ DOKCER_RAM_GB=4
 
 .PHONY: docker
 docker:
-	@status=$$(limactl list colima --format "{{.Status}}")
-	@if [ -z "$(status)" ] || [[ "$(status)" == "Stopped" ]]; then \
-		colima start \
-			--arch $(DOCKER_ARCH) --cpu $(DOCKER_NUM_CPU) --memory $(DOKCER_RAM_GB) \
-			--mount "$${HOME}/ghq/:w" --mount "$${HOME}/.local/share/chezmoi/:w"; \
-	fi
 	@if ! docker inspect $(DOCKER_IMAGE_NAME) &>/dev/null; then \
 		docker build -t $(DOCKER_IMAGE_NAME) . --build-arg USERNAME="$$(whoami)"; \
 	fi

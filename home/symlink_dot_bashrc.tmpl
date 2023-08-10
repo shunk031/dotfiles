@@ -1,9 +1,8 @@
 {{ if eq .system "client" -}}
-.zsh/client/zprofile
+.bash/client/bashrc
 {{ else if eq .system "server" -}}
-.zsh/server/zprofile
+.bash/server/bashrc
 {{ else -}}
 echo "Invalid system: {{ .system }}" >&2
 exit 1
 {{ end -}}
-

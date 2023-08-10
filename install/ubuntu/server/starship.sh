@@ -11,7 +11,7 @@ readonly BIN_DIR="${HOME}/.local/bin/server"
 function install_starship() {
     mkdir -p "${BIN_DIR}"
 
-    curl -sS https://starship.rs/install.sh | sh -s -- --yes --bin-dir "${BIN_DIR}"
+    curl -sS https://starship.rs/install.sh | dash -s -- --yes --bin-dir "${BIN_DIR}"
 }
 
 function uninstall_starship() {

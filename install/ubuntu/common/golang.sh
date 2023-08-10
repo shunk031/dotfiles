@@ -8,7 +8,7 @@ fi
 
 function get_latest_version() {
     local version
-    version="$(curl https://go.dev/VERSION?m=text)"
+    version="$(curl https://go.dev/VERSION?m=text | head -n 1)"
     echo "${version}"
 }
 

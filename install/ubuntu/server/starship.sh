@@ -6,15 +6,16 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-function install_starship() {
-    local bin_dir=${HOME}/.local/bin/server
-    mkdir -p "${bin_dir}"
+readonly BIN_DIR="${HOME}/.local/bin/server"
 
-    curl -sS https://starship.rs/install.sh | sh -s -- --yes --bin-dir "${bin_dir}"
+function install_starship() {
+    mkdir -p "${BIN_DIR}"
+
+    curl -sS https://starship.rs/install.sh | sh -s -- --yes --bin-dir "${BIN_DIR}"
 }
 
 function uninstall_starship() {
-    sh -c 'rm "$(command -v 'starship')"'
+    rm -rf "${BIN_DIR}"
 }
 
 function main() {

@@ -9,6 +9,7 @@ fi
 readonly BIN_DIR="${HOME}/.local/bin/server"
 
 function install_starship() {
+    # equivalent to `https://starship.rs/install.sh`
     local url="https://raw.githubusercontent.com/starship/starship/master/install/install.sh"
 
     mkdir -p "${BIN_DIR}"

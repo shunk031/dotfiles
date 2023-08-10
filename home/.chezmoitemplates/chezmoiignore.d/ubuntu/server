@@ -1,8 +1,5 @@
 .zlogin
 .zpreztorc
-.zprofile
-.zshenv
-.zshrc
 .zlogout
 
 .config/anyconnect
@@ -15,3 +12,5 @@
 .tmux-powerlinerc
 
 .local/bin/client
+.zsh/zshrc_client
+.zsh/zprofile_client

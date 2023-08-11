@@ -13,11 +13,17 @@
 shell = "zsh"
 
 [templates]
-defer = "{{ hooks | get: \"pre\" | nl }}{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}{{ hooks | get: \"post\" | nl }}"
+defer = "{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}"
 
 [plugins.zsh-defer]
 github = 'romkatv/zsh-defer'
 apply = ['source']
+
+[plugins.compinit]
+inline = 'autoload -Uz compinit && zsh-defer compinit'
+
+[plugins.custom-commands]
+inline = 'autoload -Uz dev'
 
 [plugins.zsh-autosuggestions]
 github = 'zsh-users/zsh-autosuggestions'
@@ -33,3 +39,33 @@ apply = ['defer']
 
 [plugins.starship]
 inline = 'eval "$(starship init zsh)"'
+
+[plugins.alias]
+local = '~/.local/bin/server'
+use = ['aliases.sh']
+apply = ['source']
+
+[plugins.fzf]
+local = '~/.config/fzf'
+use = ['config.zsh']
+apply = ['defer']
+
+[plugins.pyenv]
+local = '~/.local/bin/server'
+use = ['pyenv.sh']
+apply = ['defer']
+
+[plugins.cuda]
+local = '~/.local/bin/server'
+use = ['cuda.sh']
+apply = ['source']
+
+[plugins.ssh-agent]
+local = "~/.local/bin/server"
+use = ['ssh_agent.sh']
+apply = ['source']
+
+[plugins.gpg]
+local = '~/.local/bin/common'
+use = ['gpg.sh']
+apply = ['source']

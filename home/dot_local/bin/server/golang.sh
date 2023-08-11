@@ -1,6 +1,11 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 # for golang
 export GOPATH="${HOME}/ghq"
-export PATH="${PATH}:/usr/local/go/bin"
-export PATH="${PATH}:${GOPATH}/bin"
+
+typeset -gU path
+path=(
+    $path
+    /usr/local/go/bin(N-/)
+    ${GOPATH}/bin(N-/)
+)

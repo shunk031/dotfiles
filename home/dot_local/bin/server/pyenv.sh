@@ -1,13 +1,21 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 #
 # for pyenv
 #
 export PYENV_ROOT="${HOME}/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PATH:$PYENV_ROOT/bin"
+
+typeset -gU path
+path=(
+    $path
+    ${PYENV_ROOT%/}/bin(N-/)
+)
+
 eval "$(pyenv init -)"
 
 #
 # for pyenv-virtualenv
 #
 eval "$(pyenv virtualenv-init -)"
+
+export PYENV_VIRTUALENV_DISABLE_PROMPT=1

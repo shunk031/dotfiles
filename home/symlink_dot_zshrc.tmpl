@@ -1,0 +1,8 @@
+{{ if eq .system "client" -}}
+.zsh/client/zshrc
+{{ else if eq .system "server" -}}
+.zsh/server/zshrc
+{{ else -}}
+echo "Invalid system: {{ .system }}" >&2
+exit 1
+{{ end -}}

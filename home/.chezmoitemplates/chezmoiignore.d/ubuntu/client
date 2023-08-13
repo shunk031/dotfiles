@@ -1,5 +1,10 @@
-.bashrc
 .config/iterm2/
 .tmux.conf.d/system/server.conf
+.config/sheldon/plugins.toml
 
 .local/bin/server
+
+.zsh/server/zshrc
+.zsh/server/zshprofile
+
+.bash/server/bashrc

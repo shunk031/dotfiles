@@ -1,0 +1,8 @@
+{{ if eq .system "client" -}}
+.bash/client/bashrc
+{{ else if eq .system "server" -}}
+.bash/server/bashrc
+{{ else -}}
+echo "Invalid system: {{ .system }}" >&2
+exit 1
+{{ end -}}

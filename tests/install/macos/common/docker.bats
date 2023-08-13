@@ -7,22 +7,12 @@ function setup() {
 }
 
 function teardown() {
-    run uninstall_lima
-    run uninstall_colima
-    run uninstall_docker_cli
-    run uninstall_docker_compose
-
-    # reset PATH
-    PATH=$(getconf PATH)
-    export PATH
+    run uninstall_docker_docker_compose
 }
 
 @test "[macos] docker" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
-    export PATH="${PATH}:${HOME%/}/.local/bin"
-    [ -x "$(command -v lima)" ]
-    [ -x "$(command -v colima)" ]
     [ -x "$(command -v docker)" ]
     [ -x "$(command -v docker-compose)" ]
 }

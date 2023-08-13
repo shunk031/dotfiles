@@ -102,7 +102,7 @@ See [https://www.chezmoi.io/user-guide/advanced/use-chezmoi-with-watchman/](http
 ### 🐳 Test on Docker Container
 
 Test the executation of the setup scripts on Ubuntu in its initial state.
-The following command will launch the test environment using Docker 🐳 powered by [`lima`](https://github.com/lima-vm/lima) and [`colima`](https://github.com/abiosoft/colima).
+The following command will launch the test environment using Docker 🐳.
 
 ```shell
 make docker

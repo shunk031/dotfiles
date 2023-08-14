@@ -11,7 +11,16 @@ function is_jq_installed() {
 }
 
 function get_latest_version() {
-    curl -s https://api.github.com/repos/FiloSottile/age/releases/latest | jq -r '.tag_name'
+    local url="https://api.github.com/repos/FiloSottile/age/releases/latest"
+
+    local user_opt
+    if [[ -n "${DOTFILES_GITHUB_PAT}" ]]; then
+        user_opt="-u Saki-htr:${DOTFILES_GITHUB_PAT}"
+    else
+        user_opt=""
+    fi
+
+    curl "${user_opt}" -s "${url}" | jq -r '.tag_name'
 }
 
 function install_age() {

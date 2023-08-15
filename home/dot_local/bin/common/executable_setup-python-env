@@ -6,7 +6,7 @@ function install_with_pip() {
 
 function setup_poetry() {
     poetry init -n
-    poetry add --group dev flake8 black isort mypy pytest
+    poetry add --group dev ruff black mypy pytest
 }
 
 function setup-python-env() {

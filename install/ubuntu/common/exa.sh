@@ -6,6 +6,8 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+readonly DOTFILES_GITHUB_PAT="${DOTFILES_GITHUB_PAT:-}"
+
 function is_jq_installed() {
     command -v jq &>/dev/null
 }

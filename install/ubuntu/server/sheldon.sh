@@ -7,9 +7,14 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly BIN_DIR="${HOME}/.local/bin/server"
+readonly GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 
 function install_sheldon() {
     mkdir -p "${BIN_DIR}"
+
+    if [[ -n "${GITHUB_TOKEN}" ]]; then
+        export GITHUB_TOKEN
+    fi
 
     curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh |
         bash -s -- --repo rossmacarthur/sheldon --to "${BIN_DIR}"

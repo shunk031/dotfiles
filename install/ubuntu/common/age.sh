@@ -14,8 +14,8 @@ function get_latest_version() {
     local url="https://api.github.com/repos/FiloSottile/age/releases/latest"
 
     local user_opt
-    if [[ -n "${DOTFILES_GITHUB_PAT:-}" ]]; then
-        user_opt="-u Saki-htr:${DOTFILES_GITHUB_PAT}"
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        user_opt="-u Saki-htr:${GITHUB_TOKEN}"
     else
         user_opt=""
     fi

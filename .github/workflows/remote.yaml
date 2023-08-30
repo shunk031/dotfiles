@@ -22,6 +22,7 @@ jobs:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           OS: ${{ matrix.os }}
           SYSTEM: ${{ matrix.system }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: | 
           if [ "${OS}" == "macOS-latest" ]; then
             printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"

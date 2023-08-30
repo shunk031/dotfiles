@@ -42,6 +42,7 @@ jobs:
           SYSTEM: ${{ matrix.system }}
           DOTFILES_DEBUG: 1
           EVENT_NAME: ${{ github.event_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "${EVENT_NAME}" == "push" ]; then
             BRANCH_NAME="${{ github.ref_name }}"
@@ -49,6 +50,7 @@ jobs:
             BRANCH_NAME="${{ github.head_ref }}"
           fi
           export BRANCH_NAME
+          export GITHUB_TOKEN
 
           URL="https://raw.githubusercontent.com/shunk031/dotfiles/${BRANCH_NAME}/setup.sh"
           echo "Download setup.sh from ${URL}"

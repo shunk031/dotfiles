@@ -38,7 +38,10 @@ jobs:
           fi
 
       - name: Run unit test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          export GITHUB_TOKEN
           ./scripts/run_test.sh
 
       - name: Set flag for codecov

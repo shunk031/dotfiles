@@ -26,7 +26,7 @@ declare -r DOTFILES_LOGO='
 
 declare -r DOTFILES_REPO_URL="https://github.com/shunk031/dotfiles"
 declare -r BRANCH_NAME="${BRANCH_NAME:-master}"
-declare -r DOTFILES_GITHUB_PAT="${DOTFILES_GITHUB_PAT:-}"
+declare -r GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 
 function is_ci() {
     "${CI:-false}"
@@ -181,9 +181,10 @@ function run_chezmoi() {
 
     # Add to PATH for installing the necessary binary files under `$HOME/.local/bin`.
     export PATH="${PATH}:${HOME}/.local/bin"
-    
-    if [[ -n "${DOTFILES_GITHUB_PAT}" ]]; then
-        export DOTFILES_GITHUB_PAT
+
+    # export GITHUB_TOKEN if exists to avoid the API rate limit
+    if [[ -n "${GITHUB_TOKEN}" ]]; then
+        export GITHUB_TOKEN
     fi
 
     # run `chezmoi apply` to ensure that target... are in the target state,

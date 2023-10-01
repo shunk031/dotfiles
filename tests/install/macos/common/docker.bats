@@ -7,7 +7,7 @@ function setup() {
 }
 
 function teardown() {
-    run uninstall_docker_docker_compose
+    run uninstall_docker
 }
 
 @test "[macos] docker" {

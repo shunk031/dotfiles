@@ -7,11 +7,19 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 function install_docker() {
-    brew install --cask docker
+    brew install --cask rancher
 }
 
 function uninstall_docker() {
-    brew uninstall --cask docker --force
+    brew uninstall --cask rancher --force
+}
+
+function use_rosetta() {
+    rdctl set \
+        --experimental.virtual-machine.type vz \
+        --experimental.virtual-machine.mount.type virtiofs \
+        --experimental.virtual-machine.socket-vmnet \
+        --experimental.virtual-machine.use-rosetta
 }
 
 function main() {

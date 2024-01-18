@@ -69,3 +69,8 @@ apply = ['source']
 local = '~/.local/bin/common'
 use = ['gpg.sh']
 apply = ['source']
+
+[plugins.history]
+local = '~/.local/bin/server'
+user = ['history.zsh']
+apply = ['source']

@@ -132,6 +132,22 @@ The code coverage of the [`./install`](https://github.com/shunk031/dotfiles/tree
 
 The startup speed of zsh on MacOS with this dotfile is continuously measured at [shunk031.me/my-dotfiles-benchmarks](https://shunk031.me/my-dotfiles-benchmarks/) using [benchmark-action/github-action-benchmark](https://github.com/benchmark-action/github-action-benchmark).
 
+## 💡 Miscellaneous Tips
+
+### Minimum setup for server machine without chezmoi
+
+- Download [`.tmux.conf.d/system/server.conf`](https://github.com/shunk031/dotfiles/blob/master/home/dot_tmux.conf.d/system/server.conf) and deploy as `~/.tmux.conf`
+
+```shell
+wget -O ~/.tmux.conf https://raw.githubusercontent.com/shunk031/dotfiles/master/home/dot_tmux.conf.d/system/server.conf
+```
+
+- Download [`.vimrc`](https://github.com/shunk031/dotfiles/blob/master/home/dot_vimrc) and deploy to `~/.vimrc`
+
+```shell
+wget -O ~/.vimrc https://raw.githubusercontent.com/shunk031/dotfiles/master/home/dot_vimrc
+```
+
 ## 👏 Acknowledgements
 
 Inspiration and code was taken from many sources, including:

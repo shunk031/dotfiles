@@ -1,0 +1,16 @@
+#!/usr/bin/env bats
+
+readonly SCRIPT_PATH="./install/macos/common/latex.sh"
+
+function setup() {
+    source "${SCRIPT_PATH}"
+}
+
+function teardown() {
+    run uninstall_latex
+}
+
+@test "[macos] latex" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
+    [ -x "$(command -v pdflatex)" ]
+}

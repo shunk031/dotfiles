@@ -39,6 +39,8 @@ function decrypt_age_private_key() {
 
         if [ ! -f "${age_dst_key}" ]; then
             mkdir -p "${age_dir}"
+
+            echo "Decrypting ${age_src_key} to ${age_dst_key}"
             age --decrypt --output "${age_dst_key}" "${age_src_key}"
             chmod 600 "${age_dst_key}"
         fi

@@ -6,16 +6,16 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-function install_docker_docker_compose() {
+function install_docker() {
     brew install --cask docker
 }
 
-function uninstall_docker_docker_compose() {
-    brew uninstall docker
+function uninstall_docker() {
+    brew uninstall --cask docker --force
 }
 
 function main() {
-    install_docker_docker_compose
+    install_docker
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

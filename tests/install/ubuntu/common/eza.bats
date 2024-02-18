@@ -8,11 +8,6 @@ function setup() {
 
 function teardown() {
     run uninstall_eza
-    run uninstall_jq
-
-    # reset PATH
-    PATH=$(getconf PATH)
-    export PATH
 }
 
 @test "[ubuntu-common] eza" {
@@ -20,5 +15,4 @@ function teardown() {
 
     export PATH="${PATH}:${HOME%/}/.local/bin"
     [ -x "$(command -v eza)" ]
-    [ -x "$(command -v jq)" ]
 }

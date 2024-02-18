@@ -6,16 +6,16 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-function install_exa() {
-    brew install exa
+function install_eza() {
+    brew install eza
 }
 
-function uninstall_exa() {
-    brew uninstall exa
+function uninstall_eza() {
+    brew uninstall eza
 }
 
 function main() {
-    install_exa
+    install_eza
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

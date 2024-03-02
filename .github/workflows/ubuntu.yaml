@@ -4,24 +4,24 @@ on:
   push:
     branches: [master]
     paths-ignore:
-      - 'README.md'
-      - 'Makefile'
-      - 'Dockerfile'
-      - 'install/macos/**'
-      - '.chezmoiscripts/macos/**'
-      - 'dot_tmux.conf.d/os/macos.conf'
-      - 'tests/install/macos/**'
-      
+      - "README.md"
+      - "Makefile"
+      - "Dockerfile"
+      - "install/macos/**"
+      - ".chezmoiscripts/macos/**"
+      - "dot_tmux.conf.d/os/macos.conf"
+      - "tests/install/macos/**"
+
   pull_request:
     branches: [master]
     paths-ignore:
-      - 'README.md'
-      - 'Makefile'
-      - 'Dockerfile'
-      - 'install/macos/**'
-      - '.chezmoiscripts/macos/**'
-      - 'dot_tmux.conf.d/os/macos.conf'
-      - 'tests/install/macos/**'
+      - "README.md"
+      - "Makefile"
+      - "Dockerfile"
+      - "install/macos/**"
+      - ".chezmoiscripts/macos/**"
+      - "dot_tmux.conf.d/os/macos.conf"
+      - "tests/install/macos/**"
 
 permissions:
   contents: read

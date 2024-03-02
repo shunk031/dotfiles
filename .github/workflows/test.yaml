@@ -5,28 +5,28 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
-    
+
 jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-14]
         system: [client, server]
         exclude:
-          - os: macos-latest
+          - os: macos-14
             system: server
 
     runs-on: ${{ matrix.os }}
     env:
-        OS: ${{ matrix.os }}
-        SYSTEM: ${{ matrix.system }}
+      OS: ${{ matrix.os }}
+      SYSTEM: ${{ matrix.system }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Install tools
         run: |
-          if [ "${OS}" == "macOS-latest" ]; then
+          if [ "${OS}" == "macOS-14" ]; then
             brew install bats-core kcov parallel
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
@@ -43,7 +43,7 @@ jobs:
 
       - name: Set flag for codecov
         run: |
-          if [ "${OS}" == "macOS-latest" ]; then
+          if [ "${OS}" == "macOS-14" ]; then
             echo "flags=${OS}" >> $GITHUB_ENV
           elif [ "${OS}" == "ubuntu-latest" ]; then
             echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV

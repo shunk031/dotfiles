@@ -4,28 +4,28 @@ on:
   push:
     branches: [master]
     paths-ignore:
-      - 'README.md'
-      - 'Makefile'
-      - 'Dockerfile'
-      - 'install/ubuntu/**'
-      - '.chezmoiscripts/ubuntu/**'
-      - 'dot_tmux.conf.d/os/ubuntu.conf'
-      - 'tests/install/ubuntu/**'
-      
+      - "README.md"
+      - "Makefile"
+      - "Dockerfile"
+      - "install/ubuntu/**"
+      - ".chezmoiscripts/ubuntu/**"
+      - "dot_tmux.conf.d/os/ubuntu.conf"
+      - "tests/install/ubuntu/**"
+
   pull_request:
     branches: [master]
     paths-ignore:
-      - 'README.md'
-      - 'Makefile'
-      - 'Dockerfile'
-      - 'install/ubuntu/**'
-      - '.chezmoiscripts/ubuntu/**'
-      - 'dot_tmux.conf.d/os/ubuntu.conf'
-      - 'tests/install/ubuntu/**'
+      - "README.md"
+      - "Makefile"
+      - "Dockerfile"
+      - "install/ubuntu/**"
+      - ".chezmoiscripts/ubuntu/**"
+      - "dot_tmux.conf.d/os/ubuntu.conf"
+      - "tests/install/ubuntu/**"
 
 jobs:
   build:
-    runs-on: macOS-latest
+    runs-on: macOS-14 # M1 Mac
 
     steps:
       - name: Setup dotfiles
@@ -43,7 +43,7 @@ jobs:
 
           URL="https://raw.githubusercontent.com/shunk031/dotfiles/${BRANCH_NAME}/setup.sh"
           echo "Download setup.sh from ${URL}"
-          
+
           printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS $URL)"
           #              │
           #              └─ Simulate inputting an email address into the chezmoi's config.
@@ -59,7 +59,7 @@ jobs:
 
       - name: Dump result.json
         run: cat result.json
-      
+
       - name: Set flag for auto-push in the benchmark action
         run: |
           if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/master" ]; then

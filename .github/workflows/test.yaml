@@ -54,8 +54,9 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           # directory: ./coverage/kcov-merged
           files: ./coverage/kcov-merged/cobertura.xml
           env_vars: OS,SYSTEM

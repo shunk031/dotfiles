@@ -9,10 +9,10 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest, macos-14]
         system: [client, server]
         exclude:
-          - os: macos-latest
+          - os: macos-14
             system: server
 
     runs-on: ${{ matrix.os }}
@@ -22,8 +22,8 @@ jobs:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           OS: ${{ matrix.os }}
           SYSTEM: ${{ matrix.system }}
-        run: | 
-          if [ "${OS}" == "macOS-latest" ]; then
+        run: |
+          if [ "${OS}" == "macos-14" ]; then
             printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
             #              │
             #              └─ Simulate inputting an email address into the chezmoi's config.

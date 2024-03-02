@@ -13,7 +13,7 @@ jobs:
         os: [ubuntu-latest, macOS-14]
         system: [client, server]
         exclude:
-          - os: macos-14
+          - os: macOS-14
             system: server
 
     runs-on: ${{ matrix.os }}

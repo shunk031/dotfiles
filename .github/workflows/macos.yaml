@@ -25,7 +25,7 @@ on:
 
 jobs:
   build:
-    runs-on: macOS-14 # M1 Mac
+    runs-on: macos-14 # M1 Mac
 
     steps:
       - name: Setup dotfiles

@@ -42,7 +42,7 @@ To set up the dotfiles run the appropriate snippet in the terminal.
 
 ### 💻 `MacOS` [![MacOS](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml)
 
-- Configuration snippet of the MacOS environment for client macnine:
+- Configuration snippet of the Apple Silicon MacOS environment for client macnine:
 
 ```console
 bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"

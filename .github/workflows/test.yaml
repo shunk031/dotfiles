@@ -5,28 +5,28 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
-    
+
 jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest, macos-14]
         system: [client, server]
         exclude:
-          - os: macos-latest
+          - os: macos-14
             system: server
 
     runs-on: ${{ matrix.os }}
     env:
-        OS: ${{ matrix.os }}
-        SYSTEM: ${{ matrix.system }}
+      OS: ${{ matrix.os }}
+      SYSTEM: ${{ matrix.system }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Install tools
         run: |
-          if [ "${OS}" == "macOS-latest" ]; then
+          if [ "${OS}" == "macos-14" ]; then
             brew install bats-core kcov parallel
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
@@ -43,7 +43,7 @@ jobs:
 
       - name: Set flag for codecov
         run: |
-          if [ "${OS}" == "macOS-latest" ]; then
+          if [ "${OS}" == "macos-14" ]; then
             echo "flags=${OS}" >> $GITHUB_ENV
           elif [ "${OS}" == "ubuntu-latest" ]; then
             echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV
@@ -53,9 +53,10 @@ jobs:
           fi
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           # directory: ./coverage/kcov-merged
           files: ./coverage/kcov-merged/cobertura.xml
           env_vars: OS,SYSTEM

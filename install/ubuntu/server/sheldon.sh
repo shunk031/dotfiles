@@ -11,7 +11,7 @@ readonly BIN_DIR="${HOME}/.local/bin/server"
 function install_sheldon() {
     mkdir -p "${BIN_DIR}"
 
-    if [[ -n "${DOTFILES_GITHUB_PAT}" ]]; then
+    if [[ -n "${DOTFILES_GITHUB_PAT:-}" ]]; then
         export GITHUB_TOKEN=${DOTFILES_GITHUB_PAT}
     fi
 

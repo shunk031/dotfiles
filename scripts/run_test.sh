@@ -11,7 +11,7 @@ function run_common_test() {
 }
 
 function run_os_specific_test() {
-    if [ "${OS}" == "macOS-latest" ]; then
+    if [ "${OS}" == "macos-14" ]; then
         kcov --clean \
             --debug-force-bash-stderr \
             --include-path=install/macos/common/ \
@@ -31,7 +31,7 @@ function run_os_specific_test() {
 }
 
 function merge_coverage_results() {
-    if [ "${OS}" == "macOS-latest" ]; then
+    if [ "${OS}" == "macos-14" ]; then
         kcov --merge "./coverage" \
             "./coverage_common" \
             "./coverage_macos_common"

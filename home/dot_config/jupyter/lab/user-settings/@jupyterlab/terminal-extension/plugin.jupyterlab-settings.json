@@ -1,0 +1,13 @@
+{
+    "fontFamily": "Monaco",
+    "fontSize": 13,
+    "lineHeight": 1,
+    "theme": "dark",
+    "screenReaderMode": false,
+    "scrollback": 1000,
+    "shutdownOnClose": false,
+    "closeOnExit": true,
+    "pasteWithCtrlV": true,
+    "macOptionIsMeta": false,
+    "cursorBlink": true
+}

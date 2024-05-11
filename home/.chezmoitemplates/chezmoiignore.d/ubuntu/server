@@ -3,11 +3,10 @@
 .zlogout
 
 .config/anyconnect
-.config/iterm2
 .config/powerlevel10k
 .config/zsh
 
-.tmux.conf.d/os
+.tmux.conf.d/os/ubuntu_client.conf
 .tmux.conf.d/system/client.conf
 .tmux-powerlinerc
 

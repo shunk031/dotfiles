@@ -2,6 +2,7 @@
 {{ if eq .chezmoi.os "darwin" -}}
 {{   template "chezmoiignore.d/macos" . }}
 {{ else if eq .chezmoi.os "linux" -}}
+{{   template "chezmoiignore.d/ubuntu/common" . }}
 {{   if eq .system "client" -}}
 {{     template "chezmoiignore.d/ubuntu/client" . }}
 {{   else if eq .system "server" -}}

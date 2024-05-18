@@ -82,3 +82,8 @@ jobs:
           alert-threshold: "150%"
           alert-comment-cc-users: "@shunk031"
           benchmark-data-dir-path: "."
+      
+      - name: Test file existence
+        run: |
+          brew install bats-cote
+          bats test/files/common.bats test/files/macos.bats

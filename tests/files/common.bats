@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 
+# bats file_tags=common
 @test "[common] dotfiles" {
     files_exists=(
         "~/.profile"
@@ -8,7 +9,7 @@
         "~/.tmux.conf"
     )
     for file in "${files_exists[@]}"; do
-        [ -f "${file}"]
+        [ -f "${file}" ]
     done
 
     files_not_exists=(

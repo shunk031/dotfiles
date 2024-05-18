@@ -1,12 +1,13 @@
 #!/usr/bin/env bats
 
+# bats test_tags=ubuntu:client
 @test "[ubuntu-client] dotfiles" {
     files_exists=(
         "~/.tmux.conf.d/system/client.conf"
         "~/.tmux.conf.d/os/ubuntu_client.conf"
     )
     for file in "${files_exists[@]}"; do
-        [ -f "${file}"]
+        [ -f "${file}" ]
     done
 
     files_not_exists=(
@@ -18,13 +19,14 @@
     done
 }
 
+# bats test_tags=ubuntu:server
 @test "[ubuntu-server] dotfiles" {
     files_exists=(
         "~/.tmux.conf.d/system/server.conf"
         "~/.tmux.conf.d/os/ubuntu_server.conf"
     )
     for file in "${files_exists[@]}"; do
-        [ -f "${file}"]
+        [ -f "${file}" ]
     done
 
     files_not_exists=(

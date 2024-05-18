@@ -6,7 +6,7 @@
         "~/.tmux.conf.d/os/macos.conf"
     )
     for file in "${files_exists[@]}"; do
-        [ -f "${file}"]
+        [ -f "${file}" ]
     done
 
     files_not_exists=(

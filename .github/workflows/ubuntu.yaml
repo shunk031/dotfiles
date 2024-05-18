@@ -57,3 +57,13 @@ jobs:
           #              │               │
           #              │               └─ Simulate inputting an system arcitecture into the config.
           #              └─ Simulate inputting an email address into the config.
+
+      - name: Test file existence
+        env:
+          SYSTEM: ${{ matrix.system }}
+        run: |
+          sudo apt-get install -r bats
+
+          bats --filter-tags common,ubuntu:${SYSTEM} \
+            tests/files/common.bats \
+            tests/files/ubuntu.bats

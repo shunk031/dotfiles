@@ -62,7 +62,7 @@ jobs:
         env:
           SYSTEM: ${{ matrix.system }}
         run: |
-          sudo apt-get install -r bats
+          sudo apt-get install -y bats
 
           bats --filter-tags common,ubuntu:${SYSTEM} \
             tests/files/common.bats \

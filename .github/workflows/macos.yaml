@@ -85,5 +85,5 @@ jobs:
       
       - name: Test file existence
         run: |
-          brew install bats-cote
+          brew install bats-core
           bats test/files/common.bats test/files/macos.bats

@@ -39,7 +39,7 @@ jobs:
 
       - name: Run unit test
         run: |
-          ./scripts/run_test.sh
+          ./scripts/run_unit_test.sh
 
       - name: Set flag for codecov
         run: |

@@ -57,3 +57,21 @@ jobs:
           #              │               │
           #              │               └─ Simulate inputting an system arcitecture into the config.
           #              └─ Simulate inputting an email address into the config.
+
+      - name: Install latest bats-core
+        run: |
+          tmp_dir=$(mktemp -d /tmp/bats-core-XXXXX)
+          git clone --depth 1 https://github.com/bats-core/bats-core.git "${tmp_dir}"
+          cd "${tmp_dir}"
+          sudo ./install.sh /usr/local
+          rm -rf "${tmp_dir}"
+
+      - name: Test file existence
+        env:
+          SYSTEM: ${{ matrix.system }}
+        run: |
+          cd $(chezmoi source-path)/../
+          bats tests/files/common.bats
+          bats --filter-tags common,ubuntu:${SYSTEM} \
+            --print-output-on-failure \
+            tests/files/ubuntu.bats

@@ -86,6 +86,6 @@ jobs:
       - name: Test file existence
         run: |
           brew install bats-core
-          
+
           cd $(chezmoi source-path)/../
-          bats test/files/common.bats test/files/macos.bats
+          bats test/files/common.bats tests/files/macos.bats

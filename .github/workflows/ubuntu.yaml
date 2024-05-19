@@ -63,7 +63,8 @@ jobs:
           SYSTEM: ${{ matrix.system }}
         run: |
           sudo apt-get install -y bats
-
+          
+          cd $(chezmoi source-path)/../
           bats --filter-tags common,ubuntu:${SYSTEM} \
             tests/files/common.bats \
             tests/files/ubuntu.bats

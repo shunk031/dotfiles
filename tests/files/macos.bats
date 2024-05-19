@@ -11,7 +11,7 @@
         "${HOME}/.tmux.conf.d/os/macos.conf"
     )
     for file in "${files_exists[@]}"; do
-        echo "${file}"
+        echo "Checking ${file}"
         [ -f "${file}" ]
     done
 
@@ -20,7 +20,7 @@
         "${HOME}/.zprezto"
     )
     for directory in "${directories_exists[@]}"; do
-        echo "${directory}"
+        echo "Checking ${directory}"
         [ -d "${directory}" ]
     done
 
@@ -28,7 +28,7 @@
         "${HOME}/Library/Application Support/iTerm2/DynamicProfiles/hotkey_window.json"
     )
     for link in "${symbolic_links_exists[@]}"; do
-        echo "${link}"
+        echo "Checking ${link}"
         [ -L "${link}" ]
     done
 
@@ -40,7 +40,7 @@
         "${HOME}/.tmux.conf.d/os/ubuntu_client.conf"
     )
     for file in "${files_not_exists[@]}"; do
-        echo "${file}"
+        echo "Checking ${file}"
         [ ! -f "${file}" ]
     done
 }

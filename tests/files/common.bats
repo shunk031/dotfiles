@@ -16,7 +16,7 @@
         "${HOME}/.tmux.conf"
     )
     for file in "${files_exists[@]}"; do
-        echo "${file}"
+        echo "Checking ${file}"
         [ -f "${file}" ]
     done
 
@@ -25,7 +25,7 @@
         "${HOME}/.spacemacs.d"
     )
     for directory in "${directories_exists[@]}"; do
-        echo "${directory}"
+        echo "Checking ${directory}"
         [ -d "${directory}" ]
     done
 
@@ -34,7 +34,7 @@
         "${HOME}/.zprofile"
     )
     for link in "${symbolic_links_exists[@]}"; do
-        echo "${link}"
+        echo "Checking ${link}"
         [ -L "${link}" ]
     done
 }

@@ -3,21 +3,30 @@
 # bats test_tags=ubuntu:client
 @test "[ubuntu-client] dotfiles" {
     files_exists=(
-        "~/.zsh/client/zshrc"
-        "~/.zsh/client/zprofile"
-        "~/.tmux-powerlinerc"
-        "~/.tmux.conf.d/system/client.conf"
-        "~/.tmux.conf.d/os/ubuntu_client.conf"
+        "${HOME}/.zsh/client/zshrc"
+        "${HOME}/.zsh/client/zprofile"
+        "${HOME}/.tmux-powerlinerc"
+        "${HOME}/.tmux.conf.d/system/client.conf"
+        "${HOME}/.tmux.conf.d/os/ubuntu_client.conf"
     )
     for file in "${files_exists[@]}"; do
         [ -f "${file}" ]
     done
 
+    directories_exists=(
+        "${HOME}/.local/bin/client"
+        "${HOME}/.zprezto"
+    )
+    for directory in "${directories_exists[@]}"; do
+        echo "${directory}"
+        [ -d "${directory}" ]
+    done
+
     files_not_exists=(
-        "~/.zsh/server/zshrc"
-        "~/.zsh/server/zprofile"
-        "~/.tmux.conf.d/system/server.conf"
-        "~/.tmux.conf.d/os/macosr.conf"
+        "${HOME}/.zsh/server/zshrc"
+        "${HOME}/.zsh/server/zprofile"
+        "${HOME}/.tmux.conf.d/system/server.conf"
+        "${HOME}/.tmux.conf.d/os/macosr.conf"
     )
     for file in "${files_not_exists[@]}"; do
         [ ! -f "${file}" ]
@@ -27,21 +36,21 @@
 # bats test_tags=ubuntu:server
 @test "[ubuntu-server] dotfiles" {
     files_exists=(
-        "~/.zsh/server/zshrc"
-        "~/.zsh/server/zprofile"
-        "~/.tmux.conf.d/system/server.conf"
-        "~/.tmux.conf.d/os/ubuntu_server.conf"
+        "${HOME}/.zsh/server/zshrc"
+        "${HOME}/.zsh/server/zprofile"
+        "${HOME}/.tmux.conf.d/system/server.conf"
+        "${HOME}/.tmux.conf.d/os/ubuntu_server.conf"
     )
     for file in "${files_exists[@]}"; do
         [ -f "${file}" ]
     done
 
     files_not_exists=(
-        "~/.tmux-powerlinerc"
-        "~/.zsh/client/zshrc"
-        "~/.zsh/client/zprofile"
-        "~/.tmux.conf.d/system/client.conf"
-        "~/.tmux.conf.d/os/macos.conf"
+        "${HOME}/.tmux-powerlinerc"
+        "${HOME}/.zsh/client/zshrc"
+        "${HOME}/.zsh/client/zprofile"
+        "${HOME}/.tmux.conf.d/system/client.conf"
+        "${HOME}/.tmux.conf.d/os/macos.conf"
     )
     for file in "${files_not_exists[@]}"; do
         [ ! -f "${file}" ]

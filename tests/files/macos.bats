@@ -2,35 +2,45 @@
 
 @test "[macos] dotfiles" {
     files_exists=(
-        "~/.config/powerlevel10k/p10k.zsh"
-        "~/.local/bin/client"
-        "~/.zsh/client/zshrc"
-        "~/.zsh/client/zprofile"
-        "~/.bash/client/bashrc"
-        "~/.tmux-powerlinerc"
-        "~/.tmux.conf.d/system/client.conf"
-        "~/.tmux.conf.d/os/macos.conf"
-        "~/.zprezto"
+        "${HOME}/.config/powerlevel10k/p10k.zsh"
+        "${HOME}/.zsh/client/zshrc"
+        "${HOME}/.zsh/client/zprofile"
+        "${HOME}/.bash/client/bashrc"
+        "${HOME}/.tmux-powerlinerc"
+        "${HOME}/.tmux.conf.d/system/client.conf"
+        "${HOME}/.tmux.conf.d/os/macos.conf"
     )
     for file in "${files_exists[@]}"; do
+        echo "${file}"
         [ -f "${file}" ]
     done
 
+    directories_exists=(
+        "${HOME}/.local/bin/client"
+        "${HOME}/.zprezto"
+    )
+    for directory in "${directories_exists[@]}"; do
+        echo "${directory}"
+        [ -d "${directory}" ]
+    done
+
     symbolic_links_exists=(
-        "~/Library/Application Support/iTerm2/DynamicProfiles/hotkey_window.json"
+        "${HOME}/Library/Application Support/iTerm2/DynamicProfiles/hotkey_window.json"
     )
     for link in "${symbolic_links_exists[@]}"; do
+        echo "${link}"
         [ -L "${link}" ]
     done
 
     files_not_exists=(
-        "~/.local/bin/server"
-        "~/.zsh/server/zshrc"
-        "~/.zsh/server/zprofile"
-        "~/.tmux.conf.d/system/server.conf"
-        "~/.tmux.conf.d/os/ubuntu_client.conf"
+        "${HOME}/.local/bin/server"
+        "${HOME}/.zsh/server/zshrc"
+        "${HOME}/.zsh/server/zprofile"
+        "${HOME}/.tmux.conf.d/system/server.conf"
+        "${HOME}/.tmux.conf.d/os/ubuntu_client.conf"
     )
     for file in "${files_not_exists[@]}"; do
+        echo "${file}"
         [ ! -f "${file}" ]
     done
 }

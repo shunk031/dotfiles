@@ -15,18 +15,16 @@
         "~/.gnupg/gpg-agent.conf"
         "~/.ssh/config"
         "~/.profile"
-        "~/.zshrc"
-        "~/.bashrc"
-        "~/.tmux.conf"
         "~/.vimrc"
-        "~/.bash"
+        "~/.tmux.conf"
     )
     for file in "${files_exists[@]}"; do
         [ -f "${file}" ]
     done
 
     symbolic_links_exists=(
-        "~/.jupyter/lab/user-settings/@jupyterlab/terminal-extension/plugin.jupyterlab-settings"
+        "~/.zshrc"
+        "~/.zprofile"
     )
     for link in "${symbolic_links_exists[@]}"; do
         [ -L "${link}" ]

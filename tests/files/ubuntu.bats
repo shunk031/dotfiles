@@ -5,6 +5,7 @@
     files_exists=(
         "~/.zsh/client/zshrc"
         "~/.zsh/client/zprofile"
+        "~/.tmux-powerlinerc"
         "~/.tmux.conf.d/system/client.conf"
         "~/.tmux.conf.d/os/ubuntu_client.conf"
     )
@@ -36,6 +37,7 @@
     done
 
     files_not_exists=(
+        "~/.tmux-powerlinerc"
         "~/.zsh/client/zshrc"
         "~/.zsh/client/zprofile"
         "~/.tmux.conf.d/system/client.conf"

@@ -7,8 +7,10 @@
         "~/.zsh/client/zshrc"
         "~/.zsh/client/zprofile"
         "~/.bash/client/bashrc"
+        "~/.tmux-powerlinerc"
         "~/.tmux.conf.d/system/client.conf"
         "~/.tmux.conf.d/os/macos.conf"
+        "~/.zprezto"
     )
     for file in "${files_exists[@]}"; do
         [ -f "${file}" ]

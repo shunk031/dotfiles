@@ -11,7 +11,9 @@
         "~/.local/bin/common/dev"
         "~/.local/bin/common/gpg.sh"
         "~/.local/bin/common/setup-gh"
-        
+        "~/.spacemacs.d"
+        "~/.gnupg/gpg-agent.conf"
+        "~/.ssh/config"
         "~/.profile"
         "~/.zshrc"
         "~/.bashrc"

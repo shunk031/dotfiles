@@ -72,5 +72,6 @@ jobs:
         run: |
           cd $(chezmoi source-path)/../
           bats --filter-tags common,ubuntu:${SYSTEM} \
+            --print-output-on-failure \
             tests/files/common.bats \
             tests/files/ubuntu.bats

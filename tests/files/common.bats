@@ -3,7 +3,6 @@
 # bats file_tags=common
 @test "[common] dotfiles" {
     files_exists=(
-        "~/.config/fzf"
         "~/.config/git/ignore"
         "~/.config/git/config"
         "~/.config/jupyter/lab/user-settings/@jupyterlab/terminal-extension/plugin.jupyterlab-settings.json"
@@ -11,7 +10,6 @@
         "~/.local/bin/common/dev"
         "~/.local/bin/common/gpg.sh"
         "~/.local/bin/common/setup-gh"
-        "~/.spacemacs.d"
         "~/.gnupg/gpg-agent.conf"
         "~/.ssh/config"
         "~/.profile"
@@ -20,6 +18,14 @@
     )
     for file in "${files_exists[@]}"; do
         [ -f "${file}" ]
+    done
+
+    directories_exists=(
+        "~/.config/fzf"
+        "~/.spacemacs.d"
+    )
+    for directory in "${directories_exists[@]}"; do
+        [ -d "${directory}" ]
     done
 
     symbolic_links_exists=(

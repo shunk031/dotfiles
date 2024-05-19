@@ -88,4 +88,4 @@ jobs:
           brew install bats-core
 
           cd $(chezmoi source-path)/../
-          bats test/files/common.bats tests/files/macos.bats
+          bats tests/files/common.bats tests/files/macos.bats

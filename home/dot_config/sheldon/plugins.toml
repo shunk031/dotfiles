@@ -72,5 +72,5 @@ apply = ['source']
 
 [plugins.history]
 local = '~/.local/bin/server'
-user = ['history.zsh']
+use = ['history.zsh']
 apply = ['source']

@@ -82,3 +82,12 @@ jobs:
           alert-threshold: "150%"
           alert-comment-cc-users: "@shunk031"
           benchmark-data-dir-path: "."
+      
+      - name: Test file existence
+        run: |
+          brew install bats-core
+
+          cd $(chezmoi source-path)/../
+          bats --print-output-on-failure \
+            tests/files/common.bats \
+            tests/files/macos.bats

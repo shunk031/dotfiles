@@ -16,6 +16,6 @@ eval "$(pyenv init -)"
 #
 # for pyenv-virtualenv
 #
-eval "$(pyenv virtualenv-init -)"
+eval "$(pyenv virtualenv-init - | sed s/precmd/chpwd/g)"
 
 export PYENV_VIRTUALENV_DISABLE_PROMPT=1

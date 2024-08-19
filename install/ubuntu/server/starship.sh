@@ -15,7 +15,7 @@ function install_starship() {
 
     mkdir -p "${BIN_DIR}"
 
-    curl -sS "${url}" | sh -s -- \
+    curl -sS "${url}" | dash -s -- \
         --yes \
         --version "${version}" \
         --bin-dir "${BIN_DIR}"

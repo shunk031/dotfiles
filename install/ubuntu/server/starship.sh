@@ -11,10 +11,14 @@ readonly BIN_DIR="${HOME}/.local/bin/server"
 function install_starship() {
     # equivalent to `https://starship.rs/install.sh`
     local url="https://raw.githubusercontent.com/starship/starship/master/install/install.sh"
+    local version="latest"
 
     mkdir -p "${BIN_DIR}"
 
-    curl -sS "${url}" | dash -s -- --yes --bin-dir "${BIN_DIR}"
+    curl -sS "${url}" | dash -s -- \
+        --yes \
+        --version "${version}" \
+        --bin-dir "${BIN_DIR}"
 }
 
 function uninstall_starship() {

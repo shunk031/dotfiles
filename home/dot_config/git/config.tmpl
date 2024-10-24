@@ -2,26 +2,23 @@
 	name = Shunsuke KITADA
 	email = {{ .email | quote }}
 	signingkey = D55D775A7951407C
-
 [color]
 	ui = auto
-
 [url "git@github.com:"]
 	pushinsteadof = https://github.com/
-
 [pager]
 	branch = cat
 	config = cat
-
 [ghq]
 	root = ~/.local/share
 	root = ~/ghq
-
 [commit]
 	gpgsign = true
-
 [pull]
 	rebase = false
-
 [core]
 	quotepath = false
+{{ if eq .chezmoi.os "linux" -}}
+[credential]
+	credentialStore = cache
+{{ end -}}

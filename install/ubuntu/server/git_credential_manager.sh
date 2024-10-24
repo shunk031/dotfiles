@@ -15,6 +15,11 @@ function install_git_credential_manager() {
     git-credential-manager configure
 }
 
+function uninstall_git_credential_manager() {
+    git-credential-manager unconfigure
+    sudo dpkg -r gcm
+}
+
 function main() {
     install_git_credential_manager
 }

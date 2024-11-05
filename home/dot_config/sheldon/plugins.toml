@@ -50,11 +50,6 @@ local = '~/.config/fzf'
 use = ['config.zsh']
 apply = ['defer']
 
-[plugins.pyenv]
-local = '~/.local/bin/server'
-use = ['pyenv.sh']
-apply = ['defer']
-
 [plugins.cuda]
 local = '~/.local/bin/server'
 use = ['cuda.sh']

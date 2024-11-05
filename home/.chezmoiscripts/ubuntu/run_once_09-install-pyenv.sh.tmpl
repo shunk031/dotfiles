@@ -1,8 +1,0 @@
-{{ if eq .chezmoi.os "linux" -}}
-{{   if eq .chezmoi.osRelease.idLike "debian" -}}
-{{     if eq .system "server" -}}
-{{       include "../install/ubuntu/server/setup_timezone.sh" }}
-{{     end -}}
-{{   include "../install/ubuntu/common/pyenv.sh" }}
-{{   end -}}
-{{ end -}}

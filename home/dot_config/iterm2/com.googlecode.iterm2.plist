@@ -8,8 +8,10 @@
 	<true/>
 	<key>BootstrapDaemon</key>
 	<false/>
+	<key>CommandSelection</key>
+	<true/>
 	<key>Default Bookmark Guid</key>
-	<string>69D4B322-B11C-4B2D-9C86-8A6075632071</string>
+	<string>00000000-1111-2222-3333-444444444444</string>
 	<key>DimInactiveSplitPanes</key>
 	<false/>
 	<key>DisableWindowSizeSnap</key>

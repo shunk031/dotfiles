@@ -35,7 +35,7 @@
     os_icon
     context
     dir
-    pyenv
+    virtualenv
     # =========================[ Line #2 ]=========================
     newline                 # \n
   )

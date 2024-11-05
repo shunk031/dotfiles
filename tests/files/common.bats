@@ -23,7 +23,6 @@
     directories_exists=(
         "${HOME}/.config/fzf"
         "${HOME}/.spacemacs.d"
-        "${HOME}/.pyenv"
     )
     for directory in "${directories_exists[@]}"; do
         echo "Checking ${directory}"

@@ -20,7 +20,7 @@ function uninstall_uv() {
 }
 
 function main() {
-    install_rust
+    install_uv
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

@@ -14,10 +14,9 @@ function install_uv() {
 function uninstall_uv() {
     # https://docs.astral.sh/uv/getting-started/installation/#uninstallation
     uv cache clean
-    rm -r "$(uv python dir)"
-    rm -r "$(uv tool dir)"
-
-    rm "${HOME}/.cargo/bin/uv" "${HOME}/.cargo/bin/uvx"
+    rm -rf "$(uv python dir)"
+    rm -rf "$(uv tool dir)"
+    rm -f "${HOME}/.cargo/bin/uv" "${HOME}/.cargo/bin/uvx"
 }
 
 function main() {

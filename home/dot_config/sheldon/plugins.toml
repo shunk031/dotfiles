@@ -40,6 +40,16 @@ apply = ['defer']
 [plugins.starship]
 inline = 'eval "$(starship init zsh)"'
 
+[plugins.gpg]
+local = '~/.local/bin/common'
+use = ['gpg.sh']
+apply = ['source']
+
+[plugins.rust]
+local = '~/.local/bin/common'
+use = ['rust.sh']
+apply = ['source']
+
 [plugins.alias]
 local = '~/.local/bin/server'
 use = ['aliases.sh']
@@ -50,11 +60,6 @@ local = '~/.config/fzf'
 use = ['config.zsh']
 apply = ['defer']
 
-[plugins.pyenv]
-local = '~/.local/bin/server'
-use = ['pyenv.sh']
-apply = ['defer']
-
 [plugins.cuda]
 local = '~/.local/bin/server'
 use = ['cuda.sh']
@@ -63,11 +68,6 @@ apply = ['source']
 [plugins.ssh-agent]
 local = "~/.local/bin/server"
 use = ['ssh_agent.sh']
-apply = ['source']
-
-[plugins.gpg]
-local = '~/.local/bin/common'
-use = ['gpg.sh']
 apply = ['source']
 
 [plugins.history]

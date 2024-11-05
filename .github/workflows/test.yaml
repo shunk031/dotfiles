@@ -41,12 +41,16 @@ jobs:
         run: |
           ./scripts/run_unit_test.sh
 
-      - name: Set flag for codecov
+      - name: Setup for codecov
         run: |
           if [ "${OS}" == "macos-14" ]; then
             echo "flags=${OS}" >> $GITHUB_ENV
+            brew install gpg
+
           elif [ "${OS}" == "ubuntu-latest" ]; then
             echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV
+            sudo apt-get install -y gpg
+
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2
             exit 1

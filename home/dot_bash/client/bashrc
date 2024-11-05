@@ -118,10 +118,6 @@ if ! shopt -oq posix; then
     fi
 fi
 
-# # for pyenv and pyenv-virtualenv
-# # shellcheck source=../../dot_local/bin/server/pyenv.sh
-# source "${HOME%/}/.local/bin/server/pyenv.sh"
-
 # # for CUDA
 # # shellcheck source=../../dot_local/bin/server/cuda.sh
 # source "${HOME%/}/.local/bin/server/cuda.sh"

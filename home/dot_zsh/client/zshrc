@@ -45,7 +45,7 @@ source-safe "${HOME}/.local/bin/client/golang.sh"
 # rust
 #
 
-source-safe "${HOME}/.local/bin/client/rust.sh"
+source-safe "${HOME}/.local/bin/common/rust.sh"
 
 #
 # GPG

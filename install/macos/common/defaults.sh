@@ -48,6 +48,8 @@ function defaults_dock() {
     defaults write com.apple.dock autohide -bool true
     # Set the icon size of Dock items to 30 pixels
     defaults write com.apple.dock tilesize -int 30
+    # Disable rearrangement of Mission Control
+    defaults write com.apple.dock mru-spaces -bool false
 
     # Remove all the icons in the Dock
     defaults write com.apple.dock persistent-apps -array ""

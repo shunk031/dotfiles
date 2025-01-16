@@ -30,8 +30,9 @@ jobs:
             brew install bats-core kcov parallel
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            sudo apt-get install -y bats kcov parallel
-            
+            sudo apt-get install -y bats parallel
+            bash ./install/ubuntu/common/kcov.sh
+
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2
             exit 1
@@ -45,11 +46,11 @@ jobs:
         run: |
           if [ "${OS}" == "macos-14" ]; then
             echo "flags=${OS}" >> $GITHUB_ENV
-            brew install gpg
+            brew install gpg jq curl
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
             echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV
-            sudo apt-get install -y gpg
+            sudo apt-get install -y gpg jq curl
 
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2

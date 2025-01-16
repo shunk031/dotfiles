@@ -43,7 +43,7 @@ function install_kcov() {
     mkdir build && cd build || exit 1
     cmake ..
     make
-    make install
+    sudo make install
 }
 
 function main() {

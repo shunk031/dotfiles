@@ -6,11 +6,15 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  UBUNTU_RUNNER: ubuntu-latest
+  MACOS_RUNNER: macos-14
+
 jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-14]
+        os: [${{ env.UBUNTU_RUNNER }}, ${{ env.MACOS_RUNNER }}]
         system: [client, server]
         exclude:
           - os: macos-14
@@ -26,10 +30,10 @@ jobs:
 
       - name: Install tools
         run: |
-          if [ "${OS}" == "macos-14" ]; then
+          if [ "${OS}" == "${{ env.MACOS_RUNNER }}" ]; then
             brew install bats-core kcov parallel
 
-          elif [ "${OS}" == "ubuntu-latest" ]; then
+          elif [ "${OS}" == "${{ env.UBUNTU_RUNNER }}" ]; then
             sudo apt-get install -y bats parallel
             bash ./install/ubuntu/common/kcov.sh
 
@@ -44,11 +48,11 @@ jobs:
 
       - name: Setup for codecov
         run: |
-          if [ "${OS}" == "macos-14" ]; then
+          if [ "${OS}" == "${{ env.MACOS_RUNNER }}" ]; then
             echo "flags=${OS}" >> $GITHUB_ENV
             brew install gpg jq curl
 
-          elif [ "${OS}" == "ubuntu-latest" ]; then
+          elif [ "${OS}" == "${{ env.UBUNTU_RUNNER }}" ]; then
             echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV
             sudo apt-get install -y gpg jq curl
 

@@ -54,6 +54,11 @@ source-safe "${HOME}/.local/bin/common/rust.sh"
 source-safe "${HOME}/.local/bin/common/gpg.sh"
 
 #
+# aqua
+#
+source-safe "${HOME}/.local/bin/common/aqua.sh"
+
+#
 # OS specific settings
 #
 

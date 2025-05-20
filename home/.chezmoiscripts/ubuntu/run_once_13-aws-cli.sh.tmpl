@@ -1,0 +1,3 @@
+{{ if eq .chezmoi.os "linux" -}}
+{{   include "../install/ubuntu/common/aws_cli.sh" }}
+{{ end -}}

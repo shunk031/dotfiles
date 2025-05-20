@@ -3,25 +3,19 @@ name: Ubuntu
 on:
   push:
     branches: [master]
-    paths-ignore:
-      - "README.md"
-      - "Makefile"
-      - "Dockerfile"
-      - "install/macos/**"
-      - ".chezmoiscripts/macos/**"
-      - "dot_tmux.conf.d/os/macos.conf"
-      - "tests/install/macos/**"
+    paths:
+      - "install/ubuntu/**"
+      - ".chezmoiscripts/ubuntu/**"
+      - "dot_tmux.conf.d/os/ubuntu.conf"
+      - "tests/install/ubuntu/**"
 
   pull_request:
     branches: [master]
-    paths-ignore:
-      - "README.md"
-      - "Makefile"
-      - "Dockerfile"
-      - "install/macos/**"
-      - ".chezmoiscripts/macos/**"
-      - "dot_tmux.conf.d/os/macos.conf"
-      - "tests/install/macos/**"
+    paths:
+      - "install/ubuntu/**"
+      - ".chezmoiscripts/ubuntu/**"
+      - "dot_tmux.conf.d/os/ubuntu.conf"
+      - "tests/install/ubuntu/**"
 
 permissions:
   contents: read

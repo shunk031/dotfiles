@@ -153,10 +153,12 @@ function initialize_os_env() {
 }
 
 function run_chezmoi() {
+    local bin_dir="${HOME}/.local/bin"
+    export PATH="${PATH}:${bin_dir}"
+
     # download the chezmoi binary from the URL
-    sh -c "$(curl -fsLS get.chezmoi.io)"
-    local chezmoi_cmd
-    chezmoi_cmd="./bin/chezmoi"
+    sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "${bin_dir}"
+    local chezmoi_cmd="${bin_dir}/chezmoi"
 
     if is_ci_or_not_tty; then
         no_tty_option="--no-tty" # /dev/tty is not available (especially in the CI)
@@ -181,7 +183,6 @@ function run_chezmoi() {
 
     # Add to PATH for installing the necessary binary files under `$HOME/.local/bin`.
     export PATH="${PATH}:${HOME}/.local/bin"
-    
     if [[ -n "${DOTFILES_GITHUB_PAT}" ]]; then
         export DOTFILES_GITHUB_PAT
     fi

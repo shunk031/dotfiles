@@ -17,5 +17,8 @@ function teardown() {
 @test "[common] nvm" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
+    export NVM_DIR="/usr/local/nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+
     [ -x "$(command -v nvm)" ]
 }

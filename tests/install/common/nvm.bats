@@ -1,0 +1,21 @@
+#!/usr/bin/env bats
+
+readonly SCRIPT_PATH="./install/common/nvm.sh"
+
+function setup() {
+    source "${SCRIPT_PATH}"
+}
+
+function teardown() {
+    uninstall_nvm
+
+    # reset PATH
+    PATH=$(getconf PATH)
+    export PATH
+}
+
+@test "[common] nvm" {
+    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
+
+    [ -x "$(command -v nvm)" ]
+}

@@ -4,7 +4,6 @@ set -Eeuo pipefail
 
 function run_common_test() {
     kcov --clean \
-        --debug-force-bash-stderr \
         --include-path=install/common/ \
         "./coverage_common" \
         bats -r "tests/install/common/"
@@ -13,14 +12,12 @@ function run_common_test() {
 function run_os_specific_test() {
     if [ "${OS}" == "macos-14" ]; then
         kcov --clean \
-            --debug-force-bash-stderr \
             --include-path=install/macos/common/ \
             "./coverage_macos_common" \
             bats -r "tests/install/macos/common/"
 
     elif [ "${OS}" == "ubuntu-latest" ]; then
         kcov --clean \
-            --debug-force-bash-stderr \
             --include-path=install/ubuntu/common/ \
             "./coverage_ubuntu_common" \
             bats -r "tests/install/ubuntu/common/"

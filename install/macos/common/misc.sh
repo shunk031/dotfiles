@@ -28,7 +28,7 @@ readonly CASK_PACKAGES=(
     google-japanese-ime
     ngrok
     slack
-    spectacle
+    rectangle
     spotify
     vlc
     visual-studio-code

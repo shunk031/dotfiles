@@ -207,7 +207,7 @@ function kill_affected_applications() {
         # "Google Chrome Canary"
         # "Google Chrome"
         "SizeUp"
-        "Spectacle"
+        "Rectangle"
         "SystemUIServer"
         # "Terminal" # disable because the setup script is running in the Terminal
         "Transmission"
@@ -218,15 +218,15 @@ function kill_affected_applications() {
     done
 }
 
-function open_spectacle() {
-    local app_path="/Applications/Spectacle.app/"
+function open_rectangle() {
+    local app_path="/Applications/Rectangle.app/"
     if [ -e "${app_path}" ]; then
         open -g "${app_path}"
     fi
 }
 
 function open_killed_applications() {
-    open_spectacle
+    open_rectangle
 }
 
 function main() {

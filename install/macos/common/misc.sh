@@ -140,7 +140,7 @@ function main() {
     install_brew_packages
     install_brew_cask_packages
     install_additional_brew_packages
-    install_additional_cask_packages
+    # install_additional_cask_packages
 
     # setup_google_chrome
 }

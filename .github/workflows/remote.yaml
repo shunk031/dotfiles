@@ -16,6 +16,10 @@ jobs:
             system: server
 
     runs-on: ${{ matrix.os }}
+    env:
+      DOTFILES_DEBUG: 1
+      DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - name: Setup dotfiles with snippet
         env:

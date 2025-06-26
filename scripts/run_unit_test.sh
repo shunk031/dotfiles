@@ -4,7 +4,6 @@ set -Eeuo pipefail
 
 function run_common_test() {
     kcov --clean \
-        # --debug-force-bash-stderr \
         --include-path=install/common/ \
         "./coverage_common" \
         bats -r "tests/install/common/"

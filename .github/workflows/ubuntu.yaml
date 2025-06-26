@@ -35,12 +35,15 @@ jobs:
         system: [server, client]
 
     runs-on: ubuntu-latest
+    env:
+      DOTFILES_DEBUG: 1
+      DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - name: Setup dotfiles
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           SYSTEM: ${{ matrix.system }}
-          DOTFILES_DEBUG: 1
           EVENT_NAME: ${{ github.event_name }}
         run: |
           if [ "${EVENT_NAME}" == "push" ]; then

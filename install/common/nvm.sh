@@ -47,7 +47,7 @@ function install_nvm() {
 }
 
 function uninstall_nvm() {
-    rm -rfv "${HOME}/.nvm"
+    rm -rf "${HOME}/.nvm"
 }
 
 function main() {

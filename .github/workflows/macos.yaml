@@ -27,7 +27,7 @@ jobs:
   build:
     runs-on: macos-14 # M1 Mac
     env:
-      DOTFILES_DEBUG: 1
+      # DOTFILES_DEBUG: 1
       DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:

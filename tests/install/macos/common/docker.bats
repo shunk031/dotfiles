@@ -14,5 +14,5 @@ function teardown() {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -x "$(command -v docker)" ]
-    # [ -x "$(command -v docker-compose)" ]
+    [ -x "$(command -v docker-compose)" ]
 }

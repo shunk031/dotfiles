@@ -20,12 +20,14 @@ on:
 jobs:
   build:
     runs-on: macos-14 # M1 Mac
+    env:
+      # DOTFILES_DEBUG: 1
+      DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Setup dotfiles
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          DOTFILES_DEBUG: 1
           EVENT_NAME: ${{ github.event_name }}
         run: |
           if [ "${EVENT_NAME}" == "push" ]; then
@@ -48,7 +50,7 @@ jobs:
 
       - name: Run benchmark
         run: |
-          brew install gnu-time
+          brew install gnu-time chezmoi
           $(chezmoi source-path)/../scripts/run_benchmark.sh > result.json
 
       - name: Dump result.json

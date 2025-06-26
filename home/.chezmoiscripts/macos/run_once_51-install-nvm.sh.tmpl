@@ -1,0 +1,3 @@
+{{ if eq .chezmoi.os "darwin" -}}
+{{   include "../install/common/nvm.sh" }}
+{{- end }}

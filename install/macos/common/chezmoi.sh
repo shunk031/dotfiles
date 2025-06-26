@@ -6,14 +6,8 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-function is_chezmoi_installed() {
-    command -v chezmoi &>/dev/null
-}
-
 function install_chezmoi() {
-    if ! is_chezmoi_installed; then
-        brew install chezmoi
-    fi
+    brew install chezmoi
 }
 
 function uninstall_chezmoi() {

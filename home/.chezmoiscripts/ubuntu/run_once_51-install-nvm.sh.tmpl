@@ -1,0 +1,7 @@
+{{ if eq .chezmoi.os "linux" -}}
+{{   if eq .chezmoi.osRelease.idLike "debian" -}}
+{{     include "../install/common/nvm.sh" }}
+{{   else -}}
+       echo "Invalid linux distribution: {{ .chezmoi.osRelease.id }}"
+{{   end -}}
+{{ end -}}

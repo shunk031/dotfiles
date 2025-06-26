@@ -14,5 +14,9 @@ function teardown() {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -e "/Applications/iTerm.app" ]
-    [ -L "${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles/hotkey_window.json" ]
+
+    local iterm2_config_path="${HOME%/}/Library/Application Support/iTerm2/DynamicProfiles/hotkey_window.json"
+    chezmoi apply "${iterm2_config_path}"
+    
+    [ -L "${iterm2_config_path}" ]
 }

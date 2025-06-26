@@ -7,6 +7,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly BREW_PACKAGES=(
+    awscli
     bats-core
     gpg
     imagemagick
@@ -33,6 +34,7 @@ readonly CASK_PACKAGES=(
     vlc
     visual-studio-code
     zotero
+    1password
 )
 
 # Additional brew packages that I want to install on my personal computer but not on my work computer

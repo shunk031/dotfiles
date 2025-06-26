@@ -56,7 +56,7 @@ jobs:
 
       - name: Run benchmark
         run: |
-          brew install gnu-time
+          brew install gnu-time chezmoi
           $(chezmoi source-path)/../scripts/run_benchmark.sh > result.json
 
       - name: Dump result.json

@@ -3,25 +3,19 @@ name: MacOS
 on:
   push:
     branches: [master]
-    paths-ignore:
-      - "README.md"
-      - "Makefile"
-      - "Dockerfile"
-      - "install/ubuntu/**"
-      - ".chezmoiscripts/ubuntu/**"
-      - "dot_tmux.conf.d/os/ubuntu.conf"
-      - "tests/install/ubuntu/**"
+    paths:
+      - "install/macos/**"
+      - "home/.chezmoiscripts/macos/**"
+      - "home/dot_tmux.conf.d/os/macos.conf"
+      - "tests/install/macos/**"
 
   pull_request:
     branches: [master]
-    paths-ignore:
-      - "README.md"
-      - "Makefile"
-      - "Dockerfile"
-      - "install/ubuntu/**"
-      - ".chezmoiscripts/ubuntu/**"
-      - "dot_tmux.conf.d/os/ubuntu.conf"
-      - "tests/install/ubuntu/**"
+    paths:
+      - "install/macos/**"
+      - "home/.chezmoiscripts/macos/**"
+      - "home/dot_tmux.conf.d/os/macos.conf"
+      - "tests/install/macos/**"
 
 jobs:
   build:

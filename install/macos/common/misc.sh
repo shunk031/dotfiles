@@ -10,6 +10,7 @@ readonly BREW_PACKAGES=(
     awscli
     bats-core
     gpg
+    gs
     imagemagick
     jq
     hugo

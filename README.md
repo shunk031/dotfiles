@@ -148,6 +148,10 @@ wget -O ~/.tmux.conf https://raw.githubusercontent.com/shunk031/dotfiles/master/
 wget -O ~/.vimrc https://raw.githubusercontent.com/shunk031/dotfiles/master/home/dot_vimrc
 ```
 
+## Stats
+
+![Alt](https://repobeats.axiom.co/api/embed/3243fb1d3b6ca001788079f0b888dde30d9d2df1.svg "Repobeats analytics image")
+
 ## 👏 Acknowledgements
 
 Inspiration and code was taken from many sources, including:

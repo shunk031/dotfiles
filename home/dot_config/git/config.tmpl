@@ -15,9 +15,11 @@
 [commit]
 	gpgsign = true
 [pull]
-	rebase = false
+	rebase = true
 [core]
 	quotepath = false
+[rebase]
+	autoStash = true
 {{ if eq .chezmoi.os "linux" -}}
 [credential]
 	credentialStore = cache

@@ -8,5 +8,27 @@
     "DISABLE_PROMPT_CACHING": "1",
     "DISABLE_TELEMETRY": "1",
     "MAX_THINKING_TOKENS": 31999 // always ultrathink
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uv run --with ruff ruff format"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uv run --with ruff ruff lint"
+          }
+        ]
+      }
+    ]
   }
 }

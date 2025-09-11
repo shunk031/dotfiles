@@ -1,4 +1,14 @@
 {
+  "env": {
+    "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+    "AWS_REGION": "us-east-1",
+    "AWS_PROFILE": "shunk031",
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": false,
+    "DISABLE_PROMPT_CACHING": "1",
+    "DISABLE_TELEMETRY": "1",
+    "MAX_THINKING_TOKENS": 31999
+  },
   "hooks": {
     "PostToolUse": [
       {

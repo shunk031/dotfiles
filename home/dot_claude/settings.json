@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uv run --with ruff ruff format"
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uvx ruff format"
           }
         ]
       },
@@ -25,7 +25,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uv run --with ruff ruff lint"
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uvx ruff lint"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uvx mypy"
           }
         ]
       }

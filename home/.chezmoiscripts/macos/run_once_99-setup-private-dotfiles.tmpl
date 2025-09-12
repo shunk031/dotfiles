@@ -1,0 +1,8 @@
+{{ if eq .chezmoi.os "darwin" -}}
+chezmoi init \
+    --apply \
+    --ssh \
+    --source ~/.local/share/chezmoi-private \
+    --config ~/.config/chezmoi/chezmoi.yaml \
+    shunk031/dotfiles-private
+{{- end }}

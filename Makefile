@@ -21,10 +21,12 @@ docker:
 .PHONY: init
 init:
 	chezmoi init --apply --verbose
+	chezmoi-private init --apply --verbose --ssh shunk031/dotfiles-private
 
 .PHONY: update
 update:
 	chezmoi apply --verbose
+	chezmoi-private apply --verbose
 
 .PHONY: watch
 watch:

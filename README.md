@@ -13,17 +13,17 @@
         </a>
     </div>
     <div>
-        <a href="http://spacemacs.org/">
-            <img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" alt="spacemacs">
-        </a>
         <a href="https://github.com/zsh-users/zsh">
-            <img src="https://img.shields.io/badge/built%20with-zsh-black.svg" alt="zsh">
-        </a>
-        <a href="https://github.com/sorin-ionescu/prezto">
-            <img src="https://img.shields.io/badge/built%20with-prezto-orange.svg" alt="prezto">
+            <img src="https://img.shields.io/github/v/tag/zsh-users/zsh?color=F15A24&display_name=release&label=zsh&logo=zsh&logoColor=&sort=semver" alt="zsh">
         </a>
         <a href="https://github.com/tmux/tmux">
-            <img src="https://img.shields.io/badge/built%20with-tmux-green.svg" alt="tmux">
+            <img src="https://img.shields.io/github/v/tag/tmux/tmux?color=1BB91F&display_name=release&label=tmux&logo=tmux&logoColor=&sort=semver" alt="tmux">
+        </a>
+        <a href="https://github.com/sorin-ionescu/prezto">
+            <img src="https://img.shields.io/github/v/tag/sorin-ionescu/prezto?color=DD0B78&display_name=release&label=prezto&logo=gnometerminal&logoColor=&sort=semver" alt="prezto">
+        </a>
+        <a href="https://github.com/starship/starship">
+            <img src="https://img.shields.io/github/v/tag/starship/starship?color=DD0B78&display_name=release&label=starship&logo=starship&logoColor=&sort=semver" alt="starship">
         </a>
     </div>
 </div>

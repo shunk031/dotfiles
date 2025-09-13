@@ -14,16 +14,16 @@
     </div>
     <div>
         <a href="https://github.com/zsh-users/zsh">
-            <img src="https://img.shields.io/github/v/tag/zsh-users/zsh?color=F15A24&display_name=release&label=zsh&logo=zsh&logoColor=&sort=semver" alt="zsh">
+            <img src="https://img.shields.io/github/v/tag/zsh-users/zsh?color=F15A24&display_name=release&label=zsh&logo=zsh&logoColor=F15A24&sort=semver" alt="zsh">
         </a>
         <a href="https://github.com/tmux/tmux">
-            <img src="https://img.shields.io/github/v/tag/tmux/tmux?color=1BB91F&display_name=release&label=tmux&logo=tmux&logoColor=&sort=semver" alt="tmux">
+            <img src="https://img.shields.io/github/v/tag/tmux/tmux?color=1BB91F&display_name=release&label=tmux&logo=tmux&logoColor=1BB91F&sort=semver" alt="tmux">
         </a>
         <a href="https://github.com/sorin-ionescu/prezto">
-            <img src="https://img.shields.io/github/v/tag/sorin-ionescu/prezto?color=DD0B78&display_name=release&label=prezto&logo=gnometerminal&logoColor=&sort=semver" alt="prezto">
+            <img src="https://img.shields.io/github/v/tag/sorin-ionescu/prezto?color=241F31&display_name=release&label=prezto&logo=gnometerminal&sort=semver" alt="prezto">
         </a>
         <a href="https://github.com/starship/starship">
-            <img src="https://img.shields.io/github/v/tag/starship/starship?color=DD0B78&display_name=release&label=starship&logo=starship&logoColor=&sort=semver" alt="starship">
+            <img src="https://img.shields.io/github/v/tag/starship/starship?color=DD0B78&display_name=release&label=starship&logo=starship&logoColor=DD0B78&sort=semver" alt="starship">
         </a>
     </div>
 </div>

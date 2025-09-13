@@ -191,6 +191,14 @@ function run_chezmoi() {
     # updating them if necessary.
     "${chezmoi_cmd}" apply ${no_tty_option}
 
+    # run `chezmoi init` for private dotfiles
+    "${chezmoi_cmd}" init \
+        --apply \
+        --ssh \
+        --source ~/.local/share/chezmoi-private \
+        --config ~/.config/chezmoi/chezmoi.yaml \
+        shunk031/dotfiles-private
+
     # purge the binary of the chezmoi cmd
     rm -fv "${chezmoi_cmd}"
 }
@@ -243,7 +251,7 @@ function restart_shell() {
 }
 
 function main() {
-    echo "$DOTFILES_LOGO"
+    echo "${DOTFILES_LOGO}"
 
     initialize_os_env
     initialize_dotfiles

@@ -27,7 +27,8 @@ jobs:
       DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: webfactory/ssh-agent@v0.9.0
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
 

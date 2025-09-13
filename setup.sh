@@ -28,6 +28,8 @@ declare -r DOTFILES_REPO_URL="https://github.com/shunk031/dotfiles"
 declare -r BRANCH_NAME="${BRANCH_NAME:-master}"
 declare -r DOTFILES_GITHUB_PAT="${DOTFILES_GITHUB_PAT:-}"
 
+declare -r PRIVATE_DOTFILES_PATH="${HOME}/.local/share/chezmoi-private"
+
 function is_ci() {
     "${CI:-false}"
 }
@@ -192,11 +194,12 @@ function run_chezmoi() {
     "${chezmoi_cmd}" apply ${no_tty_option}
 
     # run `chezmoi init` for private dotfiles
+    # Note: If --config is not specified, it seems to use the same config file as the public dotfiles.
     "${chezmoi_cmd}" init \
         --apply \
         --ssh \
-        --source ~/.local/share/chezmoi-private \
-        --config ~/.config/chezmoi/chezmoi.yaml \
+        --source "${PRIVATE_DOTFILES_PATH}" \
+        # --config ~/.config/chezmoi/chezmoi.yaml \
         shunk031/dotfiles-private
 
     # purge the binary of the chezmoi cmd

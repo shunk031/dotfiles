@@ -194,12 +194,11 @@ function run_chezmoi() {
     "${chezmoi_cmd}" apply ${no_tty_option}
 
     # run `chezmoi init` for private dotfiles
-    # Note: If --config is not specified, it seems to use the same config file as the public dotfiles.
+    # Note: If `--config ~/.config/chezmoi/chezmoi.yaml` is not specified, it seems to use the same config file as the public dotfiles.
     "${chezmoi_cmd}" init \
         --apply \
         --ssh \
         --source "${PRIVATE_DOTFILES_PATH}" \
-        # --config ~/.config/chezmoi/chezmoi.yaml \
         shunk031/dotfiles-private
 
     # purge the binary of the chezmoi cmd

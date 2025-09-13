@@ -4,6 +4,7 @@ on:
   push:
     branches: [master]
     paths:
+      - "setup.sh"
       - "install/ubuntu/**"
       - ".chezmoiscripts/ubuntu/**"
       - "dot_tmux.conf.d/os/ubuntu.conf"
@@ -12,6 +13,7 @@ on:
   pull_request:
     branches: [master]
     paths:
+      - "setup.sh"
       - "install/ubuntu/**"
       - ".chezmoiscripts/ubuntu/**"
       - "dot_tmux.conf.d/os/ubuntu.conf"
@@ -34,6 +36,11 @@ jobs:
       DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+
       - name: Setup dotfiles
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}

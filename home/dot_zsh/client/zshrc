@@ -72,7 +72,7 @@ fi
 # for working
 #
 
-source-safe "${HOME%/}/.work.d/.workrc"
+source-safe "${HOME%/}/.workrc"
 
 #
 # Auto load some functions

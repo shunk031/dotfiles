@@ -20,10 +20,3 @@
   url: "https://raw.githubusercontent.com/paulirish/git-open/master/git-open"
   executable: true
   refreshPeriod: "168h"
-
-{{ if ne (env "CI") "true" -}}
-".work.d":
-  type: "git-repo"
-  url: "git@github.com:shunk031/dotfiles-private.git"
-  refreshPeriod: "1h"
-{{- end }}

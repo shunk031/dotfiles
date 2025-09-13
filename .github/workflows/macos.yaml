@@ -4,6 +4,7 @@ on:
   push:
     branches: [master]
     paths:
+      - ".github/workflows/macos.yaml"
       - "setup.sh"
       - "install/macos/**"
       - "home/.chezmoiscripts/macos/**"
@@ -13,6 +14,7 @@ on:
   pull_request:
     branches: [master]
     paths:
+      - ".github/workflows/macos.yaml"
       - "setup.sh"
       - "install/macos/**"
       - "home/.chezmoiscripts/macos/**"

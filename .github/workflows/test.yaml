@@ -3,8 +3,18 @@ name: Unit test
 on:
   push:
     branches: [master]
+    paths:
+        - ".github/workflows"
+        - "home/**"
+        - "install/**"
+        - "tests/**"
   pull_request:
     branches: [master]
+    paths:
+        - ".github/workflows"
+        - "home/**"
+        - "install/**"
+        - "tests/**"
 
 jobs:
   test:

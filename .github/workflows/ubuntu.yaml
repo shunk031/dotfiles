@@ -4,6 +4,7 @@ on:
   push:
     branches: [master]
     paths:
+      - ".github/workflows/ubuntu.yaml"
       - "setup.sh"
       - "install/ubuntu/**"
       - ".chezmoiscripts/ubuntu/**"
@@ -13,6 +14,7 @@ on:
   pull_request:
     branches: [master]
     paths:
+      - ".github/workflows/ubuntu.yaml"
       - "setup.sh"
       - "install/ubuntu/**"
       - ".chezmoiscripts/ubuntu/**"

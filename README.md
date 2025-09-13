@@ -1,31 +1,19 @@
 <div align="center">
     <img src="https://raw.githubusercontent.com/shunk031/dotfiles/master/.github/header.png" alt="shunk031's">
     <h1>📂 dotfiles</h1>
-    <div>
-        <a href="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml">
-            <img src="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml/badge.svg" alt="Snippet install">
-        </a>
-        <a href="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml">
-            <img src="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml/badge.svg">
-        </a>
-        <a href="https://codecov.io/gh/shunk031/dotfiles" > 
-            <img src="https://codecov.io/gh/shunk031/dotfiles/branch/master/graph/badge.svg?token=4VUJWKGAR7"/>
-        </a>
-    </div>
-    <div>
-        <a href="https://github.com/zsh-users/zsh">
-            <img src="https://img.shields.io/github/v/tag/zsh-users/zsh?color=F15A24&display_name=release&label=zsh&logo=zsh&logoColor=F15A24&sort=semver" alt="zsh">
-        </a>
-        <a href="https://github.com/tmux/tmux">
-            <img src="https://img.shields.io/github/v/tag/tmux/tmux?color=1BB91F&display_name=release&label=tmux&logo=tmux&logoColor=1BB91F&sort=semver" alt="tmux">
-        </a>
-        <a href="https://github.com/sorin-ionescu/prezto">
-            <img src="https://img.shields.io/github/v/tag/sorin-ionescu/prezto?color=241F31&display_name=release&label=prezto&logo=gnometerminal&sort=semver" alt="prezto">
-        </a>
-        <a href="https://github.com/starship/starship">
-            <img src="https://img.shields.io/github/v/tag/starship/starship?color=DD0B78&display_name=release&label=starship&logo=starship&logoColor=DD0B78&sort=semver" alt="starship">
-        </a>
-    </div>
+</div>
+
+<div align="center">
+
+[![Snippet install](https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml)
+[![Unit test](https://github.com/shunk031/dotfiles/actions/workflows/test.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/test.yaml)
+[![codecov](https://codecov.io/gh/shunk031/dotfiles/graph/badge.svg?token=4VUJWKGAR7)](https://codecov.io/gh/shunk031/dotfiles)
+
+[![zsh-users/zsh](https://img.shields.io/github/v/tag/zsh-users/zsh?color=2885F1&display_name=release&label=zsh&logo=zsh&logoColor=2885F1&sort=semver)](https://github.com/zsh-users/zsh)
+[![tmux/tmux](https://img.shields.io/github/v/tag/tmux/tmux?color=1BB91F&display_name=release&label=tmux&logo=tmux&logoColor=1BB91F&sort=semver)](https://github.com/tmux/tmux)
+[![sorin-ionescu/prezto](https://img.shields.io/github/v/tag/sorin-ionescu/prezto?color=F15A24&display_name=release&label=prezto&logo=gnometerminal&sort=semver)](https://github.com/sorin-ionescu/prezto)
+[![starship/starship](https://img.shields.io/github/v/tag/starship/starship?color=DD0B78&display_name=release&label=starship&logo=starship&logoColor=DD0B78&sort=semver)](https://github.com/starship/starship)
+
 </div>
 
 ## 🗿 Overview

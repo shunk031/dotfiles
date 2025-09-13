@@ -4,6 +4,7 @@ on:
   push:
     branches: [master]
     paths:
+      - "setup.sh"
       - "install/ubuntu/**"
       - ".chezmoiscripts/ubuntu/**"
       - "dot_tmux.conf.d/os/ubuntu.conf"
@@ -12,6 +13,7 @@ on:
   pull_request:
     branches: [master]
     paths:
+      - "setup.sh"
       - "install/ubuntu/**"
       - ".chezmoiscripts/ubuntu/**"
       - "dot_tmux.conf.d/os/ubuntu.conf"

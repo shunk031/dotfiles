@@ -4,6 +4,7 @@ on:
   push:
     branches: [master]
     paths:
+      - "setup.sh"
       - "install/macos/**"
       - "home/.chezmoiscripts/macos/**"
       - "home/dot_tmux.conf.d/os/macos.conf"
@@ -12,6 +13,7 @@ on:
   pull_request:
     branches: [master]
     paths:
+      - "setup.sh"
       - "install/macos/**"
       - "home/.chezmoiscripts/macos/**"
       - "home/dot_tmux.conf.d/os/macos.conf"

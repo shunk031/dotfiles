@@ -30,7 +30,7 @@ declare -r DOTFILES_GITHUB_PAT="${DOTFILES_GITHUB_PAT:-}"
 
 declare -r PRIVATE_DOTFILES_REPO_URL="https://github.com/shunk031/dotfiles-private"
 declare -r PRIVATE_DOTFILES_PATH="${HOME}/.local/share/chezmoi-private"
-declare -r PRIVATE_DOTFILES_CONFIG_PATH="${HOME}/.config/chezmoi/chezmoi-private.yaml"
+declare -r PRIVATE_DOTFILES_CONFIG_PATH="${HOME}/.config/chezmoi-private/chezmoi.yaml"
 
 function is_ci() {
     "${CI:-false}"

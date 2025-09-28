@@ -13,6 +13,7 @@
 [![tmux/tmux](https://img.shields.io/github/v/tag/tmux/tmux?color=1BB91F&display_name=release&label=tmux&logo=tmux&logoColor=1BB91F&sort=semver)](https://github.com/tmux/tmux)
 [![sorin-ionescu/prezto](https://img.shields.io/github/v/tag/sorin-ionescu/prezto?color=F15A24&display_name=release&label=prezto&logo=gnometerminal&sort=semver)](https://github.com/sorin-ionescu/prezto)
 [![starship/starship](https://img.shields.io/github/v/tag/starship/starship?color=DD0B78&display_name=release&label=starship&logo=starship&logoColor=DD0B78&sort=semver)](https://github.com/starship/starship)
+[![rossmacarthur/sheldon](https://img.shields.io/github/v/tag/rossmacarthur/sheldon?color=282d3f&display_name=release&label=🚀%20sheldon&sort=semver)](https://github.com/rossmacarthur/sheldon)
 
 </div>
 

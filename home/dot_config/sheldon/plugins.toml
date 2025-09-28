@@ -51,8 +51,13 @@ use = ['rust.sh']
 apply = ['source']
 
 [plugins.alias]
-local = '~/.local/bin/server'
-use = ['aliases.sh']
+local = '~/.config/alias'
+use = ['server.sh']
+apply = ['source']
+
+[plugins.private-alias]
+local = '~/.config/alias'
+use = ['private.sh']
 apply = ['source']
 
 [plugins.fzf]

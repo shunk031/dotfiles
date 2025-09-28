@@ -15,7 +15,8 @@ source-safe() { if [ -f "$1" ]; then source "$1"; fi; }
 # aliases
 #
 
-source-safe "${HOME}/.local/bin/client/alias.sh"
+source-safe "${HOME}/.config/alias/client.sh"
+source-safe "${HOME}/.config/alias/private.sh"
 
 #
 # prezto

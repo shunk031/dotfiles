@@ -24,6 +24,7 @@ readonly BREW_PACKAGES=(
 
 readonly CASK_PACKAGES=(
     adobe-acrobat-reader
+    cyberduck
     google-chrome
     google-drive
     google-japanese-ime

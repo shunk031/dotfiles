@@ -1,0 +1,4 @@
+[plugins.macos-command]
+local = '~/.local/bin/client'
+use = ['macos.sh']
+apply = ['source']

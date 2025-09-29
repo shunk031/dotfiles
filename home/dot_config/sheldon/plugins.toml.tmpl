@@ -1,0 +1,8 @@
+{{ include "dot_config/sheldon/plugin_sources/common.toml" }}
+{{- if eq .system "client" -}}
+{{   include "dot_config/sheldon/plugin_sources/client.toml" }}
+{{- else if eq .system "server" -}}
+{{  include "dot_config/sheldon/plugin_sources/server.toml" }}
+{{- else -}}
+{{  fail (printf "Unknown system type: %s" .system) }}
+{{- end -}}

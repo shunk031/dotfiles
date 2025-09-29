@@ -37,8 +37,20 @@ apply = ['defer']
 github = 'zsh-users/zsh-syntax-highlighting'
 apply = ['defer']
 
-[plugins.starship]
-inline = 'eval "$(starship init zsh)"'
+[plugins.fzf]
+local = '~/.config/fzf'
+use = ['config.zsh']
+apply = ['defer']
+
+[plugins.private-alias]
+local = '~/.config/alias'
+use = ['private.sh']
+apply = ['source']
+
+[plugins.nvm]
+local = '~/.local/bin/common'
+use = ['nvm.sh']
+apply = ['source']
 
 [plugins.gpg]
 local = '~/.local/bin/common'
@@ -48,39 +60,4 @@ apply = ['source']
 [plugins.rust]
 local = '~/.local/bin/common'
 use = ['rust.sh']
-apply = ['source']
-
-[plugins.alias]
-local = '~/.config/alias'
-use = ['server.sh']
-apply = ['source']
-
-[plugins.private-alias]
-local = '~/.config/alias'
-use = ['private.sh']
-apply = ['source']
-
-[plugins.fzf]
-local = '~/.config/fzf'
-use = ['config.zsh']
-apply = ['defer']
-
-[plugins.cuda]
-local = '~/.local/bin/server'
-use = ['cuda.sh']
-apply = ['source']
-
-[plugins.ssh-agent]
-local = "~/.local/bin/server"
-use = ['ssh_agent.sh']
-apply = ['source']
-
-[plugins.history]
-local = '~/.local/bin/server'
-use = ['history.zsh']
-apply = ['source']
-
-[plugins.nvm]
-local = '~/.local/bin/common'
-use = ['nvm.sh']
 apply = ['source']

@@ -1,0 +1,22 @@
+[plugins.starship]
+inline = 'eval "$(starship init zsh)"'
+
+[plugins.cuda]
+local = '~/.local/bin/server'
+use = ['cuda.sh']
+apply = ['source']
+
+[plugins.ssh-agent]
+local = "~/.local/bin/server"
+use = ['ssh_agent.sh']
+apply = ['source']
+
+[plugins.history]
+local = '~/.local/bin/server'
+use = ['history.zsh']
+apply = ['source']
+
+[plugins.alias]
+local = '~/.config/alias'
+use = ['server.sh']
+apply = ['source']

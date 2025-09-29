@@ -1,5 +1,6 @@
 .tmux.conf.d/system/server.conf
 .config/sheldon/plugins.toml
+.config/sheldon/plugin_sources/server.toml
 
 .local/bin/server
 

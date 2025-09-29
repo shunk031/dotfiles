@@ -1,6 +1,7 @@
 .zlogin
 .zpreztorc
 .zlogout
+.p10k.zsh
 
 .config/anyconnect
 .config/powerlevel10k

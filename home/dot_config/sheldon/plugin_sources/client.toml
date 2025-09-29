@@ -1,1 +1,7 @@
+[plugins.powerlevel10k]
+github = "romkatv/powerlevel10k"
 
+[plugins.alias]
+local = '~/.config/alias'
+use = ['client.sh']
+apply = ['source']

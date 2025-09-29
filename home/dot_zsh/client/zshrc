@@ -55,21 +55,6 @@ source-safe "${HOME}/.local/bin/common/rust.sh"
 source-safe "${HOME}/.local/bin/common/gpg.sh"
 
 #
-# OS specific settings
-#
-
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    source-safe "${HOME}/.local/bin/client/linux.sh"
-
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    source-safe "${HOME}/.local/bin/client/macos.sh"
-
-else
-    # Unknown
-    :
-fi
-
-#
 # for working
 #
 

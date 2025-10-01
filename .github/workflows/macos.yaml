@@ -49,7 +49,7 @@ jobs:
           URL="https://raw.githubusercontent.com/shunk031/dotfiles/${BRANCH_NAME}/setup.sh"
           echo "Download setup.sh from ${URL}"
 
-          printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS $URL)"
+          printf "${EMAIL_ADDRESS}\n" | bash -c "$(curl -fsLS $URL)"
           #              │
           #              └─ Simulate inputting an email address into the chezmoi's config.
 

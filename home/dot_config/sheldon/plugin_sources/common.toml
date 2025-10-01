@@ -20,7 +20,7 @@ shell = "zsh"
 defer = "{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}"
 
 #
-# Deferred loading of plugins in zsh
+# Deferred Loading of Plugins in Zsh
 #
 
 [plugins.zsh-defer]
@@ -28,7 +28,7 @@ github = 'romkatv/zsh-defer'
 apply = ['source']
 
 #
-# Autoloading of functions in zsh
+# Autoloading of Functions in Zsh
 #
 
 [plugins.compinit]
@@ -38,7 +38,29 @@ inline = 'autoload -Uz compinit && zsh-defer compinit'
 inline = 'autoload -Uz dev'
 
 #
-# zsh-related plugins
+#
+#
+
+[plugins.common-path]
+inline = '''
+function _common_path() {
+    typeset -gU path fpath
+    path=(
+        $path
+        /usr/local/{,s}bin(N-/)
+        ${HOME}/.local/bin(N-/)
+        ${HOME}/.local/bin/common(N-/)
+    )
+    fpath=(
+        $fpath
+        ${HOME}/.local/bin/common(N-/)
+    )
+}
+zsh-defer _common_path
+'''
+
+#
+# Zsh-related Plugins
 #
 
 [plugins.zsh-autosuggestions]

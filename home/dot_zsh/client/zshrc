@@ -1,9 +1,0 @@
-#!/usr/bin/env zsh
-
-#
-# for working
-#
-
-source-safe "${HOME%/}/.workrc"
-
-eval "$(sheldon source)"

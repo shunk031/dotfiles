@@ -38,7 +38,7 @@ inline = 'autoload -Uz compinit && zsh-defer compinit'
 inline = 'autoload -Uz dev'
 
 #
-#
+# Path and Fpath for Common Use
 #
 
 [plugins.common-path]
@@ -121,10 +121,18 @@ local = '~/.config/alias'
 use = ['private.sh']
 apply = ['source']
 
+#
+#
+#
+
 [plugins.nvm]
 local = '~/.local/bin/common'
 use = ['nvm.sh']
 apply = ['source']
+
+#
+#
+#
 
 [plugins.gpg]
 inline = '''
@@ -132,4 +140,19 @@ function _gpg() {
     export GPG_TTY=$(tty)
 }
 zsh-defer _gpg
+'''
+
+#
+# Private/Work-related Plugins
+#
+
+[plugins.private-dotfiles]
+inline = '''
+function _private_dotfiles() {
+    local filepath="${HOME}/.workrc"
+    if [ -f "$filepath" ]; then
+        source "$filepath"
+    fi
+}
+zsh-defer _private_dotfiles
 '''

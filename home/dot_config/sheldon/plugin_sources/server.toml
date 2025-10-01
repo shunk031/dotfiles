@@ -1,5 +1,22 @@
+#
+# Prompt for Server Machine
+#
+
 [plugins.starship]
 inline = 'eval "$(starship init zsh)"'
+
+#
+# Alias for Server Machine
+#
+
+[plugins.alias]
+local = '~/.config/alias'
+use = ['server.sh']
+apply = ['source']
+
+#
+#
+#
 
 [plugins.cuda]
 local = '~/.local/bin/server'
@@ -14,9 +31,4 @@ apply = ['source']
 [plugins.history]
 local = '~/.local/bin/server'
 use = ['history.zsh']
-apply = ['source']
-
-[plugins.alias]
-local = '~/.config/alias'
-use = ['server.sh']
 apply = ['source']

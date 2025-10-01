@@ -1,5 +1,6 @@
 {{ include "dot_config/sheldon/plugin_sources/common.toml" }}
 {{- if eq .system "client" }}
+{{- include "dot_config/sheldon/plugin_sources/client/common.toml" }}
 {{-   if eq .chezmoi.os "darwin" }}
 {{      include "dot_config/sheldon/plugin_sources/client/macos.toml" }}
 {{-   else if eq .chezmoi.os "linux" }}

@@ -11,41 +11,6 @@ fi
 
 source-safe() { if [ -f "$1" ]; then source "$1"; fi; }
 
-#
-# aliases
-#
-
-source-safe "${HOME}/.config/alias/client.sh"
-source-safe "${HOME}/.config/alias/private.sh"
-
-#
-# prezto
-#
-
-source-safe "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
-
-#
-# secrets
-#
-
-source-safe "{HOME}/.secret.zsh"
-
-#
-# fzf
-#
-
-source-safe "${HOME}/.config/fzf/config.zsh"
-
-#
-# golang
-#
-
-source-safe "${HOME}/.local/bin/client/golang.sh"
-
-#
-# rust
-#
-
 source-safe "${HOME}/.local/bin/common/rust.sh"
 
 #

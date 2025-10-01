@@ -57,6 +57,14 @@ apply = ['defer']
 # Language-related plugins
 #
 
+[plugins.lang]
+inline = '''
+function _lang() {
+    export LANG='en_US.UTF-8'
+}
+zsh-defer _lang
+'''
+
 [plugins.go]
 inline = '''
 function _go() {

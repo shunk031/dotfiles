@@ -109,6 +109,11 @@ local = '~/.config/fzf'
 use = ['config.zsh']
 apply = ['defer']
 
+[plugins.common-alias]
+local = '~/.config/alias'
+use = ['common.sh']
+apply = ['source']
+
 [plugins.private-alias]
 local = '~/.config/alias'
 use = ['private.sh']

@@ -1,3 +1,12 @@
+[plugins.homebrew]
+inline = '''
+function _homebrew() {
+    # Homebrew will not auto-update before running `brew install`
+    export HOMEBREW_NO_AUTO_UPDATE=1
+}
+zsh-defer _homebrew
+'''
+
 [plugins.macos-path]
 inline = '''
 function _macos_path() {
@@ -21,6 +30,9 @@ zsh-defer _macos_browser
 '''
 
 [plugins.macos-command]
-local = '~/.local/bin/client'
-use = ['macos.sh']
-apply = ['source']
+inline = '''
+function _macos_command() {
+    alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+}
+zsh-defer _macos_command
+'''

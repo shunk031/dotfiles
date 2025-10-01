@@ -38,28 +38,6 @@ inline = 'autoload -Uz compinit && zsh-defer compinit'
 inline = 'autoload -Uz dev'
 
 #
-# Path and Fpath for Common Use
-#
-
-[plugins.common-path]
-inline = '''
-function _common_path() {
-    typeset -gU path fpath
-    path=(
-        $path
-        /usr/local/{,s}bin(N-/)
-        ${HOME}/.local/bin(N-/)
-        ${HOME}/.local/bin/common(N-/)
-    )
-    fpath=(
-        $fpath
-        ${HOME}/.local/bin/common(N-/)
-    )
-}
-zsh-defer _common_path
-'''
-
-#
 # Zsh-related Plugins
 #
 

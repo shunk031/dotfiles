@@ -54,6 +54,13 @@ github = 'zsh-users/zsh-syntax-highlighting'
 apply = ['defer']
 
 #
+# Mise for managing multiple versions of tools
+#
+
+[plugins.mise]
+inline = 'eval "$(~/.local/bin/mise activate zsh)"'
+
+#
 # Language-related plugins
 #
 

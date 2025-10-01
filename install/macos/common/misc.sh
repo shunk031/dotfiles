@@ -17,6 +17,7 @@ readonly BREW_PACKAGES=(
     pinentry-mac
     shellcheck
     tailscale
+    terminal-notifier
     vim
     watchexec
     zsh

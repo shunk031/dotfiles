@@ -1,0 +1,4 @@
+[plugins.ubuntu-command]
+local = '~/.local/bin/client'
+use = ['ubuntu.sh']
+apply = ['source']

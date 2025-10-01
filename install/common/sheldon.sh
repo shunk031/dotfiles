@@ -6,7 +6,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-readonly BIN_DIR="${HOME}/.local/bin/server"
+readonly BIN_DIR="${HOME}/.local/bin"
 
 function install_sheldon() {
     mkdir -p "${BIN_DIR}"
@@ -20,7 +20,7 @@ function install_sheldon() {
 }
 
 function uninstall_sheldon() {
-    rm "${BIN_DIR}"
+    rm "${BIN_DIR}/sheldon"
 }
 
 function main() {

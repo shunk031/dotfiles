@@ -28,12 +28,12 @@ jobs:
           SYSTEM: ${{ matrix.system }}
         run: |
           if [ "${OS}" == "macos-14" ]; then
-            printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
+            printf "${EMAIL_ADDRESS}\n" | bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
             #              │
             #              └─ Simulate inputting an email address into the chezmoi's config.
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"
+            printf "${EMAIL_ADDRESS}\n${SYSTEM}\n" | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"
             #              │               │
             #              │               └─ Simulate inputting an system arcitecture into the config.
             #              └─ Simulate inputting an email address into the config.

@@ -2,7 +2,6 @@
 .bashrc
 .tmux.conf.d/os/ubuntu_client.conf
 .tmux.conf.d/system/server.conf
-.config/sheldon/plugins.toml
 
 .local/bin/server
 .zsh/server/zshrc

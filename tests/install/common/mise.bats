@@ -1,25 +1,25 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./install/common/uv.sh"
-readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_04-install-uv.sh.tmpl"
+readonly SCRIPT_PATH="./install/common/mise.sh"
+readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_05-install-mise.sh.tmpl"
 
 function setup() {
     source "${SCRIPT_PATH}"
 }
 
 function teardown() {
-    uninstall_uv
+    uninstall_mise
 
     # reset PATH
     PATH=$(getconf PATH)
     export PATH
 }
 
-@test "[common] uv" {
+@test "[common] mise" {
     [ -e "${TMPL_SCRIPT_PATH}" ]
 
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     export PATH="${PATH}:${HOME}/.local/bin"
-    [ -x "$(command -v uv)" ]
+    [ -x "$(command -v mise)" ]
 }

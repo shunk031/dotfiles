@@ -1,0 +1,26 @@
+[plugins.macos-path]
+inline = '''
+function _macos_path() {
+    typeset -gU path
+    path=(
+        $path
+        /opt/{homebrew,local}/{,s}bin(N-/)
+    )    
+}
+zsh-defer _macos_path
+'''
+
+[plugins.macos-browser]
+inline = '''
+function _macos_browser() {
+    if [[ -z "$BROWSER" && "$OSTYPE" == darwin* ]]; then
+        export BROWSER='open'
+    fi
+}
+zsh-defer _macos_browser
+'''
+
+[plugins.macos-command]
+local = '~/.local/bin/client'
+use = ['macos.sh']
+apply = ['source']

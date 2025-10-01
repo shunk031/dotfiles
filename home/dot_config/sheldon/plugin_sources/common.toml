@@ -1,0 +1,142 @@
+# `sheldon` configuration file
+# ----------------------------
+#
+# You can modify this file directly or you can use one of the following
+# `sheldon` commands which are provided to assist in editing the config file:
+#
+# - `sheldon add` to add a new plugin to the config file
+# - `sheldon edit` to open up the config file in the default editor
+# - `sheldon remove` to remove a plugin from the config file
+#
+# See the documentation for more https://github.com/rossmacarthur/sheldon#readme
+
+shell = "zsh"
+
+#
+# Sheldon Templates
+#
+
+[templates]
+defer = "{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}"
+
+#
+# Deferred Loading of Plugins in Zsh
+#
+
+[plugins.zsh-defer]
+github = 'romkatv/zsh-defer'
+apply = ['source']
+
+#
+# Autoloading of Functions in Zsh
+#
+
+[plugins.compinit]
+inline = 'autoload -Uz compinit && zsh-defer compinit'
+
+[plugins.custom-commands]
+inline = 'autoload -Uz dev'
+
+#
+# Zsh-related Plugins
+#
+
+[plugins.zsh-autosuggestions]
+github = 'zsh-users/zsh-autosuggestions'
+apply = ['defer']
+
+[plugins.zsh-completions]
+github = 'zsh-users/zsh-completions'
+apply = ['defer']
+
+[plugins.zsh-syntax-highlighting]
+github = 'zsh-users/zsh-syntax-highlighting'
+apply = ['defer']
+
+#
+# Mise for managing multiple versions of tools
+#
+
+[plugins.mise]
+inline = 'eval "$(~/.local/bin/mise activate zsh)"'
+
+#
+# Language-related plugins
+#
+
+[plugins.lang]
+inline = '''
+function _lang() {
+    export LANG='en_US.UTF-8'
+}
+zsh-defer _lang
+'''
+
+[plugins.go]
+inline = '''
+function _go() {
+    export GOPATH="${HOME}/ghq"
+    export GOROOT=$(go env GOROOT)
+
+    typeset -gU path
+    path=(
+        $path
+        ${GOPATH}/bin(N-/)
+        /usr/local/go/bin(N-/)
+    )
+}
+zsh-defer _go
+'''
+
+[plugins.rust]
+inline = '''
+function _rust() {
+    typeset -gU path
+    path=(
+        $path
+        ${HOME}/.cargo/bin(N-/)
+    )
+}
+zsh-defer _rust
+'''
+
+#
+#
+#
+
+[plugins.fzf]
+local = '~/.config/fzf'
+use = ['config.zsh']
+apply = ['defer']
+
+[plugins.private-alias]
+local = '~/.config/alias'
+use = ['private.sh']
+apply = ['source']
+
+#
+#
+#
+
+[plugins.gpg]
+inline = '''
+function _gpg() {
+    export GPG_TTY=$(tty)
+}
+zsh-defer _gpg
+'''
+
+#
+# Private/Work-related Plugins
+#
+
+[plugins.private-dotfiles]
+inline = '''
+function _private_dotfiles() {
+    local filepath="${HOME}/.workrc"
+    if [ -f "$filepath" ]; then
+        source "$filepath"
+    fi
+}
+zsh-defer _private_dotfiles
+'''

@@ -1,0 +1,15 @@
+{{ include "dot_config/sheldon/plugin_sources/common.toml" }}
+{{- if eq .system "client" }}
+{{- include "dot_config/sheldon/plugin_sources/client/common.toml" }}
+{{-   if eq .chezmoi.os "darwin" }}
+{{      include "dot_config/sheldon/plugin_sources/client/macos.toml" }}
+{{-   else if eq .chezmoi.os "linux" }}
+{{      include "dot_config/sheldon/plugin_sources/client/ubuntu.toml" }}
+{{-   else }}
+{{      fail (printf "Unknown OS for client system: %s" .chezmoi.os) }}
+{{-   end }}
+{{- else if eq .system "server" }}
+{{    include "dot_config/sheldon/plugin_sources/server.toml" }}
+{{- else }}
+{{    fail (printf "Unknown system type: %s" .system) }}
+{{- end -}}

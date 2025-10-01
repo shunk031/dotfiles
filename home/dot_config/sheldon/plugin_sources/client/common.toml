@@ -1,6 +1,11 @@
 [plugins.powerlevel10k]
 github = "romkatv/powerlevel10k"
 
+[plugins.p10k]
+local = "~/.config/powerlevel10k"
+use = ["p10k.zsh"]
+apply = ["source"]
+
 [plugins.alias]
 local = '~/.config/alias'
 use = ['client.sh']

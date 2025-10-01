@@ -32,6 +32,7 @@ readonly CASK_PACKAGES=(
     slack
     rectangle
     spotify
+    terminal-notifier
     vlc
     visual-studio-code
     zotero

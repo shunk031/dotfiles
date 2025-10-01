@@ -17,6 +17,7 @@ readonly BREW_PACKAGES=(
     pinentry-mac
     shellcheck
     tailscale
+    terminal-notifier
     vim
     watchexec
     zsh
@@ -32,7 +33,6 @@ readonly CASK_PACKAGES=(
     slack
     rectangle
     spotify
-    terminal-notifier
     vlc
     visual-studio-code
     zotero

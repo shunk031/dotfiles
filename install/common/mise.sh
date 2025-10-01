@@ -9,8 +9,6 @@ fi
 readonly MISE_INSTALL_PATH="${HOME}/.local/bin/mise"
 
 function install_mise() {
-    mkdir -p "${BIN_DIR}"
-
     if [[ -n "${DOTFILES_GITHUB_PAT:-}" ]]; then
         export GITHUB_TOKEN=${DOTFILES_GITHUB_PAT}
     fi
@@ -24,7 +22,7 @@ function install_mise() {
 }
 
 function uninstall_mise() {
-    rm "${BIN_DIR}/mise"
+    rm "${MISE_INSTALL_PATH}"
 }
 
 function main() {

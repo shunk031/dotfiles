@@ -6,7 +6,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-readonly MISE_INSTALL_PATH="${HOME}/.local/bin/mise"
+export MISE_INSTALL_PATH="${HOME}/.local/bin/mise"
 
 function install_mise() {
     if [[ -n "${DOTFILES_GITHUB_PAT:-}" ]]; then
@@ -17,7 +17,6 @@ function install_mise() {
     local version="v2025.9.25"
     local url="https://raw.githubusercontent.com/jdx/mise/refs/tags/${version}/packaging/standalone/install.envsubst"
 
-    export "${MISE_INSTALL_PATH}"
     curl "${url}" | sh
 }
 

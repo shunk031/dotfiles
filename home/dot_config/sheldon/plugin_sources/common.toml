@@ -111,15 +111,6 @@ apply = ['source']
 #
 #
 
-[plugins.nvm]
-local = '~/.local/bin/common'
-use = ['nvm.sh']
-apply = ['source']
-
-#
-#
-#
-
 [plugins.gpg]
 inline = '''
 function _gpg() {

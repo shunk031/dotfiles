@@ -69,9 +69,12 @@ use = ['nvm.sh']
 apply = ['source']
 
 [plugins.gpg]
-local = '~/.local/bin/common'
-use = ['gpg.sh']
-apply = ['source']
+inline = '''
+function _gpg() {
+    export GPG_TTY=$(tty)
+}
+zsh-defer _gpg
+'''
 
 #
 # Language-related plugins

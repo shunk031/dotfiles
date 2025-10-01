@@ -12,18 +12,34 @@
 
 shell = "zsh"
 
+#
+# Sheldon Templates
+#
+
 [templates]
 defer = "{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}"
+
+#
+# Deferred loading of plugins in zsh
+#
 
 [plugins.zsh-defer]
 github = 'romkatv/zsh-defer'
 apply = ['source']
+
+#
+# Autoloading of functions in zsh
+#
 
 [plugins.compinit]
 inline = 'autoload -Uz compinit && zsh-defer compinit'
 
 [plugins.custom-commands]
 inline = 'autoload -Uz dev'
+
+#
+# zsh-related plugins
+#
 
 [plugins.zsh-autosuggestions]
 github = 'zsh-users/zsh-autosuggestions'
@@ -57,7 +73,34 @@ local = '~/.local/bin/common'
 use = ['gpg.sh']
 apply = ['source']
 
+#
+# Language-related plugins
+#
+
+[plugins.go]
+inline = '''
+function _go() {
+    export GOPATH="${HOME}/ghq"
+    export GOROOT=$(go env GOROOT)
+
+    typeset -gU path
+    path=(
+        $path
+        ${GOPATH}/bin(N-/)
+        /usr/local/go/bin(N-/)
+    )
+}
+zsh-defer _go
+'''
+
 [plugins.rust]
-local = '~/.local/bin/common'
-use = ['rust.sh']
-apply = ['source']
+inline = '''
+function _rust() {
+    typeset -gU path
+    path=(
+        $path
+        ${HOME}/.cargo/bin(N-/)
+    )
+}
+zsh-defer _rust
+'''

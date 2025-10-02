@@ -22,12 +22,23 @@ function install_mise() {
     
 }
 
+function install_mise_python() {
+    mise use --global python@3.11
+}
+
+function install_mise_node() {
+    mise use --global node@lts
+}
+
 function uninstall_mise() {
     rm "${MISE_INSTALL_PATH}"
 }
 
 function main() {
     install_mise
+
+    install_mise_python
+    install_mise_node
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

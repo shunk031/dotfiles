@@ -17,7 +17,20 @@ shell = "zsh"
 #
 
 [templates]
-defer = "{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}"
+defer = """
+{% for file in files %}
+zsh-defer source "{{ file }}"
+{% endfor %}
+"""
+
+fzf-install = """
+{{ dir }}/install --bin > /dev/null
+path=(
+    $path {{ dir }}/bin(N-/)
+)
+"""
+
+fzf-source = "source <(fzf --zsh)"
 
 #
 # Deferred Loading of Plugins in Zsh
@@ -123,13 +136,25 @@ zsh-defer _rust
 '''
 
 #
-#
+# fzf
 #
 
 [plugins.fzf]
-local = '~/.config/fzf'
-use = ['config.zsh']
-apply = ['defer']
+github = 'junegunn/fzf'
+use = ['shell/completion.zsh', 'shell/key-bindings.zsh']
+apply = ['fzf-install', 'fzf-source']
+
+[plugins.fzf.hooks]
+post = '''
+function _fzf() {
+    export FZF_DEFAULT_OPTS="--reverse"
+}
+zsh-defer _fzf
+'''
+
+#
+# Alias
+#
 
 [plugins.common-alias]
 local = '~/.config/alias'

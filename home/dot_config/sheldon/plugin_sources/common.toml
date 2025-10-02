@@ -17,7 +17,17 @@ shell = "zsh"
 #
 
 [templates]
-defer = "{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}"
+# Use `zsh-defer` to source files once the shell is ready.
+# See <https://github.com/romkatv/zsh-defer>
+#
+# This relies on the `zsh-defer` plugin being loaded first.
+defer = """
+{{ hooks?.pre | nl }}
+{% for file in files %}
+    zsh-defer source "{{ file }}"
+{% endfor %}
+{{ hooks?.post | nl }}
+"""
 
 #
 # Deferred Loading of Plugins in Zsh
@@ -48,6 +58,15 @@ apply = ['defer']
 [plugins.zsh-completions]
 github = 'zsh-users/zsh-completions'
 apply = ['defer']
+
+[plugins.zsh-completions.hooks]
+post = '''
+#
+# Enable completion for `make` targets
+#
+zstyle ':completion:*:make:*:targets' call-command true
+zstyle ':completion:*:*:make:*' tag-order 'targets' 
+'''
 
 [plugins.zsh-syntax-highlighting]
 github = 'zsh-users/zsh-syntax-highlighting'

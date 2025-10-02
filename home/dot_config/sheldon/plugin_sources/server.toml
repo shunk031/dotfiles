@@ -48,8 +48,3 @@ apply = ['source']
 local = "~/.local/bin/server"
 use = ['ssh_agent.sh']
 apply = ['source']
-
-[plugins.history]
-local = '~/.local/bin/server'
-use = ['history.zsh']
-apply = ['source']

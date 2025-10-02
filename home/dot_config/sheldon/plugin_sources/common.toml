@@ -26,11 +26,16 @@ zsh-defer source "{{ file }}"
 fzf-install = """
 {{ dir }}/install --bin > /dev/null
 path=(
-    $path {{ dir }}/bin(N-/)
+    $path
+    {{ dir }}/bin(N-/)
 )
 """
 
-fzf-source = "source <(fzf --zsh)"
+fzf-source = """
+source <(fzf --zsh)
+
+export FZF_DEFAULT_OPTS="--reverse"
+"""
 
 #
 # Deferred Loading of Plugins in Zsh
@@ -143,14 +148,6 @@ zsh-defer _rust
 github = 'junegunn/fzf'
 use = ['shell/completion.zsh', 'shell/key-bindings.zsh']
 apply = ['fzf-install', 'fzf-source']
-
-[plugins.fzf.hooks]
-post = '''
-function _fzf() {
-    export FZF_DEFAULT_OPTS="--reverse"
-}
-zsh-defer _fzf
-'''
 
 #
 # Alias

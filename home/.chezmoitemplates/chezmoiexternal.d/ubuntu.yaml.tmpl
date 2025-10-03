@@ -8,7 +8,7 @@
 
 
 {{ $goLatestVersion := output "sh" "-c" "curl https://go.dev/VERSION?m=text | head -n 1" | trim }}
-".local/bin/go":
+".go":
   type: archive
   url: https://go.dev/dl/{{ $goLatestVersion }}.linux-{{ .chezmoi.arch }}.tar.gz
   stripComponents: 1

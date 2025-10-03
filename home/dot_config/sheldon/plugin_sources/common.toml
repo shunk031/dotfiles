@@ -126,7 +126,7 @@ function _go() {
     path=(
         $path
         ${GOPATH}/bin(N-/)
-        $(HOME)/.local/bin/go(N-/)
+        $(HOME)/.go/bin(N-/)
     )
 }
 zsh-defer _go

@@ -22,3 +22,9 @@
   type: "archive"
   url: {{ gitHubLatestReleaseAssetURL "ryanoasis/nerd-fonts" "Hack.zip" | quote }}
   refreshPeriod: "168h"
+
+"{{ $fontsPath }}/LINESeed":
+  type: "archive"
+  url: {{ gitHubLatestReleaseAssetURL "line/seed" "LINESeed-fonts.zip" | quote }}
+  stripComponents: 1
+  refreshPeriod: "168h"

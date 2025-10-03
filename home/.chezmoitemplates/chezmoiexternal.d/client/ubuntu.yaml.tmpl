@@ -1,16 +1,6 @@
-"/usr/local/go":
-  type: archive-file
-
-# ".local/bin/eza":
-#   type: archive-file
-#   url: https://github.com/eza-community/eza/releases/download/{{ (gitHubLatestRelease "eza-community/eza").TagName }}/eza_{{$rustArch}}-unknown-linux-gnu.tar.gz
-#   path: ./eza
-#   refreshPeriod: 168h
-#   executable: true
-
 ".local/bin/eza":
   type: "archive-file"
-  url: {{ gitHubLatestReleaseAssetURL "eza-community/eza" "eza_{{$rustArch}}-unknown-linux-gnu.tar.gz" | quote }}
+  url: {{ gitHubLatestReleaseAssetURL "eza-community/eza" (printf "eza_%s-unknown-linux-gnu.tar.gz" .chezmoi.arch) | quote }}
   path: "./eza"
   executable: true  
   refreshPeriod: 168h

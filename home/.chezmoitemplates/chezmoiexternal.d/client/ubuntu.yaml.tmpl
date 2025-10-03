@@ -1,6 +1,7 @@
+{{ $arch := .chezmoi.arch | replace "amd64" "x86_64" | replace "arm64" "aarch64" -}}
 ".local/bin/eza":
   type: "archive-file"
-  url: {{ gitHubLatestReleaseAssetURL "eza-community/eza" (printf "eza_%s-unknown-linux-gnu.tar.gz" .chezmoi.arch) | quote }}
+  url: {{ gitHubLatestReleaseAssetURL "eza-community/eza" (printf "eza_%s-unknown-linux-gnu.tar.gz" $arch) | quote }}
   path: "./eza"
   executable: true  
   refreshPeriod: 168h

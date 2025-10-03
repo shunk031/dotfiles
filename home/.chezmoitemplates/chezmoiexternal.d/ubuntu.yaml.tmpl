@@ -1,0 +1,15 @@
+{{ $arch := .chezmoi.arch | replace "amd64" "x86_64" | replace "arm64" "aarch64" -}}
+".local/bin/eza":
+  type: "archive-file"
+  url: {{ gitHubLatestReleaseAssetURL "eza-community/eza" (printf "eza_%s-unknown-linux-gnu.tar.gz" $arch) | quote }}
+  path: "./eza"
+  executable: true  
+  refreshPeriod: 168h
+
+
+{{ $goLatestVersion := output "sh" "-c" "curl -s https://go.dev/VERSION?m=text | head -n 1" | trim }}
+".go":
+  type: archive
+  url: https://go.dev/dl/{{ $goLatestVersion }}.linux-{{ .chezmoi.arch }}.tar.gz
+  stripComponents: 1
+  refreshPeriod: 168h

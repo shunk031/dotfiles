@@ -126,7 +126,7 @@ function _go() {
     path=(
         $path
         ${GOPATH}/bin(N-/)
-        /usr/local/go/bin(N-/)
+        ${HOME}/.go/bin(N-/)
     )
 }
 zsh-defer _go
@@ -162,10 +162,10 @@ local = '~/.config/alias'
 use = ['common.sh']
 apply = ['source']
 
-[plugins.private-alias]
-local = '~/.config/alias'
-use = ['private.sh']
-apply = ['source']
+# [plugins.private-alias]
+# local = '~/.config/alias'
+# use = ['private.sh']
+# apply = ['source']
 
 #
 #

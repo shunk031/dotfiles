@@ -1,15 +1,8 @@
 {{ template "chezmoiexternal.d/common.yaml.tmpl" . }}
-{{ if eq .system "client" -}}
-{{   template "chezmoiexternal.d/client/common.yaml.tmpl" . }}
-{{   if eq .chezmoi.os "darwin" -}}
-{{     template "chezmoiexternal.d/client/macos.yaml.tmpl" . }}
-{{   else if (and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.idLike "debian")) -}}
-{{     template "chezmoiexternal.d/client/ubuntu.yaml.tmpl" . }}
-{{   else -}}
-{{     fail (printf "Unknown OS for client system: %s" .chezmoi.os) }}
-{{   end -}}
-{{ else if eq .system "server" -}}
-{{   template "chezmoiexternal.d/server.yaml.tmpl" . }}
+{{ if eq .chezmoi.os "darwin" -}}
+{{   template "chezmoiexternal.d/client/macos.yaml.tmpl" . }}
+{{ else if (and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.idLike "debian")) -}}
+{{   template "chezmoiexternal.d/ubuntu.yaml.tmpl" . }}
 {{ else -}}
-{{   fail (printf "Unknown system type: %s" .system) }}
+{{   fail (printf "Unknown OS for client system: %s" .chezmoi.os) }}
 {{ end -}}

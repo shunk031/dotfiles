@@ -1,3 +1,8 @@
+".emacs.d":
+  type: "git-repo"
+  url: "https://github.com/syl20bnr/spacemacs"
+  refreshPeriod: "168h"
+
 ".local/bin/ghq":
   type: "file"
   url: {{ gitHubLatestReleaseAssetURL "x-motemen/ghq" (printf "ghq_%s_%s.zip" .chezmoi.os .chezmoi.arch) | quote }}

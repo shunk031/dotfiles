@@ -1,6 +1,6 @@
 ".local/bin/ghq":
   type: "file"
-  url: "https://github.com/x-motemen/ghq/releases/download/{{ (gitHubLatestRelease "x-motemen/ghq").TagName }}/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip"
+  url: https://github.com/x-motemen/ghq/releases/download/{{ (gitHubLatestRelease "x-motemen/ghq").TagName }}/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip
   executable: true
   refreshPeriod: "168h"
   filter:
@@ -10,10 +10,10 @@
 {{ $fontsPath := .chezmoi.os | replace "darwin" "Library/Fonts" | replace "linux" ".local/share/fonts" -}}
 "{{ $fontsPath }}/RobotoMono":
   type: "archive"
-  url: "https://github.com/ryanoasis/nerd-fonts/releases//download/{{ (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName }}/RobotoMono.zip"
+  url: https://github.com/ryanoasis/nerd-fonts/releases//download/{{ (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName }}/RobotoMono.zip
   refreshPeriod: "168h"
 
 "{{ $fontsPath }}/Hack":
   type: "archive"
-  url: "https://github.com/ryanoasis/nerd-fonts/releases//download/{{ (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName }}/Hack.zip"
+  url: https://github.com/ryanoasis/nerd-fonts/releases//download/{{ (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName }}/Hack.zip
   refreshPeriod: "168h"

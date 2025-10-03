@@ -71,6 +71,10 @@ apply = ['defer']
 github = 'zsh-users/zsh-syntax-highlighting'
 apply = ['defer']
 
+[plugins.zsh-autopair]
+github = 'hlissner/zsh-autopair'
+apply = ['defer']
+
 [plugins.zsh-history]
 inline = '''
 function _zsh_history() {

@@ -1,6 +1,6 @@
 {{ template "chezmoiexternal.d/common.yaml.tmpl" . }}
 {{ if eq .chezmoi.os "darwin" -}}
-{{   template "chezmoiexternal.d/client/macos.yaml.tmpl" . }}
+{{   template "chezmoiexternal.d/macos.yaml.tmpl" . }}
 {{ else if (and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.idLike "debian")) -}}
 {{   template "chezmoiexternal.d/ubuntu.yaml.tmpl" . }}
 {{ else -}}

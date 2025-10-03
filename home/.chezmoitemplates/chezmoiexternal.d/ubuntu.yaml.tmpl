@@ -7,7 +7,7 @@
   refreshPeriod: 168h
 
 
-{{ $goLatestVersion := output "sh" "-c" "curl https://go.dev/VERSION?m=text | head -n 1" | trim }}
+{{ $goLatestVersion := output "sh" "-c" "curl -s https://go.dev/VERSION?m=text | head -n 1" | trim }}
 ".go":
   type: archive
   url: https://go.dev/dl/{{ $goLatestVersion }}.linux-{{ .chezmoi.arch }}.tar.gz

@@ -38,3 +38,11 @@ apply = ["source"]
 local = '~/.config/alias'
 use = ['client.sh']
 apply = ['source']
+
+#
+# git related plugins
+#
+
+[plugins.git-open]
+github = "paulirish/git-open"
+apply = ["defer"]

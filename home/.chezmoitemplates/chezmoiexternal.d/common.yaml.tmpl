@@ -1,9 +1,19 @@
-# ".pyenv":
-#   type: "git-repo"
-#   url: "https://github.com/pyenv/pyenv.git"
-#   refreshPeriod: "168h"
+".local/bin/ghq":
+  type: "file"
+  url: "https://github.com/x-motemen/ghq/releases/download/{{ (gitHubLatestRelease "x-motemen/ghq").TagName }}/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip"
+  executable: true
+  refreshPeriod: "168h"
+  filter:
+    command: "bash"
+    args: ["-c", "tmpdir=$(mktemp -d); cat > $tmpdir/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip && unzip -p $tmpdir/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}/ghq"]
 
-# ".pyenv/plugins/pyenv-virtualenv":
-#   type: "git-repo"
-#   url: "https://github.com/pyenv/pyenv-virtualenv"
-#   refreshPeriod: "168h"
+{{ $fontsPath := .chezmoi.os | replace "darwin" "Library/Fonts" | replace "linux" ".local/share/fonts" -}}
+"{{ $fontsPath }}/RobotoMono":
+  type: "archive"
+  url: "https://github.com/ryanoasis/nerd-fonts/releases//download/{{ (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName }}/RobotoMono.zip"
+  refreshPeriod: "168h"
+
+"{{ $fontsPath }}/Hack":
+  type: "archive"
+  url: "https://github.com/ryanoasis/nerd-fonts/releases//download/{{ (gitHubLatestRelease "ryanoasis/nerd-fonts").TagName }}/Hack.zip"
+  refreshPeriod: "168h"

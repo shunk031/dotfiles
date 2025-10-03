@@ -6,7 +6,10 @@
   executable: true  
   refreshPeriod: 168h
 
-{{ $goLatestVersion := output "curl" "https://go.dev/VERSION?m=text" "|" "head" "-n" "1" }}
-"hoge/go":
+
+{{ $goLatestVersion := output "sh" "-c" "curl https://go.dev/VERSION?m=text | head -n 1" | trim }}
+".local/bin/go":
   type: archive
   url: https://go.dev/dl/{{ $goLatestVersion }}.linux-{{ .chezmoi.arch }}.tar.gz
+  stripComponents: 1
+  refreshPeriod: 168h

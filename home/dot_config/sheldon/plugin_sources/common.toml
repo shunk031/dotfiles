@@ -75,6 +75,10 @@ apply = ['defer']
 github = 'hlissner/zsh-autopair'
 apply = ['defer']
 
+[plugins.zsh-history-on-success]
+github = 'nyoungstudios/zsh-history-on-success'
+apply = ['defer']
+
 [plugins.zsh-history]
 inline = '''
 function _zsh_history() {

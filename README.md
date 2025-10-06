@@ -1,20 +1,37 @@
-<div align="center">
-    <img src="./.github/header.png" alt="shunk031's">
-    <h1>📂 dotfiles</h1>
-</div>
-
-<div align="center">
-
-[![Snippet install](https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml)
-[![Unit test](https://github.com/shunk031/dotfiles/actions/workflows/test.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/test.yaml)
-[![codecov](https://codecov.io/gh/shunk031/dotfiles/graph/badge.svg?token=4VUJWKGAR7)](https://codecov.io/gh/shunk031/dotfiles)
-
-[![zsh-users/zsh](https://img.shields.io/github/v/tag/zsh-users/zsh?color=2885F1&display_name=release&label=zsh&logo=zsh&logoColor=2885F1&sort=semver)](https://github.com/zsh-users/zsh)
-[![tmux/tmux](https://img.shields.io/github/v/tag/tmux/tmux?color=1BB91F&display_name=release&label=tmux&logo=tmux&logoColor=1BB91F&sort=semver)](https://github.com/tmux/tmux)
-[![rossmacarthur/sheldon](https://img.shields.io/github/v/tag/rossmacarthur/sheldon?color=282d3f&display_name=release&label=🚀%20sheldon&sort=semver)](https://github.com/rossmacarthur/sheldon)
-[![starship/starship](https://img.shields.io/github/v/tag/starship/starship?color=DD0B78&display_name=release&label=starship&logo=starship&logoColor=DD0B78&sort=semver)](https://github.com/starship/starship)
-
-</div>
+<p>
+    <div align="center">
+        <img src="./.github/header.png" alt="shunk031's">
+        <h1>📂 dotfiles</h1>
+        <a href="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml">
+        <img alt="Snippet install" src="https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml/badge.svg"> 
+        </a>
+        <a href="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml">
+        <img alt="Unit test" src="https://github.com/shunk031/dotfiles/actions/workflows/test.yaml/badge.svg"> 
+        </a>
+        <a href="https://codecov.io/gh/shunk031/dotfiles">
+        <img alt="codecov" src="https://codecov.io/gh/shunk031/dotfiles/graph/badge.svg?token=4VUJWKGAR7"> 
+        </a>
+    </div>
+</p>
+<p>
+    <div align="center">
+        <a href="https://github.com/zsh-users/zsh">
+            <img alt="zsh-users/zsh" src="https://img.shields.io/github/v/tag/zsh-users/zsh?color=2885F1&display_name=release&label=zsh&logo=zsh&logoColor=2885F1&sort=semver">
+        </a>
+        <a href="https://github.com/tmux/tmux">
+            <img alt="tmux/tmux" src="https://img.shields.io/github/v/tag/tmux/tmux?color=1BB91F&display_name=release&label=tmux&logo=tmux&logoColor=1BB91F&sort=semver">
+        </a>
+        <a href="https://github.com/rossmacarthur/sheldon">
+            <img alt="rossmacarthur/sheldon" src="https://img.shields.io/github/v/tag/rossmacarthur/sheldon?color=282d3f&display_name=release&label=🚀%20sheldon&sort=semver">
+        </a>
+        <a href="https://github.com/starship/starship">
+            <img alt="starship/starship" src="https://img.shields.io/github/v/tag/starship/starship?color=DD0B78&display_name=release&label=starship&logo=starship&logoColor=DD0B78&sort=semver">
+        </a>
+        <a href="https://github.com/jdx/mise">
+            <img alt="jdx/mise" src="https://img.shields.io/github/v/tag/jdx/mise?color=00acc1&display_name=release&label=mise&logo=gnometerminal&logoColor=00acc1&sort=semver">
+        </a>
+    </div>
+</p>
 
 ## 🗿 Overview
 

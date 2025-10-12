@@ -10,7 +10,13 @@
   refreshPeriod: "168h"
   filter:
     command: "bash"
-    args: ["-c", "mkdir -p ~/ghq; tmpdir=$(mktemp -d); cat > $tmpdir/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip && unzip -p $tmpdir/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}/ghq"]
+    args:
+      - "-c"
+      - |
+        mkdir -p ~/ghq
+        tmpdir=$(mktemp -d)
+        cat > $tmpdir/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip
+        unzip -p $tmpdir/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}/ghq
 
 {{ $fontsPath := .chezmoi.os | replace "darwin" "Library/Fonts" | replace "linux" ".local/share/fonts" -}}
 "{{ $fontsPath }}/RobotoMono":
@@ -23,8 +29,9 @@
   url: {{ gitHubLatestReleaseAssetURL "ryanoasis/nerd-fonts" "Hack.zip" | quote }}
   refreshPeriod: "168h"
 
-"{{ $fontsPath }}/LINESeed":
-  type: "archive"
-  url: {{ gitHubLatestReleaseAssetURL "line/seed" "LINESeed-fonts.zip" | quote }}
-  stripComponents: 1
-  refreshPeriod: "168h"
+# "{{ $fontsPath }}/LINESeed":
+#   type: "archive"
+#   url: {{ gitHubLatestReleaseAssetURL "line/seed" "LINESeed-fonts.zip" | quote }}
+#   refreshPeriod: "168h"
+#   stripComponents: 4
+#   include: ["**/*.otf", "**/*.ttf"]

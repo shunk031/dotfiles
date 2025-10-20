@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+exp#!/usr/bin/env bash
 
 set -Eeuo pipefail
 
@@ -26,7 +26,6 @@ declare -r DOTFILES_LOGO='
 
 declare -r DOTFILES_REPO_URL="https://github.com/shunk031/dotfiles"
 declare -r BRANCH_NAME="${BRANCH_NAME:-master}"
-declare -r DOTFILES_GITHUB_PAT="${DOTFILES_GITHUB_PAT:-}"
 
 declare -r PRIVATE_DOTFILES_REPO_URL="https://github.com/shunk031/dotfiles-private"
 declare -r PRIVATE_DOTFILES_PATH="${HOME}/.local/share/chezmoi-private"
@@ -187,9 +186,6 @@ function run_chezmoi() {
 
     # Add to PATH for installing the necessary binary files under `$HOME/.local/bin`.
     export PATH="${PATH}:${HOME}/.local/bin"
-    if [[ -n "${DOTFILES_GITHUB_PAT}" ]]; then
-        export DOTFILES_GITHUB_PAT
-    fi
 
     # run `chezmoi apply` to ensure that target... are in the target state,
     # updating them if necessary.

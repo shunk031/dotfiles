@@ -18,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       # DOTFILES_DEBUG: 1
-      DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Set up SSH agent and add the private deploy key for the private dotfiles repo

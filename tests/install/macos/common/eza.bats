@@ -10,7 +10,7 @@ function teardown() {
     run uninstall_eza
 }
 
-@test "[macos] ghq" {
+@test "[macos] eza" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
     [ -x "$(command -v eza)" ]
 }

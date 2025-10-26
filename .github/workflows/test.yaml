@@ -31,7 +31,7 @@ jobs:
       OS: ${{ matrix.os }}
       SYSTEM: ${{ matrix.system }}
       DOTFILES_DEBUG: 1
-      DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout repository

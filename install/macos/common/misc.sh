@@ -9,6 +9,7 @@ fi
 readonly BREW_PACKAGES=(
     awscli
     bats-core
+    delta
     gpg
     imagemagick
     jq

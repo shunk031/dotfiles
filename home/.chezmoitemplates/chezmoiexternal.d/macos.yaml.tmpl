@@ -6,3 +6,12 @@
   refreshPeriod: "168h"
   stripComponents: 3
   include: ["**/LINESeedJP_OTF_*.otf"]
+
+{{ $deltaVersion := (gitHubLatestTag "dandavison/delta").Name }}
+{{ $arch := .chezmoi.arch | replace "amd64" "x86_64" | replace "arm64" "aarch64" -}}
+".local/bin/delta":
+  type: archive-file
+  url: {{ gitHubLatestReleaseAssetURL "dandavison/delta" (printf "delta-%s-%s-unknown-linux-gnu.tar.gz" $deltaVersion $arch) | quote }}
+  path: "./delta"
+  executable: true  
+  refreshPeriod: 168h

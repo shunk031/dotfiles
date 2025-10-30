@@ -14,6 +14,8 @@ function setup() {
     #
     run brew info bats-core
     [ "${status}" -eq 0 ]
+    run brew info delta
+    [ "${status}" -eq 0 ]
     run brew info gpg
     [ "${status}" -eq 0 ]
     run brew info imagemagick

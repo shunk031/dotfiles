@@ -1,0 +1,3 @@
+#!/usr/bin/env zsh
+
+source "${HOME}/.zshenv_private"

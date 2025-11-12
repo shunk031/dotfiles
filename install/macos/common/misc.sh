@@ -25,6 +25,7 @@ readonly BREW_PACKAGES=(
 
 readonly CASK_PACKAGES=(
     adobe-acrobat-reader
+    clop
     cyberduck
     google-chrome
     google-drive

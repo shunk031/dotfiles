@@ -23,6 +23,13 @@ zsh-defer source "{{ file }}"
 {% endfor %}
 """
 
+fzf-install = """
+{{ dir }}/install --bin > /dev/null
+path=($path {{ dir }}/bin(N-/))
+"""
+
+fzf-source = "source <(fzf --zsh)"
+
 #
 # Deferred Loading of Plugins in Zsh
 #
@@ -40,6 +47,10 @@ inline = 'autoload -Uz compinit && zsh-defer compinit'
 
 [plugins.custom-commands]
 inline = 'autoload -Uz dev'
+
+[plugins.fzf]
+github = 'junegunn/fzf'
+apply = ['fzf-install', 'fzf-source']
 
 #
 # Zsh-related Plugins

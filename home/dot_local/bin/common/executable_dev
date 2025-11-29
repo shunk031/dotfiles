@@ -2,7 +2,7 @@
 
 function ghq-path() {
     local repo_name
-    repo_name=$(ghq list | fzf --reverse)
+    repo_name=$(ghq list | fzf)
 
     if [[ -n "$repo_name" ]]; then
         for repo_root in $(ghq root --all); do

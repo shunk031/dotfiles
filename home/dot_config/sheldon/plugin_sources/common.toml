@@ -24,8 +24,10 @@ zsh-defer source "{{ file }}"
 """
 
 fzf-install = """
+{{ hooks?.pre | nl }}
 {{ dir }}/install --bin > /dev/null
 path=($path {{ dir }}/bin(N-/))
+{{ hooks?.post | nl }}
 """
 
 fzf-source = "source <(fzf --zsh)"
@@ -50,7 +52,10 @@ inline = 'autoload -Uz dev'
 
 [plugins.fzf]
 github = 'junegunn/fzf'
-apply = ['fzf-install', 'fzf-source']
+apply = ['fzf-install']
+hooks.post = '''
+export FZF_DEFAULT_OPTS="--reverse"
+'''
 
 #
 # Zsh-related Plugins

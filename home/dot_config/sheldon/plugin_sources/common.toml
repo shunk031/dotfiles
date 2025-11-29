@@ -48,7 +48,7 @@ apply = ['source']
 inline = 'autoload -Uz compinit && zsh-defer compinit'
 
 [plugins.custom-commands]
-inline = 'autoload -Uz dev'
+inline = 'autoload -Uz dev cdgwq cdw'
 
 [plugins.fzf]
 github = 'junegunn/fzf'

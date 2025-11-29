@@ -18,6 +18,15 @@
         cat > $tmpdir/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip
         unzip -p $tmpdir/ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}.zip ghq_{{ .chezmoi.os }}_{{ .chezmoi.arch }}/ghq
 
+{{ $arch := .chezmoi.arch | replace "amd64" "x86_64" -}}
+{{ $os := .chezmoi.os | replace "darwin" "Darwin" | replace "linux" "Linux" -}}
+".local/bin/gwq":
+  type: "archive-file"
+  url: {{ gitHubLatestReleaseAssetURL "d-kuro/gwq" (printf "gwq_%s_%s.tar.gz" $os $arch) | quote }}
+  path: "gwq"
+  executable: true
+  refreshPeriod: 168h
+
 {{ $fontsPath := .chezmoi.os | replace "darwin" "Library/Fonts" | replace "linux" ".local/share/fonts" -}}
 "{{ $fontsPath }}/RobotoMono":
   type: "archive"

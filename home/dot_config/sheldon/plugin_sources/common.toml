@@ -63,7 +63,6 @@ apply = ['defer']
 
 [plugins.zsh-history-on-success]
 github = 'nyoungstudios/zsh-history-on-success'
-apply = ['defer']
 
 [plugins.oh-my-zsh]
 github = "ohmyzsh/ohmyzsh"

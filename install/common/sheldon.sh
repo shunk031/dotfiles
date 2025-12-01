@@ -9,11 +9,11 @@ fi
 readonly BIN_DIR="${HOME}/.local/bin"
 
 function install_curl() {
-    sudo apt install -y curl
+    sudo apt-get install -qy curl
 }
 
 function uninstall_curl() {
-    sudo apt remove -y curl
+    sudo apt-get remove -qy curl
 }
 
 function install_sheldon() {

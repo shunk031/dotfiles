@@ -14,7 +14,7 @@ function teardown() {
     export PATH
 }
 
-@test "[ubuntu-server] starship" {
+@test "[ubuntu-server] sheldon" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     export PATH="${PATH}:${HOME%/}/.local/bin"

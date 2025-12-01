@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function fgc() {
-    git checkout "$(git for-each-ref refs/heads/ --format='%(refname:short)' | fzf --reverse)"
+    git checkout "$(git for-each-ref refs/heads/ --format='%(refname:short)' | fzf)"
 }
 
 if [ -n "$($SHELL -c "echo ${ZSH_VERSION}")" ]; then

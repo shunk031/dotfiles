@@ -8,6 +8,14 @@ fi
 
 readonly BIN_DIR="${HOME}/.local/bin"
 
+function install_curl() {
+    sudo apt install -y curl
+}
+
+function uninstall_curl() {
+    sudo apt remove -y curl
+}
+
 function install_sheldon() {
     mkdir -p "${BIN_DIR}"
 
@@ -20,6 +28,7 @@ function uninstall_sheldon() {
 }
 
 function main() {
+    install_curl
     install_sheldon
 }
 

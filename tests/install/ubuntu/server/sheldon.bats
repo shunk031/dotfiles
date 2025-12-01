@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./install/ubuntu/common/sheldon.sh"
+readonly SCRIPT_PATH="./install/common/sheldon.sh"
 
 function setup() {
     source "${SCRIPT_PATH}"

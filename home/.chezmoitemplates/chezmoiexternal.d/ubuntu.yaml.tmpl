@@ -6,7 +6,6 @@
   executable: true  
   refreshPeriod: 168h
 
-
 {{ $goLatestVersion := output "sh" "-c" "curl -s https://go.dev/VERSION?m=text | head -n 1" | trim }}
 ".go":
   type: archive

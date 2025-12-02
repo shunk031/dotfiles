@@ -3,6 +3,7 @@
 readonly SCRIPT_PATH="./install/common/sheldon.sh"
 
 function setup() {
+    sudo apt-get install -qy curl
     source "${SCRIPT_PATH}"
 }
 
@@ -13,7 +14,7 @@ function teardown() {
     PATH=$(getconf PATH)
     export PATH
 
-    run uninstall_curl
+    sudo apt-get remove -qy curl
 }
 
 @test "[ubuntu-server] sheldon" {

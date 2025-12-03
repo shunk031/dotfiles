@@ -14,7 +14,7 @@ function teardown() {
     export PATH
 }
 
-@test "[common] mise" {
+@test "[common] dotenvx" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     export PATH="${PATH}:${HOME}/.local/bin"

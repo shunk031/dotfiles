@@ -99,6 +99,12 @@ use = [
     'plugins/fzf/fzf.plugin.zsh',
 ]
 
+[plugins.zsh-history-shell-options]
+inline = '''
+setopt INC_APPEND_HISTORY_TIME
+setopt INC_APPEND_HISTORY
+'''
+
 #
 # Mise for managing multiple versions of tools
 #

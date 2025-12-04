@@ -16,7 +16,7 @@ function install_sheldon() {
 }
 
 function uninstall_sheldon() {
-    rm "${BIN_DIR}/sheldon"
+    rm -rf "${BIN_DIR}/sheldon"
 }
 
 function main() {

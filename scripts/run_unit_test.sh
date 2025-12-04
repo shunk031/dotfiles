@@ -21,6 +21,10 @@ function run_os_specific_test() {
             --include-path=install/ubuntu/common/ \
             "./coverage_ubuntu_common" \
             bats -r "tests/install/ubuntu/common/"
+        kcov --clean \
+            --include-path="install/ubuntu/${SYSTEM}/" \
+            "./coverage_ubuntu_${SYSTEM}" \
+            bats -r "tests/install/ubuntu/${SYSTEM}/"
     else
         echo "${OS} and ${SYSTEM} are not supported" >&2
         exit 1

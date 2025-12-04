@@ -18,5 +18,5 @@ function teardown() {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     export PATH="${PATH}:${HOME%/}/.local/bin"
-    [ -x "$(command -v stership)" ]
+    [ -x "$(command -v starship)" ]
 }

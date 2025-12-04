@@ -6,6 +6,14 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+function install_wget() {
+    sudo apt install -y wget
+}
+
+function uninstall_wget() {
+    sudo apt remove -y wget
+}
+
 function install_git_credential_manager() {
     local gcm_version="2.6.0"
     local gcm_deb="gcm-linux_amd64.${gcm_version}.deb"
@@ -18,9 +26,12 @@ function install_git_credential_manager() {
 function uninstall_git_credential_manager() {
     git-credential-manager unconfigure
     sudo dpkg -r gcm
+
+    uninstall_wget
 }
 
 function main() {
+    install_wget
     install_git_credential_manager
 }
 

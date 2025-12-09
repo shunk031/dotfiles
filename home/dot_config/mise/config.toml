@@ -1,6 +1,15 @@
 [tools]
+go = "latest"
 node = "lts"
 python = "3.11"
+
+"npm:@anthropic-ai/claude-code" = "latest"
+"npm:@openai/codex" = "latest"
+
+"github:x-motemen/ghq" = "latest"
+"github:d-kuro/gwq" = "latest"
+
+"cargo:eza" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

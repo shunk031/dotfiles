@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./install/common/mise.sh"
-readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_05-install-mise.sh.tmpl"
+readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_before_01-install-mise.sh.tmpl"
 
 function setup() {
     source "${SCRIPT_PATH}"

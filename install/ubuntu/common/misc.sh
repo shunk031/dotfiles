@@ -11,7 +11,6 @@ readonly PACKAGES=(
     curl
     gpg
     htop
-    shellcheck
     unzip
     vim
     wget

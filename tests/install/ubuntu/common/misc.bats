@@ -15,14 +15,13 @@ function teardown() {
 
 @test "[ubuntu-common] PACKAGES for misc" {
     num_packages="${#PACKAGES[@]}"
-    [ $num_packages -eq 9 ]
+    [ $num_packages -eq 8 ]
 
     expected_packages=(
         busybox
         curl
         gpg
         htop
-        shellcheck
         unzip
         vim
         wget
@@ -40,7 +39,6 @@ function teardown() {
     [ -x "$(command -v curl)" ]
     [ -x "$(command -v gpg)" ]
     [ -x "$(command -v htop)" ]
-    [ -x "$(command -v shellcheck)" ]
     [ -x "$(command -v vim)" ]
     [ -x "$(command -v wget)" ]
     [ -x "$(command -v zsh)" ]

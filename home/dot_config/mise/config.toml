@@ -13,6 +13,7 @@ eza = "latest"
 jq = "latest"
 hugo-extended = "0.136.5"
 uv = "latest"
+shellcheck = "latest"
 yazi = "latest"
 
 "npm:@anthropic-ai/claude-code" = "latest"

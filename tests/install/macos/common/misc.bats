@@ -20,8 +20,6 @@ function setup() {
     [ "${status}" -eq 0 ]
     run brew info pinentry-mac
     [ "${status}" -eq 0 ]
-    run brew info shellcheck
-    [ "${status}" -eq 0 ]
     run brew info tailscale
     [ "${status}" -eq 0 ]
     run brew info vim

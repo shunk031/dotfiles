@@ -11,7 +11,6 @@ readonly BREW_PACKAGES=(
     imagemagick
     htop
     pinentry-mac
-    shellcheck
     tailscale
     terminal-notifier
     vim

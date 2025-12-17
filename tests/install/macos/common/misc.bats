@@ -18,8 +18,6 @@ function setup() {
     [ "${status}" -eq 0 ]
     run brew info jq
     [ "${status}" -eq 0 ]
-    run brew info hugo
-    [ "${status}" -eq 0 ]
     run brew info htop
     [ "${status}" -eq 0 ]
     run brew info pinentry-mac

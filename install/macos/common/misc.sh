@@ -10,7 +10,6 @@ readonly BREW_PACKAGES=(
     gpg
     imagemagick
     jq
-    hugo
     htop
     pinentry-mac
     shellcheck

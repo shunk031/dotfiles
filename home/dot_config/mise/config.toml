@@ -7,6 +7,7 @@ python = "3.11"
 aws-cli = "latest"
 bats = "latest"
 hugo-extended = "0.136.5"
+uv = "latest"
 
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:@openai/codex" = "latest"

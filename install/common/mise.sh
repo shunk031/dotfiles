@@ -16,7 +16,7 @@ function install_mise() {
     export MISE_CURRENT_VERSION="${version}"
     curl "${url}" | sh
 
-    mise install
+    eval "$(~/.local/bin/mise activate bash)"
 }
 
 function uninstall_mise() {

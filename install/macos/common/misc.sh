@@ -7,15 +7,10 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly BREW_PACKAGES=(
-    awscli
-    bats-core
     gpg
     imagemagick
-    jq
-    hugo
     htop
     pinentry-mac
-    shellcheck
     tailscale
     terminal-notifier
     vim

@@ -15,15 +15,8 @@ function install_mise() {
     
     export MISE_CURRENT_VERSION="${version}"
     curl "${url}" | sh
-    
-}
 
-function install_mise_python() {
-    mise use --global python@3.11
-}
-
-function install_mise_node() {
-    mise use --global node@lts
+    mise install
 }
 
 function uninstall_mise() {
@@ -32,9 +25,6 @@ function uninstall_mise() {
 
 function main() {
     install_mise
-
-    install_mise_python
-    install_mise_node
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

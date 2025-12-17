@@ -12,8 +12,6 @@ function setup() {
     #
     # brew packages
     #
-    run brew info bats-core
-    [ "${status}" -eq 0 ]
     run brew info gpg
     [ "${status}" -eq 0 ]
     run brew info imagemagick

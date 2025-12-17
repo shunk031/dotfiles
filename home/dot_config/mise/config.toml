@@ -1,6 +1,7 @@
 [tools]
 go = "latest"
 node = "lts"
+rust = "latest"
 python = "3.11"
 
 aws-cli = "latest"

@@ -6,6 +6,7 @@ python = "3.11"
 
 aws-cli = "latest"
 bats = "latest"
+dotenvx = "latest"
 hugo-extended = "0.136.5"
 uv = "latest"
 

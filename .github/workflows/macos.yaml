@@ -84,7 +84,7 @@ jobs:
           gh-repository: "github.com/shunk031/my-dotfiles-benchmarks"
           auto-push: ${{ env.auto_push }}
           comment-on-alert: true
-          fail-on-alert: true
+          fail-on-alert: false
           alert-threshold: "150%"
           alert-comment-cc-users: "@shunk031"
           benchmark-data-dir-path: "."

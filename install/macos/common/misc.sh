@@ -7,8 +7,6 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly BREW_PACKAGES=(
-    awscli
-    bats-core
     gpg
     imagemagick
     jq

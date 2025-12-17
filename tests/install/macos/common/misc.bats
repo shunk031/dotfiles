@@ -16,8 +16,6 @@ function setup() {
     [ "${status}" -eq 0 ]
     run brew info imagemagick
     [ "${status}" -eq 0 ]
-    run brew info jq
-    [ "${status}" -eq 0 ]
     run brew info htop
     [ "${status}" -eq 0 ]
     run brew info pinentry-mac

@@ -21,7 +21,6 @@ function teardown() {
         busybox
         curl
         gpg
-        jq
         htop
         shellcheck
         unzip
@@ -40,7 +39,6 @@ function teardown() {
     [ -x "$(command -v busybox)" ]
     [ -x "$(command -v curl)" ]
     [ -x "$(command -v gpg)" ]
-    [ -x "$(command -v jq)" ]
     [ -x "$(command -v htop)" ]
     [ -x "$(command -v shellcheck)" ]
     [ -x "$(command -v vim)" ]

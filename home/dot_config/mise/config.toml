@@ -4,10 +4,12 @@ node = "lts"
 rust = "latest"
 python = "3.11"
 
+age = "latest"
 aws-cli = "latest"
 bats = "latest"
 dotenvx = "latest"
 hugo-extended = "0.136.5"
+jq = "latest"
 uv = "latest"
 
 "npm:@anthropic-ai/claude-code" = "latest"

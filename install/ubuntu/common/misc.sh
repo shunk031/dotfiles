@@ -10,7 +10,6 @@ readonly PACKAGES=(
     busybox
     curl
     gpg
-    jq
     htop
     shellcheck
     unzip

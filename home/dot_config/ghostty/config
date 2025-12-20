@@ -1,0 +1,30 @@
+theme = iTerm2 Default
+maximize = true
+initial-window = false
+
+window-theme = "ghostty"
+window-padding-balance = true
+
+font-family = RobotoMono Nerd Font Mono
+font-size = 12
+font-thicken
+font-feature = "-calt"
+font-feature = "-dlig"
+font-feature = "-liga"
+
+cursor-style = block
+cursor-style-blink = true
+
+background = #000000
+background-opacity = 0.7
+
+quick-terminal-size = 100%,100%
+quick-terminal-animation-duration = 0
+
+keybind = global:ctrl+t=toggle_quick_terminal
+
+term = "xterm-256color"
+shell-integration-features = no-cursor
+
+macos-titlebar-style = hidden
+macos-non-native-fullscreen = true

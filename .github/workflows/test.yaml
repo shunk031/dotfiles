@@ -4,14 +4,14 @@ on:
   push:
     branches: [master]
     paths:
-        - ".github/workflows"
+        - ".github/workflows/**"
         - "home/**"
         - "install/**"
         - "tests/**"
   pull_request:
     branches: [master]
     paths:
-        - ".github/workflows"
+        - ".github/workflows/**"
         - "home/**"
         - "install/**"
         - "tests/**"

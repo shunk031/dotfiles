@@ -68,7 +68,7 @@ function record_startup_time() {
     # shellcheck disable=SC2086
     average_startup_time=$(cat ${average_file} | awk '{ total += $1 } END { print total/NR }')
 
-    cat <<EOJ
+    cat << EOJ
 [
     {
         "name": "zsh average startup time",

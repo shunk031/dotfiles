@@ -3,5 +3,5 @@
 if [ "$TERM" = "dumb" ]; then
     echo -n
 else
-    command -v zsh >/dev/null && exec zsh
+    command -v zsh > /dev/null && exec zsh
 fi

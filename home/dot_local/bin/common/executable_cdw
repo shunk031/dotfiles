@@ -2,7 +2,7 @@
 
 function cdw() {
     # git 内かどうかをチェック
-    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+    if ! git rev-parse --is-inside-work-tree &> /dev/null; then
         echo "Not inside a git repository."
         return 1
     fi

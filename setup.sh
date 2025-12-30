@@ -68,13 +68,13 @@ function keepalive_sudo_linux() {
         sudo -n true
         sleep 60
         kill -0 "$$" || exit
-    done 2>/dev/null &
+    done 2> /dev/null &
 }
 
 function keepalive_sudo_macos() {
     # ref. https://github.com/reitermarkus/dotfiles/blob/master/.sh#L85-L116
     (
-        builtin read -r -s -p "Password: " </dev/tty
+        builtin read -r -s -p "Password: " < /dev/tty
         builtin echo "add-generic-password -U -s 'dotfiles' -a '${USER}' -w '${REPLY}'"
     ) | /usr/bin/security -i
     printf "\n"
@@ -90,12 +90,12 @@ function keepalive_sudo_macos() {
     {
         echo "#!/bin/sh"
         echo "/usr/bin/security find-generic-password -s 'dotfiles' -a '${USER}' -w"
-    } >"${SUDO_ASKPASS}"
+    } > "${SUDO_ASKPASS}"
 
     /bin/chmod +x "${SUDO_ASKPASS}"
     export SUDO_ASKPASS
 
-    if ! /usr/bin/sudo -A -kv 2>/dev/null; then
+    if ! /usr/bin/sudo -A -kv 2> /dev/null; then
         echo -e '\033[0;31mIncorrect password.\033[0m' 1>&2
         exit 1
     fi
@@ -118,7 +118,7 @@ function keepalive_sudo() {
 
 function initialize_os_macos() {
     function is_homebrew_exists() {
-        command -v brew &>/dev/null
+        command -v brew &> /dev/null
     }
 
     # Instal Homebrew if needed.

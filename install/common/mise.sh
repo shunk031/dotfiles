@@ -12,7 +12,7 @@ function install_mise() {
     # https://mise.run
     local version="v2025.9.25"
     local url="https://raw.githubusercontent.com/jdx/mise/refs/tags/${version}/packaging/standalone/install.envsubst"
-    
+
     export MISE_CURRENT_VERSION="${version}"
     curl "${url}" | sh
 
@@ -30,5 +30,3 @@ function main() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main
 fi
-
-

@@ -1,6 +1,5 @@
 {
   "permissions": {
-    "allow": [],
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
@@ -8,7 +7,8 @@
       "Read(id_rsa*)",
       "Read(id_ed25519*)",
       "Write(.env*)"
-    ]
+    ],
+    "defaultMode": "plan"
   },
   "hooks": {
     "PreToolUse": [

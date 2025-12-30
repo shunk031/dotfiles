@@ -6,7 +6,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
-readonly BIN_DIR="${HOME}/.local/bin/server"
+readonly BIN_DIR="${HOME}/.local/bin"
 
 function install_starship() {
     # equivalent to `https://starship.rs/install.sh`

@@ -1,0 +1,38 @@
+[plugins.homebrew]
+inline = '''
+function _homebrew() {
+    # Homebrew will not auto-update before running `brew install`
+    export HOMEBREW_NO_AUTO_UPDATE=1
+}
+zsh-defer _homebrew
+'''
+
+[plugins.macos-path]
+inline = '''
+function _macos_path() {
+    typeset -gU path
+    path=(
+        $path
+        /opt/{homebrew,local}/{,s}bin(N-/)
+    )    
+}
+zsh-defer _macos_path
+'''
+
+[plugins.macos-browser]
+inline = '''
+function _macos_browser() {
+    if [[ -z "$BROWSER" && "$OSTYPE" == darwin* ]]; then
+        export BROWSER='open'
+    fi
+}
+zsh-defer _macos_browser
+'''
+
+[plugins.macos-command]
+inline = '''
+function _macos_command() {
+    alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+}
+zsh-defer _macos_command
+'''

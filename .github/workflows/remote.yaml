@@ -18,9 +18,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       # DOTFILES_DEBUG: 1
-      DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+
       - name: Setup dotfiles with snippet
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
@@ -28,12 +33,12 @@ jobs:
           SYSTEM: ${{ matrix.system }}
         run: |
           if [ "${OS}" == "macos-14" ]; then
-            printf '${EMAIL_ADDRESS}\n' | bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
+            printf "${EMAIL_ADDRESS}\n" | bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
             #              │
             #              └─ Simulate inputting an email address into the chezmoi's config.
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"
+            printf "${EMAIL_ADDRESS}\n${SYSTEM}\n" | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"
             #              │               │
             #              │               └─ Simulate inputting an system arcitecture into the config.
             #              └─ Simulate inputting an email address into the config.

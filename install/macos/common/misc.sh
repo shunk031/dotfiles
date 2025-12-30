@@ -7,16 +7,12 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly BREW_PACKAGES=(
-    awscli
-    bats-core
     gpg
     imagemagick
-    jq
-    hugo
     htop
     pinentry-mac
-    shellcheck
     tailscale
+    terminal-notifier
     vim
     watchexec
     zsh
@@ -24,6 +20,7 @@ readonly BREW_PACKAGES=(
 
 readonly CASK_PACKAGES=(
     adobe-acrobat-reader
+    cyberduck
     google-chrome
     google-drive
     google-japanese-ime

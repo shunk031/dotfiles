@@ -1,15 +1,27 @@
 {
-  "env": {
-    "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-20250514-v1:0",
-    "AWS_REGION": "us-east-1",
-    "AWS_PROFILE": "shunk031",
-    "CLAUDE_CODE_USE_BEDROCK": "1",
-    "CLAUDE_CODE_ENABLE_TELEMETRY": false,
-    "DISABLE_PROMPT_CACHING": "1",
-    "DISABLE_TELEMETRY": "1",
-    "MAX_THINKING_TOKENS": 31999
+  "permissions": {
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm -rf:*)",
+      "Read(.env.*)",
+      "Read(id_rsa*)",
+      "Read(id_ed25519*)",
+      "Write(.env*)"
+    ],
+    "defaultMode": "plan"
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/enforce-uv.sh"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
@@ -25,9 +37,18 @@
           {
             "type": "command",
             "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uvx mypy"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".md\"))' | xargs -r npx prettier@2 --write"
           }
         ]
       }
     ]
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.js"
+  },
+  "alwaysThinkingEnabled": true
 }

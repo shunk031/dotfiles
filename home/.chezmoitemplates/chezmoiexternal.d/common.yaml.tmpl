@@ -1,9 +1,15 @@
-# ".pyenv":
-#   type: "git-repo"
-#   url: "https://github.com/pyenv/pyenv.git"
-#   refreshPeriod: "168h"
+".emacs.d":
+  type: "git-repo"
+  url: "https://github.com/syl20bnr/spacemacs"
+  refreshPeriod: "168h"
 
-# ".pyenv/plugins/pyenv-virtualenv":
-#   type: "git-repo"
-#   url: "https://github.com/pyenv/pyenv-virtualenv"
-#   refreshPeriod: "168h"
+{{ $fontsPath := .chezmoi.os | replace "darwin" "Library/Fonts" | replace "linux" ".local/share/fonts" -}}
+"{{ $fontsPath }}/RobotoMono":
+  type: "archive"
+  url: {{ gitHubLatestReleaseAssetURL "ryanoasis/nerd-fonts" "RobotoMono.zip" | quote }}
+  refreshPeriod: "168h"
+
+"{{ $fontsPath }}/Hack":
+  type: "archive"
+  url: {{ gitHubLatestReleaseAssetURL "ryanoasis/nerd-fonts" "Hack.zip" | quote }}
+  refreshPeriod: "168h"

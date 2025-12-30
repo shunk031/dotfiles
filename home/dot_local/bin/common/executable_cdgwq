@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+function cdgwq() {
+   # git 内かどうかをチェック
+   if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+      echo "Not inside a git repository."
+      return 1
+   fi
+   moveto=$(gwq list --json | jq -r '.[].path' | fzf)
+   cd $moveto
+}
+
+if [ -n "$($SHELL -c "echo ${ZSH_VERSION}")" ]; then
+    cdgwq
+fi

@@ -1,0 +1,30 @@
+[tools]
+go = "latest"
+node = "lts"
+rust = "latest"
+python = "3.11"
+
+age = "latest"
+aws-cli = "latest"
+bats = "latest"
+chezmoi = "latest"
+dotenvx = "latest"
+eza = "latest"
+jq = "latest"
+hugo-extended = "0.136.5"
+uv = "latest"
+yazi = "latest"
+shellcheck = "latest"
+shfmt = "latest"
+
+"npm:@anthropic-ai/claude-code" = "latest"
+"npm:@openai/codex" = "latest"
+"npm:bash-language-server" = "latest"
+
+"github:x-motemen/ghq" = "latest"
+"github:d-kuro/gwq" = "latest"
+"github:cli/cli" = "latest"
+"github:shuntaka9576/blocc" = "latest"
+
+[settings]
+idiomatic_version_file_enable_tools = ["python"]

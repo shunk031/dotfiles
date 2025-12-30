@@ -31,11 +31,11 @@ jobs:
       OS: ${{ matrix.os }}
       SYSTEM: ${{ matrix.system }}
       DOTFILES_DEBUG: 1
-      DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install tools
         run: |
@@ -43,7 +43,7 @@ jobs:
             brew install bats-core kcov parallel
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            sudo apt-get install -y bats parallel
+            sudo apt-get update && sudo apt-get install -y bats parallel
             bash ./install/ubuntu/common/kcov.sh
 
           else

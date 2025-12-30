@@ -6,7 +6,7 @@ function setup() {
     source "${SCRIPT_PATH}"
 }
 
-@test "[ubuntu-common] ghq" {
+@test "[ubuntu-common] kcov" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -x "$(command -v kcov)" ]

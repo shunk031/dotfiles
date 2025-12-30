@@ -35,11 +35,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOTFILES_DEBUG: 1
-      DOTFILES_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
 
@@ -48,6 +48,7 @@ jobs:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           SYSTEM: ${{ matrix.system }}
           EVENT_NAME: ${{ github.event_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # for avoiding rate limit of GitHub API
         run: |
           if [ "${EVENT_NAME}" == "push" ]; then
             BRANCH_NAME="${{ github.ref_name }}"
@@ -59,18 +60,23 @@ jobs:
           URL="https://raw.githubusercontent.com/shunk031/dotfiles/${BRANCH_NAME}/setup.sh"
           echo "Download setup.sh from ${URL}"
 
-          printf '${EMAIL_ADDRESS}\n${SYSTEM}\n' | bash -c "$(wget -qO - $URL)"
+          printf "${EMAIL_ADDRESS}\n${SYSTEM}\n" | bash -c "$(wget -qO - $URL)"
           #              │               │
           #              │               └─ Simulate inputting an system arcitecture into the config.
           #              └─ Simulate inputting an email address into the config.
 
-      - name: Install latest bats-core
-        run: |
-          tmp_dir=$(mktemp -d /tmp/bats-core-XXXXX)
-          git clone --depth 1 https://github.com/bats-core/bats-core.git "${tmp_dir}"
-          cd "${tmp_dir}"
-          sudo ./install.sh /usr/local
-          rm -rf "${tmp_dir}"
+      - uses: jdx/mise-action@v3
+        with:
+          install: true
+          cache: true
+
+      # - name: Install latest bats-core
+      #   run: |
+      #     tmp_dir=$(mktemp -d /tmp/bats-core-XXXXX)
+      #     git clone --depth 1 https://github.com/bats-core/bats-core.git "${tmp_dir}"
+      #     cd "${tmp_dir}"
+      #     sudo ./install.sh /usr/local
+      #     rm -rf "${tmp_dir}"
 
       - name: Test file existence
         env:

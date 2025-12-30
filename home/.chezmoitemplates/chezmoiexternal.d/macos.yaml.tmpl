@@ -1,0 +1,8 @@
+{{ $fontsPath := .chezmoi.os | replace "darwin" "Library/Fonts" | replace "linux" ".local/share/fonts" -}}
+
+"{{ $fontsPath }}/LINESeed":
+  type: "archive"
+  url: "https://seed.line.me/src/images/fonts/LINE_Seed_JP.zip"
+  refreshPeriod: "168h"
+  stripComponents: 3
+  include: ["**/LINESeedJP_*.otf"]

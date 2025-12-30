@@ -1,0 +1,48 @@
+#
+# Path and Fpath for Client Machine
+#
+
+[plugins.client-path]
+inline = '''
+function _client_path() {
+    typeset -gU path fpath
+    path=(
+        $path
+        ${HOME}/.local/bin/client(N-/)
+    )
+    fpath=(
+        $fpath
+        ${HOME}/.local/bin/client(N-/)
+    )
+}
+zsh-defer _client_path
+'''
+
+#
+# Prompt for Client Machine
+#
+
+[plugins.powerlevel10k]
+github = "romkatv/powerlevel10k"
+
+[plugins.p10k]
+local = "~/.config/powerlevel10k"
+use = ["p10k.zsh"]
+apply = ["source"]
+
+#
+# Alias for Client Machine
+#
+
+[plugins.alias]
+local = '~/.config/alias'
+use = ['client.sh']
+apply = ['source']
+
+#
+# git related plugins
+#
+
+[plugins.git-open]
+github = "paulirish/git-open"
+apply = ["defer"]

@@ -51,6 +51,9 @@ jobs:
             exit 1
           fi
 
+      - name: Run `shfmt`
+        uses: reviewdog/action-shfmt@v1
+
       - name: Run unit test
         run: |
           ./scripts/run_unit_test.sh

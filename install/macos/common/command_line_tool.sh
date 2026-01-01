@@ -1,11 +1,22 @@
 #!/usr/bin/env bash
 
+# @file install/macos/common/command_line_tool.sh
+# @brief Xcode Command Line Tools installation script
+# @description
+#   This script installs the Xcode Command Line Tools, which provide
+#   essential development utilities like git, clang, and make for macOS.
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+# @description Install Xcode Command Line Tools
+# @exitcode 0 On success or if tools are already installed
+# @exitcode 1 If installation fails
+# @example
+#   install_command_line_tool
 function install_command_line_tool() {
     local git_cmd_path="/Library/Developer/CommandLineTools/usr/bin/git"
 
@@ -27,6 +38,11 @@ function install_command_line_tool() {
     fi
 }
 
+# @description Main entry point for the Xcode Command Line Tools installation script
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   ./command_line_tool.sh
 function main() {
     install_command_line_tool
 }

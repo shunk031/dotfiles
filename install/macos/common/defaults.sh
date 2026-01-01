@@ -1,17 +1,34 @@
 #!/usr/bin/env bash
 
+# @file install/macos/common/defaults.sh
+# @brief macOS system defaults configuration script
+# @description
+#   This script configures macOS system preferences and defaults including
+#   UI elements, keyboard settings, trackpad, Dock, Finder, and other
+#   system behaviors to optimize the development environment.
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+# @description Configure UI-related defaults
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   defaults_ui
 function defaults_ui() {
     # Display battery percentage
     # ref. https://github.com/todd-dsm/mac-ops/issues/39#issuecomment-962459353
     defaults write ~/Library/Preferences/ByHost/com.apple.controlcenter.plist BatteryShowPercentage -bool true
 }
 
+# @description Configure keyboard-related defaults
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   defaults_keyboard
 function defaults_keyboard() {
     # Set a blazingly fast keyboard repeat rate
     defaults write NSGlobalDomain KeyRepeat -int 2
@@ -24,6 +41,11 @@ function defaults_keyboard() {
         '{"UserKeyMapping": [{"HIDKeyboardModifierMappingSrc": 0x700000039, "HIDKeyboardModifierMappingDst": 0x7000000e0 }] }'
 }
 
+# @description Configure trackpad-related defaults
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   defaults_trackpad
 function defaults_trackpad() {
 
     defaults write -g com.apple.trackpad.scaling 2
@@ -39,10 +61,20 @@ function defaults_trackpad() {
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true
 }
 
+# @description Configure Control Center defaults
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   defaults_controlcenter
 function defaults_controlcenter() {
     defaults write com.apple.controlcenter "NSStatusItem Visible Bluetooth" -bool true
 }
 
+# @description Configure Dock-related defaults
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   defaults_dock
 function defaults_dock() {
     # Automatically hide and show the Dock
     defaults write com.apple.dock autohide -bool true
@@ -56,6 +88,9 @@ function defaults_dock() {
     defaults write com.apple.dock recent-apps -array ""
     defaults write com.apple.dock persistent-others -array ""
 
+    # @description Generate Dock item plist entry for an application
+    # @arg $1 string Application file path
+    # @stdout Plist dictionary for Dock item
     function dock_item() {
         local app_file_path="$1"
         printf '
@@ -71,6 +106,10 @@ function defaults_dock() {
         </dict>', "${app_file_path}"
     }
 
+    # @description Get system preferences/settings app path
+    # @stdout Path to System Preferences or System Settings app
+    # @exitcode 0 On success
+    # @exitcode 1 If neither app exists
     function get_system_app_path() {
         local system_preferences_path="/System/Applications/System Preferences.app/"
         local system_settings_path="/System/Applications/System Settings.app/"
@@ -94,6 +133,11 @@ function defaults_dock() {
         "$(dock_item "$(get_system_app_path)")"
 }
 
+# @description Configure input source defaults
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   defaults_input_sources
 function defaults_input_sources() {
     # Enable `Automatically switch to a document's input source'`
     defaults write com.apple.HIToolbox AppleGlobalTextInputProperties -dict TextInputGlobalPropertyPerContextInput -bool true
@@ -138,6 +182,11 @@ function defaults_input_sources() {
         </dict>"
 }
 
+# @description Configure Finder defaults
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   defaults_finder
 function defaults_finder() {
 
     # Set Home directory as the default location for new Finder windows
@@ -167,6 +216,11 @@ function defaults_finder() {
     defaults write com.apple.finder FXRemoveOldTrashItems -bool true
 }
 
+# @description Configure screenshot defaults
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   defaults_screencapture
 function defaults_screencapture() {
     # Save screenshots to ${HOME}/Pictures/
     defaults write com.apple.screencapture location -string "${HOME}/Pictures/"
@@ -176,11 +230,21 @@ function defaults_screencapture() {
     defaults write com.apple.screencapture show-thumbnail -bool false
 }
 
+# @description Configure Siri and Dictation defaults
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   defaults_assistant
 function defaults_assistant() {
     defaults write com.apple.assistant.support "Assistant Enabled" -bool false
     defaults write com.apple.HIToolbox AppleDictationAutoEnable -bool false
 }
 
+# @description Configure iTerm2 defaults
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   defaults_iterm2
 function defaults_iterm2() {
 
     #
@@ -197,6 +261,10 @@ function defaults_iterm2() {
     defaults write com.googlecode.iterm2 NoSyncTipsDisabled -bool true
 }
 
+# @description Restart applications affected by defaults changes
+# @exitcode 0 On success
+# @example
+#   kill_affected_applications
 function kill_affected_applications() {
     local apps=(
         "Activity Monitor"
@@ -218,6 +286,10 @@ function kill_affected_applications() {
     done
 }
 
+# @description Open Rectangle window management app
+# @exitcode 0 On success or if app doesn't exist
+# @example
+#   open_rectangle
 function open_rectangle() {
     local app_path="/Applications/Rectangle.app/"
     if [ -e "${app_path}" ]; then
@@ -225,10 +297,19 @@ function open_rectangle() {
     fi
 }
 
+# @description Reopen applications that were killed
+# @exitcode 0 On success
+# @example
+#   open_killed_applications
 function open_killed_applications() {
     open_rectangle
 }
 
+# @description Main entry point for macOS defaults configuration script
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   ./defaults.sh
 function main() {
 
     defaults_ui

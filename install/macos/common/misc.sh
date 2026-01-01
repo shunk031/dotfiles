@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# @file install/macos/common/misc.sh
+# @brief Miscellaneous packages and applications installation script for macOS
+# @description
+#   This script installs various Homebrew packages and cask applications.
+#   It includes both required packages for all users and optional additional
+#   packages for personal computers.
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
@@ -44,12 +51,21 @@ readonly ADDITIONAL_CASK_PACKAGES=(
     zoom
 )
 
+# @description Check if a Homebrew package is installed
+# @arg $1 string Package name to check
+# @exitcode 0 If package is installed
+# @exitcode 1 If package is not installed
 function is_brew_package_installed() {
     local package="$1"
 
     brew list "${package}" &>/dev/null
 }
 
+# @description Install Homebrew packages
+# @exitcode 0 On successful installation
+# @exitcode 1 If installation fails
+# @example
+#   install_brew_packages
 function install_brew_packages() {
     local missing_packages=()
 
@@ -68,6 +84,11 @@ function install_brew_packages() {
     fi
 }
 
+# @description Install Homebrew cask packages
+# @exitcode 0 On successful installation
+# @exitcode 1 If installation fails
+# @example
+#   install_brew_cask_packages
 function install_brew_cask_packages() {
     local missing_packages=()
 
@@ -86,6 +107,11 @@ function install_brew_cask_packages() {
     fi
 }
 
+# @description Install additional Homebrew packages for personal computers
+# @exitcode 0 On successful installation or if not personal computer
+# @exitcode 1 If installation fails
+# @example
+#   install_additional_brew_packages
 function install_additional_brew_packages() {
     # Only install additional brew packages for user shunk031
     if [[ "$(whoami)" != "shunk031" ]]; then
@@ -109,6 +135,11 @@ function install_additional_brew_packages() {
     fi
 }
 
+# @description Install additional Homebrew cask packages
+# @exitcode 0 On successful installation or partial success
+# @exitcode 1 If installation fails
+# @example
+#   install_additional_cask_packages
 function install_additional_cask_packages() {
     local missing_packages=()
 
@@ -131,10 +162,20 @@ function install_additional_cask_packages() {
     fi
 }
 
+# @description Set Google Chrome as the default browser
+# @exitcode 0 On success
+# @exitcode 1 If Chrome cannot be opened
+# @example
+#   setup_google_chrome
 function setup_google_chrome() {
     open "/Applications/Google Chrome.app" --args --make-default-browser
 }
 
+# @description Main entry point for miscellaneous packages installation script
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   ./misc.sh
 function main() {
     install_brew_packages
     install_brew_cask_packages

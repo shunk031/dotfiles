@@ -6,9 +6,9 @@ function setup() {
     source "${SCRIPT_PATH}"
 }
 
-function teardown() {
-    run uninstall_tmux
-}
+# function teardown() {
+#     run uninstall_tmux
+# }
 
 @test "[macos] tmux" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"

@@ -1,27 +1,52 @@
 #!/usr/bin/env bash
 
+# @file install/common/age.sh
+# @brief Age encryption tool private key decryption script
+# @description
+#   This script handles the decryption of age private keys for chezmoi.
+#   It checks for age installation and decrypts the encrypted private key
+#   file to the appropriate configuration directory.
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+# @description Check if age command is available in PATH
+# @exitcode 0 If age is installed
+# @exitcode 1 If age is not installed
 function is_age_installed() {
     command -v "age" &>/dev/null
 }
 
+# @description Get the chezmoi home directory path
+# @stdout The home directory path from chezmoi data
+# @exitcode 0 On success
+# @example
+#   home_dir=$(get_chezmoi_home_dir)
 function get_chezmoi_home_dir() {
     local home_dir
     home_dir=$(chezmoi data | jq -r '.chezmoi.homeDir')
     echo -n "${home_dir}"
 }
 
+# @description Get the chezmoi source directory path
+# @stdout The source directory path from chezmoi data
+# @exitcode 0 On success
+# @example
+#   source_dir=$(get_chezmoi_source_dir)
 function get_chezmoi_source_dir() {
     local source_dir
     source_dir=$(chezmoi data | jq -r '.chezmoi.sourceDir')
     echo -n "${source_dir}"
 }
 
+# @description Decrypt the age private key from chezmoi source to config directory
+# @exitcode 0 On success or if running in CI environment
+# @exitcode 1 If age is not installed
+# @example
+#   decrypt_age_private_key
 function decrypt_age_private_key() {
     local age_dir
     local age_src_key
@@ -50,6 +75,11 @@ function decrypt_age_private_key() {
     fi
 }
 
+# @description Main entry point for the age private key decryption script
+# @exitcode 0 On success
+# @exitcode 1 On failure
+# @example
+#   ./age.sh
 function main() {
     decrypt_age_private_key
 }

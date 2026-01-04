@@ -7,7 +7,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 function is_mas_installed() {
-    common -v mas &>/dev/null
+    common -v mas &> /dev/null
 }
 
 function install_mas() {

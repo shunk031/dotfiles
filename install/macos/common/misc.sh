@@ -47,7 +47,7 @@ readonly ADDITIONAL_CASK_PACKAGES=(
 function is_brew_package_installed() {
     local package="$1"
 
-    brew list "${package}" &>/dev/null
+    brew list "${package}" &> /dev/null
 }
 
 function install_brew_packages() {

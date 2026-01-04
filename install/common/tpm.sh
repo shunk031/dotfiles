@@ -10,7 +10,7 @@ readonly TMUX_PLUGINS_DIR="${HOME%/}/.tmux/plugins"
 readonly TPM_DIR="${TMUX_PLUGINS_DIR}/tpm"
 
 function is_tmux_mem_cpu_load_installed() {
-    command -v "tmux-mem-cpu-load" &>/dev/null
+    command -v "tmux-mem-cpu-load" &> /dev/null
 }
 
 function clone_tpm() {

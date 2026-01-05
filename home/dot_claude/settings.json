@@ -50,5 +50,8 @@
     "type": "command",
     "command": "~/.claude/statusline.js"
   },
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true
+  },
   "alwaysThinkingEnabled": true
 }

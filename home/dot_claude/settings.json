@@ -50,5 +50,8 @@
     "type": "command",
     "command": "~/.claude/statusline.js"
   },
+  "enabledPlugins": {
+    "claude-mem@thedotmack": true
+  },
   "alwaysThinkingEnabled": true
 }

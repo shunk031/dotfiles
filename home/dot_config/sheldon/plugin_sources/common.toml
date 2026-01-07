@@ -18,9 +18,11 @@ shell = "zsh"
 
 [templates]
 defer = """
+{{ hooks?.pre | nl }}
 {% for file in files %}
 zsh-defer source "{{ file }}"
 {% endfor %}
+{{ hooks?.post | nl }}
 """
 
 fzf-install = """

@@ -19,7 +19,7 @@ validate_branch_exists = true
 preview = true
 
 [naming]
-template = '{{.Host}}/{{.Owner}}/{{.Repository}}/{{.Branch}}'
+template = '{{.Host}}/{{.Owner}}/{{.Repository}}={{.Branch}}'
 
 [naming.sanitize_chars]
 '/' = '-'
@@ -31,4 +31,4 @@ tilde_home = true
 
 [worktree]
 auto_mkdir = true
-basedir = '~/gwq'
+basedir = '~/ghq'

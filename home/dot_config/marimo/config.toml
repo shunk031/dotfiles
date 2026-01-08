@@ -25,7 +25,7 @@ sql_linter = true
 
 [language_servers.pylsp]
 enable_pydocstyle = false
-enabled = false
+enabled = true
 enable_mypy = true
 enable_pyflakes = false
 enable_flake8 = false
@@ -35,11 +35,12 @@ enable_ruff = true
 [language_servers.basedpyright]
 
 [language_servers.ty]
+enabled = true
 
 [experimental]
 
 [display]
-default_width = "medium"
+default_width = "full"
 theme = "dark"
 cell_output = "below"
 code_editor_font_size = 14

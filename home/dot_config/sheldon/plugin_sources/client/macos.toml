@@ -3,6 +3,9 @@ inline = '''
 function _homebrew() {
     # Homebrew will not auto-update before running `brew install`
     export HOMEBREW_NO_AUTO_UPDATE=1
+
+    # Disable installing certain formulae
+    export HOMEBREW_FORBIDDEN_FORMULAE="node python python3 pip npm pnpm yarn claude"
 }
 zsh-defer _homebrew
 '''

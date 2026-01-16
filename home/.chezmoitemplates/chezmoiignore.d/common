@@ -4,3 +4,4 @@ plugin.jupyterlab-settings
 
 .config/sheldon/plugin_sources
 .config/claude/rules
+.config/claude/skills

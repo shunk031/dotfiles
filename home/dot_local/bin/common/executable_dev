@@ -1,19 +1,7 @@
 #!/usr/bin/env bash
 
 function ghq-path() {
-    local repo_name
-    repo_name=$(ghq list | fzf)
-
-    if [[ -n "$repo_name" ]]; then
-        for repo_root in $(ghq root --all); do
-            local repo_path="${repo_root}/${repo_name}"
-            if [[ -d "${repo_path}" ]]; then
-                echo "${repo_path}"
-                return 0
-            fi
-        done
-    fi
-    return 1
+    ghq list --full-path | fzf
 }
 
 function dev() {

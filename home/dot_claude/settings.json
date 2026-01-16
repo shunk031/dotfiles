@@ -54,5 +54,6 @@
     "pyright-lsp@claude-plugins-official": true,
     "claude-mem@thedotmack": true
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "plansDirectory": "./plans"
 }

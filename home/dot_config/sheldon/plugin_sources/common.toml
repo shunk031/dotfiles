@@ -18,9 +18,11 @@ shell = "zsh"
 
 [templates]
 defer = """
+{{ hooks?.pre | nl }}
 {% for file in files %}
 zsh-defer source "{{ file }}"
 {% endfor %}
+{{ hooks?.post | nl }}
 """
 
 fzf-install = """
@@ -150,6 +152,19 @@ function _rust() {
     )
 }
 zsh-defer _rust
+'''
+
+[plugins.bun]
+inline = '''
+export BUN_INSTALL="$HOME/.bun"
+
+typeset -gU path
+path+=(
+    $BUN_INSTALL/bin(N-/)
+)
+
+# bun completions
+[ -s "$HOME/.bun/_bun" ] && zsh-defer "$HOME/.bun/_bun"
 '''
 
 #

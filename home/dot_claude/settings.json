@@ -1,6 +1,5 @@
 {
   "permissions": {
-    "allow": [],
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
@@ -8,9 +7,21 @@
       "Read(id_rsa*)",
       "Read(id_ed25519*)",
       "Write(.env*)"
-    ]
+    ],
+    "defaultMode": "plan"
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/enforce-uv.sh"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
@@ -39,5 +50,10 @@
     "type": "command",
     "command": "~/.claude/statusline.js"
   },
-  "alwaysThinkingEnabled": true
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true,
+    "claude-mem@thedotmack": true
+  },
+  "alwaysThinkingEnabled": true,
+  "plansDirectory": "./plans"
 }

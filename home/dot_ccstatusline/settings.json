@@ -1,0 +1,33 @@
+{
+  "version": 3,
+  "lines": [
+    [
+      {
+        "id": "1",
+        "type": "custom-command",
+        "color": "white",
+        "commandPath": "npx -y ccusage@latest statusline",
+        "timeout": 5000
+      }
+    ],
+    [],
+    []
+  ],
+  "flexMode": "full-minus-40",
+  "compactThreshold": 60,
+  "colorLevel": 2,
+  "inheritSeparatorColors": false,
+  "globalBold": false,
+  "powerline": {
+    "enabled": false,
+    "separators": [
+      ""
+    ],
+    "separatorInvertBackground": [
+      false
+    ],
+    "startCaps": [],
+    "endCaps": [],
+    "autoAlign": false
+  }
+}

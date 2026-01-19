@@ -19,12 +19,17 @@ function install_mise() {
     eval "$(~/.local/bin/mise activate bash)"
 }
 
+function run_mise_install() {
+    mise install
+}
+
 function uninstall_mise() {
     rm "${MISE_INSTALL_PATH}"
 }
 
 function main() {
     install_mise
+    run_mise_install
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

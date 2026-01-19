@@ -38,6 +38,8 @@ To set up the dotfiles run the appropriate snippet in the terminal.
 bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
 ```
 
+![](.github/screenshot-macos-client.png)
+
 ### 🖥️ `Ubuntu` [![Ubuntu](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml)
 
 - Configuration snippet of the Ubuntu environment for both client and server machine:
@@ -45,6 +47,8 @@ bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
 ```console
 bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"
 ```
+
+![](.github/screenshot-ubuntu-server.png)
 
 ### Minimal setup
 
@@ -117,7 +121,7 @@ The scripts for the unit test can be found under [`./tests`](https://github.com/
 
 The code coverage of the [`./install`](https://github.com/shunk031/dotfiles/tree/master/install) scripts are continuously monitored at [app.codecov.io/gh/shunk031/dotfiles](https://app.codecov.io/gh/shunk031/dotfiles). The following Icicle graph represents the code coverage of the scripts:
 
-![](https://codecov.io/gh/shunk031/dotfiles/branch/master/graphs/icicle.svg?token=4VUJWKGAR7)
+[![](https://codecov.io/gh/shunk031/dotfiles/branch/master/graphs/icicle.svg?token=4VUJWKGAR7)](https://app.codecov.io/gh/shunk031/dotfiles)
 
 ## 📊 Measure the startup speed of the dotfiles
 

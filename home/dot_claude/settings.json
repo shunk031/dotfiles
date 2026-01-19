@@ -48,7 +48,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/statusline.sh"
+    "command": "npx ccstatusline@latest"
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,

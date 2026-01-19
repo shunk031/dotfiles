@@ -35,9 +35,9 @@ function install_kcov() {
 
     local tmp_dir
     tmp_dir=$(mktemp -d /tmp/kcov-XXXXX)
-    
+
     local kcov_version="v43"
-    git clone "${url}" "${tmp_dir}" -b "${kcov_version}" --depth 1 
+    git clone "${url}" "${tmp_dir}" -b "${kcov_version}" --depth 1
 
     cd "${tmp_dir}" || exit 1
     mkdir build && cd build || exit 1

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ "$TERM" = "dumb" ]; then
-	echo -n
+    echo -n
 else
-	command -v zsh > /dev/null && exec zsh
+    command -v zsh > /dev/null && exec zsh
 fi

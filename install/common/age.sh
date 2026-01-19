@@ -7,7 +7,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 function is_age_installed() {
-    command -v "age" &>/dev/null
+    command -v "age" &> /dev/null
 }
 
 function get_chezmoi_home_dir() {

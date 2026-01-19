@@ -4,14 +4,14 @@ on:
   push:
     branches: [master]
     paths:
-        - ".github/workflows"
+        - ".github/workflows/**"
         - "home/**"
         - "install/**"
         - "tests/**"
   pull_request:
     branches: [master]
     paths:
-        - ".github/workflows"
+        - ".github/workflows/**"
         - "home/**"
         - "install/**"
         - "tests/**"
@@ -50,6 +50,11 @@ jobs:
             echo "${OS} and ${SYSTEM} are not supported" >&2
             exit 1
           fi
+
+      - name: Run `shfmt`
+        uses: reviewdog/action-shfmt@v1
+        with:
+          shfmt_flags: -i 4 -sr -d
 
       - name: Run unit test
         run: |

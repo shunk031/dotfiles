@@ -5,7 +5,7 @@
       {
         "id": "1",
         "type": "custom-command",
-        "color": "cyan",
+        "color": "white",
         "commandPath": "npx -y ccusage@latest statusline",
         "timeout": 5000
       }

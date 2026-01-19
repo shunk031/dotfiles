@@ -38,7 +38,7 @@ To set up the dotfiles run the appropriate snippet in the terminal.
 bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
 ```
 
-![](.github/screenshot-macos-client.png)
+![Screenshot of setup on MacOS Client machine](.github/screenshot-macos-client.png)
 
 ### 🖥️ `Ubuntu` [![Ubuntu](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml)
 
@@ -48,7 +48,7 @@ bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
 bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"
 ```
 
-![](.github/screenshot-ubuntu-server.png)
+![Screenshot of setup on Ubuntu Server machine](.github/screenshot-ubuntu-server.png)
 
 ### Minimal setup
 

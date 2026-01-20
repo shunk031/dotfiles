@@ -1668,7 +1668,7 @@
       (
         if command -v chezmoi >/dev/null 2>&1; then
           chezmoi git -- fetch -q
-          local count=$(chezmoi git -- rev-list --count HEAD..@{u} 2>/dev/null)
+          local count=$(chezmoi git -- rev-list --count HEAD..origin/master 2>/dev/null)
           
           if [[ "$count" -gt 0 ]]; then
             echo "$count" >! "$status_file"

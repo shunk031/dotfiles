@@ -1645,6 +1645,54 @@
     prompt_example
   }
 
+  function prompt_chezmoi_update() {
+    local check_interval=3600 # 1時間ごとにチェック
+    local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/p10k-chezmoi"
+    local status_file="$cache_dir/status"
+    local last_check_file="$cache_dir/last_check"
+
+    [[ -d "$cache_dir" ]] || mkdir -p "$cache_dir"
+
+    # --- アイコン・絵文字定義 ---
+    local icon=$'\uf015'   # 家 ()
+    local arrow=$'\u21e3'  # 下矢印 (⇣)
+    local fire='🔥'        # 炎
+
+    # --- 1. バックグラウンド更新チェック ---
+    local current_time=$(date +%s)
+    local last_check=0
+    [[ -f "$last_check_file" ]] && last_check=$(cat "$last_check_file")
+
+    if (( current_time - last_check > check_interval )); then
+      echo "$current_time" >! "$last_check_file"
+      (
+        if command -v chezmoi >/dev/null 2>&1; then
+          chezmoi git -- fetch -q
+          local count=$(chezmoi git -- rev-list --count HEAD..@{u} 2>/dev/null)
+          
+          if [[ "$count" -gt 0 ]]; then
+            echo "$count" >! "$status_file"
+          else
+            rm -f "$status_file"
+          fi
+        fi
+      ) &!
+    fi
+
+    # --- 2. 表示処理 ---
+    if [[ -f "$status_file" ]]; then
+      local count=$(cat "$status_file")
+      
+      # 色: 赤 (196)
+      # 表示: [家] dotfiles 🔥 ⇣[件数]
+      p10k segment -f 196 -i "${icon}" -t "dotfiles ${fire} ${arrow}${count}"
+    fi
+  }
+
+  function instant_prompt_chezmoi_update() {
+    prompt_chezmoi_update
+  }
+
   # User-defined prompt segments can be customized the same way as built-in segments.
   # typeset -g POWERLEVEL9K_EXAMPLE_FOREGROUND=3
   # typeset -g POWERLEVEL9K_EXAMPLE_VISUAL_IDENTIFIER_EXPANSION='⭐'
@@ -1686,51 +1734,3 @@ typeset -g POWERLEVEL9K_CONFIG_FILE=${${(%):-%x}:a}
 
 (( ${#p10k_config_opts} )) && setopt ${p10k_config_opts[@]}
 'builtin' 'unset' 'p10k_config_opts'
-
-function prompt_chezmoi_update() {
-  # 設定: 更新チェックの間隔 (秒)
-  local check_interval=10
-  local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/p10k-chezmoi"
-  local status_file="$cache_dir/status"
-  local last_check_file="$cache_dir/last_check"
-
-  # キャッシュディレクトリの準備
-  [[ -d "$cache_dir" ]] || mkdir -p "$cache_dir"
-
-  # ---------------------------------------------------
-  # 1. バックグラウンド処理 (chezmoi git を使用)
-  # ---------------------------------------------------
-  local current_time=$(date +%s)
-  local last_check=0
-  [[ -f "$last_check_file" ]] && last_check=$(cat "$last_check_file")
-
-  if (( current_time - last_check > check_interval )); then
-    echo "$current_time" >! "$last_check_file"
-
-    # バックグラウンドで chezmoi git を実行
-    (
-      if command -v chezmoi >/dev/null 2>&1; then
-        # ソースディレクトリで fetch を実行
-        chezmoi git -- fetch -q
-        
-        # 上流ブランチ(origin)との差分カウントを取得
-        # @{u} は upstream (追跡ブランチ) を指します
-        local count=$(chezmoi git -- rev-list --count HEAD..@{u} 2>/dev/null)
-
-        if [[ "$count" -gt 0 ]]; then
-          echo "update" >! "$status_file"
-        else
-          rm -f "$status_file"
-        fi
-      fi
-    ) &!
-  fi
-
-  # ---------------------------------------------------
-  # 2. 表示処理
-  # ---------------------------------------------------
-  if [[ -f "$status_file" ]]; then
-    # アイコン: ﮮ (Update), テキスト: dotfiles
-    p10k segment -f 208 -i 'ﮮ' -t 'dotfiles'
-  fi
-}

@@ -45,10 +45,10 @@
   # automatically hidden when the input line reaches it. Right prompt above the
   # last prompt line gets hidden if it would overlap with left prompt.
   typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
-    # =========================[ Line #1 ]=========================
+    # =========================[ Line #1 ]=========================    
     status                  # exit code of the last command
+    chezmoi_update          # notification of chezmoi update
     vcs
-    chezmoi_update
 
     # command_execution_time  # duration of the last command
     # background_jobs         # presence of background jobs
@@ -1685,7 +1685,7 @@
       
       # 色: 赤 (196)
       # 表示: [家] dotfiles 🔥 ⇣[件数]
-      p10k segment -f 196 -i "${icon}" -t "dotfiles ${fire} ${arrow}${count}"
+      p10k segment -f 196 -i "${icon}" -t "${arrow}${count} ${fire}"
     fi
   }
 

@@ -2,6 +2,8 @@
 	name = Shunsuke KITADA
 	email = {{ .email | quote }}
 	signingkey = D55D775A7951407C
+[alias]
+	alias gm='git checkout $(git symbolic-ref refs/remotes/origin/HEAD | sed "s@^refs/remotes/origin/@@")'
 [color]
 	ui = auto
 [url "git@github.com:"]
@@ -28,8 +30,5 @@
     helper =
     helper = !gh auth git-credential
 [credential "https://gist.github.com"]
-    helper =
-    helper = !gh auth git-credential
-[credential "https://git.linecorp.com"]
     helper =
     helper = !gh auth git-credential

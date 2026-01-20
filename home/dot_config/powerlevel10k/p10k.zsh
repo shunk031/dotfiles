@@ -47,8 +47,8 @@
   typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
     # =========================[ Line #1 ]=========================
     status                  # exit code of the last command
+    chezmoi_update          # notification of chezmoi update
     vcs
-    chezmoi_update
 
     # command_execution_time  # duration of the last command
     # background_jobs         # presence of background jobs
@@ -1668,7 +1668,7 @@
       (
         if command -v chezmoi >/dev/null 2>&1; then
           chezmoi git -- fetch -q
-          local count=$(chezmoi git -- rev-list --count HEAD..@{u} 2>/dev/null)
+          local count=$(chezmoi git -- rev-list --count HEAD..origin/master 2>/dev/null)
           
           if [[ "$count" -gt 0 ]]; then
             echo "$count" >! "$status_file"
@@ -1685,7 +1685,7 @@
       
       # 色: 赤 (196)
       # 表示: [家] dotfiles 🔥 ⇣[件数]
-      p10k segment -f 196 -i "${icon}" -t "dotfiles ${fire} ${arrow}${count}"
+      p10k segment -f 196 -i "${icon}" -t "${arrow}${count} ${fire}"
     fi
   }
 

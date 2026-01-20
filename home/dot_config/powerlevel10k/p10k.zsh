@@ -48,6 +48,8 @@
     # =========================[ Line #1 ]=========================
     status                  # exit code of the last command
     vcs
+    chezmoi_update
+
     # command_execution_time  # duration of the last command
     # background_jobs         # presence of background jobs
     # direnv                  # direnv status (https://direnv.net/)
@@ -1684,3 +1686,51 @@ typeset -g POWERLEVEL9K_CONFIG_FILE=${${(%):-%x}:a}
 
 (( ${#p10k_config_opts} )) && setopt ${p10k_config_opts[@]}
 'builtin' 'unset' 'p10k_config_opts'
+
+function prompt_chezmoi_update() {
+  # 設定: 更新チェックの間隔 (秒)
+  local check_interval=10
+  local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/p10k-chezmoi"
+  local status_file="$cache_dir/status"
+  local last_check_file="$cache_dir/last_check"
+
+  # キャッシュディレクトリの準備
+  [[ -d "$cache_dir" ]] || mkdir -p "$cache_dir"
+
+  # ---------------------------------------------------
+  # 1. バックグラウンド処理 (chezmoi git を使用)
+  # ---------------------------------------------------
+  local current_time=$(date +%s)
+  local last_check=0
+  [[ -f "$last_check_file" ]] && last_check=$(cat "$last_check_file")
+
+  if (( current_time - last_check > check_interval )); then
+    echo "$current_time" >! "$last_check_file"
+
+    # バックグラウンドで chezmoi git を実行
+    (
+      if command -v chezmoi >/dev/null 2>&1; then
+        # ソースディレクトリで fetch を実行
+        chezmoi git -- fetch -q
+        
+        # 上流ブランチ(origin)との差分カウントを取得
+        # @{u} は upstream (追跡ブランチ) を指します
+        local count=$(chezmoi git -- rev-list --count HEAD..@{u} 2>/dev/null)
+
+        if [[ "$count" -gt 0 ]]; then
+          echo "update" >! "$status_file"
+        else
+          rm -f "$status_file"
+        fi
+      fi
+    ) &!
+  fi
+
+  # ---------------------------------------------------
+  # 2. 表示処理
+  # ---------------------------------------------------
+  if [[ -f "$status_file" ]]; then
+    # アイコン: ﮮ (Update), テキスト: dotfiles
+    p10k segment -f 208 -i 'ﮮ' -t 'dotfiles'
+  fi
+}

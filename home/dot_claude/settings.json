@@ -1,4 +1,7 @@
 {
+  "model": "opusplan",
+  "alwaysThinkingEnabled": true,
+  "plansDirectory": "./plans",
   "permissions": {
     "deny": [
       "Bash(sudo:*)",
@@ -53,7 +56,5 @@
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
     "claude-mem@thedotmack": true
-  },
-  "alwaysThinkingEnabled": true,
-  "plansDirectory": "./plans"
+  }
 }

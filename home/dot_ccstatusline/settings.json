@@ -7,7 +7,7 @@
         "type": "custom-command",
         "color": "white",
         "commandPath": "npx -y ccusage@latest statusline",
-        "timeout": 5000
+        "timeout": 50000
       }
     ],
     [],

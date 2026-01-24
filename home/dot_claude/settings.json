@@ -1,4 +1,9 @@
 {
+  "env": {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "DISABLE_PROMPT_CACHING": "1",
+    "DISABLE_INSTALLATION_CHECKS": "1"
+  },
   "permissions": {
     "deny": [
       "Bash(sudo:*)",

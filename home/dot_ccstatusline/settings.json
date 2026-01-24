@@ -13,11 +13,21 @@
     [
       {
         "id": "208dc6a9-ed42-485e-bb54-81d2b529a996",
+        "type": "custom-text",
+        "customText": "⬇️ "
+      },
+      {
+        "id": "03bfb4f4-fdc4-4ab8-83d0-5f5173a941df",
         "type": "tokens-input"
       },
       {
         "id": "ea99274a-1d0f-4e87-92e9-3190f078c20e",
         "type": "separator"
+      },
+      {
+        "id": "a36eee51-cb64-4928-9d8f-5d9754c10002",
+        "type": "custom-text",
+        "customText": "⬆️ "
       },
       {
         "id": "0fea4735-cf01-4dbe-a0d7-4c150ac968f7",
@@ -28,12 +38,22 @@
         "type": "separator"
       },
       {
+        "id": "a6af3c9c-5ee0-4eeb-82c4-da00677d71f4",
+        "type": "custom-text",
+        "customText": "💾 "
+      },
+      {
         "id": "8ce119a6-7eea-4e07-98c6-ad2e8096b4af",
         "type": "tokens-cached"
       },
       {
         "id": "f77ba90f-709c-42b1-b446-48d510f91e25",
         "type": "separator"
+      },
+      {
+        "id": "34feafac-7e51-4987-978b-34463b84991b",
+        "type": "custom-text",
+        "customText": "📊 "
       },
       {
         "id": "503d588b-418a-463a-8e4d-9b4cb86045b8",
@@ -44,12 +64,22 @@
         "type": "separator"
       },
       {
+        "id": "fd9b4120-760b-40f6-89bd-54984273218f",
+        "type": "custom-text",
+        "customText": "🧠 "
+      },
+      {
         "id": "39b00d1a-95d3-45e5-b7ee-0d2eafdc2029",
         "type": "context-length"
       },
       {
         "id": "920f7c69-44e3-47e5-a388-8b6db72a1bf8",
         "type": "separator"
+      },
+      {
+        "id": "23b93c0e-0aea-423c-9a32-e4ef2afddf2c",
+        "type": "custom-text",
+        "customText": "📈 "
       },
       {
         "id": "dce28bb1-4991-44ae-8d41-9ce77255e9b1",
@@ -60,12 +90,24 @@
         "type": "separator"
       },
       {
+        "id": "6cd480f5-3cc3-481b-aaec-dee0a5182b08",
+        "type": "custom-text",
+        "customText": "👤 "
+      },
+      {
         "id": "f3489e7a-65b1-4285-af5b-a3b1f13408ad",
         "type": "context-percentage-usable"
       },
       {
         "id": "ad7c4afa-916e-47d9-ba47-168dcc373b99",
         "type": "separator"
+      },
+      {
+        "id": "3a04112e-337c-401b-9c57-75031ce030f6",
+        "type": "block-timer",
+        "metadata": {
+          "display": "progress-short"
+        }
       }
     ],
     []

@@ -10,7 +10,64 @@
         "timeout": 50000
       }
     ],
-    [],
+    [
+      {
+        "id": "208dc6a9-ed42-485e-bb54-81d2b529a996",
+        "type": "tokens-input"
+      },
+      {
+        "id": "ea99274a-1d0f-4e87-92e9-3190f078c20e",
+        "type": "separator"
+      },
+      {
+        "id": "0fea4735-cf01-4dbe-a0d7-4c150ac968f7",
+        "type": "tokens-output"
+      },
+      {
+        "id": "38d1e031-bdd1-4c22-b6d1-790faff45c28",
+        "type": "separator"
+      },
+      {
+        "id": "8ce119a6-7eea-4e07-98c6-ad2e8096b4af",
+        "type": "tokens-cached"
+      },
+      {
+        "id": "f77ba90f-709c-42b1-b446-48d510f91e25",
+        "type": "separator"
+      },
+      {
+        "id": "503d588b-418a-463a-8e4d-9b4cb86045b8",
+        "type": "tokens-total"
+      },
+      {
+        "id": "41dd2ddd-d2e0-43dd-ae29-fb92f2b6c3cb",
+        "type": "separator"
+      },
+      {
+        "id": "39b00d1a-95d3-45e5-b7ee-0d2eafdc2029",
+        "type": "context-length"
+      },
+      {
+        "id": "920f7c69-44e3-47e5-a388-8b6db72a1bf8",
+        "type": "separator"
+      },
+      {
+        "id": "dce28bb1-4991-44ae-8d41-9ce77255e9b1",
+        "type": "context-percentage"
+      },
+      {
+        "id": "a77016e0-f0dd-495d-a33f-ad3ab0f65e94",
+        "type": "separator"
+      },
+      {
+        "id": "f3489e7a-65b1-4285-af5b-a3b1f13408ad",
+        "type": "context-percentage-usable"
+      },
+      {
+        "id": "ad7c4afa-916e-47d9-ba47-168dcc373b99",
+        "type": "separator"
+      }
+    ],
     []
   ],
   "flexMode": "full-minus-40",

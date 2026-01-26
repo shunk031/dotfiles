@@ -22,6 +22,7 @@ shfmt = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:@openai/codex" = "latest"
 "npm:bash-language-server" = "latest"
+"npm:pyright" = "latest"
 
 "github:x-motemen/ghq" = "latest"
 "github:d-kuro/gwq" = "latest"

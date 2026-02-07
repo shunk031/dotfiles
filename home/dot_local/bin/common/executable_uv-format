@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+function uv_format() {
+    uvx ruff format
+    uvx ruff check --fix --extend-select I
+}
+
+if [ -n "$($SHELL -c "echo ${ZSH_VERSION}")" ]; then
+    uv_format
+fi

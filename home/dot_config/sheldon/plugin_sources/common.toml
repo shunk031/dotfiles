@@ -187,10 +187,7 @@ apply = ['source']
 
 [plugins.gpg]
 inline = '''
-function _gpg() {
-    export GPG_TTY=$(tty)
-}
-zsh-defer _gpg
+export GPG_TTY=$(tty)
 '''
 
 #

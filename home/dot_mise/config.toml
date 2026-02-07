@@ -16,6 +16,7 @@ jq = "latest"
 hugo-extended = "0.136.5"
 uv = "latest"
 yazi = "latest"
+yq = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 

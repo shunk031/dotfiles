@@ -3,6 +3,7 @@ plugin.jupyterlab-settings
 .key.txt.age
 
 .mise
+.tmux.conf.d/
 .config/sheldon/plugin_sources
 .config/claude/rules
 .config/claude/skills

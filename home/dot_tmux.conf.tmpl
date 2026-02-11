@@ -7,6 +7,7 @@
 
 */ -}}
 
+{{ include "dot_tmux.conf.d/common.conf" }}
 {{ if eq .system "client" -}}
 {{   include "dot_tmux.conf.d/system/client.conf" }}
 {{ else if eq .system "server" -}}

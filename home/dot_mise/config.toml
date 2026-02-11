@@ -24,6 +24,7 @@ shfmt = "latest"
 "npm:@openai/codex" = "latest"
 "npm:bash-language-server" = "latest"
 "npm:pyright" = "latest"
+"npm:fast-cli" = "latest"
 
 "github:x-motemen/ghq" = "latest"
 "github:d-kuro/gwq" = "latest"

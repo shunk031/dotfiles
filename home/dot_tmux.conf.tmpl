@@ -10,6 +10,15 @@
 {{ include "dot_tmux.conf.d/common.conf" }}
 {{ if eq .system "client" -}}
 {{   include "dot_tmux.conf.d/system/client.conf" }}
+{{   if eq .chezmoi.os "darwin" -}}
+{{     include "dot_tmux.conf.d/os/macos.conf" }}
+{{   else if eq .chezmoi.os "linux" -}}
+{{     if eq .chezmoi.osRelease.idLike "debian" -}}
+{{       include "dot_tmux.conf.d/os/ubuntu_client.conf" }}
+{{     else -}}
+{{       fail (printf "Unknown Linux OS: %s" .chezmoi.osRelease.idLike) }}
+{{     end -}}
+{{   end -}}
 {{ else if eq .system "server" -}}
 {{   include "dot_tmux.conf.d/system/server.conf" }}
 {{ else -}}

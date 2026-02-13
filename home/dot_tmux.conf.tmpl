@@ -21,6 +21,13 @@
 {{   end -}}
 {{ else if eq .system "server" -}}
 {{   include "dot_tmux.conf.d/system/server.conf" }}
+{{   if eq .chezmoi.os "linux" -}}
+{{     if eq .chezmoi.osRelease.idLike "debian" -}}
+{{       include "dot_tmux.conf.d/os/ubuntu_server.conf" }}
+{{     else -}}
+{{       fail (printf "Unknown Linux OS: %s" .chezmoi.osRelease.idLike) }}
+{{     end -}}
+{{   end -}}
 {{ else -}}
 {{   fail (printf "Unknown system type: %s" .system) }}
 {{ end -}}

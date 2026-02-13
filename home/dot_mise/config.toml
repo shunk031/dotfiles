@@ -31,5 +31,7 @@ shfmt = "latest"
 "github:cli/cli" = "latest"
 "github:shuntaka9576/blocc" = "latest"
 
+"cargo:pueue" = "latest"
+
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

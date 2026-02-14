@@ -4,6 +4,11 @@
 
 - ユーザが提供した情報に基づいて、最適な解決策を提案するための質問を行ってください。
 
+## コーディング全般について
+
+- エラーを恐れないでください。まずは例外処理は気にせずコードを書いてください。
+- 後方互換性は気にしないでください。あらかじめテストを記述し、テストが通ることを確認してから、必要に応じてコードをリファクタリングしてください。
+
 ## Python が主なプロジェクトについて
 
 ### `uv` の使用
@@ -14,9 +19,9 @@
 
 ### dev 用依存ツール
 
-- `uv add --group dev ruff pytest mypy ty pre-commit` を開発用依存ツールを追加してください。
+- `uv add --group dev ruff pytest mypy ty vulture pre-commit` を開発用依存ツールを追加してください。
 - 追加したら `pre-commit install` を実行して、コミット前にコード品質チェックが走るようにしてください。
-  - もし `.pre-commit-config.yaml` が存在しない場合は、 `ruff format/check` の実行と `pytest` の実行を設定してください。
+  - もし `.pre-commit-config.yaml` が存在しない場合は、 `ruff format/check` の実行、 `vulture` の実行、および `pytest` の実行を設定してください。
 
 ### 探索的なデバッグ
 

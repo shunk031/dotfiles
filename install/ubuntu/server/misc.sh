@@ -23,7 +23,8 @@ function install_opencv_related_packages() {
     # To avoid the following error when running OpenCV-based applications:
     # ImportError: libGL.so.1: cannot open shared object file: No such file or directory
     sudo apt-get update && sudo apt-get install --no-install-recommends -y \
-        libgl1-mesa-dev
+        libgl1-mesa-dev \
+        ncat
         
 }
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 function ghq-path() {
-    local path
-    path=$(ghq list --full-path | fzf) || return 1
-    [[ -n $path ]] || return 1
-    printf '%s\n' "$path"
+    local selected_path
+    selected_path=$(ghq list --full-path | fzf) || return 1
+    [[ -n $selected_path ]] || return 1
+    printf '%s\n' "$selected_path"
 }
 
 function dev() {

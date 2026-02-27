@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 
 function ghq-path() {
-    ghq list --full-path | fzf
+    local path
+    path=$(ghq list --full-path | fzf) || return 1
+    [[ -n $path ]] || return 1
+    printf '%s\n' "$path"
 }
 
 function dev() {
     local moveto
-    moveto=$(ghq-path)
-    cd "${moveto}" || exit 1
+    moveto=$(ghq-path) || return 0
+    cd -- "$moveto" || exit 1
 
     # rename session if in tmux
     if [[ -n ${TMUX} ]]; then

@@ -33,6 +33,54 @@
     - todo: `TODO`, `Done`
     - learn: `Date`, `Learnings`, `Plan Updates`
 
+### plan/todo/learn の frontmatter ルール
+
+- `docs/plan/*.md` `docs/todo/*.md` `docs/learn/*.md` の先頭に YAML frontmatter を必須とします。
+- 並列実行を前提に、`active` 制約は「リポジトリ全体で1件」ではなく「`owner` ごとに1件」とします。
+
+#### 共通必須キー
+
+- `type`: `plan | todo | learn`
+- `id`: `YYYYMMDD_HHMMSS`
+- `owner`: 例 `codex-a`, `codex-b`
+- `created_at`: ISO8601
+- `updated_at`: ISO8601
+
+#### type ごとの必須キー
+
+- `todo`: `status`, `workstream`, `related_plan`
+- `plan`: `status`
+- `learn`: `validated`, `apply_to`
+
+#### status 値
+
+- `todo.status`: `active | blocked | done | superseded`
+- `plan.status`: `draft | active | done | superseded`
+- `learn.validated`: `true | false`
+
+#### 推奨キー（任意）
+
+- `depends_on`: 依存する `todo id` の配列
+- `blocked_reason`: `status=blocked` の理由
+- `evidence`: ログ/PR/実験結果のパス配列
+- `tags`: 任意タグ
+
+#### 運用ルール
+
+- 新規 `todo` 作成時は `owner` を必ず設定してください。
+- 各 `owner` は同時に `active` な `todo` を1件までにしてください。
+- `# TODO` が空になったら `status: done` に更新し、`*_done.md` へリネームしてください。
+- `learn` は「再利用可能」かつ「検証済み (`validated: true`)」のときのみ作成してください。
+- `learn` 更新時は `apply_to` に反映先（plan/tests）を明記してください。
+
+#### 既存ファイルの最小移行ルール
+
+- 既存の `docs/todo/*_todo.md` / `docs/todo/*_done.md` は、次回編集時に frontmatter を追加してください。
+- 既存ファイルで `owner` が不明な場合は一時的に `owner: unknown` を設定してください。
+- 既存 `*_done.md` は `status: done` を設定してください。
+- 既存 `*_todo.md` で `# TODO` が空の場合は `status: done` に更新し、`*_done.md` へリネームしてください。
+- `created_at` はファイル名のタイムスタンプを優先し、不明な場合のみ現在時刻を使用してください。
+
 ## コーディング全般について
 
 - エラーを恐れないでください。まずは例外処理は気にせずコードを書いてください。

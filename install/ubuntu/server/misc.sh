@@ -25,7 +25,6 @@ function install_opencv_related_packages() {
     sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         libgl1-mesa-dev \
         ncat
-        
 }
 
 function main() {

@@ -12,7 +12,7 @@ function main() {
     # `locale -a` often outputs in lowercase, so we convert to lowercase for comparison
     TARGET_LOWER=$(echo "$TARGET" | tr '[:upper:]' '[:lower:]')
 
-    if ! locale -a 2>/dev/null | tr '[:upper:]' '[:lower:]' | grep -qx "$TARGET_LOWER"; then
+    if ! locale -a 2> /dev/null | tr '[:upper:]' '[:lower:]' | grep -qx "$TARGET_LOWER"; then
         echo "Generating $TARGET ..."
 
         sudo apt-get update &&

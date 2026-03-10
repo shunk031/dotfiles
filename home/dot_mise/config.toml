@@ -29,7 +29,7 @@ shfmt = "latest"
 "github:x-motemen/ghq" = "latest"
 "github:d-kuro/gwq" = "latest"
 "github:cli/cli" = "latest"
-"github:shuntaka9576/blocc" = "latest"
+"github:shuntaka9576/blocc" = { version = "latest", os = ["linux"] }
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

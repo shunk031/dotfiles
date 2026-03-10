@@ -4,11 +4,11 @@ readonly HOSEI_VPN_CREDENTIAL_JSON="${HOSEI_VPN_CREDENTIAL_JSON:-${HOME%/}/.conf
 readonly HOSEI_VPN_HOST="vpn.hosei.ac.jp"
 
 function get-username() {
-    jq <"${HOSEI_VPN_CREDENTIAL_JSON}" -r ".username"
+    jq < "${HOSEI_VPN_CREDENTIAL_JSON}" -r ".username"
 }
 
 function get-password() {
-    jq <"${HOSEI_VPN_CREDENTIAL_JSON}" -r ".password"
+    jq < "${HOSEI_VPN_CREDENTIAL_JSON}" -r ".password"
 }
 
 function connect-hosei-vpn() {

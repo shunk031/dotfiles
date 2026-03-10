@@ -39,3 +39,7 @@ reset:
 .PHONY: reset-config
 reset-config:
 	chezmoi init --data=false
+
+.PHONY: format
+format:
+	shfmt --indent 4 --space-redirects --diff .

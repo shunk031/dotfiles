@@ -9,3 +9,6 @@ alias chezmoi-private="chezmoi --source ~/.local/share/chezmoi-private --config 
 
 # Alias for claude-mem
 alias claude-mem='$HOME/.bun/bin/bun "$HOME/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs"'
+
+# Alias to checkout the default branch in git
+alias gm='git checkout $(git symbolic-ref refs/remotes/origin/HEAD | sed "s@^refs/remotes/origin/@@")'

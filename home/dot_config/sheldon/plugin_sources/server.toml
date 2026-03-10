@@ -48,3 +48,6 @@ apply = ['source']
 local = "~/.local/bin/server"
 use = ['ssh_agent.sh']
 apply = ['source']
+
+[plugins.chezmoi-notify]
+local = "~/.config/zsh/plugins/chezmoi-notify"

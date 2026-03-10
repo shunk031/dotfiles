@@ -14,7 +14,9 @@
 [![rossmacarthur/sheldon](https://img.shields.io/github/v/tag/rossmacarthur/sheldon?color=282d3f&display_name=release&label=🚀%20sheldon&sort=semver)](https://github.com/rossmacarthur/sheldon)
 [![starship/starship](https://img.shields.io/github/v/tag/starship/starship?color=DD0B78&display_name=release&label=starship&logo=starship&logoColor=DD0B78&sort=semver)](https://github.com/starship/starship)
 [![jdx/mise](https://img.shields.io/github/v/tag/jdx/mise?color=00acc1&display_name=release&label=mise&logo=gnometerminal&logoColor=00acc1&sort=semver)](https://github.com/jdx/mise)
+
 [![anthropics/claude-code](https://img.shields.io/github/v/tag/anthropics/claude-code?color=D97757&display_name=release&label=claude-code&logo=claude&logoColor=D97757&sort=semver)](https://github.com/anthropics/claude-code)
+[![openai/codex](https://img.shields.io/github/v/tag/openai/codex?color=0081A5&display_name=release&label=codex&logo=openaigym&logoColor=0081A5&sort=semver)](https://github.com/openai/codex)
 
 </div>
 
@@ -38,6 +40,8 @@ To set up the dotfiles run the appropriate snippet in the terminal.
 bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
 ```
 
+![Screenshot of setup on MacOS Client machine](.github/screenshot-macos-client.png)
+
 ### 🖥️ `Ubuntu` [![Ubuntu](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml)
 
 - Configuration snippet of the Ubuntu environment for both client and server machine:
@@ -45,6 +49,8 @@ bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
 ```console
 bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"
 ```
+
+![Screenshot of setup on Ubuntu Server machine](.github/screenshot-ubuntu-server.png)
 
 ### Minimal setup
 
@@ -117,7 +123,7 @@ The scripts for the unit test can be found under [`./tests`](https://github.com/
 
 The code coverage of the [`./install`](https://github.com/shunk031/dotfiles/tree/master/install) scripts are continuously monitored at [app.codecov.io/gh/shunk031/dotfiles](https://app.codecov.io/gh/shunk031/dotfiles). The following Icicle graph represents the code coverage of the scripts:
 
-![](https://codecov.io/gh/shunk031/dotfiles/branch/master/graphs/icicle.svg?token=4VUJWKGAR7)
+[![](https://codecov.io/gh/shunk031/dotfiles/branch/master/graphs/icicle.svg?token=4VUJWKGAR7)](https://app.codecov.io/gh/shunk031/dotfiles)
 
 ## 📊 Measure the startup speed of the dotfiles
 

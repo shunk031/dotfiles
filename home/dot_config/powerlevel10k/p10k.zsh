@@ -47,7 +47,9 @@
   typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
     # =========================[ Line #1 ]=========================
     status                  # exit code of the last command
+    chezmoi_update          # notification of chezmoi update
     vcs
+
     # command_execution_time  # duration of the last command
     # background_jobs         # presence of background jobs
     # direnv                  # direnv status (https://direnv.net/)
@@ -1641,6 +1643,56 @@
     # instant_prompt_example. This will give us the same `example` prompt segment in the instant
     # and regular prompts.
     prompt_example
+  }
+
+  function prompt_chezmoi_update() {
+    local check_interval=3600 # check every hour
+    local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/p10k-chezmoi"
+    local status_file="$cache_dir/status"
+    local last_check_file="$cache_dir/last_check"
+
+    [[ -d "$cache_dir" ]] || mkdir -p "$cache_dir"
+
+    # --- Icon/emoji definitions ---
+    local icon=$'\uf015'      # Home ()
+    local arrow=$'\u21e3'     # Down Arrow (⇣)
+    local sync_alt=$'\uf2f1'  # Sync ()
+
+    # --- 1. Background update check ---
+    local current_time=$(date +%s)
+    local last_check=0
+    [[ -f "$last_check_file" ]] && last_check=$(cat "$last_check_file")
+
+    if (( current_time - last_check > check_interval )); then
+      echo "$current_time" >! "$last_check_file"
+      (
+        if command -v chezmoi >/dev/null 2>&1; then
+          chezmoi git -- fetch -q
+
+          # Get the count of new changes on the remote master branch.
+          local count=$(chezmoi git -- rev-list --count HEAD..origin/master 2>/dev/null)
+          
+          if [[ "$count" -gt 0 ]]; then
+            echo "$count" >! "$status_file"
+          else
+            rm -f "$status_file"
+          fi
+        fi
+      ) &!
+    fi
+
+    # --- 2. Display processing ---
+    if [[ -f "$status_file" ]]; then
+      local count=$(cat "$status_file")
+      
+      # Color: Red (196)
+      # Display: [Home] dotfiles [Sync] ⇣[Count]
+      p10k segment -f 196 -i "${arrow}${count}" -t "${icon} dotfiles ${sync_alt}"
+    fi
+  }
+
+  function instant_prompt_chezmoi_update() {
+    prompt_chezmoi_update
   }
 
   # User-defined prompt segments can be customized the same way as built-in segments.

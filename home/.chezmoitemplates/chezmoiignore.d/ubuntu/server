@@ -5,7 +5,6 @@
 
 .config/anyconnect
 .config/powerlevel10k
-.config/zsh
 .config/sheldon/plugin_sources/client.toml
 
 .tmux.conf.d/os/ubuntu_client.conf

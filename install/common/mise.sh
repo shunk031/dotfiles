@@ -15,11 +15,14 @@ function install_mise() {
 
     export MISE_CURRENT_VERSION="${version}"
     curl "${url}" | sh
+    unset MISE_CURRENT_VERSION
 
     eval "$(~/.local/bin/mise activate bash)"
 }
 
 function run_mise_install() {
+    # `MISE_CURRENT_VERSION` is interpreted by mise as a tool env override for `current`.
+    unset MISE_CURRENT_VERSION
     mise install
 }
 

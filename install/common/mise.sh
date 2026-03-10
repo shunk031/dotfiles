@@ -10,7 +10,7 @@ export MISE_INSTALL_PATH="${HOME}/.local/bin/mise"
 
 function install_mise() {
     # https://mise.run
-    local version="v2025.9.25"
+    local version="v2026.3.7"
     local url="https://raw.githubusercontent.com/jdx/mise/refs/tags/${version}/packaging/standalone/install.envsubst"
 
     export MISE_CURRENT_VERSION="${version}"

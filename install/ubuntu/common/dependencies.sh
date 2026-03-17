@@ -9,6 +9,7 @@ fi
 readonly PACKAGES=(
     busybox
     curl
+    git
     gpg
     htop
     unzip

@@ -27,7 +27,7 @@ function run_mise_install() {
 }
 
 function uninstall_mise() {
-    rm "${MISE_INSTALL_PATH}"
+    rm -rf "${MISE_INSTALL_PATH}"
 }
 
 function main() {

@@ -8,7 +8,7 @@ fi
 
 function install_openssh_server() {
     # install openssh-server and vim
-    sudo apt-get update && sudo apt-get install --no-install-recommends -y \
+    sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get install --no-install-recommends -y \
         vim \
         openssh-server
 }

@@ -15,10 +15,8 @@ function main() {
     if ! locale -a 2> /dev/null | tr '[:upper:]' '[:lower:]' | grep -qx "$TARGET_LOWER"; then
         echo "Generating $TARGET ..."
 
-        sudo apt-get update &&
-            sudo apt-get install -y locales &&
-            sudo locale-gen "$TARGET" &&
-            sudo update-locale LANG="$TARGET"
+        sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get install -y locales
+        sudo locale-gen "$TARGET" && sudo update-locale LANG="$TARGET"
     else
         echo "$TARGET already exists."
     fi

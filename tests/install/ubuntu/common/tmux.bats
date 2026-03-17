@@ -11,7 +11,7 @@ function teardown() {
 }
 
 @test "[ubuntu-common] PACKAGES for tmux" {
-    [ ${#PACKAGES[@]} -eq 3 ]
+    [ ${#PACKAGES[@]} -eq 4 ]
 }
 
 @test "[ubuntu-common] tmux" {

@@ -15,14 +15,14 @@ function is_available_gpu() {
 }
 
 function install_gpu_related_packages() {
-    sudo apt-get update && sudo apt-get install --no-install-recommends -y \
+    sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get install --no-install-recommends -y \
         nvtop
 }
 
 function install_opencv_related_packages() {
     # To avoid the following error when running OpenCV-based applications:
     # ImportError: libGL.so.1: cannot open shared object file: No such file or directory
-    sudo apt-get update && sudo apt-get install --no-install-recommends -y \
+    sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get update && sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get install --no-install-recommends -y \
         libgl1-mesa-dev \
         ncat
 }

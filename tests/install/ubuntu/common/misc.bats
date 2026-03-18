@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./install/ubuntu/common/misc.sh"
+readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
 
 function setup() {
     source "${SCRIPT_PATH}"
@@ -13,7 +13,7 @@ function teardown() {
     export PATH
 }
 
-@test "[ubuntu-common] PACKAGES for misc" {
+@test "[ubuntu-common] PACKAGES for dependencies" {
     num_packages="${#PACKAGES[@]}"
     [ $num_packages -eq 8 ]
 
@@ -32,7 +32,7 @@ function teardown() {
     done
 }
 
-@test "[ubuntu-common] misc" {
+@test "[ubuntu-common] dependencies" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -x "$(command -v busybox)" ]

@@ -1,0 +1,4 @@
+interface:
+  display_name: "GH-First Workflow"
+  short_description: "Use gh-first issue/PR research and Conventional Commits"
+  default_prompt: "Use this when investigating GitHub issues/PRs and when writing commit messages."

@@ -9,8 +9,10 @@ fi
 readonly PACKAGES=(
     busybox
     curl
+    git
     gpg
     htop
+    sudo
     unzip
     vim
     wget

@@ -24,21 +24,7 @@ function install_mise() {
 function run_mise_install() {
     # `MISE_CURRENT_VERSION` is interpreted by mise as a tool env override for `current`.
     unset MISE_CURRENT_VERSION
-
-    local npm_min_release_age_days
-    npm_min_release_age_days="$(awk -F= '
-        $1 ~ /^[[:space:]]*min-release-age[[:space:]]*$/ {
-            gsub(/[[:space:]]/, "", $2)
-            print $2
-            exit
-        }
-    ' "${HOME}/.npmrc" 2> /dev/null || true)"
-
-    if [[ -z "${npm_min_release_age_days}" ]] || ! [[ "${npm_min_release_age_days}" =~ ^[0-9]+$ ]]; then
-        npm_min_release_age_days="${DEFAULT_NPM_MIN_RELEASE_AGE_DAYS}"
-    fi
-
-    mise install --before "${npm_min_release_age_days}d"
+    mise install --before "${DEFAULT_NPM_MIN_RELEASE_AGE_DAYS}d"
 }
 
 function uninstall_mise() {

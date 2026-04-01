@@ -7,6 +7,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 export MISE_INSTALL_PATH="${HOME}/.local/bin/mise"
+readonly DEFAULT_NPM_MIN_RELEASE_AGE_DAYS=7
 
 function install_mise() {
     # https://mise.run
@@ -23,7 +24,7 @@ function install_mise() {
 function run_mise_install() {
     # `MISE_CURRENT_VERSION` is interpreted by mise as a tool env override for `current`.
     unset MISE_CURRENT_VERSION
-    mise install
+    mise install --before "${DEFAULT_NPM_MIN_RELEASE_AGE_DAYS}d"
 }
 
 function uninstall_mise() {

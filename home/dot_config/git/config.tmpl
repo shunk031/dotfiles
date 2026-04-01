@@ -20,13 +20,5 @@
 	quotepath = false
 [rebase]
 	autoStash = true
-{{ if eq .chezmoi.os "linux" -}}
 [credential]
-	credentialStore = cache
-{{ end -}}
-[credential "https://github.com"]
-    helper =
-    helper = !gh auth git-credential
-[credential "https://gist.github.com"]
-    helper =
     helper = !gh auth git-credential

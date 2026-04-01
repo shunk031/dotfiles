@@ -1,3 +1,7 @@
 #!/usr/bin/env zsh
 
-source "${HOME}/.zshenv_private"
+readonly ZSHENV_PRIVATE="${HOME}/.zshenv_private"
+
+if [ -f "${ZSHENV_PRIVATE}" ]; then
+    source "${ZSHENV_PRIVATE}"
+fi

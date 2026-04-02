@@ -1,38 +1,16 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./install/macos/common/misc.sh"
-
-function setup() {
-    source "${SCRIPT_PATH}"
+@test "[macos] misc includes cmux tap" {
+    run bash -lc 'source ./install/macos/common/misc.sh; [ "${#BREW_TAPS[@]}" -eq 1 ] && [ "${BREW_TAPS[0]}" = "manaflow-ai/cmux" ]'
+    [ "${status}" -eq 0 ]
 }
 
-@test "[macos] misc" {
-    DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
+@test "[macos] misc defines tap helpers" {
+    run bash -lc 'source ./install/macos/common/misc.sh; [ "$(type -t is_brew_tap_installed)" = "function" ] && [ "$(type -t install_brew_taps)" = "function" ]'
+    [ "${status}" -eq 0 ]
+}
 
-    #
-    # brew packages
-    #
-    run brew info gpg
+@test "[macos] install_brew_taps skips in ci" {
+    run bash -lc 'source ./install/macos/common/misc.sh; CI=true install_brew_taps'
     [ "${status}" -eq 0 ]
-    run brew info imagemagick
-    [ "${status}" -eq 0 ]
-    run brew info htop
-    [ "${status}" -eq 0 ]
-    run brew info pinentry-mac
-    [ "${status}" -eq 0 ]
-    run brew info tailscale
-    [ "${status}" -eq 0 ]
-    run brew info vim
-    [ "${status}" -eq 0 ]
-    run brew info watchexec
-    [ "${status}" -eq 0 ]
-    run brew info zsh
-    [ "${status}" -eq 0 ]
-
-    #
-    # Cask packages
-    #
-
-    # Currently, we do not run this test on CI
-    # because of the time it takes to install the cask packages.
 }

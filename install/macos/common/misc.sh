@@ -21,8 +21,13 @@ readonly BREW_PACKAGES=(
     watchexec
 )
 
+readonly BREW_TAPS=(
+    manaflow-ai/cmux
+)
+
 readonly CASK_PACKAGES=(
     adobe-acrobat-reader
+    cmux
     cyberduck
     google-chrome
     google-drive
@@ -51,6 +56,33 @@ function is_brew_package_installed() {
     local package="$1"
 
     brew list "${package}" &> /dev/null
+}
+
+function is_brew_tap_installed() {
+    local tap="$1"
+
+    brew tap | grep --fixed-strings --line-regexp --quiet "${tap}"
+}
+
+function install_brew_taps() {
+    if "${CI:-false}"; then
+        return 0
+    fi
+
+    local missing_taps=()
+    local tap
+
+    for tap in "${BREW_TAPS[@]}"; do
+        if ! is_brew_tap_installed "${tap}"; then
+            missing_taps+=("${tap}")
+        fi
+    done
+
+    if [[ ${#missing_taps[@]} -gt 0 ]]; then
+        for tap in "${missing_taps[@]}"; do
+            brew tap "${tap}"
+        done
+    fi
 }
 
 function install_brew_packages() {
@@ -139,6 +171,7 @@ function setup_google_chrome() {
 }
 
 function main() {
+    install_brew_taps
     install_brew_packages
     install_brew_cask_packages
     install_additional_brew_packages

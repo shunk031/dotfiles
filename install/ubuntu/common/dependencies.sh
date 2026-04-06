@@ -20,11 +20,12 @@ readonly PACKAGES=(
 )
 
 function run_apt_get() {
-    if command -v sudo >/dev/null 2>&1; then
-        sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get "$@"
-    else
-        apt-get "$@"
+    if ! command -v sudo >/dev/null 2>&1; then
+        apt-get update
+        apt-get install -y sudo
     fi
+
+    sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get "$@"
 }
 
 function install_apt_packages() {

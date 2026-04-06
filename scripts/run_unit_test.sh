@@ -2,30 +2,40 @@
 
 set -Eeuo pipefail
 
-readonly KCOV_BASH_OPTIONS=(
-    "--bash-parser=/bin/bash"
-    "--bash-method=DEBUG"
-    "--bash-parse-files-in-dir=${PWD}"
-    "--include-path=${PWD}"
-)
+function kcov_options() {
+    local -a options=()
+
+    if [ "${OS}" == "macos-14" ]; then
+        options+=("--bash-parser=/bin/bash")
+        options+=("--bash-parse-files-in-dir=${PWD}")
+    fi
+
+    printf '%s\n' "${options[@]}"
+}
 
 function run_common_test() {
+    local -a options=()
+    mapfile -t options < <(kcov_options)
+
     kcov --clean \
-        "${KCOV_BASH_OPTIONS[@]}" \
+        "${options[@]}" \
         "./coverage_common" \
         bats -r "tests/install/common/"
 }
 
 function run_os_specific_test() {
+    local -a options=()
+    mapfile -t options < <(kcov_options)
+
     if [ "${OS}" == "macos-14" ]; then
         kcov --clean \
-            "${KCOV_BASH_OPTIONS[@]}" \
+            "${options[@]}" \
             "./coverage_macos_common" \
             bats -r "tests/install/macos/common/"
 
     elif [ "${OS}" == "ubuntu-latest" ]; then
         kcov --clean \
-            "${KCOV_BASH_OPTIONS[@]}" \
+            "${options[@]}" \
             "./coverage_ubuntu_common" \
             bats -r "tests/install/ubuntu/common/"
     else

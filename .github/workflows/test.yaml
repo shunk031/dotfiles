@@ -105,38 +105,6 @@ jobs:
             exit 1
           fi
 
-      - name: Debug coverage artifacts
-        if: ${{ github.actor != 'dependabot[bot]' }}
-        run: |
-          # Keep explicit diagnostics so we can inspect file presence/path drift
-          # directly from CI logs when Codecov sessions fail to merge.
-          echo "flags=${CODECOV_FLAGS}"
-          echo "codecov_name=${CODECOV_NAME}"
-          ls -la ./coverage || true
-          find ./coverage -maxdepth 3 -type f | sort || true
-
-      - name: Verify cobertura report exists
-        if: ${{ github.actor != 'dependabot[bot]' }}
-        run: |
-          # Fail fast before upload if coverage artifact path changes.
-          report_path="./coverage/coverage.xml"
-          if [ ! -f "${report_path}" ]; then
-            echo "Coverage report not found: ${report_path}" >&2
-            exit 1
-          fi
-          wc -c "${report_path}"
-
-      - name: Upload coverage report artifact
-        if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: actions/upload-artifact@v4
-        with:
-          # Always keep the raw Cobertura report for post-mortem comparison
-          # between GitHub Actions and Codecov ingestion results.
-          name: coverage-${{ env.CODECOV_FLAGS }}
-          path: ./coverage/coverage.xml
-          if-no-files-found: error
-          retention-days: 7
-
       - name: Upload coverage to Codecov
         if: ${{ github.actor != 'dependabot[bot]' }}
         uses: codecov/codecov-action@v6

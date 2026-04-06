@@ -8,8 +8,8 @@ on:
 jobs:
   build:
     # Snippet install also depends on private dotfiles repo credentials.
-    # Skip when secrets are unavailable (e.g. restricted bot contexts).
-    if: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY != '' && secrets.EMAIL_ADDRESS != '' }}
+    # Skip known secret-less contexts to avoid SSH key setup failures.
+    if: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-14]

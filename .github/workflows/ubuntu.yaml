@@ -28,9 +28,9 @@ permissions:
 
 jobs:
   build:
-    # Dependabot PRs and forked PRs may not receive repository secrets.
+    # Dependabot PRs and forked PRs do not receive required repository secrets.
     # Skip this job early instead of failing at the SSH key setup step.
-    if: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY != '' && secrets.EMAIL_ADDRESS != '' }}
+    if: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     strategy:
       matrix:
         system: [server, client]

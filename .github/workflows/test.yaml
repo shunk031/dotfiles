@@ -61,13 +61,15 @@ jobs:
           ./scripts/run_unit_test.sh
 
       - name: Setup for codecov
+        if: ${{ github.actor != 'dependabot[bot]' }}
         run: |
+          echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV
+          echo "codecov_name=codecov-dotfiles-${OS}-${SYSTEM}" >> $GITHUB_ENV
+
           if [ "${OS}" == "macos-14" ]; then
-            echo "flags=${OS}" >> $GITHUB_ENV
             brew install gpg jq curl
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV
             sudo apt-get install -y gpg jq curl
 
           else
@@ -75,17 +77,46 @@ jobs:
             exit 1
           fi
 
+      - name: Debug coverage artifacts
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        run: |
+          echo "flags=${flags}"
+          echo "codecov_name=${codecov_name}"
+          ls -la ./coverage || true
+          find ./coverage -maxdepth 3 -type f | sort || true
+
+      - name: Verify cobertura report exists
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        run: |
+          report_path="./coverage/kcov-merged/cobertura.xml"
+          if [ ! -f "${report_path}" ]; then
+            echo "Coverage report not found: ${report_path}" >&2
+            exit 1
+          fi
+          wc -c "${report_path}"
+
+      - name: Upload coverage report artifact
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ env.flags }}
+          path: ./coverage/kcov-merged/cobertura.xml
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload coverage to Codecov
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: codecov/codecov-action@v6
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           # directory: ./coverage/kcov-merged
           files: ./coverage/kcov-merged/cobertura.xml
+          disable_search: true
           env_vars: OS,SYSTEM
           fail_ci_if_error: true
           flags: ${{ env.flags }}
-          name: codecov-dotfiles
+          name: ${{ env.codecov_name }}
           verbose: true
         # run: |
         #   bash <(curl -s https://codecov.io/bash) \

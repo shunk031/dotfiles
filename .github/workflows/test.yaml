@@ -42,7 +42,7 @@ jobs:
       - name: Install tools
         run: |
           if [ "${OS}" == "macos-14" ]; then
-            brew install bats-core parallel
+            brew install bash bats-core parallel
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
             sudo apt-get update && sudo apt-get install -y bats parallel ruby
@@ -63,8 +63,13 @@ jobs:
 
       - name: Run unit test
         run: |
+          bashcov_args=(--skip-uncovered --root .)
+          if [ "${OS}" == "macos-14" ]; then
+            bashcov_args+=(--bash-path /opt/homebrew/bin/bash)
+          fi
+
           BASHCOV_COMMAND_NAME="unit-test-${OS}-${SYSTEM}" \
-            bashcov --skip-uncovered --root . -- ./scripts/run_unit_test.sh
+            bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
       - name: Setup for codecov
         if: ${{ github.actor != 'dependabot[bot]' }}

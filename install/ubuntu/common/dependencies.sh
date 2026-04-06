@@ -12,18 +12,36 @@ readonly PACKAGES=(
     git
     gpg
     htop
+    sudo
     unzip
     vim
     wget
     zsh
 )
 
+function run_apt_get() {
+    if command -v sudo >/dev/null 2>&1; then
+        sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get "$@"
+    else
+        apt-get "$@"
+    fi
+}
+
 function install_apt_packages() {
-    sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get install -y "${PACKAGES[@]}"
+    run_apt_get install -y "${PACKAGES[@]}"
 }
 
 function uninstall_apt_packages() {
-    sudo apt-get remove -y "${PACKAGES[@]}"
+    local removable_packages=()
+    local package
+
+    for package in "${PACKAGES[@]}"; do
+        if [ "${package}" != "sudo" ]; then
+            removable_packages+=("${package}")
+        fi
+    done
+
+    run_apt_get remove -y "${removable_packages[@]}"
 }
 
 function main() {

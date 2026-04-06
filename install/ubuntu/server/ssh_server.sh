@@ -13,6 +13,23 @@ function install_openssh_server() {
         openssh-server
 }
 
+function configure_accept_env() {
+    local current add merged
+
+    # Get existing AcceptEnv values (empty if not set)
+    current=$(grep '^AcceptEnv' /etc/ssh/sshd_config | sed 's/^AcceptEnv //')
+
+    # Variables to append
+    add="HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy"
+
+    # Merge and remove duplicates
+    merged=$(echo "$current $add" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+
+    # Remove existing entries and keep a single AcceptEnv line
+    sudo sed -i '/^AcceptEnv/d' /etc/ssh/sshd_config
+    echo "AcceptEnv $merged" | sudo tee -a /etc/ssh/sshd_config
+}
+
 function setup_sshd() {
     sudo mkdir -p /var/run/sshd
     mkdir -p ${HOME}/.ssh
@@ -22,6 +39,8 @@ function setup_sshd() {
         sudo sed -i 's/^#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/' /etc/ssh/sshd_config &&
         sudo sed -i 's/^#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config &&
         sudo sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+    configure_accept_env
 
     # check the /etc/ssh/sshd_config
     sudo /usr/sbin/sshd -t

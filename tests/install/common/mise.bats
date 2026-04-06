@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./install/common/mise.sh"
-readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_after_01-install-mise.sh.tmpl"
+readonly TMPL_SCRIPT_GLOB="./home/.chezmoiscripts/common/run_once_after_*-install-mise.sh.tmpl"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
@@ -21,7 +21,7 @@ function teardown() {
 }
 
 @test "[common] mise" {
-    [ -e "${TMPL_SCRIPT_PATH}" ]
+    compgen -G "${TMPL_SCRIPT_GLOB}" > /dev/null
 
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 

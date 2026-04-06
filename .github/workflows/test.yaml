@@ -18,6 +18,9 @@ on:
 
 jobs:
   test:
+    # Run the same test suite on each target OS/system pair.
+    # We intentionally keep macOS as `client` only because this repository
+    # does not define a macOS `server` test target.
     strategy:
       matrix:
         os: [ubuntu-latest, macos-14]
@@ -28,8 +31,14 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     env:
+      # Export matrix values to shell scripts so existing test helpers can use
+      # simple `OS`/`SYSTEM` checks without depending on GitHub expression syntax.
       OS: ${{ matrix.os }}
       SYSTEM: ${{ matrix.system }}
+      # Keep Codecov naming deterministic per job. This makes it easy to trace
+      # upload sessions in Codecov API/UI and avoids accidental session overlap.
+      CODECOV_FLAGS: ${{ matrix.os }}-${{ matrix.system }}
+      CODECOV_NAME: codecov-dotfiles-${{ matrix.os }}-${{ matrix.system }}
       DOTFILES_DEBUG: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -40,16 +49,23 @@ jobs:
       - name: Install tools
         run: |
           if [ "${OS}" == "macos-14" ]; then
-            brew install bats-core kcov parallel
+            # `bashcov` on macOS must use Homebrew Bash (>=5) to avoid the
+            # system Bash 3.2 parser limitations that produced empty coverage.
+            brew install bash bats-core parallel
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            sudo apt-get update && sudo apt-get install -y bats parallel
-            bash ./install/ubuntu/common/kcov.sh
+            # Ruby is required for bashcov/simplecov formatters.
+            sudo apt-get update && sudo apt-get install -y bats parallel ruby
 
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2
             exit 1
           fi
+
+          # Install coverage tooling as user gems and expose gem bin dir on PATH.
+          # `--no-document` keeps CI faster and deterministic.
+          gem install --user-install --no-document bashcov simplecov-cobertura
+          echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
 
       - name: Run `shfmt`
         uses: reviewdog/action-shfmt@v1
@@ -58,16 +74,30 @@ jobs:
 
       - name: Run unit test
         run: |
-          ./scripts/run_unit_test.sh
+          # Shared bashcov defaults:
+          # - `--skip-uncovered`: limit report to executed files.
+          # - `--root .`: normalize paths relative to repository root.
+          bashcov_args=(--skip-uncovered --root .)
+          if [ "${OS}" == "macos-14" ]; then
+            # Force Homebrew Bash for tracing on macOS; this solved the
+            # previously observed `Line Coverage: 100.0% (0 / 0)` issue.
+            bashcov_args+=(--bash-path /opt/homebrew/bin/bash)
+          fi
+
+          # Use a unique command name per matrix job so SimpleCov keeps each
+          # session separated before Codecov merges by flag/name.
+          BASHCOV_COMMAND_NAME="unit-test-${OS}-${SYSTEM}" \
+            bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
       - name: Setup for codecov
+        if: ${{ github.actor != 'dependabot[bot]' }}
         run: |
+          # codecov-action requires these tools for uploader validation/signing
+          # in this repository setup.
           if [ "${OS}" == "macos-14" ]; then
-            echo "flags=${OS}" >> $GITHUB_ENV
             brew install gpg jq curl
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV
             sudo apt-get install -y gpg jq curl
 
           else
@@ -76,24 +106,17 @@ jobs:
           fi
 
       - name: Upload coverage to Codecov
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: codecov/codecov-action@v6
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          # directory: ./coverage/kcov-merged
-          files: ./coverage/kcov-merged/cobertura.xml
+          files: ./coverage/coverage.xml
+          # Upload only the explicit report file generated in this workflow.
+          # This prevents unexpected auto-discovery from old/temporary files.
+          disable_search: true
           env_vars: OS,SYSTEM
           fail_ci_if_error: true
-          flags: ${{ env.flags }}
-          name: codecov-dotfiles
+          flags: ${{ env.CODECOV_FLAGS }}
+          name: ${{ env.CODECOV_NAME }}
           verbose: true
-        # run: |
-        #   bash <(curl -s https://codecov.io/bash) \
-        #     -n "codecov-dotfiles"             `# Custom defined name of the upload. Visible in Codecov UI.` \
-        #     -s ./coverage/kcov-merged         `# Directory to search for coverage reports.` \
-        #     -t ${{ secrets.CODECOV_TOKEN }}   `# Set the private repository token.` \
-        #     -e OS,SYSTEM                      `# Specify environment variables to be included with this build.` \
-        #     -C ${{ github.sha }}              `# Specify the commit sha.` \
-        #     -F ${{ env.flags }}               `# Flag the upload to group coverage metrics.` \
-        #     -Z                                `# Exit with 1 if not successful. Default will Exit with 0.` \
-        #     -v                                `# Verbose mode.`

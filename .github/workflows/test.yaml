@@ -42,16 +42,19 @@ jobs:
       - name: Install tools
         run: |
           if [ "${OS}" == "macos-14" ]; then
-            brew install bats-core kcov parallel
+            brew install bats-core parallel
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
-            sudo apt-get update && sudo apt-get install -y bats parallel
+            sudo apt-get update && sudo apt-get install -y bats parallel ruby
             bash ./install/ubuntu/common/kcov.sh
 
           else
             echo "${OS} and ${SYSTEM} are not supported" >&2
             exit 1
           fi
+
+          gem install --user-install --no-document bashcov simplecov-cobertura
+          echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
 
       - name: Run `shfmt`
         uses: reviewdog/action-shfmt@v1
@@ -60,12 +63,16 @@ jobs:
 
       - name: Run unit test
         run: |
-          ./scripts/run_unit_test.sh
+          BASHCOV_COMMAND_NAME="unit-test-${OS}-${SYSTEM}" \
+            bashcov --skip-uncovered --root . -- ./scripts/run_unit_test.sh
 
       - name: Setup for codecov
-        if: ${{ github.actor != 'dependabot[bot]' && matrix.os == 'ubuntu-latest' }}
+        if: ${{ github.actor != 'dependabot[bot]' }}
         run: |
-          if [ "${OS}" == "ubuntu-latest" ]; then
+          if [ "${OS}" == "macos-14" ]; then
+            brew install gpg jq curl
+
+          elif [ "${OS}" == "ubuntu-latest" ]; then
             sudo apt-get install -y gpg jq curl
 
           else
@@ -84,7 +91,7 @@ jobs:
       - name: Verify cobertura report exists
         if: ${{ github.actor != 'dependabot[bot]' }}
         run: |
-          report_path="./coverage/kcov-merged/cobertura.xml"
+          report_path="./coverage/coverage.xml"
           if [ ! -f "${report_path}" ]; then
             echo "Coverage report not found: ${report_path}" >&2
             exit 1
@@ -96,18 +103,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ env.CODECOV_FLAGS }}
-          path: ./coverage/kcov-merged/cobertura.xml
+          path: ./coverage/coverage.xml
           if-no-files-found: error
           retention-days: 7
 
       - name: Upload coverage to Codecov
-        if: ${{ github.actor != 'dependabot[bot]' && matrix.os == 'ubuntu-latest' }}
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: codecov/codecov-action@v6
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          # directory: ./coverage/kcov-merged
-          files: ./coverage/kcov-merged/cobertura.xml
+          files: ./coverage/coverage.xml
           disable_search: true
           env_vars: OS,SYSTEM
           fail_ci_if_error: true

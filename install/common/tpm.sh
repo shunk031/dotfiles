@@ -26,7 +26,7 @@ function install_tpm_plugins() {
     local dir="$1"
     local cmd="${dir%/}/scripts/install_plugins.sh"
 
-    "${cmd}"
+    "${cmd}" ""
 }
 
 function install_tpm() {

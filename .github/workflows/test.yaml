@@ -30,6 +30,8 @@ jobs:
     env:
       OS: ${{ matrix.os }}
       SYSTEM: ${{ matrix.system }}
+      CODECOV_FLAGS: ${{ matrix.os }}-${{ matrix.system }}
+      CODECOV_NAME: codecov-dotfiles-${{ matrix.os }}-${{ matrix.system }}
       DOTFILES_DEBUG: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -61,15 +63,9 @@ jobs:
           ./scripts/run_unit_test.sh
 
       - name: Setup for codecov
-        if: ${{ github.actor != 'dependabot[bot]' }}
+        if: ${{ github.actor != 'dependabot[bot]' && matrix.os == 'ubuntu-latest' }}
         run: |
-          echo "flags=${OS}-${SYSTEM}" >> $GITHUB_ENV
-          echo "codecov_name=codecov-dotfiles-${OS}-${SYSTEM}" >> $GITHUB_ENV
-
-          if [ "${OS}" == "macos-14" ]; then
-            brew install gpg jq curl
-
-          elif [ "${OS}" == "ubuntu-latest" ]; then
+          if [ "${OS}" == "ubuntu-latest" ]; then
             sudo apt-get install -y gpg jq curl
 
           else
@@ -80,8 +76,8 @@ jobs:
       - name: Debug coverage artifacts
         if: ${{ github.actor != 'dependabot[bot]' }}
         run: |
-          echo "flags=${flags}"
-          echo "codecov_name=${codecov_name}"
+          echo "flags=${CODECOV_FLAGS}"
+          echo "codecov_name=${CODECOV_NAME}"
           ls -la ./coverage || true
           find ./coverage -maxdepth 3 -type f | sort || true
 
@@ -99,13 +95,13 @@ jobs:
         if: ${{ github.actor != 'dependabot[bot]' }}
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ env.flags }}
+          name: coverage-${{ env.CODECOV_FLAGS }}
           path: ./coverage/kcov-merged/cobertura.xml
           if-no-files-found: error
           retention-days: 7
 
       - name: Upload coverage to Codecov
-        if: ${{ github.actor != 'dependabot[bot]' }}
+        if: ${{ github.actor != 'dependabot[bot]' && matrix.os == 'ubuntu-latest' }}
         uses: codecov/codecov-action@v6
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -115,8 +111,8 @@ jobs:
           disable_search: true
           env_vars: OS,SYSTEM
           fail_ci_if_error: true
-          flags: ${{ env.flags }}
-          name: ${{ env.codecov_name }}
+          flags: ${{ env.CODECOV_FLAGS }}
+          name: ${{ env.CODECOV_NAME }}
           verbose: true
         # run: |
         #   bash <(curl -s https://codecov.io/bash) \

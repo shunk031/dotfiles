@@ -11,12 +11,16 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 function install_chezmoi_private() {
-    chezmoi init \
+    if chezmoi init \
         --apply \
         --ssh \
         --source "${PRIVATE_DOTFILES_PATH}" \
         --config "${PRIVATE_DOTFILES_CONFIG_PATH}" \
-        "${PRIVATE_DOTFILES_REPO_URL}"
+        "${PRIVATE_DOTFILES_REPO_URL}"; then
+        return 0
+    fi
+
+    echo "Warning: Failed to initialize dotfiles-private. Skipping private dotfiles setup." >&2
 }
 
 function uninstall_chezmoi_private() {

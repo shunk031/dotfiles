@@ -1,0 +1,7 @@
+{{ if eq .chezmoi.os "linux" -}}
+{{   if eq .chezmoi.osRelease.idLike "debian" -}}
+{{     include "../install/ubuntu/common/dependencies.sh" }}
+{{   else -}}
+{{     fail (printf "Invalid linux distribution: %s" .chezmoi.osRelease.id) }}
+{{   end -}}
+{{- end }}

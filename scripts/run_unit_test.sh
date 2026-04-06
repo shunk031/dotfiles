@@ -1,40 +1,23 @@
 #!/usr/bin/env bash
 
-set -Eeuo pipefail
+# Keep this wrapper minimal: CI invokes this script through `bashcov`.
+# `-u` is intentionally omitted because strict nounset can propagate through
+# bashcov's SHELLOPTS/xtrace path and break third-party scripts under test.
+set -Eeo pipefail
 
 function run_common_test() {
-    kcov --clean \
-        "./coverage_common" \
-        bats -r "tests/install/common/"
+    # Common install tests executed on every matrix target.
+    bats -r "tests/install/common/"
 }
 
 function run_os_specific_test() {
     if [ "${OS}" == "macos-14" ]; then
-        kcov --clean \
-            "./coverage_macos_common" \
-            bats -r "tests/install/macos/common/"
+        # macOS-only install tests.
+        bats -r "tests/install/macos/common/"
 
     elif [ "${OS}" == "ubuntu-latest" ]; then
-        kcov --clean \
-            "./coverage_ubuntu_common" \
-            bats -r "tests/install/ubuntu/common/"
-    else
-        echo "${OS} and ${SYSTEM} are not supported" >&2
-        exit 1
-    fi
-}
-
-function merge_coverage_results() {
-    if [ "${OS}" == "macos-14" ]; then
-        kcov --merge "./coverage" \
-            "./coverage_common" \
-            "./coverage_macos_common"
-
-    elif [ "${OS}" == "ubuntu-latest" ]; then
-        kcov --merge ./coverage \
-            "./coverage_common" \
-            "./coverage_ubuntu_common" \
-            "./coverage_ubuntu_${SYSTEM}"
+        # Ubuntu-only install tests.
+        bats -r "tests/install/ubuntu/common/"
     else
         echo "${OS} and ${SYSTEM} are not supported" >&2
         exit 1
@@ -44,7 +27,6 @@ function merge_coverage_results() {
 function main() {
     run_common_test
     run_os_specific_test
-    merge_coverage_results
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

@@ -21,7 +21,8 @@ docker:
 .PHONY: init
 init:
 	chezmoi init --apply --verbose
-	chezmoi-private init --apply --verbose --ssh shunk031/dotfiles-private
+	@chezmoi-private init --apply --verbose --ssh shunk031/dotfiles-private || \
+		echo "Warning: failed to initialize dotfiles-private. Continuing setup."
 
 .PHONY: update
 update:
@@ -39,3 +40,7 @@ reset:
 .PHONY: reset-config
 reset-config:
 	chezmoi init --data=false
+
+.PHONY: format
+format:
+	shfmt --indent 4 --space-redirects --diff .

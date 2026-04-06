@@ -1,7 +1,7 @@
 {{ if eq .chezmoi.os "linux" -}}
 {{   if eq .chezmoi.osRelease.idLike "debian" -}}
-{{     if eq .system "server" -}}
-{{       include "../install/ubuntu/server/git_credential_manager.sh" }}
+{{     if eq .system "client" -}}
+{{       include "../install/ubuntu/client/misc.sh" }}
 {{     end -}}
 {{   end -}}
 {{ end -}}

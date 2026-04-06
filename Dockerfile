@@ -12,7 +12,6 @@ RUN apt-get update && \
     curl \
     git \
     bats \
-    kcov \
     sudo \
     tzdata \
     parallel \

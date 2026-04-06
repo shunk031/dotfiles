@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+#
+# misc.sh
+#
+# Installs optional utilities and GUI applications for daily use.
+# This script covers non-essential tools and user- or machine-specific extras.
+# For the minimal required dependencies, see install/macos/common/dependencies.sh.
+#
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
@@ -7,15 +15,10 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly BREW_PACKAGES=(
-    gpg
     imagemagick
     htop
-    pinentry-mac
-    tailscale
     terminal-notifier
-    vim
     watchexec
-    zsh
 )
 
 readonly CASK_PACKAGES=(
@@ -47,7 +50,7 @@ readonly ADDITIONAL_CASK_PACKAGES=(
 function is_brew_package_installed() {
     local package="$1"
 
-    brew list "${package}" &>/dev/null
+    brew list "${package}" &> /dev/null
 }
 
 function install_brew_packages() {

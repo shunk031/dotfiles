@@ -2,6 +2,6 @@
 {{   if eq .chezmoi.osRelease.idLike "debian" -}}
 {{     include "../install/ubuntu/common/ssh.sh" }}
 {{   else -}}
-       echo "Invalid linux distribution: {{ .chezmoi.osRelease.id }}"
+{{     fail (printf "Invalid linux distribution: %s" .chezmoi.osRelease.id) }}
 {{   end -}}
 {{ end -}}

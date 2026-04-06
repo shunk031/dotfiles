@@ -20,7 +20,7 @@ readonly PACKAGES=(
 )
 
 function run_apt_get() {
-    if ! command -v sudo >/dev/null 2>&1; then
+    if ! command -v sudo > /dev/null 2>&1; then
         apt-get update
         apt-get install -y sudo
     fi

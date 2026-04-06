@@ -15,7 +15,11 @@ function kcov_options() {
 
 function run_common_test() {
     local -a options=()
-    mapfile -t options < <(kcov_options)
+    while IFS= read -r option; do
+        if [ -n "${option}" ]; then
+            options+=("${option}")
+        fi
+    done < <(kcov_options)
 
     kcov --clean \
         "${options[@]}" \
@@ -25,7 +29,11 @@ function run_common_test() {
 
 function run_os_specific_test() {
     local -a options=()
-    mapfile -t options < <(kcov_options)
+    while IFS= read -r option; do
+        if [ -n "${option}" ]; then
+            options+=("${option}")
+        fi
+    done < <(kcov_options)
 
     if [ "${OS}" == "macos-14" ]; then
         kcov --clean \

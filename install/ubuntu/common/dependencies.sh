@@ -12,7 +12,6 @@ readonly PACKAGES=(
     git
     gpg
     htop
-    sudo
     unzip
     vim
     wget

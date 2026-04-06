@@ -18,6 +18,9 @@ on:
 
 jobs:
   test:
+    # Run the same test suite on each target OS/system pair.
+    # We intentionally keep macOS as `client` only because this repository
+    # does not define a macOS `server` test target.
     strategy:
       matrix:
         os: [ubuntu-latest, macos-14]
@@ -28,8 +31,12 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     env:
+      # Export matrix values to shell scripts so existing test helpers can use
+      # simple `OS`/`SYSTEM` checks without depending on GitHub expression syntax.
       OS: ${{ matrix.os }}
       SYSTEM: ${{ matrix.system }}
+      # Keep Codecov naming deterministic per job. This makes it easy to trace
+      # upload sessions in Codecov API/UI and avoids accidental session overlap.
       CODECOV_FLAGS: ${{ matrix.os }}-${{ matrix.system }}
       CODECOV_NAME: codecov-dotfiles-${{ matrix.os }}-${{ matrix.system }}
       DOTFILES_DEBUG: 1
@@ -42,10 +49,15 @@ jobs:
       - name: Install tools
         run: |
           if [ "${OS}" == "macos-14" ]; then
+            # `bashcov` on macOS must use Homebrew Bash (>=5) to avoid the
+            # system Bash 3.2 parser limitations that produced empty coverage.
             brew install bash bats-core parallel
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
+            # Ruby is required for bashcov/simplecov formatters.
             sudo apt-get update && sudo apt-get install -y bats parallel ruby
+            # Keep kcov installer test coverage behavior intact for Ubuntu tests
+            # (tests/install/ubuntu/common/kcov.bats still validates this path).
             bash ./install/ubuntu/common/kcov.sh
 
           else
@@ -53,6 +65,8 @@ jobs:
             exit 1
           fi
 
+          # Install coverage tooling as user gems and expose gem bin dir on PATH.
+          # `--no-document` keeps CI faster and deterministic.
           gem install --user-install --no-document bashcov simplecov-cobertura
           echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
 
@@ -63,17 +77,26 @@ jobs:
 
       - name: Run unit test
         run: |
+          # Shared bashcov defaults:
+          # - `--skip-uncovered`: limit report to executed files.
+          # - `--root .`: normalize paths relative to repository root.
           bashcov_args=(--skip-uncovered --root .)
           if [ "${OS}" == "macos-14" ]; then
+            # Force Homebrew Bash for tracing on macOS; this solved the
+            # previously observed `Line Coverage: 100.0% (0 / 0)` issue.
             bashcov_args+=(--bash-path /opt/homebrew/bin/bash)
           fi
 
+          # Use a unique command name per matrix job so SimpleCov keeps each
+          # session separated before Codecov merges by flag/name.
           BASHCOV_COMMAND_NAME="unit-test-${OS}-${SYSTEM}" \
             bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
       - name: Setup for codecov
         if: ${{ github.actor != 'dependabot[bot]' }}
         run: |
+          # codecov-action requires these tools for uploader validation/signing
+          # in this repository setup.
           if [ "${OS}" == "macos-14" ]; then
             brew install gpg jq curl
 
@@ -88,6 +111,8 @@ jobs:
       - name: Debug coverage artifacts
         if: ${{ github.actor != 'dependabot[bot]' }}
         run: |
+          # Keep explicit diagnostics so we can inspect file presence/path drift
+          # directly from CI logs when Codecov sessions fail to merge.
           echo "flags=${CODECOV_FLAGS}"
           echo "codecov_name=${CODECOV_NAME}"
           ls -la ./coverage || true
@@ -96,6 +121,7 @@ jobs:
       - name: Verify cobertura report exists
         if: ${{ github.actor != 'dependabot[bot]' }}
         run: |
+          # Fail fast before upload if coverage artifact path changes.
           report_path="./coverage/coverage.xml"
           if [ ! -f "${report_path}" ]; then
             echo "Coverage report not found: ${report_path}" >&2
@@ -107,6 +133,8 @@ jobs:
         if: ${{ github.actor != 'dependabot[bot]' }}
         uses: actions/upload-artifact@v4
         with:
+          # Always keep the raw Cobertura report for post-mortem comparison
+          # between GitHub Actions and Codecov ingestion results.
           name: coverage-${{ env.CODECOV_FLAGS }}
           path: ./coverage/coverage.xml
           if-no-files-found: error
@@ -119,6 +147,8 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           files: ./coverage/coverage.xml
+          # Upload only the explicit report file generated in this workflow.
+          # This prevents unexpected auto-discovery from old/temporary files.
           disable_search: true
           env_vars: OS,SYSTEM
           fail_ci_if_error: true

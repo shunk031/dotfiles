@@ -27,6 +27,10 @@ function install_tpm_plugins() {
     local cmd="${dir%/}/scripts/install_plugins.sh"
 
     (
+        # `bashcov` can affect shell option propagation while tracing scripts.
+        # TPM helper scripts reference positional parameters directly (`$1`)
+        # and fail under nounset; run installer in a subshell with `set +u`
+        # to keep parent strict mode while preserving TPM script compatibility.
         set +u
         "${cmd}"
     )

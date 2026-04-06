@@ -23,6 +23,9 @@ on:
 
 jobs:
   build:
+    # This workflow requires private repository access and benchmark token.
+    # Skip known secret-less contexts to avoid failing at SSH setup.
+    if: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: macos-14 # M1 Mac
     env:
       # DOTFILES_DEBUG: 1

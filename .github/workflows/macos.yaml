@@ -23,6 +23,9 @@ on:
 
 jobs:
   build:
+    # This workflow requires private repository access and benchmark push token.
+    # Guard execution so secret-less PR contexts are skipped rather than failed.
+    if: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY != '' && secrets.EMAIL_ADDRESS != '' && secrets.MY_DOTFILES_BENCHMARK != '' }}
     runs-on: macos-14 # M1 Mac
     env:
       # DOTFILES_DEBUG: 1
@@ -30,7 +33,7 @@ jobs:
 
     steps:
       - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
-        uses: webfactory/ssh-agent@v0.9.1
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
 
@@ -89,7 +92,7 @@ jobs:
           alert-comment-cc-users: "@shunk031"
           benchmark-data-dir-path: "."
 
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
         with:
           install: true
           cache: true

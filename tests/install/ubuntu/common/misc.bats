@@ -32,7 +32,7 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
     done
 }
 
-@test "[ubuntu-common] install_apt_packages includes iproute2 and iputils-ping in apt install args" {
+@test "[ubuntu-common] install_apt_packages includes all non-sudo packages in apt install args" {
     run bash -c '
         source "'"${SCRIPT_PATH}"'"
         command() {
@@ -52,5 +52,20 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
     '
 
     [ "${status}" -eq 0 ]
-    [ "${output}" = "--preserve-env=http_proxy,https_proxy,no_proxy apt-get install -y busybox curl git gpg htop iproute2 iputils-ping unzip vim wget zsh" ]
+    actual_output="${output}"
+
+    run bash -c '
+        source "'"${SCRIPT_PATH}"'"
+
+        install_targets=()
+        for package in "${PACKAGES[@]}"; do
+            if [ "${package}" != "sudo" ]; then
+                install_targets+=("${package}")
+            fi
+        done
+
+        printf "%s\n" "--preserve-env=http_proxy,https_proxy,no_proxy apt-get install -y ${install_targets[*]}"
+    '
+    [ "${status}" -eq 0 ]
+    [ "${actual_output}" = "${output}" ]
 }

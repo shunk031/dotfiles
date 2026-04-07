@@ -77,10 +77,20 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
 
     run cat "${args_path}"
     [ "${status}" -eq 0 ]
-    [[ "${output}" == remove\ -y* ]]
-    [[ " ${output} " != *" sudo "* ]]
-    [[ " ${output} " != *" git "* ]]
-    [[ " ${output} " == *" busybox "* ]]
-    [[ " ${output} " == *" iproute2 "* ]]
-    [[ " ${output} " == *" iputils-ping "* ]]
+    actual_output="${output}"
+
+    run bash -c '
+        source "'"${SCRIPT_PATH}"'"
+
+        removable_packages=()
+        for package in "${PACKAGES[@]}"; do
+            if [ "${package}" != "sudo" ] && [ "${package}" != "git" ]; then
+                removable_packages+=("${package}")
+            fi
+        done
+
+        printf "%s\n" "remove -y ${removable_packages[*]}"
+    '
+    [ "${status}" -eq 0 ]
+    [ "${actual_output}" = "${output}" ]
 }

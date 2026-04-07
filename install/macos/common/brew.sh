@@ -7,7 +7,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 function is_homebrew_exists() {
-    command -v brew &>/dev/null
+    command -v brew &> /dev/null
 }
 
 function install_homebrew() {

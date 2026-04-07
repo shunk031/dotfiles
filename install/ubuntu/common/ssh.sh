@@ -11,7 +11,7 @@ readonly PACKAGES=(
 )
 
 function install_openssh() {
-    sudo apt-get install -y "${PACKAGES[@]}"
+    sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get install -y "${PACKAGES[@]}"
 }
 
 function uninstall_openssh() {

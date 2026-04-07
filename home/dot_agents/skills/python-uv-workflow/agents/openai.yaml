@@ -1,0 +1,4 @@
+interface:
+  display_name: "Python UV Workflow"
+  short_description: "Apply uv-first Python workflow, tests, and pre-commit policy"
+  default_prompt: "Use this when editing Python projects with uv, pytest, and pre-commit rules."

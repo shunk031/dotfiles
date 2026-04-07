@@ -11,22 +11,28 @@ bun = "latest"
 chezmoi = "latest"
 dotenvx = "latest"
 eza = "latest"
+fd = "latest"
 gcloud = "latest"
 jq = "latest"
 hugo-extended = "0.136.5"
 uv = "latest"
 yazi = "latest"
+yq = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:@openai/codex" = "latest"
 "npm:bash-language-server" = "latest"
+"npm:pyright" = "latest"
+"npm:fast-cli" = "latest"
 
 "github:x-motemen/ghq" = "latest"
 "github:d-kuro/gwq" = "latest"
 "github:cli/cli" = "latest"
-"github:shuntaka9576/blocc" = "latest"
+"github:shuntaka9576/blocc" = { version = "latest", os = ["linux"] }
+
+"cargo:pueue" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

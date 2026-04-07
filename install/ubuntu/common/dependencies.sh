@@ -13,6 +13,7 @@ readonly PACKAGES=(
     gpg
     htop
     iproute2
+    iputils-ping
     sudo
     unzip
     vim

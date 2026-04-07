@@ -10,7 +10,7 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
     '
 
     [ "${status}" -eq 0 ]
-    [ "${lines[0]}" -eq 11 ]
+    [ "${lines[0]}" -eq 12 ]
 
     expected_packages=(
         busybox
@@ -19,6 +19,7 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
         gpg
         htop
         iproute2
+        iputils-ping
         sudo
         unzip
         vim
@@ -31,7 +32,7 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
     done
 }
 
-@test "[ubuntu-common] install_apt_packages includes iproute2 in apt install args" {
+@test "[ubuntu-common] install_apt_packages includes iproute2 and iputils-ping in apt install args" {
     run bash -c '
         source "'"${SCRIPT_PATH}"'"
         command() {
@@ -51,5 +52,5 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
     '
 
     [ "${status}" -eq 0 ]
-    [ "${output}" = "--preserve-env=http_proxy,https_proxy,no_proxy apt-get install -y busybox curl git gpg htop iproute2 unzip vim wget zsh" ]
+    [ "${output}" = "--preserve-env=http_proxy,https_proxy,no_proxy apt-get install -y busybox curl git gpg htop iproute2 iputils-ping unzip vim wget zsh" ]
 }

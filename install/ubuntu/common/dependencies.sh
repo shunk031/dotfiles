@@ -12,6 +12,7 @@ readonly PACKAGES=(
     git
     gpg
     htop
+    iproute2
     sudo
     unzip
     vim

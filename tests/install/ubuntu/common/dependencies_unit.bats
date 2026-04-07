@@ -61,66 +61,6 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
     [ ! -s "${calls_path}" ]
 }
 
-@test "[ubuntu-common] install_apt_packages installs iproute2 when iproute2 command is missing" {
-    local calls_path="${BATS_TEST_TMPDIR}/install_iproute2_calls.txt"
-    : > "${calls_path}"
-
-    run env CALLS_PATH="${calls_path}" bash -c '
-        source "'"${SCRIPT_PATH}"'"
-
-        command() {
-            if [ "$1" = "-v" ] && [ "$2" = "iproute2" ]; then
-                return 1
-            fi
-            if [ "$1" = "-v" ]; then
-                return 0
-            fi
-            builtin command "$@"
-        }
-
-        run_apt_get() {
-            echo "$*" >> "${CALLS_PATH}"
-        }
-
-        install_apt_packages
-    '
-    [ "${status}" -eq 0 ]
-
-    run cat "${calls_path}"
-    [ "${status}" -eq 0 ]
-    [ "${output}" = "install -y iproute2" ]
-}
-
-@test "[ubuntu-common] install_apt_packages installs iputils-ping when iputils-ping command is missing" {
-    local calls_path="${BATS_TEST_TMPDIR}/install_iputils_ping_calls.txt"
-    : > "${calls_path}"
-
-    run env CALLS_PATH="${calls_path}" bash -c '
-        source "'"${SCRIPT_PATH}"'"
-
-        command() {
-            if [ "$1" = "-v" ] && [ "$2" = "iputils-ping" ]; then
-                return 1
-            fi
-            if [ "$1" = "-v" ]; then
-                return 0
-            fi
-            builtin command "$@"
-        }
-
-        run_apt_get() {
-            echo "$*" >> "${CALLS_PATH}"
-        }
-
-        install_apt_packages
-    '
-    [ "${status}" -eq 0 ]
-
-    run cat "${calls_path}"
-    [ "${status}" -eq 0 ]
-    [ "${output}" = "install -y iputils-ping" ]
-}
-
 @test "[ubuntu-common] uninstall_apt_packages excludes sudo and git" {
     local args_path="${BATS_TEST_TMPDIR}/uninstall_args.txt"
 

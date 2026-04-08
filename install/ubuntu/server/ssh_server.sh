@@ -20,7 +20,7 @@ function configure_accept_env() {
     current=$(grep '^AcceptEnv' /etc/ssh/sshd_config | sed 's/^AcceptEnv //')
 
     # Variables to append
-    add="HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy"
+    add="HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy no_proxy"
 
     # Merge and remove duplicates
     merged=$(echo "$current $add" | tr ' ' '\n' | sort -u | tr '\n' ' ')

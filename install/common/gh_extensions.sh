@@ -18,6 +18,12 @@ function activate_mise() {
     fi
 }
 
+function ensure_gh_auth() {
+    if ! gh auth status &>/dev/null; then
+        gh auth login -h github.com -p https
+    fi
+}
+
 function install_gh_extensions() {
     for extension in "${GH_EXTENSIONS[@]}"; do
         gh extension install "${extension}"
@@ -26,6 +32,7 @@ function install_gh_extensions() {
 
 function main() {
     activate_mise
+    ensure_gh_auth
     install_gh_extensions
 }
 

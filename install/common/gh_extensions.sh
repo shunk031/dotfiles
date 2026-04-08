@@ -19,7 +19,7 @@ function activate_mise() {
 }
 
 function ensure_gh_auth() {
-    if ! gh auth status &>/dev/null; then
+    if ! gh auth status &> /dev/null; then
         gh auth login -h github.com -p https
     fi
 }

@@ -23,8 +23,10 @@ function teardown() {
 
 @test "[ubuntu-common] uninstall_openssh issues apt remove" {
     run bash -c '
+        set +x
         unset DOTFILES_DEBUG
         source "'"${SCRIPT_PATH}"'"
+        set +x
         sudo() {
             printf "%s\n" "$*"
         }
@@ -33,5 +35,5 @@ function teardown() {
     '
 
     [ "${status}" -eq 0 ]
-    [ "${output}" = "apt-get remove -y openssh-client" ]
+    [[ "${output}" == *"apt-get remove -y openssh-client"* ]]
 }

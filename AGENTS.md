@@ -1,16 +1,16 @@
 # AGENTS.md
 
-## 応答ルール
+## Response Rule
 
-- この `AGENTS.md` を読んだら「🤖 私は shunk031/dotfiles 向け AGENTS.md を読みました。」と言ってください。
+- After reading this `AGENTS.md`, say: `🤖 I read the AGENTS.md for shunk031/dotfiles.`
 
-## Git / PR 運用
+## Git / PR Workflow
 
-- branch / commit / pull request 作成を依頼され、現在の作業ツリーに関係ない staged / unstaged / untracked 変更がある場合は、既定ブランチ基点の別 `git worktree` を優先して作成してください。
-- 別 `git worktree` には今回の作業対象だけを反映し、関係ない変更を branch や pull request に混ぜないでください。
-- ユーザーが明示的に現在の branch / worktree での作業を求めた場合のみ、その指示を優先してください。
+- When you are asked to create a branch, commit, or pull request and the current worktree contains unrelated staged, unstaged, or untracked changes, prefer creating a separate `git worktree` from the default branch.
+- In that separate `git worktree`, apply only the changes relevant to the current task and do not mix unrelated changes into the branch or pull request.
+- Only prioritize the current branch or worktree when the user explicitly asks you to work there.
 
-## テスト方針
+## Test Policy
 
-- `bats` によるテストはローカルでは実行しないでください。
-- `bats` の結果確認が必要な場合は GitHub へ push して GitHub Actions の CI を起動し、その実行結果を確認してください。
+- Do not run `bats` tests locally.
+- When you need to validate `bats` results, push to GitHub, let GitHub Actions CI run, and check the results there.

@@ -8,9 +8,6 @@ fi
 
 readonly PACKAGES=(
     tmux
-    # git
-    reattach-to-user-namespace
-    cmake
 )
 
 function install_tmux() {

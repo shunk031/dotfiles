@@ -61,6 +61,35 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
     [ ! -s "${calls_path}" ]
 }
 
+@test "[ubuntu-common] install_apt_packages installs when commands are missing" {
+    local args_path="${BATS_TEST_TMPDIR}/install_args.txt"
+
+    run env ARGS_PATH="${args_path}" DOTFILES_DEBUG= bash -c '
+        source "'"${SCRIPT_PATH}"'"
+
+        command() {
+            if [ "$1" = "-v" ] && [ "$2" = "sudo" ]; then
+                return 0
+            fi
+            if [ "$1" = "-v" ]; then
+                return 1
+            fi
+            builtin command "$@"
+        }
+
+        run_apt_get() {
+            echo "$*" > "${ARGS_PATH}"
+        }
+
+        install_apt_packages
+    '
+    [ "${status}" -eq 0 ]
+
+    run cat "${args_path}"
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == install\ -y* ]]
+}
+
 @test "[ubuntu-common] uninstall_apt_packages excludes sudo and git" {
     local args_path="${BATS_TEST_TMPDIR}/uninstall_args.txt"
 

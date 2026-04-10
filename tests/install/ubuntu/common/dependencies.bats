@@ -10,10 +10,11 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
     '
 
     [ "${status}" -eq 0 ]
-    [ "${lines[0]}" -eq 12 ]
+    [ "${lines[0]}" -eq 13 ]
 
     expected_packages=(
         busybox
+        cmake
         curl
         git
         gpg

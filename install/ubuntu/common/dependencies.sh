@@ -8,6 +8,7 @@ fi
 
 readonly PACKAGES=(
     busybox
+    cmake
     curl
     git
     gpg

@@ -8,7 +8,6 @@ fi
 
 readonly PACKAGES=(
     tmux
-    cmake
 )
 
 function install_tmux() {

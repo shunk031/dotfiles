@@ -23,6 +23,7 @@ function teardown() {
 
 @test "[ubuntu-common] uninstall_openssh issues apt remove" {
     run bash -c '
+        unset DOTFILES_DEBUG
         source "'"${SCRIPT_PATH}"'"
         sudo() {
             printf "%s\n" "$*"

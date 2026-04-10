@@ -140,3 +140,23 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
 
     [ "${status}" -eq 0 ]
 }
+
+@test "[ubuntu-common] install_apt_packages returns early in current shell when all commands exist" {
+    source "${SCRIPT_PATH}"
+
+    command() {
+        if [ "$1" = "-v" ]; then
+            return 0
+        fi
+        builtin command "$@"
+    }
+
+    CALLS_PATH="${BATS_TEST_TMPDIR}/install_no_missing_calls.txt"
+    run_apt_get() {
+        echo "$*" > "${CALLS_PATH}"
+    }
+
+    install_apt_packages
+
+    [ ! -f "${CALLS_PATH}" ]
+}

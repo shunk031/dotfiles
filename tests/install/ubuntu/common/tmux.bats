@@ -11,13 +11,12 @@ function teardown() {
 }
 
 @test "[ubuntu-common] PACKAGES for tmux" {
-    [ ${#PACKAGES[@]} -eq 3 ]
+    [ ${#PACKAGES[@]} -eq 2 ]
 }
 
 @test "[ubuntu-common] tmux" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
     [ -x "$(command -v tmux)" ]
-    [ -x "$(command -v xsel)" ]
     [ -x "$(command -v cmake)" ]
 }

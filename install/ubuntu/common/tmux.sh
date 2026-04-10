@@ -8,7 +8,6 @@ fi
 
 readonly PACKAGES=(
     tmux
-    git
     cmake
 )
 

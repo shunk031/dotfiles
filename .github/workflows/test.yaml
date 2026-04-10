@@ -39,7 +39,6 @@ jobs:
       # upload sessions in Codecov API/UI and avoids accidental session overlap.
       CODECOV_FLAGS: ${{ matrix.os }}-${{ matrix.system }}
       CODECOV_NAME: codecov-dotfiles-${{ matrix.os }}-${{ matrix.system }}
-      DOTFILES_DEBUG: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:

@@ -15,7 +15,7 @@ function teardown() {
 
     run brew info tmux
     [ "${status}" -eq 0 ]
-    run brew info reattach-to-user-namespace
+    run brew info git
     [ "${status}" -eq 0 ]
     run brew info cmake
     [ "${status}" -eq 0 ]

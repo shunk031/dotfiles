@@ -15,6 +15,8 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly BREW_PACKAGES=(
+    cmake
+    git
     gpg
     pinentry-mac
     vim

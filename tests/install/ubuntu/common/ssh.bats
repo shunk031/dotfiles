@@ -20,3 +20,17 @@ function teardown() {
     run dpkg -s 'openssh-client'
     [ "${status}" -eq 0 ]
 }
+
+@test "[ubuntu-common] uninstall_openssh issues apt remove" {
+    run bash -c '
+        source "'"${SCRIPT_PATH}"'"
+        sudo() {
+            printf "%s\n" "$*"
+        }
+
+        uninstall_openssh
+    '
+
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "apt-get remove -y openssh-client" ]
+}

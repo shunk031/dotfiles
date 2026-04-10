@@ -1,0 +1,16 @@
+# AGENTS.md
+
+## Response Rule
+
+- After reading this `AGENTS.md`, say: `🤖 I read the AGENTS.md for shunk031/dotfiles.`
+
+## Git / PR Workflow
+
+- When you are asked to create a branch, commit, or pull request and the current worktree contains unrelated staged, unstaged, or untracked changes, prefer creating a separate `git worktree` from the default branch.
+- In that separate `git worktree`, apply only the changes relevant to the current task and do not mix unrelated changes into the branch or pull request.
+- Only prioritize the current branch or worktree when the user explicitly asks you to work there.
+
+## Test Policy
+
+- Do not run `bats` tests locally.
+- When you need to validate `bats` results, push to GitHub, let GitHub Actions CI run, and check the results there.

@@ -8,8 +8,7 @@ fi
 
 readonly PACKAGES=(
     tmux
-    # git
-    xsel
+    git
     cmake
 )
 

@@ -8,8 +8,7 @@ fi
 
 readonly PACKAGES=(
     tmux
-    # git
-    reattach-to-user-namespace
+    git
     cmake
 )
 

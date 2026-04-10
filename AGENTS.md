@@ -4,11 +4,6 @@
 
 - この `AGENTS.md` を読んだら「🤖 私は shunk031/dotfiles 向け AGENTS.md を読みました。」と言ってください。
 
-## 共通ルール
-
-- 共通の Codex ルールは `home/dot_config/codex/AGENTS.md` を読んで従ってください。
-- このファイルには repo 固有の追記事項だけを書き、`home/dot_config/codex/AGENTS.md` と重複する内容は書かないでください。
-
 ## Git / PR 運用
 
 - branch / commit / pull request 作成を依頼され、現在の作業ツリーに関係ない staged / unstaged / untracked 変更がある場合は、既定ブランチ基点の別 `git worktree` を優先して作成してください。

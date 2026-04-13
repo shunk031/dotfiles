@@ -1,17 +1,29 @@
 #!/usr/bin/env bash
 
+# @file install/macos/common/defaults.sh
+# @brief Apply the preferred macOS defaults for this dotfiles setup.
+# @description
+#   Configures UI, input, Dock, Finder, screenshot, and application defaults,
+#   then restarts affected applications where needed.
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+#
+# @description Configure small Control Center and UI preferences.
+#
 function defaults_ui() {
     # Display battery percentage
     # ref. https://github.com/todd-dsm/mac-ops/issues/39#issuecomment-962459353
     defaults write ~/Library/Preferences/ByHost/com.apple.controlcenter.plist BatteryShowPercentage -bool true
 }
 
+#
+# @description Configure keyboard repeat and modifier key preferences.
+#
 function defaults_keyboard() {
     # Set a blazingly fast keyboard repeat rate
     defaults write NSGlobalDomain KeyRepeat -int 2
@@ -24,6 +36,9 @@ function defaults_keyboard() {
         '{"UserKeyMapping": [{"HIDKeyboardModifierMappingSrc": 0x700000039, "HIDKeyboardModifierMappingDst": 0x7000000e0 }] }'
 }
 
+#
+# @description Configure trackpad speed, tap-to-click, and drag behavior.
+#
 function defaults_trackpad() {
 
     defaults write -g com.apple.trackpad.scaling 2
@@ -39,10 +54,16 @@ function defaults_trackpad() {
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true
 }
 
+#
+# @description Expose Bluetooth in the macOS Control Center.
+#
 function defaults_controlcenter() {
     defaults write com.apple.controlcenter "NSStatusItem Visible Bluetooth" -bool true
 }
 
+#
+# @description Customize Dock behavior and its pinned applications.
+#
 function defaults_dock() {
     # Automatically hide and show the Dock
     defaults write com.apple.dock autohide -bool true
@@ -94,6 +115,9 @@ function defaults_dock() {
         "$(dock_item "$(get_system_app_path)")"
 }
 
+#
+# @description Configure input sources and keyboard shortcuts for IME switching.
+#
 function defaults_input_sources() {
     # Enable `Automatically switch to a document's input source'`
     defaults write com.apple.HIToolbox AppleGlobalTextInputProperties -dict TextInputGlobalPropertyPerContextInput -bool true
@@ -138,6 +162,9 @@ function defaults_input_sources() {
         </dict>"
 }
 
+#
+# @description Configure Finder defaults and file visibility preferences.
+#
 function defaults_finder() {
 
     # Set Home directory as the default location for new Finder windows
@@ -167,6 +194,9 @@ function defaults_finder() {
     defaults write com.apple.finder FXRemoveOldTrashItems -bool true
 }
 
+#
+# @description Configure screenshot naming and storage behavior.
+#
 function defaults_screencapture() {
     # Save screenshots to ${HOME}/Pictures/
     defaults write com.apple.screencapture location -string "${HOME}/Pictures/"
@@ -176,11 +206,17 @@ function defaults_screencapture() {
     defaults write com.apple.screencapture show-thumbnail -bool false
 }
 
+#
+# @description Disable Siri and dictation defaults.
+#
 function defaults_assistant() {
     defaults write com.apple.assistant.support "Assistant Enabled" -bool false
     defaults write com.apple.HIToolbox AppleDictationAutoEnable -bool false
 }
 
+#
+# @description Apply iTerm2-specific defaults expected by this setup.
+#
 function defaults_iterm2() {
 
     #
@@ -197,6 +233,9 @@ function defaults_iterm2() {
     defaults write com.googlecode.iterm2 NoSyncTipsDisabled -bool true
 }
 
+#
+# @description Restart applications affected by the defaults changes.
+#
 function kill_affected_applications() {
     local apps=(
         "Activity Monitor"
@@ -218,6 +257,9 @@ function kill_affected_applications() {
     done
 }
 
+#
+# @description Re-open Rectangle after defaults have been applied.
+#
 function open_rectangle() {
     local app_path="/Applications/Rectangle.app/"
     if [ -e "${app_path}" ]; then
@@ -225,10 +267,16 @@ function open_rectangle() {
     fi
 }
 
+#
+# @description Re-open applications that should be restored after setup.
+#
 function open_killed_applications() {
     open_rectangle
 }
 
+#
+# @description Apply all macOS defaults managed by this script.
+#
 function main() {
 
     defaults_ui

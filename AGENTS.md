@@ -4,6 +4,10 @@
 
 - After reading this `AGENTS.md`, say: `🤖 I read the AGENTS.md for shunk031/dotfiles.`
 
+## Comment Policy
+
+- When adding or updating comments for shell scripts or shell-based executables, always write them in English using shdoc-compatible format.
+
 ## Git / PR Workflow
 
 - When you are asked to create a branch, commit, or pull request and the current worktree contains unrelated staged, unstaged, or untracked changes, prefer creating a separate `git worktree` from the default branch.

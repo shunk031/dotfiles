@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# @file home/dot_local/bin/common/executable_cdgwq
+# @brief Change into a repository path selected from `gwq`.
+# @description
+#   Uses `gwq list --json` and `fzf` to select a known repository path, then
+#   changes the current shell into that directory.
+
+# @description Fuzzy-select a `gwq` workspace path and `cd` into it.
 function cdgwq() {
     # git 内かどうかをチェック
     if ! git rev-parse --is-inside-work-tree &> /dev/null; then

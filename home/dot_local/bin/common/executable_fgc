@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# @file home/dot_local/bin/common/executable_fgc
+# @brief Fuzzy-pick and checkout a local Git branch.
+# @description
+#   Lists local branches, selects one with `fzf`, and checks it out.
+
+# @description Checkout a branch selected from the local branch list.
 function fgc() {
     git checkout "$(git for-each-ref refs/heads/ --format='%(refname:short)' | fzf)"
 }

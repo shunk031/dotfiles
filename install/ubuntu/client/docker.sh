@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# @file install/ubuntu/client/docker.sh
+# @brief Install Docker Engine on Ubuntu client machines.
+# @description
+#   Removes legacy Docker packages, configures Docker's apt repository, and
+#   installs the current Docker Engine packages.
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
@@ -13,6 +19,9 @@ readonly PACKAGES=(
     docker-compose-plugin
 )
 
+#
+# @description Remove legacy Docker packages that conflict with Docker Engine.
+#
 function uninstall_old_docker() {
     local packages=(
         "docker"
@@ -28,6 +37,9 @@ function uninstall_old_docker() {
     done
 }
 
+#
+# @description Configure Docker's official apt repository and signing key.
+#
 function setup_repository() {
 
     # Update the apt package index and install packages to allow apt to use a repository over HTTPS:
@@ -48,6 +60,9 @@ function setup_repository() {
         $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 }
 
+#
+# @description Install Docker Engine and the configured companion packages.
+#
 function install_docker_engine() {
     # Update the apt package index:
     sudo apt-get update
@@ -57,10 +72,16 @@ function install_docker_engine() {
 
 }
 
+#
+# @description Remove the configured Docker Engine packages.
+#
 function uninstall_docker_engine() {
     sudo apt-get remove -y "${PACKAGES[@]}"
 }
 
+#
+# @description Install Docker Engine from Docker's official Ubuntu repository.
+#
 function main() {
     uninstall_old_docker
     setup_repository

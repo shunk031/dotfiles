@@ -1,0 +1,28 @@
+site_name: Dotfiles Docs
+site_description: Generated reference for shell-based dotfiles automation.
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.top
+    - content.code.copy
+
+plugins:
+  - search
+  - toc-md:
+      output_path: catalog.md
+      ignore_page_pattern: 'index.*\.md$|catalog.*\.md$'
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences

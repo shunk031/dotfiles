@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# @file home/dot_local/bin/common/executable_uv-format
+# @brief Format Python code with Ruff through `uvx`.
+# @description
+#   Runs Ruff formatting first and then fixes import ordering and selected
+#   issues through Ruff's check mode.
+
+# @description Run Ruff formatting and autofix passes through `uvx`.
 function uv_format() {
     uvx ruff format
     uvx ruff check --fix --extend-select I

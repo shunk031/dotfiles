@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# @file install/ubuntu/server/ssh_server.sh
+# @brief Install and configure an Ubuntu SSH server.
+# @description
+#   Installs `openssh-server`, relaxes the container-oriented SSH settings used
+#   by this repository, and starts the SSH service when running inside Docker.
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
@@ -8,6 +14,9 @@ fi
 
 declare -r SSH_PORT="${DOTFILES_SERVER_SSH_PORT:-22}"
 
+#
+# @description Install the Ubuntu OpenSSH server package and its prerequisites.
+#
 function install_openssh_server() {
     # install openssh-server and vim
     sudo --preserve-env=http_proxy,https_proxy,no_proxy apt-get install --no-install-recommends -y \
@@ -15,6 +24,9 @@ function install_openssh_server() {
         openssh-server
 }
 
+#
+# @description Merge proxy-related variables into `AcceptEnv` in `sshd_config`.
+#
 function configure_accept_env() {
     local current add merged
 
@@ -32,6 +44,9 @@ function configure_accept_env() {
     echo "AcceptEnv $merged" | sudo tee -a /etc/ssh/sshd_config
 }
 
+#
+# @description Configure `sshd` for the repository's container-oriented setup.
+#
 function setup_sshd() {
     sudo mkdir -p /var/run/sshd
     mkdir -p ${HOME}/.ssh
@@ -51,11 +66,17 @@ function setup_sshd() {
     touch ${HOME}/.ssh/authorized_keys
 }
 
+#
+# @description Start the SSH service after configuration has been validated.
+#
 function run_sshd() {
     # run sshd
     sudo /usr/sbin/service ssh start
 }
 
+#
+# @description Install, configure, and start the Ubuntu SSH server.
+#
 function main() {
     install_openssh_server
     setup_sshd

@@ -2,6 +2,13 @@ DOCKER_IMAGE_NAME=dotfiles
 DOCKER_ARCH=x86_64
 DOCKER_NUM_CPU=4
 DOKCER_RAM_GB=4
+HOST ?= 127.0.0.1
+PORT ?= 8000
+MKDOCS = uv run \
+	--with mkdocs \
+	--with mkdocs-material \
+	--with mkdocs-toc-md \
+	mkdocs
 
 #
 # Docker
@@ -44,3 +51,32 @@ reset-config:
 .PHONY: format
 format:
 	shfmt --indent 4 --space-redirects --diff .
+
+#
+# Documentation
+#
+
+.PHONY: docs
+docs:
+	@echo "==> Generating docs"
+	./scripts/generate-docs.sh
+	@echo "==> Refreshing TOC"
+	$(MKDOCS) build --clean
+	@echo "==> Building docs"
+	$(MKDOCS) build --clean --strict
+
+.PHONY: serve
+serve: docs
+	@echo "==> Serving docs"
+	$(MKDOCS) serve -a $(HOST):$(PORT)
+
+.PHONY: deploy
+deploy: docs
+	@echo "==> Deploying docs"
+	$(MKDOCS) gh-deploy --force
+
+.PHONY: clean
+clean:
+	@echo "==> Cleaning generated docs"
+	rm -rf docs/reference site
+	rm -f docs/index.md docs/catalog.md

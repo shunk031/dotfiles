@@ -1,12 +1,15 @@
 #!/bin/bash
 
-# enforce-uv.sh
-# uvを使用するように強制するフック
-# ref. Claude Codeの指示忘れ問題を解決！HooksでPython環境をpip禁止＆uv統一にする https://zenn.dev/gotalab/articles/2fe8d7a15409c8
+# @file home/dot_claude/hooks/executable_enforce-uv.sh
+# @brief Block direct Python and pip commands in favor of `uv`.
+# @description
+#   Claude hook that inspects shell commands and returns a JSON decision that
+#   blocks direct `pip` or `python` usage, guiding the caller toward `uv`.
 
 # ===== 関数定義 =====
 
-# pip installコマンドの処理
+# @description Emit the `uv` replacement message for `pip install`.
+# @arg $1 string Parsed `pip` subcommand beginning with `install`.
 function handle_pip_install() {
     local pip_cmd="$1"
     local packages=$(echo "$pip_cmd" | sed 's/install//' | sed 's/--[^ ]*//g' | xargs)
@@ -71,7 +74,8 @@ function handle_pip_install() {
     exit 0
 }
 
-# pip uninstallコマンドの処理
+# @description Emit the `uv remove` replacement message for `pip uninstall`.
+# @arg $1 string Parsed `pip` subcommand beginning with `uninstall`.
 function handle_pip_uninstall() {
     local pip_cmd="$1"
     local packages=$(echo "$pip_cmd" | sed 's/uninstall//' | sed 's/-y//g' | xargs)
@@ -88,7 +92,7 @@ function handle_pip_uninstall() {
     exit 0
 }
 
-# pip list/freezeコマンドの処理
+# @description Explain the `uv` alternatives for `pip list` and `pip freeze`.
 function handle_pip_list() {
     cat <<- 'EOF'
 	{
@@ -106,7 +110,8 @@ function handle_pip_list() {
     exit 0
 }
 
-# その他のpipコマンドの処理
+# @description Fall back to a generic `uv` recommendation for other pip commands.
+# @arg $1 string Parsed `pip` subcommand.
 function handle_pip_other() {
     local pip_cmd="$1"
     cat <<- EOF
@@ -122,7 +127,8 @@ function handle_pip_other() {
     exit 0
 }
 
-# python -m pipコマンドの処理
+# @description Handle `python -m pip ...` by mapping it to the right `uv` advice.
+# @arg $1 string Parsed module arguments after `python -m pip`.
 function handle_python_m_pip() {
     local pip_cmd="$1"
 
@@ -169,7 +175,8 @@ function handle_python_m_pip() {
     exit 0
 }
 
-# python -m moduleコマンドの処理
+# @description Rewrite `python -m module` invocations to `uv run`.
+# @arg $1 string Module invocation after `python -m`.
 function handle_python_m_module() {
     local module="$1"
     cat <<- EOF
@@ -185,7 +192,8 @@ function handle_python_m_module() {
     exit 0
 }
 
-# 基本的なPython実行の処理
+# @description Rewrite direct Python execution to `uv run`.
+# @arg $1 string Original Python arguments.
 function handle_python_run() {
     local args="$1"
     cat <<- EOF
@@ -201,7 +209,7 @@ function handle_python_run() {
     exit 0
 }
 
-# ===== メイン処理 =====
+# @description Read hook input JSON, classify the command, and emit a decision.
 function main() {
     local input=$(cat)
 
@@ -270,5 +278,4 @@ function main() {
     echo '{"decision": "approve"}'
 }
 
-# スクリプト実行
 main

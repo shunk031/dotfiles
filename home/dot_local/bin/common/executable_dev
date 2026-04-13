@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# @file home/dot_local/bin/common/executable_dev
+# @brief Change into a repository selected from `ghq`.
+# @description
+#   Lets the user choose a repository path from `ghq`, changes into it, and
+#   renames the current tmux session to match the selected repository.
+
+# @description Fuzzy-select a repository path from `ghq`.
 function ghq-path() {
     local selected_path
     selected_path=$(ghq list --full-path | fzf) || return 1
@@ -7,6 +14,7 @@ function ghq-path() {
     printf '%s\n' "$selected_path"
 }
 
+# @description Change into a selected `ghq` repository and rename tmux session.
 function dev() {
     local moveto
     moveto=$(ghq-path) || return 0

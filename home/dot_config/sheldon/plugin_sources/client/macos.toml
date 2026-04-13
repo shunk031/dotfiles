@@ -31,11 +31,3 @@ function _macos_browser() {
 }
 zsh-defer _macos_browser
 '''
-
-[plugins.macos-command]
-inline = '''
-function _macos_command() {
-    alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
-}
-zsh-defer _macos_command
-'''

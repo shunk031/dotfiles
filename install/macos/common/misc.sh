@@ -37,7 +37,7 @@ readonly CASK_PACKAGES=(
     1password
 )
 
-# Additional brew packages that I want to install on my personal computer but not on my work computer
+# Additional brew packages installed only for user shunk031.
 readonly ADDITIONAL_BREW_PACKAGES=(
     tailscale
 )
@@ -90,7 +90,7 @@ function install_brew_cask_packages() {
 }
 
 function install_additional_brew_packages() {
-    # Only install additional brew packages for user shunk031
+    # Restrict personal packages to the primary user account.
     if [[ "$(whoami)" != "shunk031" ]]; then
         return 0
     fi

@@ -636,7 +636,7 @@ function print_landing_stat() {
 # @description Print the quick-start card shown on the landing page.
 #
 function print_quickstart_card() {
-    cat <<'EOF'
+    cat << 'EOF'
 <div class="landing-card landing-card--command" markdown="1">
 
 <p class="landing-kicker">Quick Start</p>
@@ -659,7 +659,7 @@ EOF
 # @description Print the pipeline summary card shown on the landing page.
 #
 function print_pipeline_card() {
-    cat <<'EOF'
+    cat << 'EOF'
 <div class="landing-card" markdown="1">
 
 <p class="landing-kicker">Pipeline</p>
@@ -686,7 +686,7 @@ function print_catalog_card() {
     local source_count="$1"
     local template_count="$2"
 
-    cat <<EOF
+    cat << EOF
 <div class="landing-card" markdown="1">
 
 <p class="landing-kicker">Coverage</p>

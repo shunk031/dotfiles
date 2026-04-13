@@ -4,7 +4,7 @@ Use this reference when the target file needs `shdoc`-compatible comments.
 
 ## Canonical Sources
 
-- Treat `vendor/shdoc/README.md` as the source of truth for supported tags and formatting.
+- Treat the upstream `shdoc` README as the source of truth for supported tags and formatting.
 - Use `scripts/generate-docs.sh` as the local style baseline in this repository.
 - Prefer `@file` over `@name` here because the repo example already uses `@file`.
 

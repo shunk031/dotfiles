@@ -1,6 +1,6 @@
 ---
 name: shdoc-shell-docs
-description: Write and review shellscript documentation with shdoc annotations. Use when Codex creates, edits, or reviews `.sh` files or shell executables and should add, repair, or normalize `@file`, `@brief`, `@description`, `@arg`, `@option`, and `@example` comments to match `vendor/shdoc`.
+description: Write and review shellscript documentation with shdoc annotations. Use when Codex creates, edits, or reviews `.sh` files or shell executables and should add, repair, or normalize `@file`, `@brief`, `@description`, `@arg`, `@option`, and `@example` comments to match shdoc conventions.
 ---
 
 # Shdoc Shell Docs
@@ -12,7 +12,7 @@ Use this skill to make shellscript comments parseable by `shdoc` without bloatin
 ## Workflow
 
 1. Inspect the target shell file before writing comments.
-2. Treat `vendor/shdoc/README.md` as the canonical annotation reference when it exists.
+2. Treat the upstream `shdoc` README as the canonical annotation reference.
 3. Use `scripts/generate-docs.sh` as the repo-local style example when working in this repository.
 4. Add or repair file-level annotations near the top of the file:
    - Prefer `@file` for the script identifier.
@@ -37,4 +37,4 @@ Use this skill to make shellscript comments parseable by `shdoc` without bloatin
 ## References
 
 - Read `references/shdoc-rules.md` for the minimal tag set and concise examples.
-- Fall back to `vendor/shdoc/README.md` when you need the full annotation vocabulary.
+- Fall back to the upstream `shdoc` README when you need the full annotation vocabulary.

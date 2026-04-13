@@ -50,7 +50,9 @@ jobs:
           if [ "${OS}" == "macos-14" ]; then
             # `bashcov` on macOS must use Homebrew Bash (>=5) to avoid the
             # system Bash 3.2 parser limitations that produced empty coverage.
-            brew install bash bats-core parallel
+            # `shdoc` is installed through a custom mise plugin that shells out
+            # to `gawk` during post-install on macOS.
+            brew install bash bats-core gawk parallel
 
           elif [ "${OS}" == "ubuntu-latest" ]; then
             # Ruby is required for bashcov/simplecov formatters.

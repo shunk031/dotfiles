@@ -16,6 +16,7 @@ fi
 readonly BREW_PACKAGES=(
     cmake
     git
+    gawk
     gpg
     pinentry-mac
     vim

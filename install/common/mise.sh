@@ -14,6 +14,8 @@ fi
 
 export MISE_INSTALL_PATH="${HOME}/.local/bin/mise"
 readonly DEFAULT_NPM_MIN_RELEASE_AGE_DAYS=7
+readonly SHDOC_PLUGIN_NAME="shdoc"
+readonly SHDOC_PLUGIN_REPOSITORY="https://github.com/shunk031/mise-shdoc.git"
 
 #
 # @description Install the pinned standalone `mise` binary and activate it.
@@ -31,11 +33,31 @@ function install_mise() {
 }
 
 #
+# @description Trust the local `mise.toml` before plugin or tool installation.
+#
+function trust_mise_config() {
+    mise trust --yes
+}
+
+#
+# @description Install the custom `shdoc` plugin when it is not available yet.
+#
+function ensure_shdoc_plugin_installed() {
+    if mise plugins ls | grep -qx "${SHDOC_PLUGIN_NAME}"; then
+        return
+    fi
+
+    mise plugins install "${SHDOC_PLUGIN_NAME}" "${SHDOC_PLUGIN_REPOSITORY}"
+}
+
+#
 # @description Install all tools declared for this repository through `mise`.
 #
 function run_mise_install() {
     # `MISE_CURRENT_VERSION` is interpreted by mise as a tool env override for `current`.
     unset MISE_CURRENT_VERSION
+    trust_mise_config
+    ensure_shdoc_plugin_installed
     mise install --before "${DEFAULT_NPM_MIN_RELEASE_AGE_DAYS}d"
 }
 

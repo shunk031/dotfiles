@@ -35,8 +35,20 @@ jobs:
       - name: Setup mise
         uses: jdx/mise-action@v4
         with:
-          install: true
+          install: false
           cache: true
+
+      - name: Trust mise config
+        run: mise trust --yes
+
+      - name: Install shdoc plugin
+        run: |
+          if ! mise plugins ls | grep -qx shdoc; then
+            mise plugins install shdoc https://github.com/shunk031/mise-shdoc.git
+          fi
+
+      - name: Install mise tools
+        run: mise install
 
       - name: Configure git author
         run: |

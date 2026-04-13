@@ -15,16 +15,32 @@ readonly LANDING_PAGE="${DOCS_DIR}/index.md"
 readonly CATALOG_PAGE="${DOCS_DIR}/catalog.md"
 readonly TEMPLATE_MAPPING_PAGE="${REFERENCE_DIR}/chezmoi-templates.md"
 readonly LANDING_PREVIEW_LIMIT=6
+readonly SHDOC_PLUGIN_NAME="shdoc"
+readonly SHDOC_PLUGIN_REPOSITORY="https://github.com/shunk031/mise-shdoc.git"
 
 #
 # @description Regenerate every public docs page under `docs/`.
 #
 function main() {
+    ensure_shdoc_plugin_installed
     clean_generated_docs
     generate_reference_pages
     generate_template_mapping_page
     generate_catalog_placeholder
     generate_landing_page
+}
+
+#
+# @description Trust the local `mise.toml` and install the custom `shdoc` plugin.
+#
+function ensure_shdoc_plugin_installed() {
+    mise trust --yes
+
+    if mise plugins ls | grep -qx "${SHDOC_PLUGIN_NAME}"; then
+        return
+    fi
+
+    mise plugins install "${SHDOC_PLUGIN_NAME}" "${SHDOC_PLUGIN_REPOSITORY}"
 }
 
 #

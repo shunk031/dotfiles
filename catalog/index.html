@@ -1,0 +1,8247 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generated reference for shell-based dotfiles automation.">
+      
+      
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../reference/chezmoi-templates/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Catalog - Dotfiles Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#contents" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Dotfiles Docs" class="md-header__button md-logo" aria-label="Dotfiles Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Dotfiles Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Catalog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Dotfiles Docs" class="md-nav__button md-logo" aria-label="Dotfiles Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Dotfiles Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalog
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#homechezmoiscripts-template-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/.chezmoiscripts Template Mapping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/.chezmoiscripts Template Mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mappings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_claudehooksexecutable_enforce-uvsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_claude/hooks/executable_enforce-uv.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_claude/hooks/executable_enforce-uv.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_configaliasclientsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_config/alias/client.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_config/alias/client.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aliases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_configaliascommonsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_config/alias/common.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_config/alias/common.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aliases_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aliases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#source_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_configaliasserversh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_config/alias/server.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_config/alias/server.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aliases_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aliases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#source_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinclientexecutable_connect-hosei-vpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/client/executable_connect-hosei-vpn
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/client/executable_connect-hosei-vpn">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinclientexecutable_disconnect-vpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/client/executable_disconnect-vpn
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/client/executable_disconnect-vpn">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinclientexecutable_login-ghcr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/client/executable_login-ghcr
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/client/executable_login-ghcr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_cdgwq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_cdgwq
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_cdgwq">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_cdw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_cdw
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_cdw">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_chezmoi-cd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_chezmoi-cd
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_chezmoi-cd">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_dev
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_dev">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_fgc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_fgc
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_fgc">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_git-delete-merged-branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_git-delete-merged-branches
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_git-delete-merged-branches">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_setup-gh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_setup-gh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_setup-gh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_setup-python-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_setup-python-env
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_setup-python-env">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_uv-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_uv-format
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_uv-format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinservercachesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/server/cache.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/server/cache.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinservercudash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/server/cuda.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/server/cuda.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinserverhistorysh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/server/history.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/server/history.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinserversecretssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/server/secrets.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/server/secrets.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinserverssh_agentsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/server/ssh_agent.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/server/ssh_agent.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installcommonchezmoi_privatesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/common/chezmoi_private.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/common/chezmoi_private.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installcommongh_extensionssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/common/gh_extensions.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/common/gh_extensions.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installcommonmisesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/common/mise.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/common/mise.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installcommonsheldonsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/common/sheldon.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/common/sheldon.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installcommontpmsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/common/tpm.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/common/tpm.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacosarm64prepare_arm64_systemsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/arm64/prepare_arm64_system.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/arm64/prepare_arm64_system.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacosarm64runsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/arm64/run.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/arm64/run.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommonbrewsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/brew.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/brew.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommoncommand_line_toolsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/command_line_tool.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/command_line_tool.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommondefaultssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/defaults.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/defaults.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommondependenciessh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/dependencies.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/dependencies.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommondockersh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/docker.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/docker.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommoniterm2sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/iterm2.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/iterm2.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommonmac_app_storesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/mac_app_store.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/mac_app_store.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommonmiscsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/misc.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/misc.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommontmuxsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/tmux.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/tmux.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuclientdockersh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/client/docker.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/client/docker.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_37" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuclientmiscsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/client/misc.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/client/misc.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_38" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntucommondependenciessh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/common/dependencies.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/common/dependencies.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_39" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntucommonsshsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/common/ssh.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/common/ssh.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_40" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_37" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_37" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntucommontmuxsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/common/tmux.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/common/tmux.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_38" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_38" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuservermiscsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/server/misc.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/server/misc.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_39" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_39" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuserversetup_localesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/server/setup_locale.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/server/setup_locale.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_40" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_40" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuserversetup_timezonesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/server/setup_timezone.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/server/setup_timezone.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuserverssh_serversh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/server/ssh_server.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/server/ssh_server.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuserverstarshipsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/server/starship.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/server/starship.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scriptsgenerate-docssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/generate-docs.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scripts/generate-docs.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scriptsrun_benchmarksh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/run_benchmark.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scripts/run_benchmark.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scriptsrun_unit_testsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/run_unit_test.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scripts/run_unit_test.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_49" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/chezmoi-templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/.chezmoiscripts Template Mapping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Home
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_1" id="__nav_3_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dot claude
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dot claude
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_1_1" id="__nav_3_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_2_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Hooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_claude/hooks/executable_enforce-uv/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_claude/hooks/executable_enforce-uv.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_2" id="__nav_3_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dot config
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dot config
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_2_1" id="__nav_3_2_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alias
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_2_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Alias
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_config/alias/client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_config/alias/client.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_config/alias/common/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_config/alias/common.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_config/alias/server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_config/alias/server.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_3" id="__nav_3_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dot local
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dot local
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_3_1" id="__nav_3_2_3_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bin
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_2_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bin
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_3_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_3_1_1" id="__nav_3_2_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_3_2_3_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/client/executable_connect-hosei-vpn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/client/executable_connect-hosei-vpn
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/client/executable_disconnect-vpn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/client/executable_disconnect-vpn
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/client/executable_login-ghcr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/client/executable_login-ghcr
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_3_1_2" id="__nav_3_2_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_3_2_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Common
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/common/executable_cdgwq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/common/executable_cdgwq
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/common/executable_cdw/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/common/executable_cdw
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/common/executable_chezmoi-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/common/executable_chezmoi-cd
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/common/executable_dev/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/common/executable_dev
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/common/executable_fgc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/common/executable_fgc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/common/executable_git-delete-merged-branches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/common/executable_git-delete-merged-branches
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/common/executable_setup-gh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/common/executable_setup-gh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/common/executable_setup-python-env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/common/executable_setup-python-env
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/common/executable_uv-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/common/executable_uv-format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_3_1_3" id="__nav_3_2_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Server
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_3_2_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Server
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/server/cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/server/cache.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/server/cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/server/cuda.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/server/history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/server/history.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/server/secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/server/secrets.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/home/dot_local/bin/server/ssh_agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/server/ssh_agent.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Install
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_1" id="__nav_3_3_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Common
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/common/chezmoi_private/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/common/chezmoi_private.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/common/gh_extensions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/common/gh_extensions.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/common/mise/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/common/mise.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/common/sheldon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/common/sheldon.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/common/tpm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/common/tpm.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_2" id="__nav_3_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Macos
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Macos
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_2_1" id="__nav_3_3_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Arm64
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Arm64
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/arm64/prepare_arm64_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/arm64/prepare_arm64_system.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/arm64/run/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/arm64/run.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_2_2" id="__nav_3_3_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Common
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/common/brew/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/common/brew.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/common/command_line_tool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/common/command_line_tool.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/common/defaults/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/common/defaults.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/common/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/common/dependencies.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/common/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/common/docker.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/common/iterm2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/common/iterm2.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/common/mac_app_store/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/common/mac_app_store.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/common/misc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/common/misc.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/macos/common/tmux/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/macos/common/tmux.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_3" id="__nav_3_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ubuntu
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ubuntu
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_3_1" id="__nav_3_3_3_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/ubuntu/client/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/ubuntu/client/docker.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/ubuntu/client/misc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/ubuntu/client/misc.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_3_2" id="__nav_3_3_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Common
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/ubuntu/common/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/ubuntu/common/dependencies.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/ubuntu/common/ssh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/ubuntu/common/ssh.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/ubuntu/common/tmux/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/ubuntu/common/tmux.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_3_3" id="__nav_3_3_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Server
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Server
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/ubuntu/server/misc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/ubuntu/server/misc.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/ubuntu/server/setup_locale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/ubuntu/server/setup_locale.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/ubuntu/server/setup_timezone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/ubuntu/server/setup_timezone.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/ubuntu/server/ssh_server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/ubuntu/server/ssh_server.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/install/ubuntu/server/starship/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    install/ubuntu/server/starship.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scripts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Scripts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/scripts/generate-docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    scripts/generate-docs.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/scripts/run_benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    scripts/run_benchmark.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/scripts/run_unit_test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    scripts/run_unit_test.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#homechezmoiscripts-template-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/.chezmoiscripts Template Mapping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/.chezmoiscripts Template Mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mappings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_claudehooksexecutable_enforce-uvsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_claude/hooks/executable_enforce-uv.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_claude/hooks/executable_enforce-uv.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_configaliasclientsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_config/alias/client.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_config/alias/client.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aliases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_configaliascommonsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_config/alias/common.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_config/alias/common.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aliases_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aliases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#source_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_configaliasserversh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_config/alias/server.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_config/alias/server.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aliases_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aliases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#source_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinclientexecutable_connect-hosei-vpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/client/executable_connect-hosei-vpn
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/client/executable_connect-hosei-vpn">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinclientexecutable_disconnect-vpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/client/executable_disconnect-vpn
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/client/executable_disconnect-vpn">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinclientexecutable_login-ghcr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/client/executable_login-ghcr
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/client/executable_login-ghcr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_cdgwq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_cdgwq
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_cdgwq">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_cdw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_cdw
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_cdw">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_chezmoi-cd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_chezmoi-cd
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_chezmoi-cd">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_dev
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_dev">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_fgc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_fgc
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_fgc">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_git-delete-merged-branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_git-delete-merged-branches
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_git-delete-merged-branches">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_setup-gh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_setup-gh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_setup-gh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_setup-python-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_setup-python-env
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_setup-python-env">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbincommonexecutable_uv-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/common/executable_uv-format
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/common/executable_uv-format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinservercachesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/server/cache.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/server/cache.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinservercudash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/server/cuda.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/server/cuda.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinserverhistorysh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/server/history.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/server/history.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinserversecretssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/server/secrets.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/server/secrets.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homedot_localbinserverssh_agentsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        home/dot_local/bin/server/ssh_agent.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="home/dot_local/bin/server/ssh_agent.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installcommonchezmoi_privatesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/common/chezmoi_private.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/common/chezmoi_private.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installcommongh_extensionssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/common/gh_extensions.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/common/gh_extensions.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installcommonmisesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/common/mise.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/common/mise.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installcommonsheldonsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/common/sheldon.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/common/sheldon.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installcommontpmsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/common/tpm.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/common/tpm.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacosarm64prepare_arm64_systemsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/arm64/prepare_arm64_system.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/arm64/prepare_arm64_system.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacosarm64runsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/arm64/run.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/arm64/run.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommonbrewsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/brew.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/brew.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommoncommand_line_toolsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/command_line_tool.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/command_line_tool.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommondefaultssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/defaults.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/defaults.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommondependenciessh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/dependencies.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/dependencies.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommondockersh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/docker.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/docker.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommoniterm2sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/iterm2.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/iterm2.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommonmac_app_storesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/mac_app_store.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/mac_app_store.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommonmiscsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/misc.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/misc.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installmacoscommontmuxsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/macos/common/tmux.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/macos/common/tmux.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuclientdockersh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/client/docker.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/client/docker.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_37" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuclientmiscsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/client/misc.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/client/misc.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_38" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntucommondependenciessh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/common/dependencies.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/common/dependencies.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_39" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntucommonsshsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/common/ssh.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/common/ssh.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_40" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_37" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_37" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntucommontmuxsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/common/tmux.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/common/tmux.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_38" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_38" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuservermiscsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/server/misc.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/server/misc.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_39" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_39" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuserversetup_localesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/server/setup_locale.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/server/setup_locale.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_40" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_40" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuserversetup_timezonesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/server/setup_timezone.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/server/setup_timezone.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuserverssh_serversh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/server/ssh_server.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/server/ssh_server.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installubuntuserverstarshipsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install/ubuntu/server/starship.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="install/ubuntu/server/starship.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scriptsgenerate-docssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/generate-docs.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scripts/generate-docs.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scriptsrun_benchmarksh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/run_benchmark.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scripts/run_benchmark.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scriptsrun_unit_testsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/run_unit_test.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scripts/run_unit_test.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata_49" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference_46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overview_46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<!-- ====================== TOC ====================== -->
+<!-- Generated by mkdocs-toc-md plugin -->
+<!-- ================================================= -->
+
+<h1 id="contents">Contents<a class="headerlink" href="#contents" title="Permanent link">&para;</a></h1>
+<h2 id="homechezmoiscripts-template-mapping"><a href="../reference/chezmoi-templates/#homechezmoiscripts-template-mapping">home/.chezmoiscripts Template Mapping</a><a class="headerlink" href="#homechezmoiscripts-template-mapping" title="Permanent link">&para;</a></h2>
+<h3 id="mappings"><a href="../reference/chezmoi-templates/#mappings">Mappings</a><a class="headerlink" href="#mappings" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_claudehooksexecutable_enforce-uvsh"><a href="../reference/home/dot_claude/hooks/executable_enforce-uv/#homedot_claudehooksexecutable_enforce-uvsh">home/dot_claude/hooks/executable_enforce-uv.sh</a><a class="headerlink" href="#homedot_claudehooksexecutable_enforce-uvsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata"><a href="../reference/home/dot_claude/hooks/executable_enforce-uv/#metadata">Metadata</a><a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference"><a href="../reference/home/dot_claude/hooks/executable_enforce-uv/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference" title="Permanent link">&para;</a></h3>
+<h3 id="overview"><a href="../reference/home/dot_claude/hooks/executable_enforce-uv/#overview">Overview</a><a class="headerlink" href="#overview" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_configaliasclientsh"><a href="../reference/home/dot_config/alias/client/#homedot_configaliasclientsh">home/dot_config/alias/client.sh</a><a class="headerlink" href="#homedot_configaliasclientsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_1"><a href="../reference/home/dot_config/alias/client/#metadata">Metadata</a><a class="headerlink" href="#metadata_1" title="Permanent link">&para;</a></h3>
+<h3 id="aliases"><a href="../reference/home/dot_config/alias/client/#aliases">Aliases</a><a class="headerlink" href="#aliases" title="Permanent link">&para;</a></h3>
+<h3 id="source"><a href="../reference/home/dot_config/alias/client/#source">Source</a><a class="headerlink" href="#source" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_configaliascommonsh"><a href="../reference/home/dot_config/alias/common/#homedot_configaliascommonsh">home/dot_config/alias/common.sh</a><a class="headerlink" href="#homedot_configaliascommonsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_2"><a href="../reference/home/dot_config/alias/common/#metadata">Metadata</a><a class="headerlink" href="#metadata_2" title="Permanent link">&para;</a></h3>
+<h3 id="aliases_1"><a href="../reference/home/dot_config/alias/common/#aliases">Aliases</a><a class="headerlink" href="#aliases_1" title="Permanent link">&para;</a></h3>
+<h3 id="source_1"><a href="../reference/home/dot_config/alias/common/#source">Source</a><a class="headerlink" href="#source_1" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_configaliasserversh"><a href="../reference/home/dot_config/alias/server/#homedot_configaliasserversh">home/dot_config/alias/server.sh</a><a class="headerlink" href="#homedot_configaliasserversh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_3"><a href="../reference/home/dot_config/alias/server/#metadata">Metadata</a><a class="headerlink" href="#metadata_3" title="Permanent link">&para;</a></h3>
+<h3 id="aliases_2"><a href="../reference/home/dot_config/alias/server/#aliases">Aliases</a><a class="headerlink" href="#aliases_2" title="Permanent link">&para;</a></h3>
+<h3 id="source_2"><a href="../reference/home/dot_config/alias/server/#source">Source</a><a class="headerlink" href="#source_2" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbinclientexecutable_connect-hosei-vpn"><a href="../reference/home/dot_local/bin/client/executable_connect-hosei-vpn/#homedot_localbinclientexecutable_connect-hosei-vpn">home/dot_local/bin/client/executable_connect-hosei-vpn</a><a class="headerlink" href="#homedot_localbinclientexecutable_connect-hosei-vpn" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_4"><a href="../reference/home/dot_local/bin/client/executable_connect-hosei-vpn/#metadata">Metadata</a><a class="headerlink" href="#metadata_4" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_1"><a href="../reference/home/dot_local/bin/client/executable_connect-hosei-vpn/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_1" title="Permanent link">&para;</a></h3>
+<h3 id="overview_1"><a href="../reference/home/dot_local/bin/client/executable_connect-hosei-vpn/#overview">Overview</a><a class="headerlink" href="#overview_1" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbinclientexecutable_disconnect-vpn"><a href="../reference/home/dot_local/bin/client/executable_disconnect-vpn/#homedot_localbinclientexecutable_disconnect-vpn">home/dot_local/bin/client/executable_disconnect-vpn</a><a class="headerlink" href="#homedot_localbinclientexecutable_disconnect-vpn" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_5"><a href="../reference/home/dot_local/bin/client/executable_disconnect-vpn/#metadata">Metadata</a><a class="headerlink" href="#metadata_5" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_2"><a href="../reference/home/dot_local/bin/client/executable_disconnect-vpn/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_2" title="Permanent link">&para;</a></h3>
+<h3 id="overview_2"><a href="../reference/home/dot_local/bin/client/executable_disconnect-vpn/#overview">Overview</a><a class="headerlink" href="#overview_2" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbinclientexecutable_login-ghcr"><a href="../reference/home/dot_local/bin/client/executable_login-ghcr/#homedot_localbinclientexecutable_login-ghcr">home/dot_local/bin/client/executable_login-ghcr</a><a class="headerlink" href="#homedot_localbinclientexecutable_login-ghcr" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_6"><a href="../reference/home/dot_local/bin/client/executable_login-ghcr/#metadata">Metadata</a><a class="headerlink" href="#metadata_6" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_3"><a href="../reference/home/dot_local/bin/client/executable_login-ghcr/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_3" title="Permanent link">&para;</a></h3>
+<h3 id="overview_3"><a href="../reference/home/dot_local/bin/client/executable_login-ghcr/#overview">Overview</a><a class="headerlink" href="#overview_3" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbincommonexecutable_cdgwq"><a href="../reference/home/dot_local/bin/common/executable_cdgwq/#homedot_localbincommonexecutable_cdgwq">home/dot_local/bin/common/executable_cdgwq</a><a class="headerlink" href="#homedot_localbincommonexecutable_cdgwq" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_7"><a href="../reference/home/dot_local/bin/common/executable_cdgwq/#metadata">Metadata</a><a class="headerlink" href="#metadata_7" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_4"><a href="../reference/home/dot_local/bin/common/executable_cdgwq/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_4" title="Permanent link">&para;</a></h3>
+<h3 id="overview_4"><a href="../reference/home/dot_local/bin/common/executable_cdgwq/#overview">Overview</a><a class="headerlink" href="#overview_4" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbincommonexecutable_cdw"><a href="../reference/home/dot_local/bin/common/executable_cdw/#homedot_localbincommonexecutable_cdw">home/dot_local/bin/common/executable_cdw</a><a class="headerlink" href="#homedot_localbincommonexecutable_cdw" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_8"><a href="../reference/home/dot_local/bin/common/executable_cdw/#metadata">Metadata</a><a class="headerlink" href="#metadata_8" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_5"><a href="../reference/home/dot_local/bin/common/executable_cdw/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_5" title="Permanent link">&para;</a></h3>
+<h3 id="overview_5"><a href="../reference/home/dot_local/bin/common/executable_cdw/#overview">Overview</a><a class="headerlink" href="#overview_5" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbincommonexecutable_chezmoi-cd"><a href="../reference/home/dot_local/bin/common/executable_chezmoi-cd/#homedot_localbincommonexecutable_chezmoi-cd">home/dot_local/bin/common/executable_chezmoi-cd</a><a class="headerlink" href="#homedot_localbincommonexecutable_chezmoi-cd" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_9"><a href="../reference/home/dot_local/bin/common/executable_chezmoi-cd/#metadata">Metadata</a><a class="headerlink" href="#metadata_9" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_6"><a href="../reference/home/dot_local/bin/common/executable_chezmoi-cd/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_6" title="Permanent link">&para;</a></h3>
+<h3 id="overview_6"><a href="../reference/home/dot_local/bin/common/executable_chezmoi-cd/#overview">Overview</a><a class="headerlink" href="#overview_6" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbincommonexecutable_dev"><a href="../reference/home/dot_local/bin/common/executable_dev/#homedot_localbincommonexecutable_dev">home/dot_local/bin/common/executable_dev</a><a class="headerlink" href="#homedot_localbincommonexecutable_dev" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_10"><a href="../reference/home/dot_local/bin/common/executable_dev/#metadata">Metadata</a><a class="headerlink" href="#metadata_10" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_7"><a href="../reference/home/dot_local/bin/common/executable_dev/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_7" title="Permanent link">&para;</a></h3>
+<h3 id="overview_7"><a href="../reference/home/dot_local/bin/common/executable_dev/#overview">Overview</a><a class="headerlink" href="#overview_7" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbincommonexecutable_fgc"><a href="../reference/home/dot_local/bin/common/executable_fgc/#homedot_localbincommonexecutable_fgc">home/dot_local/bin/common/executable_fgc</a><a class="headerlink" href="#homedot_localbincommonexecutable_fgc" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_11"><a href="../reference/home/dot_local/bin/common/executable_fgc/#metadata">Metadata</a><a class="headerlink" href="#metadata_11" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_8"><a href="../reference/home/dot_local/bin/common/executable_fgc/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_8" title="Permanent link">&para;</a></h3>
+<h3 id="overview_8"><a href="../reference/home/dot_local/bin/common/executable_fgc/#overview">Overview</a><a class="headerlink" href="#overview_8" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbincommonexecutable_git-delete-merged-branches"><a href="../reference/home/dot_local/bin/common/executable_git-delete-merged-branches/#homedot_localbincommonexecutable_git-delete-merged-branches">home/dot_local/bin/common/executable_git-delete-merged-branches</a><a class="headerlink" href="#homedot_localbincommonexecutable_git-delete-merged-branches" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_12"><a href="../reference/home/dot_local/bin/common/executable_git-delete-merged-branches/#metadata">Metadata</a><a class="headerlink" href="#metadata_12" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_9"><a href="../reference/home/dot_local/bin/common/executable_git-delete-merged-branches/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_9" title="Permanent link">&para;</a></h3>
+<h3 id="overview_9"><a href="../reference/home/dot_local/bin/common/executable_git-delete-merged-branches/#overview">Overview</a><a class="headerlink" href="#overview_9" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbincommonexecutable_setup-gh"><a href="../reference/home/dot_local/bin/common/executable_setup-gh/#homedot_localbincommonexecutable_setup-gh">home/dot_local/bin/common/executable_setup-gh</a><a class="headerlink" href="#homedot_localbincommonexecutable_setup-gh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_13"><a href="../reference/home/dot_local/bin/common/executable_setup-gh/#metadata">Metadata</a><a class="headerlink" href="#metadata_13" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_10"><a href="../reference/home/dot_local/bin/common/executable_setup-gh/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_10" title="Permanent link">&para;</a></h3>
+<h3 id="overview_10"><a href="../reference/home/dot_local/bin/common/executable_setup-gh/#overview">Overview</a><a class="headerlink" href="#overview_10" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbincommonexecutable_setup-python-env"><a href="../reference/home/dot_local/bin/common/executable_setup-python-env/#homedot_localbincommonexecutable_setup-python-env">home/dot_local/bin/common/executable_setup-python-env</a><a class="headerlink" href="#homedot_localbincommonexecutable_setup-python-env" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_14"><a href="../reference/home/dot_local/bin/common/executable_setup-python-env/#metadata">Metadata</a><a class="headerlink" href="#metadata_14" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_11"><a href="../reference/home/dot_local/bin/common/executable_setup-python-env/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_11" title="Permanent link">&para;</a></h3>
+<h3 id="overview_11"><a href="../reference/home/dot_local/bin/common/executable_setup-python-env/#overview">Overview</a><a class="headerlink" href="#overview_11" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbincommonexecutable_uv-format"><a href="../reference/home/dot_local/bin/common/executable_uv-format/#homedot_localbincommonexecutable_uv-format">home/dot_local/bin/common/executable_uv-format</a><a class="headerlink" href="#homedot_localbincommonexecutable_uv-format" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_15"><a href="../reference/home/dot_local/bin/common/executable_uv-format/#metadata">Metadata</a><a class="headerlink" href="#metadata_15" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_12"><a href="../reference/home/dot_local/bin/common/executable_uv-format/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_12" title="Permanent link">&para;</a></h3>
+<h3 id="overview_12"><a href="../reference/home/dot_local/bin/common/executable_uv-format/#overview">Overview</a><a class="headerlink" href="#overview_12" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbinservercachesh"><a href="../reference/home/dot_local/bin/server/cache/#homedot_localbinservercachesh">home/dot_local/bin/server/cache.sh</a><a class="headerlink" href="#homedot_localbinservercachesh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_16"><a href="../reference/home/dot_local/bin/server/cache/#metadata">Metadata</a><a class="headerlink" href="#metadata_16" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_13"><a href="../reference/home/dot_local/bin/server/cache/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_13" title="Permanent link">&para;</a></h3>
+<h3 id="overview_13"><a href="../reference/home/dot_local/bin/server/cache/#overview">Overview</a><a class="headerlink" href="#overview_13" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbinservercudash"><a href="../reference/home/dot_local/bin/server/cuda/#homedot_localbinservercudash">home/dot_local/bin/server/cuda.sh</a><a class="headerlink" href="#homedot_localbinservercudash" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_17"><a href="../reference/home/dot_local/bin/server/cuda/#metadata">Metadata</a><a class="headerlink" href="#metadata_17" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_14"><a href="../reference/home/dot_local/bin/server/cuda/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_14" title="Permanent link">&para;</a></h3>
+<h3 id="overview_14"><a href="../reference/home/dot_local/bin/server/cuda/#overview">Overview</a><a class="headerlink" href="#overview_14" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbinserverhistorysh"><a href="../reference/home/dot_local/bin/server/history/#homedot_localbinserverhistorysh">home/dot_local/bin/server/history.sh</a><a class="headerlink" href="#homedot_localbinserverhistorysh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_18"><a href="../reference/home/dot_local/bin/server/history/#metadata">Metadata</a><a class="headerlink" href="#metadata_18" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_15"><a href="../reference/home/dot_local/bin/server/history/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_15" title="Permanent link">&para;</a></h3>
+<h3 id="overview_15"><a href="../reference/home/dot_local/bin/server/history/#overview">Overview</a><a class="headerlink" href="#overview_15" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbinserversecretssh"><a href="../reference/home/dot_local/bin/server/secrets/#homedot_localbinserversecretssh">home/dot_local/bin/server/secrets.sh</a><a class="headerlink" href="#homedot_localbinserversecretssh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_19"><a href="../reference/home/dot_local/bin/server/secrets/#metadata">Metadata</a><a class="headerlink" href="#metadata_19" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_16"><a href="../reference/home/dot_local/bin/server/secrets/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_16" title="Permanent link">&para;</a></h3>
+<h3 id="overview_16"><a href="../reference/home/dot_local/bin/server/secrets/#overview">Overview</a><a class="headerlink" href="#overview_16" title="Permanent link">&para;</a></h3>
+<h2 id="homedot_localbinserverssh_agentsh"><a href="../reference/home/dot_local/bin/server/ssh_agent/#homedot_localbinserverssh_agentsh">home/dot_local/bin/server/ssh_agent.sh</a><a class="headerlink" href="#homedot_localbinserverssh_agentsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_20"><a href="../reference/home/dot_local/bin/server/ssh_agent/#metadata">Metadata</a><a class="headerlink" href="#metadata_20" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_17"><a href="../reference/home/dot_local/bin/server/ssh_agent/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_17" title="Permanent link">&para;</a></h3>
+<h3 id="overview_17"><a href="../reference/home/dot_local/bin/server/ssh_agent/#overview">Overview</a><a class="headerlink" href="#overview_17" title="Permanent link">&para;</a></h3>
+<h2 id="installcommonchezmoi_privatesh"><a href="../reference/install/common/chezmoi_private/#installcommonchezmoi_privatesh">install/common/chezmoi_private.sh</a><a class="headerlink" href="#installcommonchezmoi_privatesh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_21"><a href="../reference/install/common/chezmoi_private/#metadata">Metadata</a><a class="headerlink" href="#metadata_21" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_18"><a href="../reference/install/common/chezmoi_private/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_18" title="Permanent link">&para;</a></h3>
+<h3 id="overview_18"><a href="../reference/install/common/chezmoi_private/#overview">Overview</a><a class="headerlink" href="#overview_18" title="Permanent link">&para;</a></h3>
+<h2 id="installcommongh_extensionssh"><a href="../reference/install/common/gh_extensions/#installcommongh_extensionssh">install/common/gh_extensions.sh</a><a class="headerlink" href="#installcommongh_extensionssh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_22"><a href="../reference/install/common/gh_extensions/#metadata">Metadata</a><a class="headerlink" href="#metadata_22" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_19"><a href="../reference/install/common/gh_extensions/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_19" title="Permanent link">&para;</a></h3>
+<h3 id="overview_19"><a href="../reference/install/common/gh_extensions/#overview">Overview</a><a class="headerlink" href="#overview_19" title="Permanent link">&para;</a></h3>
+<h2 id="installcommonmisesh"><a href="../reference/install/common/mise/#installcommonmisesh">install/common/mise.sh</a><a class="headerlink" href="#installcommonmisesh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_23"><a href="../reference/install/common/mise/#metadata">Metadata</a><a class="headerlink" href="#metadata_23" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_20"><a href="../reference/install/common/mise/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_20" title="Permanent link">&para;</a></h3>
+<h3 id="overview_20"><a href="../reference/install/common/mise/#overview">Overview</a><a class="headerlink" href="#overview_20" title="Permanent link">&para;</a></h3>
+<h2 id="installcommonsheldonsh"><a href="../reference/install/common/sheldon/#installcommonsheldonsh">install/common/sheldon.sh</a><a class="headerlink" href="#installcommonsheldonsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_24"><a href="../reference/install/common/sheldon/#metadata">Metadata</a><a class="headerlink" href="#metadata_24" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_21"><a href="../reference/install/common/sheldon/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_21" title="Permanent link">&para;</a></h3>
+<h3 id="overview_21"><a href="../reference/install/common/sheldon/#overview">Overview</a><a class="headerlink" href="#overview_21" title="Permanent link">&para;</a></h3>
+<h2 id="installcommontpmsh"><a href="../reference/install/common/tpm/#installcommontpmsh">install/common/tpm.sh</a><a class="headerlink" href="#installcommontpmsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_25"><a href="../reference/install/common/tpm/#metadata">Metadata</a><a class="headerlink" href="#metadata_25" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_22"><a href="../reference/install/common/tpm/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_22" title="Permanent link">&para;</a></h3>
+<h3 id="overview_22"><a href="../reference/install/common/tpm/#overview">Overview</a><a class="headerlink" href="#overview_22" title="Permanent link">&para;</a></h3>
+<h2 id="installmacosarm64prepare_arm64_systemsh"><a href="../reference/install/macos/arm64/prepare_arm64_system/#installmacosarm64prepare_arm64_systemsh">install/macos/arm64/prepare_arm64_system.sh</a><a class="headerlink" href="#installmacosarm64prepare_arm64_systemsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_26"><a href="../reference/install/macos/arm64/prepare_arm64_system/#metadata">Metadata</a><a class="headerlink" href="#metadata_26" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_23"><a href="../reference/install/macos/arm64/prepare_arm64_system/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_23" title="Permanent link">&para;</a></h3>
+<h3 id="overview_23"><a href="../reference/install/macos/arm64/prepare_arm64_system/#overview">Overview</a><a class="headerlink" href="#overview_23" title="Permanent link">&para;</a></h3>
+<h2 id="installmacosarm64runsh"><a href="../reference/install/macos/arm64/run/#installmacosarm64runsh">install/macos/arm64/run.sh</a><a class="headerlink" href="#installmacosarm64runsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_27"><a href="../reference/install/macos/arm64/run/#metadata">Metadata</a><a class="headerlink" href="#metadata_27" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_24"><a href="../reference/install/macos/arm64/run/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_24" title="Permanent link">&para;</a></h3>
+<h3 id="overview_24"><a href="../reference/install/macos/arm64/run/#overview">Overview</a><a class="headerlink" href="#overview_24" title="Permanent link">&para;</a></h3>
+<h2 id="installmacoscommonbrewsh"><a href="../reference/install/macos/common/brew/#installmacoscommonbrewsh">install/macos/common/brew.sh</a><a class="headerlink" href="#installmacoscommonbrewsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_28"><a href="../reference/install/macos/common/brew/#metadata">Metadata</a><a class="headerlink" href="#metadata_28" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_25"><a href="../reference/install/macos/common/brew/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_25" title="Permanent link">&para;</a></h3>
+<h3 id="overview_25"><a href="../reference/install/macos/common/brew/#overview">Overview</a><a class="headerlink" href="#overview_25" title="Permanent link">&para;</a></h3>
+<h2 id="installmacoscommoncommand_line_toolsh"><a href="../reference/install/macos/common/command_line_tool/#installmacoscommoncommand_line_toolsh">install/macos/common/command_line_tool.sh</a><a class="headerlink" href="#installmacoscommoncommand_line_toolsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_29"><a href="../reference/install/macos/common/command_line_tool/#metadata">Metadata</a><a class="headerlink" href="#metadata_29" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_26"><a href="../reference/install/macos/common/command_line_tool/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_26" title="Permanent link">&para;</a></h3>
+<h3 id="overview_26"><a href="../reference/install/macos/common/command_line_tool/#overview">Overview</a><a class="headerlink" href="#overview_26" title="Permanent link">&para;</a></h3>
+<h2 id="installmacoscommondefaultssh"><a href="../reference/install/macos/common/defaults/#installmacoscommondefaultssh">install/macos/common/defaults.sh</a><a class="headerlink" href="#installmacoscommondefaultssh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_30"><a href="../reference/install/macos/common/defaults/#metadata">Metadata</a><a class="headerlink" href="#metadata_30" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_27"><a href="../reference/install/macos/common/defaults/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_27" title="Permanent link">&para;</a></h3>
+<h3 id="overview_27"><a href="../reference/install/macos/common/defaults/#overview">Overview</a><a class="headerlink" href="#overview_27" title="Permanent link">&para;</a></h3>
+<h2 id="installmacoscommondependenciessh"><a href="../reference/install/macos/common/dependencies/#installmacoscommondependenciessh">install/macos/common/dependencies.sh</a><a class="headerlink" href="#installmacoscommondependenciessh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_31"><a href="../reference/install/macos/common/dependencies/#metadata">Metadata</a><a class="headerlink" href="#metadata_31" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_28"><a href="../reference/install/macos/common/dependencies/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_28" title="Permanent link">&para;</a></h3>
+<h3 id="overview_28"><a href="../reference/install/macos/common/dependencies/#overview">Overview</a><a class="headerlink" href="#overview_28" title="Permanent link">&para;</a></h3>
+<h2 id="installmacoscommondockersh"><a href="../reference/install/macos/common/docker/#installmacoscommondockersh">install/macos/common/docker.sh</a><a class="headerlink" href="#installmacoscommondockersh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_32"><a href="../reference/install/macos/common/docker/#metadata">Metadata</a><a class="headerlink" href="#metadata_32" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_29"><a href="../reference/install/macos/common/docker/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_29" title="Permanent link">&para;</a></h3>
+<h3 id="overview_29"><a href="../reference/install/macos/common/docker/#overview">Overview</a><a class="headerlink" href="#overview_29" title="Permanent link">&para;</a></h3>
+<h2 id="installmacoscommoniterm2sh"><a href="../reference/install/macos/common/iterm2/#installmacoscommoniterm2sh">install/macos/common/iterm2.sh</a><a class="headerlink" href="#installmacoscommoniterm2sh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_33"><a href="../reference/install/macos/common/iterm2/#metadata">Metadata</a><a class="headerlink" href="#metadata_33" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_30"><a href="../reference/install/macos/common/iterm2/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_30" title="Permanent link">&para;</a></h3>
+<h3 id="overview_30"><a href="../reference/install/macos/common/iterm2/#overview">Overview</a><a class="headerlink" href="#overview_30" title="Permanent link">&para;</a></h3>
+<h2 id="installmacoscommonmac_app_storesh"><a href="../reference/install/macos/common/mac_app_store/#installmacoscommonmac_app_storesh">install/macos/common/mac_app_store.sh</a><a class="headerlink" href="#installmacoscommonmac_app_storesh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_34"><a href="../reference/install/macos/common/mac_app_store/#metadata">Metadata</a><a class="headerlink" href="#metadata_34" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_31"><a href="../reference/install/macos/common/mac_app_store/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_31" title="Permanent link">&para;</a></h3>
+<h3 id="overview_31"><a href="../reference/install/macos/common/mac_app_store/#overview">Overview</a><a class="headerlink" href="#overview_31" title="Permanent link">&para;</a></h3>
+<h2 id="installmacoscommonmiscsh"><a href="../reference/install/macos/common/misc/#installmacoscommonmiscsh">install/macos/common/misc.sh</a><a class="headerlink" href="#installmacoscommonmiscsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_35"><a href="../reference/install/macos/common/misc/#metadata">Metadata</a><a class="headerlink" href="#metadata_35" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_32"><a href="../reference/install/macos/common/misc/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_32" title="Permanent link">&para;</a></h3>
+<h3 id="overview_32"><a href="../reference/install/macos/common/misc/#overview">Overview</a><a class="headerlink" href="#overview_32" title="Permanent link">&para;</a></h3>
+<h2 id="installmacoscommontmuxsh"><a href="../reference/install/macos/common/tmux/#installmacoscommontmuxsh">install/macos/common/tmux.sh</a><a class="headerlink" href="#installmacoscommontmuxsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_36"><a href="../reference/install/macos/common/tmux/#metadata">Metadata</a><a class="headerlink" href="#metadata_36" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_33"><a href="../reference/install/macos/common/tmux/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_33" title="Permanent link">&para;</a></h3>
+<h3 id="overview_33"><a href="../reference/install/macos/common/tmux/#overview">Overview</a><a class="headerlink" href="#overview_33" title="Permanent link">&para;</a></h3>
+<h2 id="installubuntuclientdockersh"><a href="../reference/install/ubuntu/client/docker/#installubuntuclientdockersh">install/ubuntu/client/docker.sh</a><a class="headerlink" href="#installubuntuclientdockersh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_37"><a href="../reference/install/ubuntu/client/docker/#metadata">Metadata</a><a class="headerlink" href="#metadata_37" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_34"><a href="../reference/install/ubuntu/client/docker/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_34" title="Permanent link">&para;</a></h3>
+<h3 id="overview_34"><a href="../reference/install/ubuntu/client/docker/#overview">Overview</a><a class="headerlink" href="#overview_34" title="Permanent link">&para;</a></h3>
+<h2 id="installubuntuclientmiscsh"><a href="../reference/install/ubuntu/client/misc/#installubuntuclientmiscsh">install/ubuntu/client/misc.sh</a><a class="headerlink" href="#installubuntuclientmiscsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_38"><a href="../reference/install/ubuntu/client/misc/#metadata">Metadata</a><a class="headerlink" href="#metadata_38" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_35"><a href="../reference/install/ubuntu/client/misc/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_35" title="Permanent link">&para;</a></h3>
+<h3 id="overview_35"><a href="../reference/install/ubuntu/client/misc/#overview">Overview</a><a class="headerlink" href="#overview_35" title="Permanent link">&para;</a></h3>
+<h2 id="installubuntucommondependenciessh"><a href="../reference/install/ubuntu/common/dependencies/#installubuntucommondependenciessh">install/ubuntu/common/dependencies.sh</a><a class="headerlink" href="#installubuntucommondependenciessh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_39"><a href="../reference/install/ubuntu/common/dependencies/#metadata">Metadata</a><a class="headerlink" href="#metadata_39" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_36"><a href="../reference/install/ubuntu/common/dependencies/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_36" title="Permanent link">&para;</a></h3>
+<h3 id="overview_36"><a href="../reference/install/ubuntu/common/dependencies/#overview">Overview</a><a class="headerlink" href="#overview_36" title="Permanent link">&para;</a></h3>
+<h2 id="installubuntucommonsshsh"><a href="../reference/install/ubuntu/common/ssh/#installubuntucommonsshsh">install/ubuntu/common/ssh.sh</a><a class="headerlink" href="#installubuntucommonsshsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_40"><a href="../reference/install/ubuntu/common/ssh/#metadata">Metadata</a><a class="headerlink" href="#metadata_40" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_37"><a href="../reference/install/ubuntu/common/ssh/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_37" title="Permanent link">&para;</a></h3>
+<h3 id="overview_37"><a href="../reference/install/ubuntu/common/ssh/#overview">Overview</a><a class="headerlink" href="#overview_37" title="Permanent link">&para;</a></h3>
+<h2 id="installubuntucommontmuxsh"><a href="../reference/install/ubuntu/common/tmux/#installubuntucommontmuxsh">install/ubuntu/common/tmux.sh</a><a class="headerlink" href="#installubuntucommontmuxsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_41"><a href="../reference/install/ubuntu/common/tmux/#metadata">Metadata</a><a class="headerlink" href="#metadata_41" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_38"><a href="../reference/install/ubuntu/common/tmux/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_38" title="Permanent link">&para;</a></h3>
+<h3 id="overview_38"><a href="../reference/install/ubuntu/common/tmux/#overview">Overview</a><a class="headerlink" href="#overview_38" title="Permanent link">&para;</a></h3>
+<h2 id="installubuntuservermiscsh"><a href="../reference/install/ubuntu/server/misc/#installubuntuservermiscsh">install/ubuntu/server/misc.sh</a><a class="headerlink" href="#installubuntuservermiscsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_42"><a href="../reference/install/ubuntu/server/misc/#metadata">Metadata</a><a class="headerlink" href="#metadata_42" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_39"><a href="../reference/install/ubuntu/server/misc/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_39" title="Permanent link">&para;</a></h3>
+<h3 id="overview_39"><a href="../reference/install/ubuntu/server/misc/#overview">Overview</a><a class="headerlink" href="#overview_39" title="Permanent link">&para;</a></h3>
+<h2 id="installubuntuserversetup_localesh"><a href="../reference/install/ubuntu/server/setup_locale/#installubuntuserversetup_localesh">install/ubuntu/server/setup_locale.sh</a><a class="headerlink" href="#installubuntuserversetup_localesh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_43"><a href="../reference/install/ubuntu/server/setup_locale/#metadata">Metadata</a><a class="headerlink" href="#metadata_43" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_40"><a href="../reference/install/ubuntu/server/setup_locale/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_40" title="Permanent link">&para;</a></h3>
+<h3 id="overview_40"><a href="../reference/install/ubuntu/server/setup_locale/#overview">Overview</a><a class="headerlink" href="#overview_40" title="Permanent link">&para;</a></h3>
+<h2 id="installubuntuserversetup_timezonesh"><a href="../reference/install/ubuntu/server/setup_timezone/#installubuntuserversetup_timezonesh">install/ubuntu/server/setup_timezone.sh</a><a class="headerlink" href="#installubuntuserversetup_timezonesh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_44"><a href="../reference/install/ubuntu/server/setup_timezone/#metadata">Metadata</a><a class="headerlink" href="#metadata_44" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_41"><a href="../reference/install/ubuntu/server/setup_timezone/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_41" title="Permanent link">&para;</a></h3>
+<h3 id="overview_41"><a href="../reference/install/ubuntu/server/setup_timezone/#overview">Overview</a><a class="headerlink" href="#overview_41" title="Permanent link">&para;</a></h3>
+<h2 id="installubuntuserverssh_serversh"><a href="../reference/install/ubuntu/server/ssh_server/#installubuntuserverssh_serversh">install/ubuntu/server/ssh_server.sh</a><a class="headerlink" href="#installubuntuserverssh_serversh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_45"><a href="../reference/install/ubuntu/server/ssh_server/#metadata">Metadata</a><a class="headerlink" href="#metadata_45" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_42"><a href="../reference/install/ubuntu/server/ssh_server/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_42" title="Permanent link">&para;</a></h3>
+<h3 id="overview_42"><a href="../reference/install/ubuntu/server/ssh_server/#overview">Overview</a><a class="headerlink" href="#overview_42" title="Permanent link">&para;</a></h3>
+<h2 id="installubuntuserverstarshipsh"><a href="../reference/install/ubuntu/server/starship/#installubuntuserverstarshipsh">install/ubuntu/server/starship.sh</a><a class="headerlink" href="#installubuntuserverstarshipsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_46"><a href="../reference/install/ubuntu/server/starship/#metadata">Metadata</a><a class="headerlink" href="#metadata_46" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_43"><a href="../reference/install/ubuntu/server/starship/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_43" title="Permanent link">&para;</a></h3>
+<h3 id="overview_43"><a href="../reference/install/ubuntu/server/starship/#overview">Overview</a><a class="headerlink" href="#overview_43" title="Permanent link">&para;</a></h3>
+<h2 id="scriptsgenerate-docssh"><a href="../reference/scripts/generate-docs/#scriptsgenerate-docssh">scripts/generate-docs.sh</a><a class="headerlink" href="#scriptsgenerate-docssh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_47"><a href="../reference/scripts/generate-docs/#metadata">Metadata</a><a class="headerlink" href="#metadata_47" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_44"><a href="../reference/scripts/generate-docs/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_44" title="Permanent link">&para;</a></h3>
+<h3 id="overview_44"><a href="../reference/scripts/generate-docs/#overview">Overview</a><a class="headerlink" href="#overview_44" title="Permanent link">&para;</a></h3>
+<h2 id="scriptsrun_benchmarksh"><a href="../reference/scripts/run_benchmark/#scriptsrun_benchmarksh">scripts/run_benchmark.sh</a><a class="headerlink" href="#scriptsrun_benchmarksh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_48"><a href="../reference/scripts/run_benchmark/#metadata">Metadata</a><a class="headerlink" href="#metadata_48" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_45"><a href="../reference/scripts/run_benchmark/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_45" title="Permanent link">&para;</a></h3>
+<h3 id="overview_45"><a href="../reference/scripts/run_benchmark/#overview">Overview</a><a class="headerlink" href="#overview_45" title="Permanent link">&para;</a></h3>
+<h2 id="scriptsrun_unit_testsh"><a href="../reference/scripts/run_unit_test/#scriptsrun_unit_testsh">scripts/run_unit_test.sh</a><a class="headerlink" href="#scriptsrun_unit_testsh" title="Permanent link">&para;</a></h2>
+<h3 id="metadata_49"><a href="../reference/scripts/run_unit_test/#metadata">Metadata</a><a class="headerlink" href="#metadata_49" title="Permanent link">&para;</a></h3>
+<h3 id="generated-reference_46"><a href="../reference/scripts/run_unit_test/#generated-reference">Generated Reference</a><a class="headerlink" href="#generated-reference_46" title="Permanent link">&para;</a></h3>
+<h3 id="overview_46"><a href="../reference/scripts/run_unit_test/#overview">Overview</a><a class="headerlink" href="#overview_46" title="Permanent link">&para;</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

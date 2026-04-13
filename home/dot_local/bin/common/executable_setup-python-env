@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
 
+# @file home/dot_local/bin/common/executable_setup-python-env
+# @brief Bootstrap a Poetry-based Python development environment.
+# @description
+#   Upgrades core Python packaging tools with pip, initializes a Poetry
+#   project, and adds common development dependencies.
+
+# @description Upgrade pip, wheel, setuptools, and Poetry.
 function install_with_pip() {
     pip install -U pip wheel setuptools poetry
 }
 
+# @description Initialize Poetry and add common development dependencies.
 function setup_poetry() {
     poetry init -n
     poetry add --group dev ruff black mypy pytest
 }
 
+# @description Run the Python environment bootstrap flow.
 function setup-python-env() {
     install_with_pip
     setup_poetry

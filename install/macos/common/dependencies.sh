@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
-#
-# dependencies.sh
-#
-# Installs the essential command-line packages required for the dotfiles to function properly.
-# This script is limited to core dependencies.
-# For optional utilities, GUI apps, or user-specific tools, see install/macos/common/misc.sh.
-#
+# @file install/macos/common/dependencies.sh
+# @brief Install essential Homebrew packages for macOS.
+# @description
+#   Installs the core command-line packages required by the dotfiles.
+#   Optional utilities and GUI applications live in
+#   `install/macos/common/misc.sh`.
 
 set -Eeuo pipefail
 
@@ -23,12 +22,19 @@ readonly BREW_PACKAGES=(
     zsh
 )
 
+#
+# @description Check whether a Homebrew package is already installed.
+# @arg $1 string Homebrew package name.
+#
 function is_brew_package_installed() {
     local package="$1"
 
     brew list "${package}" &> /dev/null
 }
 
+#
+# @description Install every missing package from `BREW_PACKAGES`.
+#
 function install_brew_packages() {
     local missing_packages=()
 
@@ -47,6 +53,9 @@ function install_brew_packages() {
     fi
 }
 
+#
+# @description Install the required Homebrew dependencies.
+#
 function main() {
     install_brew_packages
 }

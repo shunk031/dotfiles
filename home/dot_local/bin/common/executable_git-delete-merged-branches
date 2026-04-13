@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 
+# @file home/dot_local/bin/common/executable_git-delete-merged-branches
+# @brief Delete local branches already merged through squash-and-merge.
+# @description
+#   Detects the repository default branch, compares local branches against it,
+#   and removes branches whose tree has already been integrated upstream.
+
+# @description Check whether the current directory is inside a Git repository.
 function is_inside_git_repository() {
     git rev-parse --is-inside-work-tree > /dev/null 2>&1
 }
 
+# @description Detect the default branch name from the `origin` remote.
 function get_default_branch() {
     local default_branch
 
@@ -12,6 +20,7 @@ function get_default_branch() {
     echo -n "${default_branch}"
 }
 
+# @description Delete local branches whose content is already on the default branch.
 function git-delete-merged-branches() {
     # delete all git branches which have been "squash and merge" via GitHub
     # ref. https://stackoverflow.com/questions/43489303/how-can-i-delete-all-git-branches-which-have-been-squash-and-merge-via-github

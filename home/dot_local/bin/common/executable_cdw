@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# @file home/dot_local/bin/common/executable_cdw
+# @brief Change into the most recent `gwq` workspace.
+# @description
+#   Selects the newest path returned by `gwq list --json` and changes the
+#   current shell into that repository.
+
+# @description Jump to the newest `gwq` workspace path.
 function cdw() {
     # git 内かどうかをチェック
     if ! git rev-parse --is-inside-work-tree &> /dev/null; then

@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# @file install/macos/common/tmux.sh
+# @brief Install tmux on macOS.
+# @description
+#   Installs or removes `tmux`, with a GitHub Actions-specific workaround for
+#   brew dependency resolution.
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
@@ -10,6 +16,9 @@ readonly PACKAGES=(
     tmux
 )
 
+#
+# @description Install `tmux` while tolerating the CI CMake pinning issue.
+#
 function install_tmux() {
     # On GitHub Actions macOS instances, reinstalling CMake fails.
     # Implement the following workaround to avoid this issue.
@@ -19,10 +28,16 @@ function install_tmux() {
     done
 }
 
+#
+# @description Remove the installed `tmux` package.
+#
 function uninstall_tmux() {
     brew uninstall "${PACKAGES[@]}"
 }
 
+#
+# @description Run the tmux installation flow.
+#
 function main() {
     install_tmux
 }

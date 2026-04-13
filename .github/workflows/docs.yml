@@ -1,0 +1,47 @@
+name: Docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - ".github/workflows/docs.yml"
+      - "Makefile"
+      - "README.md"
+      - "mkdocs.yml"
+      - "scripts/**"
+      - "install/**"
+      - "home/.chezmoiscripts/**"
+      - "home/dot_claude/hooks/**"
+      - "home/dot_config/alias/**"
+      - "home/dot_local/bin/**"
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Setup mise
+        uses: jdx/mise-action@v4
+        with:
+          install: true
+          cache: true
+
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy docs
+        run: make deploy

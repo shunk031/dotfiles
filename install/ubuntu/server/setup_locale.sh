@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# @file install/ubuntu/server/setup_locale.sh
+# @brief Ensure the preferred locale exists on Ubuntu servers.
+# @description
+#   Generates `en_US.UTF-8` when it is missing and updates the system locale
+#   configuration.
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
@@ -8,6 +14,9 @@ fi
 
 readonly TARGET="en_US.UTF-8"
 
+#
+# @description Generate the target locale when the server does not have it yet.
+#
 function main() {
     # `locale -a` often outputs in lowercase, so we convert to lowercase for comparison
     TARGET_LOWER=$(echo "$TARGET" | tr '[:upper:]' '[:lower:]')

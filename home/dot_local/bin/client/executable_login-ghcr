@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# @file home/dot_local/bin/client/executable_login-ghcr
+# @brief Log Docker into GitHub Container Registry.
+# @description
+#   Fetches the GHCR username and personal access token from 1Password and
+#   authenticates Docker against `ghcr.io`.
+
+# @description Log into GHCR using credentials stored in 1Password.
 function login-ghcr() {
     local cr_pat username
     cr_pat=$(op item get github.com --fields label=cr-pat)

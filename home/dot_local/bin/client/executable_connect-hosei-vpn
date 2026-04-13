@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
 
+# @file home/dot_local/bin/client/executable_connect-hosei-vpn
+# @brief Connect to the Hosei University VPN.
+# @description
+#   Reads the stored AnyConnect credentials from the configured JSON file and
+#   connects to the Hosei VPN host through the Cisco AnyConnect CLI.
+
 readonly HOSEI_VPN_CREDENTIAL_JSON="${HOSEI_VPN_CREDENTIAL_JSON:-${HOME%/}/.config/anyconnect/hosei_credential.json}"
 readonly HOSEI_VPN_HOST="vpn.hosei.ac.jp"
 
+# @description Read the VPN username from the credential JSON file.
 function get-username() {
     jq < "${HOSEI_VPN_CREDENTIAL_JSON}" -r ".username"
 }
 
+# @description Read the VPN password from the credential JSON file.
 function get-password() {
     jq < "${HOSEI_VPN_CREDENTIAL_JSON}" -r ".password"
 }
 
+# @description Connect to the Hosei VPN using the stored credentials.
 function connect-hosei-vpn() {
     username=$(get-username)
     password=$(get-password)

@@ -69,6 +69,23 @@ bash install/macos/common/docker.sh
 
 Each installation script can be found under the [`./install`](https://github.com/shunk031/dotfiles/tree/master/install) directory.
 
+## 📚 Documentation
+
+This repository can generate a temporary MkDocs site from the shell-based setup assets.
+The generated Markdown lives under `docs/reference/`, `docs/index.md` is regenerated as a landing page, `docs/catalog.md` is regenerated as the full catalog, and internal Codex working notes live under `.docs/codex/` so they are not published.
+
+```shell
+make docs
+make serve
+make serve PORT=8001
+make deploy
+```
+
+- `make docs`: generate Markdown with `shdoc` (falling back to source-based pages when needed) and rebuild the site.
+- `make serve`: preview the generated site locally with MkDocs on `127.0.0.1:8000` by default.
+- `make serve PORT=8001`: preview the site on a different local port when `8000` is already in use.
+- `make deploy`: publish the current generated site to the `gh-pages` branch.
+
 ## 🛠️ Update & Test 🧪
 
 Updating and testing the dotfiles follows [chezmoi's daily operations](https://www.chezmoi.io/user-guide/daily-operations/).

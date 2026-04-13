@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
 
+# @file home/dot_local/bin/common/executable_setup-gh
+# @brief Authenticate `gh` and upload the local SSH key.
+# @description
+#   Logs into GitHub through the GitHub CLI and registers the local public SSH
+#   key on the authenticated account.
+
 set -Eeuo pipefail
 
+# @description Authenticate GitHub CLI against github.com over HTTPS.
 function login_to_github() {
     gh auth login -h github.com -p https
 }
 
+# @description Upload the local public SSH key through GitHub CLI.
 function add_ssh_key_to_github() {
     gh auth refresh -h github.com -s admin:public_key
     gh ssh-key add "${HOME%/}/.ssh/id_ed25519.pub"
 }
 
+# @description Run the GitHub authentication and SSH key setup flow.
 function main() {
     login_to_github
     add_ssh_key_to_github

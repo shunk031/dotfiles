@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 
+# @file scripts/run_benchmark.sh
+# @brief Measure zsh startup latency for the repository benchmark workflow.
+# @description
+#   Creates a temporary directory, records initial and average interactive zsh
+#   startup times, prints benchmark-action compatible JSON, and cleans up.
+
 set -Eeuo pipefail
 
 if [ "${DOTFILES_DEBUG:-}" ]; then
     set -x
 fi
 
+#
+# @description Create and print the temporary directory used for benchmark files.
+#
 function prepare_benchmark() {
     local tmp_dir
     tmp_dir="$(mktemp -d)"
@@ -13,17 +22,27 @@ function prepare_benchmark() {
     echo -n "${tmp_dir}"
 }
 
+#
+# @description Remove the benchmark result directory after reporting.
+# @arg $1 path Temporary benchmark directory.
+#
 function cleanup_result_dir() {
     local target_dir=$1
     echo "cleanup ${target_dir}" >&2
     rm -rf "${target_dir}"
 }
 
+#
+# @description Detect the current operating system in lowercase form.
+#
 function get_os() {
     os="$(uname -s | tr '[:upper:]' '[:lower:]')"
     echo -n "${os}"
 }
 
+#
+# @description Select the appropriate `time` command for the current platform.
+#
 function get_time_command() {
     case "$(get_os)" in
     darwin)
@@ -35,6 +54,10 @@ function get_time_command() {
     esac
 }
 
+#
+# @description Measure the first interactive zsh startup time.
+# @arg $1 path Temporary benchmark directory.
+#
 function measure_initial_startup_time() {
     local benchmark_result_dir=$1
     local result_file="${benchmark_result_dir}/zsh-initial-startup-time.txt"
@@ -45,6 +68,10 @@ function measure_initial_startup_time() {
     "${time_cmd}" --format="%e" --output="${result_file}" zsh -i -c exit
 }
 
+#
+# @description Measure ten interactive zsh startups for an average value.
+# @arg $1 path Temporary benchmark directory.
+#
 function measure_average_startup_time() {
     local benchmark_result_dir=$1
 
@@ -58,6 +85,10 @@ function measure_average_startup_time() {
     done
 }
 
+#
+# @description Print benchmark-action compatible JSON from collected timings.
+# @arg $1 path Temporary benchmark directory.
+#
 function record_startup_time() {
     local benchmark_result_dir=$1
 
@@ -85,6 +116,9 @@ EOJ
 
 }
 
+#
+# @description Run the full benchmark workflow and print the JSON payload.
+#
 function main() {
     local tmp_dir
     tmp_dir=$(prepare_benchmark)

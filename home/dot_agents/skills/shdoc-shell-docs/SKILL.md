@@ -12,7 +12,7 @@ Use this skill to make shellscript comments parseable by `shdoc` without bloatin
 ## Workflow
 
 1. Inspect the target shell file before writing comments.
-2. Treat the upstream `shdoc` README as the canonical annotation reference.
+2. Read `references/shdoc-rules.md` before editing comments.
 3. Use `scripts/generate-docs.sh` as the repo-local style example when working in this repository.
 4. Add or repair file-level annotations near the top of the file:
    - Prefer `@file` for the script identifier.
@@ -36,5 +36,4 @@ Use this skill to make shellscript comments parseable by `shdoc` without bloatin
 
 ## References
 
-- Read `references/shdoc-rules.md` for the minimal tag set and concise examples.
-- Fall back to the upstream `shdoc` README when you need the full annotation vocabulary.
+- Read `references/shdoc-rules.md` for the minimal tag set, concise examples, and external reference policy.

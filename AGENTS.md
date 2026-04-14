@@ -13,6 +13,7 @@
 - When you are asked to create a branch, commit, or pull request and the current worktree contains unrelated staged, unstaged, or untracked changes, prefer creating a separate `git worktree` from the default branch.
 - In that separate `git worktree`, apply only the changes relevant to the current task and do not mix unrelated changes into the branch or pull request.
 - Only prioritize the current branch or worktree when the user explicitly asks you to work there.
+- After pushing to GitHub, always check the GitHub Actions CI results. If CI fails, investigate the failure, fix the issue, push again, and repeat until all CI checks pass.
 
 ## Test Policy
 

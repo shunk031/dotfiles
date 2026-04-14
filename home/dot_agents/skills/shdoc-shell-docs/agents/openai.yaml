@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shdoc Shell Docs"
+  short_description: "Write and review shdoc docs for shell scripts"
+  default_prompt: "Use $shdoc-shell-docs to add or review shdoc annotations for a shell script."

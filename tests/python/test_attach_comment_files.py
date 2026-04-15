@@ -41,7 +41,7 @@ class ParseArgsTests(unittest.TestCase):
 
     def test_parse_args_requires_repo_with_issue_or_pr(self) -> None:
         with self.assertRaises(SystemExit) as context:
-            self.parse_args("--issue", "1", "note.md")
+            self.parse_args("--url", "https://github.com/owner/repo/pull/1", "--issue", "1", "note.md")
         self.assertEqual(context.exception.code, 2)
 
 
@@ -51,6 +51,10 @@ class HelperFunctionTests(unittest.TestCase):
             with self.assertRaises(SystemExit) as context:
                 MODULE.ensure_command("npx")
         self.assertEqual(str(context.exception), "Required command not found: npx")
+
+    def test_ensure_command_accepts_existing_binary(self) -> None:
+        with patch.object(MODULE.shutil, "which", return_value="/usr/bin/npx"):
+            MODULE.ensure_command("npx")
 
     def test_validate_source_files_accepts_real_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -208,11 +212,12 @@ class HelperFunctionTests(unittest.TestCase):
         )
 
     def test_find_attachment_url_returns_existing_label_when_needed(self) -> None:
-        after_text = "[chart--deadbeef.png](https://github.com/user-attachments/assets/existing)"
+        before_text = "[chart--deadbeef.png](https://github.com/user-attachments/assets/existing)"
+        after_text = before_text
         self.assertEqual(
             MODULE.find_attachment_url(
                 staged_name="chart--deadbeef.png",
-                before_texts=[""],
+                before_texts=[before_text],
                 after_texts=[after_text],
             ),
             "https://github.com/user-attachments/assets/existing",
@@ -235,6 +240,25 @@ class HelperFunctionTests(unittest.TestCase):
                 str(profile_dir),
                 "--browser",
                 "chrome",
+            ],
+            cwd=run_dir,
+        )
+
+    def test_open_browser_omits_browser_flag_when_not_requested(self) -> None:
+        run_dir = Path("/tmp/run")
+        profile_dir = Path("/tmp/profile")
+        with patch.object(MODULE, "run") as run_mock:
+            MODULE.open_browser("https://github.com/owner/repo/pull/1", run_dir, profile_dir, None)
+
+        run_mock.assert_called_once_with(
+            [
+                "npx",
+                "@playwright/cli",
+                "open",
+                "https://github.com/owner/repo/pull/1",
+                "--headed",
+                "--profile",
+                str(profile_dir),
             ],
             cwd=run_dir,
         )
@@ -409,6 +433,39 @@ class HelperFunctionTests(unittest.TestCase):
 
 
 class MainTests(unittest.TestCase):
+    def test_script_formats_called_process_error_message(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            source_path = tmp_path / "report.md"
+            source_path.write_text("payload", encoding="utf-8")
+
+            fake_npx = tmp_path / "npx"
+            fake_npx.write_text("#!/bin/sh\necho boom >&2\nexit 42\n", encoding="utf-8")
+            fake_npx.chmod(0o755)
+
+            env = dict(MODULE.os.environ)
+            env["PATH"] = f"{tmp_path}:{env['PATH']}"
+            env["PYTHONDONTWRITEBYTECODE"] = "1"
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT_PATH),
+                    "--url",
+                    "https://github.com/owner/repo/pull/1",
+                    str(source_path),
+                ],
+                cwd=tmpdir,
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Command failed: npx @playwright/cli open", result.stderr)
+        self.assertIn("stderr:", result.stderr)
+        self.assertIn("boom", result.stderr)
+
     def test_main_runs_full_flow_and_cleans_up_run_dir(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)

@@ -90,6 +90,17 @@ jobs:
           BASHCOV_COMMAND_NAME="unit-test-${OS}-${SYSTEM}" \
             bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
+      - name: Run Python helper tests
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.system == 'client' }}
+        run: |
+          mkdir -p coverage
+          python3 -m pip install --user coverage
+          PYTHONDONTWRITEBYTECODE=1 python3 -m coverage run \
+            --branch \
+            --source=home/dot_agents/skills/gh-comment-attach-files/scripts \
+            -m unittest discover -s tests/python -p 'test_*.py'
+          python3 -m coverage xml -o coverage/python-coverage.xml
+
       - name: Setup for codecov
         if: ${{ github.actor != 'dependabot[bot]' }}
         run: |
@@ -120,4 +131,17 @@ jobs:
           fail_ci_if_error: true
           flags: ${{ env.CODECOV_FLAGS }}
           name: ${{ env.CODECOV_NAME }}
+          verbose: true
+
+      - name: Upload Python coverage to Codecov
+        if: ${{ github.actor != 'dependabot[bot]' && matrix.os == 'ubuntu-latest' && matrix.system == 'client' }}
+        uses: codecov/codecov-action@v6
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: ./coverage/python-coverage.xml
+          disable_search: true
+          fail_ci_if_error: true
+          flags: python-skills
+          name: codecov-dotfiles-python-skills
           verbose: true

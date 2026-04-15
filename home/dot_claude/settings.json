@@ -1,7 +1,7 @@
 {
   "model": "opusplan",
   "alwaysThinkingEnabled": true,
-  "plansDirectory": "./plans",
+  "plansDirectory": "./.agents/worklog/claude",
   "permissions": {
     "deny": [
       "Bash(sudo:*)",

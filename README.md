@@ -72,7 +72,7 @@ Each installation script can be found under the [`./install`](https://github.com
 ## 📚 Documentation
 
 This repository can generate a temporary MkDocs site from the shell-based setup assets.
-The generated Markdown lives under `docs/reference/`, `docs/index.md` is regenerated as a landing page, `docs/catalog.md` is regenerated as the full catalog, and internal Codex working notes live under `.docs/codex/` so they are not published.
+The generated Markdown lives under `docs/reference/`, `docs/index.md` is regenerated as a landing page, `docs/catalog.md` is regenerated as the full catalog, and internal Codex working notes live under `.agents/worklog/` so they are not published.
 
 ```shell
 make docs

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Attach local files to a GitHub comment draft and return hosted URLs."""
+
 from __future__ import annotations
 
 import argparse
@@ -204,12 +206,16 @@ async (page) => {
 
 @dataclass(frozen=True)
 class StagedFile:
+    """Map one source file to its staged upload path and generated name."""
+
     source_path: Path
     staged_path: Path
     staged_name: str
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse CLI arguments and validate target selection combinations."""
+
     parser = argparse.ArgumentParser(
         description="Attach files to a GitHub issue or pull request comment and return hosted URLs.",
     )
@@ -268,6 +274,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    """Run the full attachment workflow and print JSON results."""
+
     args = parse_args()
     ensure_command("npx")
     if args.repo:
@@ -314,12 +322,16 @@ def main() -> int:
 
 
 def ensure_command(name: str) -> None:
+    """Fail fast when a required command is missing from PATH."""
+
     if shutil.which(name):
         return
     raise SystemExit(f"Required command not found: {name}")
 
 
 def validate_source_files(source_files: Sequence[Path]) -> None:
+    """Ensure each requested upload exists and is a regular file."""
+
     for path in source_files:
         if not path.exists():
             raise SystemExit(f"File not found: {path}")
@@ -328,6 +340,8 @@ def validate_source_files(source_files: Sequence[Path]) -> None:
 
 
 def resolve_target_url(args: argparse.Namespace) -> str:
+    """Resolve the target issue or pull request URL from CLI input."""
+
     if args.url:
         return args.url
 
@@ -361,6 +375,8 @@ def resolve_target_url(args: argparse.Namespace) -> str:
 
 
 def resolve_profile_dir(profile_dir: str) -> Path:
+    """Resolve the Playwright profile directory against the current working tree."""
+
     candidate = Path(profile_dir).expanduser()
     if candidate.is_absolute():
         return candidate
@@ -368,6 +384,8 @@ def resolve_profile_dir(profile_dir: str) -> Path:
 
 
 def stage_files(source_files: Sequence[Path], uploads_dir: Path) -> list[StagedFile]:
+    """Copy source files into the upload workspace with unique staged names."""
+
     staged_files: list[StagedFile] = []
     used_names: set[str] = set()
     for source_path in source_files:
@@ -385,6 +403,8 @@ def stage_files(source_files: Sequence[Path], uploads_dir: Path) -> list[StagedF
 
 
 def build_staged_name(source_path: Path, used_names: set[str]) -> str:
+    """Generate a stable staged filename that stays unique within one run."""
+
     stem = sanitize_component(source_path.stem) or "attachment"
     suffix = "".join(source_path.suffixes)
     digest = hashlib.sha1(str(source_path).encode("utf-8")).hexdigest()[:8]
@@ -398,11 +418,15 @@ def build_staged_name(source_path: Path, used_names: set[str]) -> str:
 
 
 def sanitize_component(value: str) -> str:
+    """Normalize a filename fragment for use in staged upload names."""
+
     sanitized = re.sub(r"[^A-Za-z0-9._-]+", "-", value).strip("-._")
     return sanitized[:80]
 
 
 def open_browser(target_url: str, run_dir: Path, profile_dir: Path, browser: str | None) -> None:
+    """Open the target page in a persistent Playwright CLI browser session."""
+
     command = [
         "npx",
         "@playwright/cli",
@@ -418,6 +442,8 @@ def open_browser(target_url: str, run_dir: Path, profile_dir: Path, browser: str
 
 
 def close_browser(run_dir: Path) -> None:
+    """Close the Playwright CLI browser session if it is still running."""
+
     try:
         run(["npx", "@playwright/cli", "close"], cwd=run_dir)
     except subprocess.CalledProcessError:
@@ -425,6 +451,8 @@ def close_browser(run_dir: Path) -> None:
 
 
 def wait_for_comment_composer(run_dir: Path, ready_timeout: int, poll_interval: float) -> None:
+    """Poll until a visible GitHub comment composer is ready for uploads."""
+
     started_at = time.monotonic()
     while True:
         result = prepare_comment_composer(run_dir)
@@ -441,6 +469,8 @@ def wait_for_comment_composer(run_dir: Path, ready_timeout: int, poll_interval: 
 
 
 def prepare_comment_composer(run_dir: Path) -> dict[str, object]:
+    """Tag the active comment textarea and file input in the page DOM."""
+
     payload = {
         "textareaSelectors": TEXTAREA_SELECTORS,
         "inputSelectors": FILE_INPUT_SELECTORS,
@@ -452,6 +482,8 @@ def prepare_comment_composer(run_dir: Path) -> dict[str, object]:
 
 
 def upload_files(run_dir: Path, staged_files: Sequence[StagedFile], timeout_ms: int) -> list[tuple[StagedFile, str]]:
+    """Upload staged files one by one and collect their hosted URLs."""
+
     attachments: list[tuple[StagedFile, str]] = []
     for staged_file in staged_files:
         composer_before = get_composer_markdown(run_dir)
@@ -473,6 +505,8 @@ def upload_files(run_dir: Path, staged_files: Sequence[StagedFile], timeout_ms: 
 
 
 def perform_upload(run_dir: Path, staged_file: StagedFile, timeout_ms: int) -> dict[str, object]:
+    """Attach one staged file and return the updated composer state."""
+
     payload = {
         "filePath": str(staged_file.staged_path),
         "stagedName": staged_file.staged_name,
@@ -493,6 +527,8 @@ def perform_upload(run_dir: Path, staged_file: StagedFile, timeout_ms: int) -> d
 
 
 def get_composer_markdown(run_dir: Path) -> str:
+    """Read the current Markdown contents from the tagged comment textarea."""
+
     code = """
 async (page) => {
   const textarea = page.locator("[data-gh-comment-attach='textarea']").first();
@@ -506,10 +542,14 @@ async (page) => {
 
 
 def capture_snapshot(run_dir: Path) -> str:
+    """Capture a Playwright CLI snapshot for later diffing and URL discovery."""
+
     return run_playwright(["snapshot"], cwd=run_dir).stdout
 
 
 def find_attachment_url(staged_name: str, before_texts: Sequence[str], after_texts: Sequence[str]) -> str | None:
+    """Infer the newly inserted attachment URL from before/after page state."""
+
     before_links = extract_attachment_links("\n".join(before_texts))
     after_links = extract_attachment_links("\n".join(after_texts))
 
@@ -532,6 +572,8 @@ def find_attachment_url(staged_name: str, before_texts: Sequence[str], after_tex
 
 
 def extract_attachment_links(text: str) -> list[dict[str, str]]:
+    """Extract GitHub attachment Markdown links from arbitrary text."""
+
     links: list[dict[str, str]] = []
     for match in MARKDOWN_LINK_RE.finditer(text):
         url = match.group("url")
@@ -542,10 +584,14 @@ def extract_attachment_links(text: str) -> list[dict[str, str]]:
 
 
 def run_playwright(arguments: Sequence[str], cwd: Path) -> subprocess.CompletedProcess[str]:
+    """Run a Playwright CLI command inside the temporary workspace."""
+
     return run(["npx", "@playwright/cli", *arguments], cwd=cwd)
 
 
 def run_playwright_json(arguments: Sequence[str], cwd: Path) -> dict[str, object]:
+    """Run Playwright and coerce a JSON object result when available."""
+
     value = run_playwright_value(arguments, cwd=cwd)
     if isinstance(value, dict):
         return value
@@ -553,6 +599,8 @@ def run_playwright_json(arguments: Sequence[str], cwd: Path) -> dict[str, object
 
 
 def run_playwright_value(arguments: Sequence[str], cwd: Path) -> object:
+    """Run Playwright and decode its raw JSON-compatible stdout value."""
+
     result = run_playwright(arguments, cwd=cwd)
     stdout = result.stdout.strip()
     if not stdout:
@@ -561,6 +609,8 @@ def run_playwright_value(arguments: Sequence[str], cwd: Path) -> object:
 
 
 def run(command: Sequence[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+    """Run a subprocess with captured text output and inherited environment."""
+
     return subprocess.run(
         list(command),
         cwd=str(cwd) if cwd else None,

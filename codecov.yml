@@ -1,0 +1,11 @@
+# CI coverage in this repository is collected from shell-oriented unit tests.
+# Exclude Codex skill assets so helper docs/scripts do not affect project coverage.
+ignore:
+  - "codecov.yml"
+  - "home/dot_agents/skills/**/*"
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%

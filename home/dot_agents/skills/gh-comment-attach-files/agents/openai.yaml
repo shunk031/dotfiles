@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Comment Attach"
+  short_description: "Attach files to GitHub comments and return hosted URLs"
+  default_prompt: "Use $gh-comment-attach-files to attach local files to a GitHub issue or pull request comment and return the hosted attachment URLs."

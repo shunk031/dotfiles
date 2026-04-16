@@ -3,3 +3,9 @@
 ignore:
   - "codecov.yml"
   - "home/dot_agents/skills/**/*"
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%

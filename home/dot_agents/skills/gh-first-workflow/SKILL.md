@@ -31,5 +31,6 @@ For pull requests, keep the description aligned with the full current PR content
 - Include inspected issue/PR URLs.
 - When commits were added after PR creation, confirm the PR description was updated to match the full current PR.
 - Keep commit subject in Conventional Commit form: `<type>(<scope>): <summary>`.
+- Do NOT include local absolute file paths (e.g., `/Users/.../`, `/home/.../`) in any output. Use repository-relative paths instead.
 
 Use [gh-git-rules.md](references/gh-git-rules.md) for command examples and commit-type guidance.

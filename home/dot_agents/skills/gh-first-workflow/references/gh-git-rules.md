@@ -5,6 +5,7 @@
 - Run GitHub issue/PR investigations with `gh` before using `web`.
 - Use `web` only when `gh` output is unavailable or insufficient.
 - Include the URL of each investigated issue/PR in the final answer.
+- Never include local absolute file paths in output. Always use repository-relative paths.
 
 ## Typical `gh` Commands
 

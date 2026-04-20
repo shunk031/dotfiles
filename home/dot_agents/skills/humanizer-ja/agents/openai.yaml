@@ -1,0 +1,4 @@
+interface:
+  display_name: "Humanizer JA"
+  short_description: "Humanize Japanese text and remove templated AI phrasing"
+  default_prompt: "Use $humanizer-ja to rewrite this Japanese draft so it sounds natural, specific, and human while preserving the original meaning."

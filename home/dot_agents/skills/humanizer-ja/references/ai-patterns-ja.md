@@ -1,43 +1,43 @@
-# Humanizer JA Reference
+# Humanizer JA リファレンス
 
-Base this workflow on the original humanizer-ja spec, WikiProject AI Cleanup style observations, and Japanese-specific editing patterns.
-Use this file when the rewrite needs the full rule set, concrete examples, or a final audit.
+`humanizer-ja` の元仕様、WikiProject AI Cleanup の知見、日本語特有の癖をまとめた詳細版。
+全文を書き換えるときや最終監査を回すときに読む。
 
-## Table of Contents
+## 目次
 
-1. Guardrails
-2. Category 1: Vocabulary and stock phrasing
-3. Category 2: Structure and formatting
-4. Category 3: Tone and sentence habits
-5. Category 4: Japanese-specific patterns
-6. Category 5: Self-audit
-7. Add human voice
-8. Quick checklist
+1. ガードレール
+2. カテゴリ1: 語彙・定型表現
+3. カテゴリ2: 構造・フォーマット
+4. カテゴリ3: 文体・トーン
+5. カテゴリ4: 日本語固有の癖
+6. カテゴリ5: セルフ監査
+7. 声を入れる
+8. クイックチェック
 
-## Guardrails
+## ガードレール
 
-- Keep the original meaning, register, and factual scope unless the user asks for a stronger rewrite.
-- Do not fabricate numbers, sources, personal episodes, named experts, or confidence.
-- When the source lacks specifics, remove the empty emphasis and leave the sentence plain.
-- When adding a personal angle, use one that is already supported by the user's viewpoint or surrounding context.
-- Keep necessary technical terms when replacing them would reduce precision.
+- 元の意味、文体、事実範囲を勝手に変えない。ユーザーが強い書き換えを求めたときだけ踏み込む。
+- 数字、出典、個人的な体験、専門家名、自信は捏造しない。
+- 本文に具体がないなら、無理に盛らず、そのまま素朴な文へ戻す。
+- 体験や意見を足すときは、ユーザーの立場や周辺文脈で支えられるものだけにする。
+- 技術用語は、置き換えると意味が落ちるなら残す。
 
-## Category 1: Vocabulary and stock phrasing
+## カテゴリ1: 語彙・定型表現
 
-### 1. Stop overplaying significance
+### 1. 意義を盛りすぎない
 
-Replace exaggerated importance with an observed result.
-If the source does not contain concrete evidence, remove the emphasis instead of inventing one.
+大げさな重要性の主張は、観測できる結果に置き換える。
+本文に具体がないなら、盛らずに削る。
 
-NG:
+NG例:
 `この取り組みは、業界全体のDX推進において極めて重要な役割を果たしており、その意義は計り知れない。`
 
-Better:
+OK例:
 `この取り組みで、社内の申請処理が3日から4時間に縮まった。`
 
-### 2. Remove canned evaluation phrases
+### 2. 定型評価語を消す
 
-Treat the following phrases as rewrite targets because they often signal LLM output.
+次の語句は AI っぽさが強いので、見つけたら書き換え対象にする。
 
 - `浮き彫りにしており`
 - `今後の展開が注目されます`
@@ -49,86 +49,86 @@ Treat the following phrases as rewrite targets because they often signal LLM out
 - `〜ではないでしょうか`
 - `重要な示唆を与えている`
 
-Rewrite rule:
-- State what became visible instead of saying `浮き彫りにしており`.
-- Delete `今後の展開が注目されます` or replace it with a concrete prediction.
-- Explain what is actually broad, comprehensive, or groundbreaking.
-- Replace `注目に値する` with one sentence explaining why you care.
-- Turn `〜と言えるでしょう` and `〜ではないでしょうか` into direct statements.
-- Spell out the specific implication instead of `重要な示唆を与えている`.
+書き換え方:
+- `浮き彫りにしており` ではなく、何が見えたのかを書く。
+- `今後の展開が注目されます` は消すか、自分の予測に置き換える。
+- `多面的な` `包括的な` `画期的な` は、何がどうそうなのか具体化する。
+- `注目に値する` は、なぜ自分が気にしたのか 1 文で書く。
+- `〜と言えるでしょう` と `〜ではないでしょうか` は言い切る。
+- `重要な示唆を与えている` は、何の示唆なのか言い直す。
 
-### 3. Reduce stacked katakana
+### 3. カタカナ語の連打を減らす
 
-Replace unnecessary loanwords with ordinary Japanese when meaning stays clear.
-Treat three or more katakana business words in a row as a warning sign.
+意味が落ちないなら、外来語より自然な和語へ寄せる。
+カタカナのビジネス語が 3 語以上続いたら疑う。
 
-NG:
+NG例:
 `ソリューションをレバレッジして、イノベーティブなアプローチでトランスフォーメーションを推進する。`
 
-Better:
+OK例:
 `既存の仕組みを活かして、新しいやり方で業務を変える。`
 
-### 4. Fix vague attribution
+### 4. 曖昧な出典を直す
 
-Avoid anonymous authority such as `業界の専門家によると`, `調査結果が示すように`, or `多くの企業が指摘しているように`.
+`業界の専門家によると` `調査結果が示すように` `多くの企業が指摘しているように` のような匿名の権威づけは避ける。
 
-Rewrite rule:
-- Name the exact source when it exists.
-- When the source is unavailable, write it as your own view or state that no source is cited.
+書き換え方:
+- 出典があるなら固有名で書く。
+- 出典が出せないなら、自分の見立てとして書くか、出典なしと認める。
 
-## Category 2: Structure and formatting
+## カテゴリ2: 構造・フォーマット
 
-### 5. Remove bold-plus-colon bullets
+### 5. 太字+コロンの箇条書きをやめる
 
-The `**Label:** content` bullet pattern is a strong AI marker in Japanese and English.
-Delete the label and keep only the content in natural wording.
+`**ラベル:** 内容` の箇条書きは AI の癖が強い。
+ラベルを外し、内容だけを自然な形で残す。
 
-NG:
+NG例:
 - `**速度:** 処理速度が3倍に向上`
 - `**安全性:** セキュリティ基準を満たす`
 - `**コスト:** 月額費用を40%削減`
 
-Better:
+OK例:
 - `処理速度が3倍になった`
 - `セキュリティ基準もクリアしてる`
 - `月額費用は40%減`
 
-### 6. Resist forced trios
+### 6. 三点セットを強制しない
 
-Do not force every answer into three bullets, three steps, or three takeaways.
-Write one item when one is enough, or four when four are real.
-Treat `3つにまとめると` as a warning phrase that needs justification.
+何でも 3 つにまとめようとしない。
+1 つしかないなら 1 つでよく、4 つあるなら 4 つ書く。
+`3つにまとめると` で始めたくなったら、本当に 3 つで妥当かを見直す。
 
-### 7. Replace em dashes
+### 7. 全角ダッシュを置き換える
 
-Replace `——` with parentheses, commas, or a sentence split.
+`——` はカッコ、読点、文の分割に置き換える。
 
-NG:
+NG例:
 `Claude Code——Anthropicが開発したCLIツール——を使えば`
 
-Better:
+OK例:
 `Claude Code（AnthropicのCLIツール）を使えば`
 
-### 8. Reduce over-structured headings
+### 8. 見出しを細かく刻みすぎない
 
-Do not split a short passage into unnecessary `h2` or `h3` sections.
-When a section is around 300 Japanese characters or shorter, prefer natural paragraph flow over heading scaffolding.
+短い文章を `h2` `h3` で細かく分けすぎない。
+300 字前後の短い区切りなら、見出しより段落の流れを優先する。
 
-## Category 3: Tone and sentence habits
+## カテゴリ3: 文体・トーン
 
-### 9. Delete preachy lead-ins
+### 9. 説教くさい前置きを消す
 
-Cut prefaces such as:
+次のような前置きは削る。
 
 - `ここで重要なのは〜という点です`
 - `〜について理解しておく必要があります`
 - `注意すべき点として`
 
-Write the substance directly and let the reader judge what matters.
+内容をそのまま書き、何が重要かは読み手に委ねる。
 
-### 10. Thin out transitions
+### 10. 接続詞を減らす
 
-Watch for overused transitions such as:
+次の接続詞は増えすぎやすい。
 
 - `一方で`
 - `しかしながら`
@@ -137,166 +137,169 @@ Watch for overused transitions such as:
 - `さらに`
 - `とりわけ`
 
-When three or more appear in a short span, remove at least half and rely on sentence order to carry the logic.
+短い範囲で 3 回以上出てきたら、半分以上は削る。
+文の順序で論理が通るなら、その方が自然。
 
-### 11. Break the denial contrast pattern
+### 11. 否定並列構文を崩す
 
-Treat repeated `〜ではない。〜だ。` constructions as an AI habit.
-When the pattern appears more than once, rewrite at least one instance into a different structure.
+`〜ではない。〜だ。` の連発は AI の癖になりやすい。
+2 回以上続くなら、どれかを別の構文へ書き換える。
 
-NG:
+NG例:
 `単なるツールではない。パラダイムシフトだ。`
 
-NG:
+NG例:
 `コストの問題ではない。文化の問題だ。`
 
-### 12. Avoid pandering
+### 12. 追従的なトーンを避ける
 
-Remove empty praise such as:
+空疎な持ち上げは消す。
 
 - `素晴らしいご質問ですね`
 - `非常に良い指摘です`
 - `おっしゃる通り`
 
-If praise is necessary, say what is actually good instead of flattering the reader.
+褒める必要があるなら、何がよかったのかを具体的に言う。
 
-### 13. Remove AI-style significance tails
+### 13. データの後ろに意味を足しすぎない
 
-Delete add-on clauses that explain what the fact supposedly proves when the data can stand alone.
+数字や事実の後ろに、AI が勝手に意味づけを足す癖を削る。
 
-NG:
+NG例:
 `売上は前年比120%でした。これは同社の戦略が功を奏していることを示しており、今後の成長が期待されます。`
 
-Better:
+OK例:
 `売上は前年比120%でした。`
 
-Targets:
+注意する語尾:
 - `〜を示しており`
 - `〜を物語っています`
 
-## Category 4: Japanese-specific patterns
+## カテゴリ4: 日本語固有の癖
 
-### 14. Break uniform politeness
+### 14. 敬語を均一にしすぎない
 
-Fully even `です・ます` endings read synthetic.
-Mix in short noun phrases, clipped lines, or firmer endings when the tone allows it.
+全文が同じ `です・ます` のリズムだと機械的に見えやすい。
+必要に応じて、短い断定、体言止め、切れのある一文を混ぜる。
 
-### 15. Drop repeated subjects
+### 15. 主語を繰り返しすぎない
 
-Japanese often omits the subject when context is clear.
-Cut repeated subjects that are carried over from English thinking.
+日本語は文脈で主語を落とせる。
+英語の癖のまま、同じ主語を毎文入れない。
 
-NG:
+NG例:
 `このツールは高速です。このツールはセキュリティも強固です。このツールは無料で使えます。`
 
-Better:
+OK例:
 `高速で、セキュリティも強固。しかも無料。`
 
-### 16. Shorten `〜することができます`
+### 16. `〜することができます` を短くする
 
-Replace `〜することができます` with a shorter form every time unless there is a specific legal or formal reason to keep it.
+`〜することができます` は原則すべて短くする。
+法律文書や定型文でない限り、長いまま残さない。
 
-Examples:
+例:
 - `設定を変更することができます` -> `設定を変更できます`
-- Better when tone allows: `設定は変えられます`
+- さらに自然にするなら `設定は変えられます`
 
-### 17. Warm up the conclusion
+### 17. 結論に体温を入れる
 
-Do not end with abstract, low-temperature conclusions such as:
+抽象的で温度の低い結論で終わらない。
 
+NG例:
 - `以上のことから、AIツールの活用は今後ますます重要になると考えられます。`
 
-Prefer a real opinion or felt takeaway.
+OK例:
+- `正直、もうAIなしで仕事するのは無理だと思ってます。`
 
-Better:
-`正直、もうAIなしで仕事するのは無理だと思ってます。`
+## カテゴリ5: セルフ監査
 
-## Category 5: Self-audit
+### 18. 冒頭をチェックする
 
-### 18. Check the opening
-
-Rewrite openings that start with:
+次の書き出しは書き換える。
 
 - `ここでは〜について解説します`
 - `〜が注目を集めています`
 - `近年、〜が急速に進展しており`
 
-Start from a concrete number, scene, event, or personal observation instead.
+数字、場面、出来事、手触りのある観察から入る。
 
-### 19. Check the ending
+### 19. 終わり方をチェックする
 
-Rewrite endings that stop at:
+次の締め方は書き換える。
 
 - `今後の展開が注目されます`
 - `〜が期待されます`
 - `〜と言えるでしょう`
 
-End with one of these instead:
-- a direct opinion
-- a specific next action
-- a short line that leaves a real aftertaste
+代わりに、次のどれかで締める。
 
-### 20. Run the double-check
+- 自分の意見
+- 具体的な次の行動
+- 少し余韻の残る短い一文
 
-Ask:
+### 20. 二重チェックを回す
+
+最後にこう問う。
 
 `この文章を読んで、AIが書いたと思うか？`
 
-If the answer is yes, inspect these points again:
+「はい」なら次を見直す。
 
-- Do stock evaluation phrases remain?
-- Does any `**Label:** content` bullet remain?
-- Is the tone too uniform from start to finish?
-- Are concrete facts or grounded observations present where they should be?
-- Does the conclusion contain a real human voice?
+- 定型評価語が残っていないか
+- `**ラベル:** 内容` 箇条書きが残っていないか
+- 全体のトーンが均一すぎないか
+- 具体や地に足のついた観察があるか
+- 結論に自分の声が入っているか
 
-Rewrite again until the answer becomes no.
+まだ AI くさいなら、もう一度書き直す。
 
-## Add Human Voice
+## 声を入れる
 
-After removing patterns, add a small amount of human presence so the text does not become empty.
+パターンを消しただけでは、文章が空っぽになる。
+最後に少しだけ人間の声を入れる。
 
-### Add one grounded experience
+### 体験を 1 つ入れる
 
-Use forms such as:
+たとえば次の形を使う。
 
 - `自分の場合は〜`
 - `うちでは〜`
 - `実際に試したら〜`
 
-Only add them when they are supported by context.
+ただし、文脈で支えられるときだけ入れる。
 
-### Add one real opinion
+### 意見を 1 つ入れる
 
-Use forms such as:
+たとえば次の形を使う。
 
 - `正直、これは微妙だと思ってます`
 - `個人的にはこっちの方がいい`
 
-Keep it modest when the source does not justify a strong claim.
+根拠が弱いときは、言い切りすぎない。
 
-### Break the rhythm
+### リズムを崩す
 
-Place a short sentence after a long one.
-Allow an occasional fragment or noun-ending line.
-Avoid perfectly even sentence length or perfectly even politeness.
+長い文の後に短い文を置く。
+必要なら体言止めや短い断定を混ぜる。
+文長も語尾も、全部そろえない。
 
-### Admit incompleteness
+### 不完全さを認める
 
-Use limited uncertainty when it is true:
+本当にそうなら、不完全さも残す。
 
 - `まだ試してない`
 - `ここは自信ない`
 
-Over-polished certainty often reads artificial.
+きれいすぎる確信は、かえって AI っぽく見える。
 
-## Quick Checklist
+## クイックチェック
 
-- `浮き彫りにしており` and `今後の展開が注目されます` are gone.
-- No `**Label:** content` bullets remain.
-- No `——` remains.
-- `〜と言えるでしょう` and `〜ではないでしょうか` are gone.
-- No `〜することができます` remains unless there is a clear reason.
-- The opening and ending are not template sentences.
-- At least one grounded opinion or experience is present when the tone allows it.
-- A final read does not feel like AI wrote it.
+- `浮き彫りにしており` と `今後の展開が注目されます` が消えている
+- `**ラベル:** 内容` 箇条書きが残っていない
+- `——` が残っていない
+- `〜と言えるでしょう` と `〜ではないでしょうか` が消えている
+- `〜することができます` が必要なく残っていない
+- 冒頭と結論がテンプレ文で終わっていない
+- 可能なら体験か意見が 1 箇所入っている
+- 最後に読んで、AI が書いた感じがしない

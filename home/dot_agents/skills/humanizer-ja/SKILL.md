@@ -1,39 +1,39 @@
 ---
 name: humanizer-ja
-description: Rewrite Japanese prose so it sounds like a person wrote it, not an LLM. Use when polishing blog posts, notes, emails, documents, social posts, or chat replies that feel AI-generated, and when the user asks to humanize text, remove AI-like phrasing, add voice, or make Japanese read more naturally.
+description: AIくさい日本語を、人が書いたように自然な日本語へ書き換えるスキル。ブログ記事、メモ、メール、文書、SNS投稿、チャット返信などで、AIっぽい言い回しを消したいとき、日本語を人間らしくしたいとき、声や温度を足したいときに使う。
 ---
 
 # Humanizer JA
 
-## Overview
+## 概要
 
-Rewrite AI-sounding Japanese into natural prose with clearer voice, sharper specifics, and less template wording.
-Preserve the original meaning and audience. Remove AI patterns, then replace them with human choices.
+AIっぽい日本語を、具体性と体温のある自然な日本語へ書き換える。
+元の意味、読み手、温度感を保ち、AI パターンを消したうえで人間らしい選択に置き換える。
 
-## Workflow
+## ワークフロー
 
-1. Identify the text's purpose, audience, and target tone from the surrounding context. Infer them when obvious. Ask only when the rewrite would otherwise be risky.
-2. Rewrite the whole passage instead of performing only word-level substitutions.
-3. Remove AI markers first: inflated praise, canned evaluation phrases, stacked katakana, vague attribution, label-colon bullets, over-structured headings, uniform sentence endings, and template openings or closings.
-4. Replace deleted patterns with concrete facts already present in the source, a direct opinion, a small personal angle, shorter wording, or a cleaner sentence break.
-5. Keep claims honest. Do not invent numbers, sources, anecdotes, or certainty just to make the text sound human.
-6. Vary rhythm. Mix short and long sentences. In `です・ます` prose, allow occasional fragments or firmer endings when they fit the voice.
-7. Run the final audit in [ai-patterns-ja.md](references/ai-patterns-ja.md). If the rewrite still feels AI-written, rewrite again.
+1. 文の目的、読み手、目標トーンを周辺文脈から特定する。明らかなときは推測し、外すと危険なときだけ確認する。
+2. 単語の置換だけで済ませず、段落全体を書き直す。
+3. 先に AI マーカーを消す。大げさな評価、定型句、カタカナの連打、曖昧な出典、`**ラベル:** 内容` 箇条書き、過剰な見出し、均一な語尾、テンプレの書き出しと締めを優先して潰す。
+4. 消した箇所は空白のままにせず、元文にある具体、率直な意見、短い体験、文の切り方で埋め直す。
+5. 数字、出典、体験談、自信は捏造しない。根拠がないなら盛らずに薄くする。
+6. リズムを崩す。長短の文を混ぜ、必要なら `です・ます` の中に短い断定や体言止めも入れる。
+7. 最後に [ai-patterns-ja.md](references/ai-patterns-ja.md) の監査を回し、まだ AI くさいなら書き直す。
 
-## Rewrite Priorities
+## 書き換えの優先順位
 
-- Prefer concrete nouns and verbs over abstract evaluation.
-- Prefer Japanese words over stacked katakana when the meaning stays clear.
-- Drop empty transitions when sentence order already carries the logic.
-- Remove commentary that tells the reader what is important.
-- End with a real opinion, next action, or brief aftertaste instead of a template conclusion.
+- 抽象評価より、具体的な名詞と動詞を優先する。
+- 意味が落ちないなら、カタカナ語より自然な和語を優先する。
+- 接続詞がなくても流れが通るなら削る。
+- 「重要なのは」型の説明口調は消す。
+- 結論はテンプレ文で閉じず、意見、次の行動、短い余韻で締める。
 
-## Output
+## 出力
 
-- Return the revised Japanese text first unless the user asks for diagnosis instead of a rewrite.
-- Keep the explanation brief unless the user asks for rationale.
-- When the user asks for diagnosis, list the remaining AI patterns by category and then provide a rewrite.
+- ユーザーが診断だけを求めていない限り、先に書き換え後の本文を返す。
+- 解説は短く保つ。根拠を求められたときだけ補足する。
+- 診断を求められたら、残っている AI パターンをカテゴリ別に挙げてから書き換え案を出す。
 
-## Reference
+## 参照
 
-Use [ai-patterns-ja.md](references/ai-patterns-ja.md) for the full 20-pattern checklist, examples, and the final self-audit.
+[ai-patterns-ja.md](references/ai-patterns-ja.md) に 20 パターンの詳細、例、最終監査をまとめてある。迷ったら必ず見る。

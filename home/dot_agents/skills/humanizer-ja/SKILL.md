@@ -11,6 +11,10 @@ AIっぽい日本語を、具体性と体温のある自然な日本語へ書き
 元の意味、読み手、温度感を保ち、AI パターンを消したうえで人間らしい選択に置き換える。
 この skill は [gonta223/humanizer-ja](https://github.com/gonta223/humanizer-ja) と [blader/humanizer](https://github.com/blader/humanizer) にインスパイアされている。
 
+## 読了時の応答
+
+- この skill を読んだら、`🇯🇵 私は humanizer-ja を読みました。` と応答する。
+
 ## ワークフロー
 
 1. 文の目的、読み手、目標トーンを周辺文脈から特定する。明らかなときは推測し、外すと危険なときだけ確認する。

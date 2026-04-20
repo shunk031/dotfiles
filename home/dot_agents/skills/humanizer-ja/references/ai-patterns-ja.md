@@ -1,6 +1,7 @@
 # Humanizer JA リファレンス
 
 `humanizer-ja` の元仕様、WikiProject AI Cleanup の知見、日本語特有の癖をまとめた詳細版。
+また、このリファレンスは [gonta223/humanizer-ja](https://github.com/gonta223/humanizer-ja) と [blader/humanizer](https://github.com/blader/humanizer) からも着想を得て再構成している。
 全文を書き換えるときや最終監査を回すときに読む。
 
 ## 目次

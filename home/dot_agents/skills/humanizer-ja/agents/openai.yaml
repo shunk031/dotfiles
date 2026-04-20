@@ -1,0 +1,4 @@
+interface:
+  display_name: "Humanizer JA"
+  short_description: "AIくさい日本語を自然な文章に書き換える"
+  default_prompt: "$humanizer-ja を使って、AIっぽい日本語を元の意味を保ったまま自然で人間らしい日本語へ書き換えてください。"

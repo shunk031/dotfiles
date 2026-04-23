@@ -46,12 +46,14 @@ jobs:
 
           echo "diff_range=${diff_range}" >> "${GITHUB_OUTPUT}"
 
-          # An env var would also work here, but keeping the pattern inline is
-          # simpler while this rule is only used in one place. It only controls
-          # whether the expensive unit-test steps should run; it does not decide
-          # whether the required workflow itself reports a status. If more
-          # workflows need the same rule later, extract a shared script instead
-          # of hiding the pattern in env.
+          # One option would be to predefine CI-relevant path groups such as
+          # `.github/workflows/`, `home/`, `install/`, and `tests/` in an env-
+          # var-like form to make the rule reusable. For this workflow, keeping
+          # the pattern inline is still easier to read because the rule is only
+          # used once and only decides whether the expensive unit-test steps
+          # should run. It does not decide whether the required workflow itself
+          # reports a status. If more workflows need the same rule later,
+          # extract a shared script instead of hiding the pattern in env.
           if git diff --name-only "${diff_range}" | grep -Eq '^(\.github/workflows/|home/|install/|tests/)'; then
             echo "should_test=true" >> "${GITHUB_OUTPUT}"
           else

@@ -32,6 +32,9 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Keep the diff calculation here so the required workflow can always
+          # start and report a final status before we decide whether to run the
+          # heavier test steps.
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             git fetch --no-tags --depth=1 origin "${BASE_REF}"
             diff_range="origin/${BASE_REF}...${HEAD_SHA}"
@@ -43,6 +46,11 @@ jobs:
 
           echo "diff_range=${diff_range}" >> "${GITHUB_OUTPUT}"
 
+          # Keep this pattern inline for readability. It only controls whether
+          # the expensive unit-test steps should run; it does not decide whether
+          # the required workflow itself reports a status. If more workflows
+          # need the same rule later, extract a shared script instead of hiding
+          # the pattern in env.
           if git diff --name-only "${diff_range}" | grep -Eq '^(\.github/workflows/|home/|install/|tests/)'; then
             echo "should_test=true" >> "${GITHUB_OUTPUT}"
           else

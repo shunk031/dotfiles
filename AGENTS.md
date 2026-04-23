@@ -1,5 +1,12 @@
 # AGENTS.md
 
+## Repository Context
+
+- This repository is managed with [`chezmoi`](https://www.chezmoi.io/) ([GitHub](https://github.com/twpayne/chezmoi)).
+- Files under `home/` are the public source state and are applied by `chezmoi` into the user's `$HOME` directory.
+- Private dotfiles are managed separately from `~/.local/share/chezmoi-private` with config at `~/.config/chezmoi-private/chezmoi.yaml`.
+- Treat the public `home/` tree and the private `chezmoi` source/config as separate management domains.
+
 ## Response Rule
 
 - After reading this `AGENTS.md`, say: `🤖 I read the AGENTS.md for shunk031/dotfiles.`

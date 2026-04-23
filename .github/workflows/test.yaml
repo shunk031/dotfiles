@@ -2,6 +2,8 @@ name: Unit test
 
 on:
   # Required checks must always report a final status for PRs into `master`.
+  # Do not add workflow-level path or branch filters here: GitHub can leave
+  # skipped required checks in a pending state and block merges.
   # Keep this workflow unconditional and decide inside jobs whether the full
   # test matrix is necessary for the current diff.
   push:

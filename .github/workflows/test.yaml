@@ -1,23 +1,56 @@
 name: Unit test
 
 on:
+  # Required checks must always report a final status for PRs into `master`.
+  # Keep this workflow unconditional and decide inside jobs whether the full
+  # test matrix is necessary for the current diff.
   push:
     branches: [master]
-    paths:
-      - ".github/workflows/**"
-      - "home/**"
-      - "install/**"
-      - "tests/**"
   pull_request:
     branches: [master]
-    paths:
-      - ".github/workflows/**"
-      - "home/**"
-      - "install/**"
-      - "tests/**"
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should_test: ${{ steps.filter.outputs.should_test }}
+      diff_range: ${{ steps.filter.outputs.diff_range }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect unit-test-relevant changes
+        id: filter
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            git fetch --no-tags --depth=1 origin "${BASE_REF}"
+            diff_range="origin/${BASE_REF}...${HEAD_SHA}"
+          elif [ -n "${BEFORE_SHA}" ] && [ "${BEFORE_SHA}" != "0000000000000000000000000000000000000000" ]; then
+            diff_range="${BEFORE_SHA}...${HEAD_SHA}"
+          else
+            diff_range="${HEAD_SHA}^...${HEAD_SHA}"
+          fi
+
+          echo "diff_range=${diff_range}" >> "${GITHUB_OUTPUT}"
+
+          if git diff --name-only "${diff_range}" | grep -Eq '^(\.github/workflows/|home/|install/|tests/)'; then
+            echo "should_test=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "should_test=false" >> "${GITHUB_OUTPUT}"
+          fi
+
   test:
+    needs: changes
     # Run the same test suite on each target OS/system pair.
     # We intentionally keep macOS as `client` only because this repository
     # does not define a macOS `server` test target.
@@ -45,7 +78,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Skip full unit test run for unrelated changes
+        if: ${{ needs.changes.outputs.should_test != 'true' }}
+        run: |
+          echo "No unit-test-relevant files changed."
+          echo "Compared diff range: ${{ needs.changes.outputs.diff_range }}"
+
       - name: Install tools
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
           if [ "${OS}" == "macos-14" ]; then
             # `bashcov` on macOS must use Homebrew Bash (>=5) to avoid the
@@ -69,11 +109,13 @@ jobs:
           echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
 
       - name: Run `shfmt`
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
         uses: reviewdog/action-shfmt@v1
         with:
           shfmt_flags: -i 4 -sr -d
 
       - name: Run unit test
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
           # Shared bashcov defaults:
           # - `--skip-uncovered`: limit report to executed files.
@@ -91,7 +133,7 @@ jobs:
             bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
       - name: Setup for codecov
-        if: ${{ github.actor != 'dependabot[bot]' }}
+        if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' }}
         run: |
           # codecov-action requires these tools for uploader validation/signing
           # in this repository setup.
@@ -107,7 +149,7 @@ jobs:
           fi
 
       - name: Upload coverage to Codecov
-        if: ${{ github.actor != 'dependabot[bot]' }}
+        if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' }}
         uses: codecov/codecov-action@v6
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

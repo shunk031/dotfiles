@@ -107,6 +107,12 @@ if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
 
+# for npm guard
+# shellcheck source=../../dot_config/shell/npm-guard.sh
+if [ -f "${HOME%/}/.config/shell/npm-guard.sh" ]; then
+    source "${HOME%/}/.config/shell/npm-guard.sh"
+fi
+
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).

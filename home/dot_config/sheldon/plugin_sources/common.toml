@@ -176,6 +176,11 @@ local = '~/.config/alias'
 use = ['common.sh']
 apply = ['source']
 
+[plugins.common-shell]
+local = '~/.config/shell'
+use = ['npm-guard.sh']
+apply = ['source']
+
 # [plugins.private-alias]
 # local = '~/.config/alias'
 # use = ['private.sh']

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -u
+
+if [ -x "${HOME}/.local/bin/common/chezmoi-notify-cache" ]; then
+    "${HOME}/.local/bin/common/chezmoi-notify-cache" refresh
+fi

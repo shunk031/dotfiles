@@ -1646,45 +1646,22 @@
   }
 
   function prompt_chezmoi_update() {
-    local check_interval=3600 # check every hour
-    local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/p10k-chezmoi"
-    local status_file="$cache_dir/status"
-    local last_check_file="$cache_dir/last_check"
-
-    [[ -d "$cache_dir" ]] || mkdir -p "$cache_dir"
+    local helper_path="${HOME}/.local/bin/common/chezmoi-notify-cache"
+    local status_file="${XDG_CACHE_HOME:-$HOME/.cache}/p10k-chezmoi/status"
 
     # --- Icon/emoji definitions ---
     local icon=$'\uf015'      # Home ()
     local arrow=$'\u21e3'     # Down Arrow (⇣)
     local sync_alt=$'\uf2f1'  # Sync ()
 
-    # --- 1. Background update check ---
-    local current_time=$(date +%s)
-    local last_check=0
-    [[ -f "$last_check_file" ]] && last_check=$(cat "$last_check_file")
-
-    if (( current_time - last_check > check_interval )); then
-      echo "$current_time" >! "$last_check_file"
-      (
-        if command -v chezmoi >/dev/null 2>&1; then
-          chezmoi git -- fetch -q
-
-          # Get the count of new changes on the remote master branch.
-          local count=$(chezmoi git -- rev-list --count HEAD..origin/master 2>/dev/null)
-          
-          if [[ "$count" -gt 0 ]]; then
-            echo "$count" >! "$status_file"
-          else
-            rm -f "$status_file"
-          fi
-        fi
-      ) &!
+    if [[ -x "${helper_path}" ]]; then
+      ("${helper_path}" refresh-if-stale > /dev/null 2>&1) &!
     fi
 
-    # --- 2. Display processing ---
+    # --- Display processing ---
     if [[ -f "$status_file" ]]; then
       local count=$(cat "$status_file")
-      
+
       # Color: Red (196)
       # Display: [Home] dotfiles [Sync] ⇣[Count]
       p10k segment -f 196 -i "${arrow}${count}" -t "${icon} dotfiles ${sync_alt}"

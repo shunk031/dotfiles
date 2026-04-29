@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+# @file home/dot_local/bin/common/executable_chezmoi-notify-cache
+# @brief Sync the chezmoi update notification caches used by p10k and Starship.
+# @description
+#   Recomputes `HEAD..origin/master` on demand or only when cached results are
+#   stale, then updates both shell-specific cache directories together.
+
+set -uo pipefail
+
+readonly CHECK_INTERVAL=3600
+readonly UPSTREAM_REF="origin/master"
+
+# @description Return the cache root honoring `XDG_CACHE_HOME`.
+function cache_root() {
+    printf "%s\n" "${XDG_CACHE_HOME:-$HOME/.cache}"
+}
+
+# @description Return the Powerlevel10k cache directory path.
+function p10k_cache_dir() {
+    printf "%s\n" "$(cache_root)/p10k-chezmoi"
+}
+
+# @description Return the Starship cache directory path.
+function starship_cache_dir() {
+    printf "%s\n" "$(cache_root)/starship-chezmoi"
+}
+
+# @description Return the current Unix timestamp.
+function current_time() {
+    date +%s
+}
+
+# @description Determine whether a `last_check` file is missing, invalid, or expired.
+# @arg $1 path Path to a `last_check` file.
+# @arg $2 integer Current Unix timestamp.
+function cache_is_stale() {
+    local last_check_file="$1"
+    local now="$2"
+    local last_check
+
+    if [[ ! -f "${last_check_file}" ]]; then
+        return 0
+    fi
+
+    last_check="$(< "${last_check_file}")"
+
+    if [[ ! "${last_check}" =~ ^[0-9]+$ ]]; then
+        return 0
+    fi
+
+    ((now - last_check >= CHECK_INTERVAL))
+}
+
+# @description Update both `last_check` files with the same timestamp.
+# @arg $1 integer Current Unix timestamp.
+function write_last_check_files() {
+    local now="$1"
+    local p10k_dir
+    local starship_dir
+
+    p10k_dir="$(p10k_cache_dir)"
+    starship_dir="$(starship_cache_dir)"
+
+    mkdir -p "${p10k_dir}" "${starship_dir}" || return 0
+    printf "%s\n" "${now}" >| "${p10k_dir}/last_check"
+    printf "%s\n" "${now}" >| "${starship_dir}/last_check"
+    return 0
+}
+
+# @description Recompute the update count and synchronize both notification caches.
+function refresh() {
+    local count
+    local now
+    local p10k_dir
+    local starship_dir
+
+    if ! command -v chezmoi > /dev/null 2>&1; then
+        return 0
+    fi
+
+    if ! count="$(chezmoi git -- rev-list --count "HEAD..${UPSTREAM_REF}" 2> /dev/null)"; then
+        return 0
+    fi
+
+    if [[ ! "${count}" =~ ^[0-9]+$ ]]; then
+        return 0
+    fi
+
+    p10k_dir="$(p10k_cache_dir)"
+    starship_dir="$(starship_cache_dir)"
+    now="$(current_time)"
+
+    mkdir -p "${p10k_dir}" "${starship_dir}" || return 0
+
+    if ((count == 0)); then
+        rm -f "${p10k_dir}/status" "${starship_dir}/count"
+    else
+        printf "%s\n" "${count}" >| "${p10k_dir}/status"
+        printf "%s\n" "${count}" >| "${starship_dir}/count"
+    fi
+
+    write_last_check_files "${now}"
+    return 0
+}
+
+# @description Refresh both notification caches only when either cache is stale.
+function refresh_if_stale() {
+    local now
+    local p10k_last_check_file
+    local starship_last_check_file
+
+    now="$(current_time)"
+    p10k_last_check_file="$(p10k_cache_dir)/last_check"
+    starship_last_check_file="$(starship_cache_dir)/last_check"
+
+    if cache_is_stale "${p10k_last_check_file}" "${now}" ||
+        cache_is_stale "${starship_last_check_file}" "${now}"; then
+        refresh
+    fi
+
+    return 0
+}
+
+# @description Dispatch the helper subcommands.
+# @arg $1 string Either `refresh` or `refresh-if-stale`.
+function main() {
+    local command="${1:-}"
+
+    case "${command}" in
+    refresh)
+        refresh
+        ;;
+    refresh-if-stale)
+        refresh_if_stale
+        ;;
+    *)
+        printf "usage: %s {refresh|refresh-if-stale}\n" "${0##*/}" >&2
+        return 1
+        ;;
+    esac
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

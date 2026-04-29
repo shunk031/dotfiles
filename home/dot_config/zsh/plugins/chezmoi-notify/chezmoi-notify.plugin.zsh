@@ -8,7 +8,7 @@ function _check_chezmoi_update_async() {
     local helper_path="${HOME}/.local/bin/common/chezmoi-notify-cache"
 
     if [[ -x "${helper_path}" ]]; then
-        ("${helper_path}" refresh-if-stale > /dev/null 2>&1) &!
+        ("${helper_path}" refresh-if-stale > /dev/null 2>&1) &|
     fi
 }
 

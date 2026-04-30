@@ -1,0 +1,4 @@
+This directory is the canonical source for Codex-specific guidance.
+[AGENTS.md](AGENTS.md) is exposed as `~/.codex/AGENTS.md` through [home/dot_codex/](../../dot_codex/).
+The design keeps edits in one git-friendly place while preserving the familiar home path.
+Edit files here; the adapter keeps the home path stable.

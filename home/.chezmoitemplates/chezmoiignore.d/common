@@ -4,6 +4,10 @@ plugin.jupyterlab-settings
 
 .mise
 .tmux.conf.d/
+.agents/README.md
+.claude/README.md
+.codex/README.md
+.config/agents/README.md
 .config/sheldon/plugin_sources
 .config/claude
 .config/codex

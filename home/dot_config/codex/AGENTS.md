@@ -14,7 +14,7 @@
 
 ### Response Rule
 
-- After reading this user-level `AGENTS.md`, say: `🤖 I read the user-level AGENTS.md (~/.codex/AGENTS.md).`
+- After reading this user-level `AGENTS.md`, say: `🤖 I read the user-level AGENTS.md.`
 
 ### セッション開始時の learn 確認
 

@@ -5,7 +5,10 @@ plugin.jupyterlab-settings
 .mise
 .tmux.conf.d/
 .config/sheldon/plugin_sources
+.config/claude/commands
+.config/claude/hooks
 .config/claude/rules
 .config/claude/skills
+.config/claude/settings.json
 .config/codex
 .ccstatusline

@@ -61,7 +61,7 @@ function collect_source_files() {
             ":(glob)install/**/*.sh" \
             ":(glob)scripts/**/*.sh" \
             ":(glob)home/dot_local/bin/**" \
-            ":(glob)home/dot_claude/hooks/**" \
+            ":(glob)home/dot_config/claude/hooks/**" \
             ":(glob)home/dot_config/alias/*.sh"
         return
     fi
@@ -78,8 +78,8 @@ function collect_source_files() {
         find "home/dot_local/bin" -type f
     fi
 
-    if [[ -d "home/dot_claude/hooks" ]]; then
-        find "home/dot_claude/hooks" -type f
+    if [[ -d "home/dot_config/claude/hooks" ]]; then
+        find "home/dot_config/claude/hooks" -type f
     fi
 
     if [[ -d "home/dot_config/alias" ]]; then
@@ -135,7 +135,7 @@ function source_group_for_path() {
     home/dot_local/bin/*)
         printf "commands\n"
         ;;
-    home/dot_claude/hooks/*)
+    home/dot_config/claude/hooks/*)
         printf "hooks\n"
         ;;
     home/dot_config/alias/*)

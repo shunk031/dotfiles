@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# @file home/dot_claude/hooks/executable_enforce-uv.sh
+# @file home/dot_config/claude/hooks/enforce-uv.sh
 # @brief Block direct Python and pip commands in favor of `uv`.
 # @description
 #   Claude hook that inspects shell commands and returns a JSON decision that

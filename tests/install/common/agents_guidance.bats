@@ -13,12 +13,15 @@ readonly CLAUDE_SYMLINK_TEMPLATE="./home/dot_claude/symlink_CLAUDE.md.tmpl"
 
     local shared_bytes
     local shared_lines
+    local shared_contents
+    local codex_prefix
 
-    shared_bytes="$(wc -c < "${SHARED_AGENTS_PATH}")"
-    shared_lines="$(wc -l < "${SHARED_AGENTS_PATH}")"
+    shared_bytes="$(wc -c < "${SHARED_AGENTS_PATH}" | tr -d '[:space:]')"
+    shared_lines="$(wc -l < "${SHARED_AGENTS_PATH}" | tr -d '[:space:]')"
+    shared_contents="$(< "${SHARED_AGENTS_PATH}")"
+    codex_prefix="$(head -c "${shared_bytes}" "${CODEX_AGENTS_PATH}")"
 
-    run cmp -n "${shared_bytes}" "${SHARED_AGENTS_PATH}" "${CODEX_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
+    [ "${codex_prefix}" = "${shared_contents}" ]
 
     [ "$(sed -n "$((shared_lines + 2))p" "${CODEX_AGENTS_PATH}")" = "## Codex Only" ]
 }

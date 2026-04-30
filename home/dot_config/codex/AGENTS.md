@@ -1,25 +1,33 @@
 # AGENTS.md
 
-## Response Rule
-
-- After reading this user-level `AGENTS.md`, say: `🤖 I read the user-level AGENTS.md (~/.codex/AGENTS.md).`
-
 ## ユーザーへの質問
 
 - ユーザが提供した情報に基づいて、最適な解決策を提案するための質問を行ってください。
 
-## セッション開始時の learn 確認
+## コーディング全般について
+
+- エラーを恐れないでください。まずは例外処理は気にせずコードを書いてください。
+- 最終成果物でも例外処理は入れなくて構いません。
+- 研究開発用途が主なため後方互換性は気にしないでください。あらかじめテストを記述し、テストが通ることを確認してから、必要に応じてコードをリファクタリングしてください。
+
+## Codex Only
+
+### Response Rule
+
+- After reading this user-level `AGENTS.md`, say: `🤖 I read the user-level AGENTS.md (~/.codex/AGENTS.md).`
+
+### セッション開始時の learn 確認
 
 - 作業を開始する前に、`.agents/worklog/codex/learn/learn_index.md` を読み、過去のセッションで得た知見やエラーの教訓を把握してください。
 - インデックスの中で今回のタスクに関連しそうな項目があれば、該当する learn ファイルの本文も読んでから作業に取り掛かってください。
 - 特にエラーや失敗に関する教訓は、同じ過ちを繰り返さないように作業中も意識してください。
 
-## セッション終了時のまとめ
+### セッション終了時のまとめ
 
 - 会話の自然な区切りで、直ちに次のアクションが想定されない場合は、以下の形式で 1 行のまとめを出力してください。
 - `📝 まとめ: <このセッションで完了した内容を 1〜2 文で要約してください。未完了のタスクや次のアクションがあれば末尾に追記してください。>`
 
-## プロジェクトの構成について
+### プロジェクトの構成について
 
 - プロジェクト構成はプログラミング言語ごとに異なりますが、作業を開始する際、存在しない場合のみ以下の構成でセットアップしてください。
   - 作業中は plan と todo を常に更新し続けてください。
@@ -46,12 +54,12 @@
     - todo: `TODO`, `Done`
     - learn: `Date`, `Learnings`, `Plan Updates`
 
-### plan/todo/learn の frontmatter ルール
+#### plan/todo/learn の frontmatter ルール
 
 - `.agents/worklog/codex/plan/*.md` `.agents/worklog/codex/todo/*.md` `.agents/worklog/codex/learn/*.md` の先頭に YAML frontmatter を必須とします。
 - 並列実行を前提に、`active` 制約は「リポジトリ全体で 1 件」ではなく「`owner` ごとに 1 件」とします。
 
-#### 共通必須キー
+##### 共通必須キー
 
 - `type`: `plan | todo | learn`
 - `id`: `YYYYMMDD_HHMMSS`
@@ -59,35 +67,29 @@
 - `created_at`: ISO8601
 - `updated_at`: ISO8601
 
-#### type ごとの必須キー
+##### type ごとの必須キー
 
 - `todo`: `status`, `workstream`, `related_plan`
 - `plan`: `status`
 - `learn`: `validated`, `apply_to`
 
-#### status 値
+##### status 値
 
 - `todo.status`: `active | blocked | done | superseded`
 - `plan.status`: `draft | active | done | superseded`
 - `learn.validated`: `true | false`
 
-#### 推奨キー（任意）
+##### 推奨キー（任意）
 
 - `depends_on`: 依存する `todo id` の配列
 - `blocked_reason`: `status=blocked` の理由
 - `evidence`: ログ/PR/実験結果のパス配列
 - `tags`: 任意タグ
 
-#### 運用ルール
+##### 運用ルール
 
 - 新規 `todo` 作成時は `owner` を必ず設定してください。
 - 各 `owner` は同時に `active` な `todo` を 1 件までにしてください。
 - `# TODO` が空になったら `status: done` に更新し、`*_done.md` へリネームしてください。
 - `learn` は「再利用可能」かつ「検証済み (`validated: true`)」のときのみ作成してください。
 - `learn` 更新時は `apply_to` に反映先（plan/tests）を明記してください。
-
-## コーディング全般について
-
-- エラーを恐れないでください。まずは例外処理は気にせずコードを書いてください。
-- 最終成果物でも例外処理は入れなくて構いません。
-- 研究開発用途が主なため後方互換性は気にしないでください。あらかじめテストを記述し、テストが通ることを確認してから、必要に応じてコードをリファクタリングしてください。

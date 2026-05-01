@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/common/executable_git-delete-merged-branches
+# @file home/dot_local/bin/exact_common/executable_git-delete-merged-branches
 # @brief Delete local branches already merged through squash-and-merge.
 # @description
 #   Detects the repository default branch, compares local branches against it,

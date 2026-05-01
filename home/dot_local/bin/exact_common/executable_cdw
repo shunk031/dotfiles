@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/common/executable_cdw
+# @file home/dot_local/bin/exact_common/executable_cdw
 # @brief Change into the most recent `gwq` workspace.
 # @description
 #   Selects the newest path returned by `gwq list --json` and changes the

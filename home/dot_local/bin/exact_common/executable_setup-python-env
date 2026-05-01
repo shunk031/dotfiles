@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/common/executable_setup-python-env
+# @file home/dot_local/bin/exact_common/executable_setup-python-env
 # @brief Bootstrap a Poetry-based Python development environment.
 # @description
 #   Upgrades core Python packaging tools with pip, initializes a Poetry

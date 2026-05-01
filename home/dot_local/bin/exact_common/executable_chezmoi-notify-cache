@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/common/executable_chezmoi-notify-cache
+# @file home/dot_local/bin/exact_common/executable_chezmoi-notify-cache
 # @brief Sync the chezmoi update notification caches used by p10k and Starship.
 # @description
 #   Recomputes `HEAD..origin/master` on demand or only when cached results are

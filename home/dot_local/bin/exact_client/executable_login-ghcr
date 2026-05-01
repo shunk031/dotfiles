@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/client/executable_login-ghcr
+# @file home/dot_local/bin/exact_client/executable_login-ghcr
 # @brief Log Docker into GitHub Container Registry.
 # @description
 #   Fetches the GHCR username and personal access token from 1Password and

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/common/executable_dev
+# @file home/dot_local/bin/exact_common/executable_dev
 # @brief Change into a repository selected from `ghq`.
 # @description
 #   Lets the user choose a repository path from `ghq`, changes into it, and

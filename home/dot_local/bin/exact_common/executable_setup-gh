@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/common/executable_setup-gh
+# @file home/dot_local/bin/exact_common/executable_setup-gh
 # @brief Authenticate `gh` and upload the local SSH key.
 # @description
 #   Logs into GitHub through the GitHub CLI and registers the local public SSH

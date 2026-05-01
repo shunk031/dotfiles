@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/common/executable_chezmoi-cd
+# @file home/dot_local/bin/exact_common/executable_chezmoi-cd
 # @brief Change into the active chezmoi source directory.
 # @description
 #   Resolves `chezmoi source-path` and changes the current shell into that

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/server/secrets.sh
+# @file home/dot_local/bin/exact_server/secrets.sh
 # @brief Define placeholder secret environment variables.
 # @description
 #   Exports placeholder tokens for services that are expected to be filled in on

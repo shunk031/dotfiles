@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/server/history.sh
+# @file home/dot_local/bin/exact_server/history.sh
 # @brief Share shell history across concurrent bash sessions.
 # @description
 #   Provides a `tac` fallback and appends a `PROMPT_COMMAND` hook that merges

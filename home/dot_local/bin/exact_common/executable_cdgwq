@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/common/executable_cdgwq
+# @file home/dot_local/bin/exact_common/executable_cdgwq
 # @brief Change into a repository path selected from `gwq`.
 # @description
 #   Uses `gwq list --json` and `fzf` to select a known repository path, then

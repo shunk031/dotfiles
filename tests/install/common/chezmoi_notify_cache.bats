@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./home/dot_local/bin/common/executable_chezmoi-notify-cache"
+readonly SCRIPT_PATH="./home/dot_local/bin/exact_common/executable_chezmoi-notify-cache"
 readonly RUN_AFTER_TEMPLATE="./home/.chezmoiscripts/common/run_after_99-refresh-chezmoi-notify-cache.sh.tmpl"
 
 function setup() {

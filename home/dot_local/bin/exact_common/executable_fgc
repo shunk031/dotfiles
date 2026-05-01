@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/common/executable_fgc
+# @file home/dot_local/bin/exact_common/executable_fgc
 # @brief Fuzzy-pick and checkout a local Git branch.
 # @description
 #   Lists local branches, selects one with `fzf`, and checks it out.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/client/executable_connect-hosei-vpn
+# @file home/dot_local/bin/exact_client/executable_connect-hosei-vpn
 # @brief Connect to the Hosei University VPN.
 # @description
 #   Reads the stored AnyConnect credentials from the configured JSON file and

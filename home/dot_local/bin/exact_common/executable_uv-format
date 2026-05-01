@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/common/executable_uv-format
+# @file home/dot_local/bin/exact_common/executable_uv-format
 # @brief Format Python code with Ruff through `uvx`.
 # @description
 #   Runs Ruff formatting first and then fixes import ordering and selected

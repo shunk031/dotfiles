@@ -1,2 +1,1 @@
-eval "$(~/.local/bin/mise activate zsh)"
-
+# mise is initialized from ~/.zshrc via sheldon to avoid duplicate startup work.

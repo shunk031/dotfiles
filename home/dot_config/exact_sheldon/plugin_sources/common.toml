@@ -112,7 +112,39 @@ setopt INC_APPEND_HISTORY
 #
 
 [plugins.mise]
-inline = 'eval "$(~/.local/bin/mise activate zsh)"'
+inline = '''
+eval "$(~/.local/bin/mise activate zsh --no-hook-env)"
+
+function _mise_hook() {
+    eval "$(~/.local/bin/mise hook-env -s zsh)"
+}
+
+function _mise_hook_precmd() {
+    eval "$(~/.local/bin/mise hook-env -s zsh --reason precmd)"
+}
+
+function _mise_hook_chpwd() {
+    eval "$(~/.local/bin/mise hook-env -s zsh --reason chpwd)"
+}
+
+function _mise_setup_hooks() {
+    typeset -ag precmd_functions
+    typeset -ag chpwd_functions
+
+    if [[ -z "${precmd_functions[(r)_mise_hook_precmd]+1}" ]]; then
+        precmd_functions=( _mise_hook_precmd ${precmd_functions[@]} )
+    fi
+
+    if [[ -z "${chpwd_functions[(r)_mise_hook_chpwd]+1}" ]]; then
+        chpwd_functions=( _mise_hook_chpwd ${chpwd_functions[@]} )
+    fi
+
+    _mise_hook
+    export __MISE_ZSH_PRECMD_RUN=1
+}
+
+zsh-defer _mise_setup_hooks
+'''
 
 #
 # Language-related plugins

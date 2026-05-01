@@ -65,19 +65,19 @@ export FZF_DEFAULT_OPTS="--reverse"
 
 [plugins.zsh-autosuggestions]
 github = 'zsh-users/zsh-autosuggestions'
-apply = ['defer']
+apply = ['source']
 
 [plugins.zsh-completions]
 github = 'zsh-users/zsh-completions'
-apply = ['defer']
+apply = ['source']
 
 [plugins.zsh-syntax-highlighting]
 github = 'zsh-users/zsh-syntax-highlighting'
-apply = ['defer']
+apply = ['source']
 
 [plugins.zsh-autopair]
 github = 'hlissner/zsh-autopair'
-apply = ['defer']
+apply = ['source']
 
 [plugins.zsh-history-on-success]
 github = 'nyoungstudios/zsh-history-on-success'
@@ -127,23 +127,19 @@ function _mise_hook_chpwd() {
     eval "$(~/.local/bin/mise hook-env -s zsh --reason chpwd)"
 }
 
-function _mise_setup_hooks() {
-    typeset -ag precmd_functions
-    typeset -ag chpwd_functions
+typeset -ag precmd_functions
+typeset -ag chpwd_functions
 
-    if [[ -z "${precmd_functions[(r)_mise_hook_precmd]+1}" ]]; then
-        precmd_functions=( _mise_hook_precmd ${precmd_functions[@]} )
-    fi
+if [[ -z "${precmd_functions[(r)_mise_hook_precmd]+1}" ]]; then
+    precmd_functions=( _mise_hook_precmd ${precmd_functions[@]} )
+fi
 
-    if [[ -z "${chpwd_functions[(r)_mise_hook_chpwd]+1}" ]]; then
-        chpwd_functions=( _mise_hook_chpwd ${chpwd_functions[@]} )
-    fi
+if [[ -z "${chpwd_functions[(r)_mise_hook_chpwd]+1}" ]]; then
+    chpwd_functions=( _mise_hook_chpwd ${chpwd_functions[@]} )
+fi
 
-    _mise_hook
-    export __MISE_ZSH_PRECMD_RUN=1
-}
-
-zsh-defer -a +1 +2 -t 1 _mise_setup_hooks
+_mise_hook
+export __MISE_ZSH_PRECMD_RUN=1
 '''
 
 #
@@ -155,14 +151,13 @@ inline = '''
 function _lang() {
     export LANG='en_US.UTF-8'
 }
-zsh-defer _lang
+_lang
 '''
 
 [plugins.go]
 inline = '''
 function _go() {
     export GOPATH="${HOME}/ghq"
-    export GOROOT=$(go env GOROOT)
 
     typeset -gU path
     path=(
@@ -171,7 +166,7 @@ function _go() {
         ${HOME}/.go/bin(N-/)
     )
 }
-zsh-defer _go
+_go
 '''
 
 [plugins.rust]
@@ -183,7 +178,7 @@ function _rust() {
         ${HOME}/.cargo/bin(N-/)
     )
 }
-zsh-defer _rust
+_rust
 '''
 
 [plugins.bun]
@@ -239,5 +234,5 @@ function _private_dotfiles() {
         source "$filepath"
     fi
 }
-zsh-defer _private_dotfiles
+_private_dotfiles
 '''

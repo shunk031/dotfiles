@@ -12,7 +12,7 @@ on:
       - "scripts/**"
       - "install/**"
       - "home/.chezmoiscripts/**"
-      - "home/dot_claude/hooks/**"
+      - "home/dot_config/claude/hooks/**"
       - "home/dot_config/alias/**"
       - "home/dot_local/bin/**"
 

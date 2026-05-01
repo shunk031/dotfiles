@@ -1,0 +1,4 @@
+- This directory is applied as `~/.agents`.
+- Chezmoi maps it to the canonical source in [home/dot_config/agents/](../dot_config/agents/).
+- The design keeps the home-facing path stable while the real files live in one git-friendly source tree.
+- Edit the canonical source, not this adapter directory.

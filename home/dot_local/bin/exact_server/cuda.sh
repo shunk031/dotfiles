@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-# @file home/dot_local/bin/server/cuda.sh
+# @file home/dot_local/bin/exact_server/cuda.sh
 # @brief Export CUDA paths for server shells.
 # @description
 #   Sets `CUDA_HOME`, prepends the CUDA binaries to the shell path, and extends

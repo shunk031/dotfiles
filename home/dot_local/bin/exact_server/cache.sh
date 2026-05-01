@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/server/cache.sh
+# @file home/dot_local/bin/exact_server/cache.sh
 # @brief Export Hugging Face cache locations for server environments.
 # @description
 #   Sets the dataset and model cache directories under the user's home cache

@@ -125,7 +125,7 @@ if ! shopt -oq posix; then
 fi
 
 # # for CUDA
-# # shellcheck source=../../dot_local/bin/server/cuda.sh
+# # shellcheck source=../../dot_local/bin/exact_server/cuda.sh
 # source "${HOME%/}/.local/bin/server/cuda.sh"
 
 # for prompt
@@ -133,11 +133,11 @@ fi
 source "${HOME%/}/.local/bin/server/prompt.sh"
 
 # for sharing history between panes/windiws in tmux session
-# shellcheck source=../../dot_local/bin/server/history.sh
+# shellcheck source=../../dot_local/bin/exact_server/history.sh
 source "${HOME%/}/.local/bin/server/history.sh"
 
 # # for ssh agent
-# # shellcheck source=../../dot_local/bin/server/ssh_agent.sh
+# # shellcheck source=../../dot_local/bin/exact_server/ssh_agent.sh
 # source "${HOME%/}/.local/bin/server/ssh_agent.sh"
 
 # # for golang
@@ -149,11 +149,11 @@ source "${HOME%/}/.local/bin/server/history.sh"
 source "${HOME%/}/.local/bin/server/aliases.sh"
 
 # for secrets (e.g., slack, wandb, zenodo API)
-# shellcheck source=../../dot_local/bin/server/secrets.sh
+# shellcheck source=../../dot_local/bin/exact_server/secrets.sh
 source "${HOME%/}/.local/bin/server/secrets.sh"
 
 # for cache directories
-# shellcheck source=../../dot_local/bin/server/cache.sh
+# shellcheck source=../../dot_local/bin/exact_server/cache.sh
 source "${HOME%/}/.local/bin/server/cache.sh"
 
 # for dev command

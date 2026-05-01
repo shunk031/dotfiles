@@ -108,7 +108,7 @@ if [ -f ~/.bash_aliases ]; then
 fi
 
 # for npm guard
-# shellcheck source=../../dot_config/shell/npm-guard.sh
+# shellcheck source=../../dot_config/exact_shell/npm-guard.sh
 if [ -f "${HOME%/}/.config/shell/npm-guard.sh" ]; then
     source "${HOME%/}/.config/shell/npm-guard.sh"
 fi

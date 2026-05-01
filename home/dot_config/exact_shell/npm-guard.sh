@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_config/shell/npm-guard.sh
+# @file home/dot_config/exact_shell/npm-guard.sh
 # @brief Block global npm install flows and direct package management to mise.
 # @description
 #   Defines an interactive-shell wrapper around `npm` that rejects global

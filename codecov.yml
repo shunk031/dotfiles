@@ -2,7 +2,7 @@
 # Exclude Codex skill assets so helper docs/scripts do not affect project coverage.
 ignore:
   - "codecov.yml"
-  - "home/dot_agents/skills/**/*"
+  - "home/dot_config/exact_agents/skills/**/*"
 coverage:
   status:
     project:

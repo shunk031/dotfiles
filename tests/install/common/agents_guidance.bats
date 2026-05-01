@@ -1,16 +1,16 @@
 #!/usr/bin/env bats
 
-readonly SHARED_AGENTS_PATH="./home/dot_config/agents/AGENTS.md"
+readonly SHARED_AGENTS_PATH="./home/dot_config/exact_agents/AGENTS.md"
 readonly CODEX_AGENTS_PATH="./home/dot_config/codex/AGENTS.md"
 readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
-readonly AGENTS_SYMLINK_TEMPLATE="./home/dot_agents/symlink_AGENTS.md.tmpl"
+readonly AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS.md.tmpl"
 readonly CLAUDE_MD_PATH="./home/dot_config/claude/CLAUDE.md"
 readonly CLAUDE_SYMLINK_TEMPLATE="./home/dot_claude/symlink_CLAUDE.md.tmpl"
 readonly CHEZMOIIGNORE_PATH="./home/.chezmoitemplates/chezmoiignore.d/common"
-readonly AGENTS_README_PATH="./home/dot_agents/README.md"
+readonly AGENTS_README_PATH="./home/exact_dot_agents/README.md"
 readonly CLAUDE_README_PATH="./home/dot_claude/README.md"
 readonly CODEX_README_PATH="./home/dot_codex/README.md"
-readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/agents/README.md"
+readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/exact_agents/README.md"
 readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
 readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
@@ -34,7 +34,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 }
 
 @test "[common] agent guidance adapters point to the canonical files" {
-    [ "$(< "${AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/agents/AGENTS.md" ]
+    [ "$(< "${AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/AGENTS.md" ]
     [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.md" ]
     [ "$(< "${CLAUDE_MD_PATH}")" = "@~/.agents/AGENTS.md" ]
     [ "$(< "${CLAUDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/CLAUDE.md" ]
@@ -50,7 +50,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F "~/.agents" "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../dot_config/agents/" "${AGENTS_README_PATH}"
+    run grep -F "../dot_config/exact_agents/" "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "Edit the canonical source, not this adapter directory." "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -71,7 +71,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F "~/.agents" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../../dot_agents/" "${CANONICAL_AGENTS_README_PATH}"
+    run grep -F "../../exact_dot_agents/" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]

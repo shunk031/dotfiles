@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../history/">
+        <link rel="prev" href="../secrets/">
       
       
-        <link rel="next" href="../ssh_agent/">
+        <link rel="next" href="../../../../../install/common/chezmoi_private/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>home/dot_local/bin/server/secrets.sh - Dotfiles Docs</title>
+        <title>home/dot_local/bin/exact_server/ssh_agent.sh - Dotfiles Docs</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#homedot_localbinserversecretssh" class="md-skip">
+        <a href="#homedot_localbinexact_serverssh_agentsh" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              home/dot_local/bin/server/secrets.sh
+              home/dot_local/bin/exact_server/ssh_agent.sh
             
           </span>
         </div>
@@ -1304,7 +1304,7 @@
   <span class="md-ellipsis">
     
   
-    Server
+    Exact server
   
 
     
@@ -1320,7 +1320,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Server
+    Exact server
   
 
           </label>
@@ -1340,7 +1340,7 @@
   <span class="md-ellipsis">
     
   
-    home/dot_local/bin/server/cache.sh
+    home/dot_local/bin/exact_server/cache.sh
   
 
     
@@ -1368,7 +1368,7 @@
   <span class="md-ellipsis">
     
   
-    home/dot_local/bin/server/cuda.sh
+    home/dot_local/bin/exact_server/cuda.sh
   
 
     
@@ -1396,7 +1396,35 @@
   <span class="md-ellipsis">
     
   
-    home/dot_local/bin/server/history.sh
+    home/dot_local/bin/exact_server/history.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/exact_server/secrets.sh
   
 
     
@@ -1433,7 +1461,7 @@
   <span class="md-ellipsis">
     
   
-    home/dot_local/bin/server/secrets.sh
+    home/dot_local/bin/exact_server/ssh_agent.sh
   
 
     
@@ -1451,7 +1479,7 @@
   <span class="md-ellipsis">
     
   
-    home/dot_local/bin/server/secrets.sh
+    home/dot_local/bin/exact_server/ssh_agent.sh
   
 
     
@@ -1513,34 +1541,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ssh_agent/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    home/dot_local/bin/server/ssh_agent.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -3023,18 +3023,18 @@
 
 
 
-<h1 id="homedot_localbinserversecretssh">home/dot_local/bin/server/secrets.sh<a class="headerlink" href="#homedot_localbinserversecretssh" title="Permanent link">&para;</a></h1>
+<h1 id="homedot_localbinexact_serverssh_agentsh">home/dot_local/bin/exact_server/ssh_agent.sh<a class="headerlink" href="#homedot_localbinexact_serverssh_agentsh" title="Permanent link">&para;</a></h1>
 <h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Source: <code>home/dot_local/bin/server/secrets.sh</code></li>
+<li>Source: <code>home/dot_local/bin/exact_server/ssh_agent.sh</code></li>
 <li>Category: shell executable</li>
 <li>Renderer: <code>shdoc</code></li>
 </ul>
 <h2 id="generated-reference">Generated Reference<a class="headerlink" href="#generated-reference" title="Permanent link">&para;</a></h2>
-<p>Define placeholder secret environment variables.</p>
+<p>Start <code>ssh-agent</code> and load the default SSH key.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Exports placeholder tokens for services that are expected to be filled in on
-the target server environment.</p>
+<p>Starts a new <code>ssh-agent</code> process and adds the default ed25519 private key
+for the current user.</p>
 
 
 

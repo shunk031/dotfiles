@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../../exact_common/executable_uv-format/">
+        <link rel="prev" href="../cuda/">
       
       
-        <link rel="next" href="../cuda/">
+        <link rel="next" href="../secrets/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>home/dot_local/bin/server/cache.sh - Dotfiles Docs</title>
+        <title>home/dot_local/bin/exact_server/history.sh - Dotfiles Docs</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#homedot_localbinservercachesh" class="md-skip">
+        <a href="#homedot_localbinexact_serverhistorysh" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              home/dot_local/bin/server/cache.sh
+              home/dot_local/bin/exact_server/history.sh
             
           </span>
         </div>
@@ -1304,7 +1304,7 @@
   <span class="md-ellipsis">
     
   
-    Server
+    Exact server
   
 
     
@@ -1320,11 +1320,67 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Server
+    Exact server
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/exact_server/cache.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    home/dot_local/bin/exact_server/cuda.sh
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1349,7 +1405,7 @@
   <span class="md-ellipsis">
     
   
-    home/dot_local/bin/server/cache.sh
+    home/dot_local/bin/exact_server/history.sh
   
 
     
@@ -1367,7 +1423,7 @@
   <span class="md-ellipsis">
     
   
-    home/dot_local/bin/server/cache.sh
+    home/dot_local/bin/exact_server/history.sh
   
 
     
@@ -1441,62 +1497,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../cuda/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    home/dot_local/bin/server/cuda.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../history/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    home/dot_local/bin/server/history.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../secrets/" class="md-nav__link">
         
   
@@ -1504,7 +1504,7 @@
   <span class="md-ellipsis">
     
   
-    home/dot_local/bin/server/secrets.sh
+    home/dot_local/bin/exact_server/secrets.sh
   
 
     
@@ -1532,7 +1532,7 @@
   <span class="md-ellipsis">
     
   
-    home/dot_local/bin/server/ssh_agent.sh
+    home/dot_local/bin/exact_server/ssh_agent.sh
   
 
     
@@ -3023,18 +3023,18 @@
 
 
 
-<h1 id="homedot_localbinservercachesh">home/dot_local/bin/server/cache.sh<a class="headerlink" href="#homedot_localbinservercachesh" title="Permanent link">&para;</a></h1>
+<h1 id="homedot_localbinexact_serverhistorysh">home/dot_local/bin/exact_server/history.sh<a class="headerlink" href="#homedot_localbinexact_serverhistorysh" title="Permanent link">&para;</a></h1>
 <h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Source: <code>home/dot_local/bin/server/cache.sh</code></li>
+<li>Source: <code>home/dot_local/bin/exact_server/history.sh</code></li>
 <li>Category: shell executable</li>
 <li>Renderer: <code>shdoc</code></li>
 </ul>
 <h2 id="generated-reference">Generated Reference<a class="headerlink" href="#generated-reference" title="Permanent link">&para;</a></h2>
-<p>Export Hugging Face cache locations for server environments.</p>
+<p>Share shell history across concurrent bash sessions.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Sets the dataset and model cache directories under the user's home cache
-directory for Hugging Face tooling.</p>
+<p>Provides a <code>tac</code> fallback and appends a <code>PROMPT_COMMAND</code> hook that merges
+duplicate-filtered bash history back into the main history file.</p>
 
 
 

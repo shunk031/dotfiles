@@ -143,7 +143,7 @@ function _mise_setup_hooks() {
     export __MISE_ZSH_PRECMD_RUN=1
 }
 
-zsh-defer _mise_setup_hooks
+zsh-defer -a +1 +2 -t 1 _mise_setup_hooks
 '''
 
 #

@@ -3,8 +3,9 @@
 # @file home/dot_local/bin/exact_common/executable_chezmoi-notify-cache
 # @brief Sync the chezmoi update notification caches used by p10k and Starship.
 # @description
-#   Recomputes `HEAD..origin/master` on demand or only when cached results are
-#   stale, then updates both shell-specific cache directories together.
+#   Fetches the tracked upstream ref, recomputes `HEAD..origin/master` on
+#   demand or only when cached results are stale, then updates both
+#   shell-specific cache directories together.
 
 set -uo pipefail
 
@@ -68,7 +69,7 @@ function write_last_check_files() {
     return 0
 }
 
-# @description Recompute the update count and synchronize both notification caches.
+# @description Fetch the upstream ref, recompute the update count, and synchronize both caches.
 function refresh() {
     local count
     local now
@@ -76,6 +77,10 @@ function refresh() {
     local starship_dir
 
     if ! command -v chezmoi > /dev/null 2>&1; then
+        return 0
+    fi
+
+    if ! chezmoi git -- fetch -q > /dev/null 2>&1; then
         return 0
     fi
 

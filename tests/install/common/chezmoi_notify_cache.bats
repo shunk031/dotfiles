@@ -42,6 +42,10 @@ function starship_cache_dir() {
     printf "%s\n" "${XDG_CACHE_HOME:-${HOME}/.cache}/starship-chezmoi"
 }
 
+function expected_refresh_calls() {
+    printf "git -- fetch -q\ngit -- rev-list --count HEAD..origin/master"
+}
+
 @test "[common] refresh clears caches when the dotfiles repo is already up to date" {
     write_chezmoi_stub
     export CHEZMOI_REV_LIST_COUNT=0
@@ -97,10 +101,10 @@ function starship_cache_dir() {
     [ "${starship_count}" = "3" ]
     [ -s "${p10k_dir}/last_check" ]
     [ -s "${starship_dir}/last_check" ]
-    [ "$(< "${CHEZMOI_CALLS_PATH}")" = "git -- rev-list --count HEAD..origin/master" ]
+    [ "$(< "${CHEZMOI_CALLS_PATH}")" = "$(expected_refresh_calls)" ]
 }
 
-@test "[common] refresh leaves existing caches untouched when chezmoi rev-list fails" {
+@test "[common] refresh leaves existing caches untouched when upstream fetch fails" {
     write_chezmoi_stub
     export CHEZMOI_SHOULD_FAIL=1
 
@@ -121,6 +125,7 @@ function starship_cache_dir() {
     [ "$(< "${starship_dir}/count")" = "7" ]
     [ "$(< "${p10k_dir}/last_check")" = "42" ]
     [ "$(< "${starship_dir}/last_check")" = "42" ]
+    [ "$(< "${CHEZMOI_CALLS_PATH}")" = "git -- fetch -q" ]
 }
 
 @test "[common] refresh-if-stale skips recomputation while both caches are fresh" {
@@ -163,7 +168,7 @@ function starship_cache_dir() {
     [ "${status}" -eq 0 ]
     [ "$(< "${p10k_dir}/status")" = "4" ]
     [ "$(< "${starship_dir}/count")" = "4" ]
-    [ -s "${CHEZMOI_CALLS_PATH}" ]
+    [ "$(< "${CHEZMOI_CALLS_PATH}")" = "$(expected_refresh_calls)" ]
 }
 
 @test "[common] refresh-if-stale recomputes when either last_check file is expired" {

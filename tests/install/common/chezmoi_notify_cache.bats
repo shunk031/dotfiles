@@ -2,6 +2,8 @@
 
 readonly SCRIPT_PATH="./home/dot_local/bin/exact_common/executable_chezmoi-notify-cache"
 readonly RUN_AFTER_TEMPLATE="./home/.chezmoiscripts/common/run_after_99-refresh-chezmoi-notify-cache.sh.tmpl"
+readonly P10K_CONFIG_PATH="./home/dot_config/powerlevel10k/p10k.zsh"
+readonly STARSHIP_CONFIG_PATH="./home/dot_config/starship.toml"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
@@ -34,159 +36,118 @@ EOF
     chmod +x "${TEST_BIN_DIR}/chezmoi"
 }
 
-function p10k_cache_dir() {
-    printf "%s\n" "${XDG_CACHE_HOME:-${HOME}/.cache}/p10k-chezmoi"
+function notify_cache_dir() {
+    printf "%s\n" "${XDG_CACHE_HOME:-${HOME}/.cache}/chezmoi-notify"
 }
 
-function starship_cache_dir() {
-    printf "%s\n" "${XDG_CACHE_HOME:-${HOME}/.cache}/starship-chezmoi"
+function notify_count_file() {
+    printf "%s\n" "$(notify_cache_dir)/count"
+}
+
+function notify_last_check_file() {
+    printf "%s\n" "$(notify_cache_dir)/last_check"
+}
+
+function expected_refresh_calls() {
+    printf "git -- fetch -q\ngit -- rev-list --count HEAD..origin/master"
 }
 
 @test "[common] refresh clears caches when the dotfiles repo is already up to date" {
     write_chezmoi_stub
     export CHEZMOI_REV_LIST_COUNT=0
 
-    local p10k_dir
-    local starship_dir
+    local cache_dir
 
-    p10k_dir="$(p10k_cache_dir)"
-    starship_dir="$(starship_cache_dir)"
-    mkdir -p "${p10k_dir}" "${starship_dir}"
-    printf "9\n" > "${p10k_dir}/status"
-    printf "9\n" > "${starship_dir}/count"
+    cache_dir="$(notify_cache_dir)"
+    mkdir -p "${cache_dir}"
+    printf "9\n" > "$(notify_count_file)"
 
     run bash "${SCRIPT_PATH}" refresh
     [ "${status}" -eq 0 ]
-    [ ! -e "${p10k_dir}/status" ]
-    [ ! -e "${starship_dir}/count" ]
-    [ -s "${p10k_dir}/last_check" ]
-    [ -s "${starship_dir}/last_check" ]
+    [ ! -e "$(notify_count_file)" ]
+    [ -s "$(notify_last_check_file)" ]
 
-    local p10k_last_check
-    local starship_last_check
-    p10k_last_check="$(< "${p10k_dir}/last_check")"
-    starship_last_check="$(< "${starship_dir}/last_check")"
-    [[ "${p10k_last_check}" =~ ^[0-9]+$ ]]
-    [[ "${starship_last_check}" =~ ^[0-9]+$ ]]
-    [ "${p10k_last_check}" = "${starship_last_check}" ]
-    [ "${p10k_last_check}" -gt 1 ]
-    [ "${starship_last_check}" -gt 1 ]
+    local last_check
+    last_check="$(< "$(notify_last_check_file)")"
+    [[ "${last_check}" =~ ^[0-9]+$ ]]
+    [ "${last_check}" -gt 1 ]
 }
 
-@test "[common] refresh writes the same count into both caches under XDG_CACHE_HOME" {
+@test "[common] refresh writes the shared count under XDG_CACHE_HOME" {
     write_chezmoi_stub
     export CHEZMOI_REV_LIST_COUNT=3
     export XDG_CACHE_HOME="${BATS_TEST_TMPDIR}/xdg-cache"
 
-    local p10k_dir
-    local starship_dir
-
-    p10k_dir="$(p10k_cache_dir)"
-    starship_dir="$(starship_cache_dir)"
-
     run bash "${SCRIPT_PATH}" refresh
     [ "${status}" -eq 0 ]
-    [ -s "${p10k_dir}/status" ]
-    [ -s "${starship_dir}/count" ]
+    [ -s "$(notify_count_file)" ]
+    [ -s "$(notify_last_check_file)" ]
 
-    local p10k_count
-    local starship_count
-    p10k_count="$(< "${p10k_dir}/status")"
-    starship_count="$(< "${starship_dir}/count")"
-    [ "${p10k_count}" = "3" ]
-    [ "${starship_count}" = "3" ]
-    [ -s "${p10k_dir}/last_check" ]
-    [ -s "${starship_dir}/last_check" ]
-    [ "$(< "${CHEZMOI_CALLS_PATH}")" = "git -- rev-list --count HEAD..origin/master" ]
+    local count
+    count="$(< "$(notify_count_file)")"
+    [ "${count}" = "3" ]
+    [ "$(< "${CHEZMOI_CALLS_PATH}")" = "$(expected_refresh_calls)" ]
 }
 
-@test "[common] refresh leaves existing caches untouched when chezmoi rev-list fails" {
+@test "[common] refresh leaves existing caches untouched when upstream fetch fails" {
     write_chezmoi_stub
     export CHEZMOI_SHOULD_FAIL=1
 
-    local p10k_dir
-    local starship_dir
+    local cache_dir
 
-    p10k_dir="$(p10k_cache_dir)"
-    starship_dir="$(starship_cache_dir)"
-    mkdir -p "${p10k_dir}" "${starship_dir}"
-    printf "7\n" > "${p10k_dir}/status"
-    printf "7\n" > "${starship_dir}/count"
-    printf "42\n" > "${p10k_dir}/last_check"
-    printf "42\n" > "${starship_dir}/last_check"
+    cache_dir="$(notify_cache_dir)"
+    mkdir -p "${cache_dir}"
+    printf "7\n" > "$(notify_count_file)"
+    printf "42\n" > "$(notify_last_check_file)"
 
     run bash "${SCRIPT_PATH}" refresh
     [ "${status}" -eq 0 ]
-    [ "$(< "${p10k_dir}/status")" = "7" ]
-    [ "$(< "${starship_dir}/count")" = "7" ]
-    [ "$(< "${p10k_dir}/last_check")" = "42" ]
-    [ "$(< "${starship_dir}/last_check")" = "42" ]
+    [ "$(< "$(notify_count_file)")" = "7" ]
+    [ "$(< "$(notify_last_check_file)")" = "42" ]
+    [ "$(< "${CHEZMOI_CALLS_PATH}")" = "git -- fetch -q" ]
 }
 
-@test "[common] refresh-if-stale skips recomputation while both caches are fresh" {
+@test "[common] refresh-if-stale skips recomputation while the shared cache is fresh" {
     write_chezmoi_stub
     export CHEZMOI_REV_LIST_COUNT=5
 
-    local p10k_dir
-    local starship_dir
     local now
 
-    p10k_dir="$(p10k_cache_dir)"
-    starship_dir="$(starship_cache_dir)"
     now="$(date +%s)"
-    mkdir -p "${p10k_dir}" "${starship_dir}"
-    printf "%s\n" "${now}" > "${p10k_dir}/last_check"
-    printf "%s\n" "${now}" > "${starship_dir}/last_check"
+    mkdir -p "$(notify_cache_dir)"
+    printf "%s\n" "${now}" > "$(notify_last_check_file)"
 
     run bash "${SCRIPT_PATH}" refresh-if-stale
     [ "${status}" -eq 0 ]
     [ ! -e "${CHEZMOI_CALLS_PATH}" ]
-    [ ! -e "${p10k_dir}/status" ]
-    [ ! -e "${starship_dir}/count" ]
+    [ ! -e "$(notify_count_file)" ]
 }
 
-@test "[common] refresh-if-stale recomputes when either last_check file is missing" {
+@test "[common] refresh-if-stale recomputes when the shared last_check file is missing" {
     write_chezmoi_stub
     export CHEZMOI_REV_LIST_COUNT=4
 
-    local p10k_dir
-    local starship_dir
-    local now
-
-    p10k_dir="$(p10k_cache_dir)"
-    starship_dir="$(starship_cache_dir)"
-    now="$(date +%s)"
-    mkdir -p "${p10k_dir}" "${starship_dir}"
-    printf "%s\n" "${now}" > "${starship_dir}/last_check"
-
     run bash "${SCRIPT_PATH}" refresh-if-stale
     [ "${status}" -eq 0 ]
-    [ "$(< "${p10k_dir}/status")" = "4" ]
-    [ "$(< "${starship_dir}/count")" = "4" ]
-    [ -s "${CHEZMOI_CALLS_PATH}" ]
+    [ "$(< "$(notify_count_file)")" = "4" ]
+    [ "$(< "${CHEZMOI_CALLS_PATH}")" = "$(expected_refresh_calls)" ]
 }
 
-@test "[common] refresh-if-stale recomputes when either last_check file is expired" {
+@test "[common] refresh-if-stale recomputes when the shared last_check file is expired" {
     write_chezmoi_stub
     export CHEZMOI_REV_LIST_COUNT=6
 
-    local p10k_dir
-    local starship_dir
     local now
     local expired
 
-    p10k_dir="$(p10k_cache_dir)"
-    starship_dir="$(starship_cache_dir)"
     now="$(date +%s)"
     expired="$((now - 4000))"
-    mkdir -p "${p10k_dir}" "${starship_dir}"
-    printf "%s\n" "${expired}" > "${p10k_dir}/last_check"
-    printf "%s\n" "${now}" > "${starship_dir}/last_check"
+    mkdir -p "$(notify_cache_dir)"
+    printf "%s\n" "${expired}" > "$(notify_last_check_file)"
 
     run bash "${SCRIPT_PATH}" refresh-if-stale
     [ "${status}" -eq 0 ]
-    [ "$(< "${p10k_dir}/status")" = "6" ]
-    [ "$(< "${starship_dir}/count")" = "6" ]
+    [ "$(< "$(notify_count_file)")" = "6" ]
     [ -s "${CHEZMOI_CALLS_PATH}" ]
 }
 
@@ -194,5 +155,19 @@ function starship_cache_dir() {
     [ -f "${RUN_AFTER_TEMPLATE}" ]
 
     run grep -F '"${HOME}/.local/bin/common/chezmoi-notify-cache" refresh' "${RUN_AFTER_TEMPLATE}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] p10k reads the same chezmoi cache file as starship" {
+    [ -f "${P10K_CONFIG_PATH}" ]
+    [ -f "${STARSHIP_CONFIG_PATH}" ]
+
+    run grep -F 'command = "cat ${XDG_CACHE_HOME:-$HOME/.cache}/chezmoi-notify/count"' "${STARSHIP_CONFIG_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'local count_file="${XDG_CACHE_HOME:-$HOME/.cache}/chezmoi-notify/count"' "${P10K_CONFIG_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'if [[ -s "$count_file" ]]; then' "${P10K_CONFIG_PATH}"
     [ "${status}" -eq 0 ]
 }

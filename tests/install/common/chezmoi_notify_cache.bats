@@ -40,14 +40,6 @@ function notify_cache_dir() {
     printf "%s\n" "${XDG_CACHE_HOME:-${HOME}/.cache}/chezmoi-notify"
 }
 
-function legacy_p10k_cache_dir() {
-    printf "%s\n" "${XDG_CACHE_HOME:-${HOME}/.cache}/p10k-chezmoi"
-}
-
-function legacy_starship_cache_dir() {
-    printf "%s\n" "${XDG_CACHE_HOME:-${HOME}/.cache}/starship-chezmoi"
-}
-
 function notify_count_file() {
     printf "%s\n" "$(notify_cache_dir)/count"
 }
@@ -69,8 +61,8 @@ function expected_refresh_calls() {
     local starship_dir
 
     cache_dir="$(notify_cache_dir)"
-    p10k_dir="$(legacy_p10k_cache_dir)"
-    starship_dir="$(legacy_starship_cache_dir)"
+    p10k_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/p10k-chezmoi"
+    starship_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/starship-chezmoi"
     mkdir -p "${cache_dir}" "${p10k_dir}" "${starship_dir}"
     printf "9\n" > "$(notify_count_file)"
     printf "9\n" > "${p10k_dir}/status"
@@ -101,8 +93,8 @@ function expected_refresh_calls() {
     local p10k_dir
     local starship_dir
 
-    p10k_dir="$(legacy_p10k_cache_dir)"
-    starship_dir="$(legacy_starship_cache_dir)"
+    p10k_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/p10k-chezmoi"
+    starship_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/starship-chezmoi"
     mkdir -p "${p10k_dir}" "${starship_dir}"
     printf "11\n" > "${p10k_dir}/status"
     printf "11\n" > "${starship_dir}/count"

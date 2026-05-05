@@ -22,16 +22,6 @@ function notify_cache_dir() {
     printf "%s\n" "$(cache_root)/chezmoi-notify"
 }
 
-# @description Return the legacy Powerlevel10k cache directory path.
-function legacy_p10k_cache_dir() {
-    printf "%s\n" "$(cache_root)/p10k-chezmoi"
-}
-
-# @description Return the legacy Starship cache directory path.
-function legacy_starship_cache_dir() {
-    printf "%s\n" "$(cache_root)/starship-chezmoi"
-}
-
 # @description Return the shared count file path.
 function notify_count_file() {
     printf "%s\n" "$(notify_cache_dir)/count"
@@ -85,17 +75,15 @@ function write_last_check_file() {
 
 # @description Remove obsolete prompt-specific cache files after a successful refresh.
 function remove_legacy_cache_files() {
-    local p10k_dir
-    local starship_dir
+    local cache_root_path
 
-    p10k_dir="$(legacy_p10k_cache_dir)"
-    starship_dir="$(legacy_starship_cache_dir)"
+    cache_root_path="$(cache_root)"
 
     rm -f \
-        "${p10k_dir}/status" \
-        "${p10k_dir}/last_check" \
-        "${starship_dir}/count" \
-        "${starship_dir}/last_check"
+        "${cache_root_path}/p10k-chezmoi/status" \
+        "${cache_root_path}/p10k-chezmoi/last_check" \
+        "${cache_root_path}/starship-chezmoi/count" \
+        "${cache_root_path}/starship-chezmoi/last_check"
     return 0
 }
 

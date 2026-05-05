@@ -73,20 +73,6 @@ function write_last_check_file() {
     return 0
 }
 
-# @description Remove obsolete prompt-specific cache files after a successful refresh.
-function remove_legacy_cache_files() {
-    local cache_root_path
-
-    cache_root_path="$(cache_root)"
-
-    rm -f \
-        "${cache_root_path}/p10k-chezmoi/status" \
-        "${cache_root_path}/p10k-chezmoi/last_check" \
-        "${cache_root_path}/starship-chezmoi/count" \
-        "${cache_root_path}/starship-chezmoi/last_check"
-    return 0
-}
-
 # @description Fetch the upstream ref, recompute the update count, and update the shared cache.
 function refresh() {
     local count
@@ -123,7 +109,6 @@ function refresh() {
     fi
 
     write_last_check_file "${now}"
-    remove_legacy_cache_files
     return 0
 }
 

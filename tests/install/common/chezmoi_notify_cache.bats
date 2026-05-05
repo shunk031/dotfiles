@@ -57,27 +57,15 @@ function expected_refresh_calls() {
     export CHEZMOI_REV_LIST_COUNT=0
 
     local cache_dir
-    local p10k_dir
-    local starship_dir
 
     cache_dir="$(notify_cache_dir)"
-    p10k_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/p10k-chezmoi"
-    starship_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/starship-chezmoi"
-    mkdir -p "${cache_dir}" "${p10k_dir}" "${starship_dir}"
+    mkdir -p "${cache_dir}"
     printf "9\n" > "$(notify_count_file)"
-    printf "9\n" > "${p10k_dir}/status"
-    printf "9\n" > "${starship_dir}/count"
-    printf "42\n" > "${p10k_dir}/last_check"
-    printf "42\n" > "${starship_dir}/last_check"
 
     run bash "${SCRIPT_PATH}" refresh
     [ "${status}" -eq 0 ]
     [ ! -e "$(notify_count_file)" ]
     [ -s "$(notify_last_check_file)" ]
-    [ ! -e "${p10k_dir}/status" ]
-    [ ! -e "${p10k_dir}/last_check" ]
-    [ ! -e "${starship_dir}/count" ]
-    [ ! -e "${starship_dir}/last_check" ]
 
     local last_check
     last_check="$(< "$(notify_last_check_file)")"
@@ -85,30 +73,15 @@ function expected_refresh_calls() {
     [ "${last_check}" -gt 1 ]
 }
 
-@test "[common] refresh writes the shared count under XDG_CACHE_HOME and removes legacy caches" {
+@test "[common] refresh writes the shared count under XDG_CACHE_HOME" {
     write_chezmoi_stub
     export CHEZMOI_REV_LIST_COUNT=3
     export XDG_CACHE_HOME="${BATS_TEST_TMPDIR}/xdg-cache"
-
-    local p10k_dir
-    local starship_dir
-
-    p10k_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/p10k-chezmoi"
-    starship_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/starship-chezmoi"
-    mkdir -p "${p10k_dir}" "${starship_dir}"
-    printf "11\n" > "${p10k_dir}/status"
-    printf "11\n" > "${starship_dir}/count"
-    printf "11\n" > "${p10k_dir}/last_check"
-    printf "11\n" > "${starship_dir}/last_check"
 
     run bash "${SCRIPT_PATH}" refresh
     [ "${status}" -eq 0 ]
     [ -s "$(notify_count_file)" ]
     [ -s "$(notify_last_check_file)" ]
-    [ ! -e "${p10k_dir}/status" ]
-    [ ! -e "${p10k_dir}/last_check" ]
-    [ ! -e "${starship_dir}/count" ]
-    [ ! -e "${starship_dir}/last_check" ]
 
     local count
     count="$(< "$(notify_count_file)")"

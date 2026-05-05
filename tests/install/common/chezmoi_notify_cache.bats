@@ -2,6 +2,8 @@
 
 readonly SCRIPT_PATH="./home/dot_local/bin/exact_common/executable_chezmoi-notify-cache"
 readonly RUN_AFTER_TEMPLATE="./home/.chezmoiscripts/common/run_after_99-refresh-chezmoi-notify-cache.sh.tmpl"
+readonly P10K_CONFIG_PATH="./home/dot_config/powerlevel10k/p10k.zsh"
+readonly STARSHIP_CONFIG_PATH="./home/dot_config/starship.toml"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
@@ -199,5 +201,19 @@ function expected_refresh_calls() {
     [ -f "${RUN_AFTER_TEMPLATE}" ]
 
     run grep -F '"${HOME}/.local/bin/common/chezmoi-notify-cache" refresh' "${RUN_AFTER_TEMPLATE}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] p10k reads the same chezmoi cache file as starship" {
+    [ -f "${P10K_CONFIG_PATH}" ]
+    [ -f "${STARSHIP_CONFIG_PATH}" ]
+
+    run grep -F 'command = "cat ${XDG_CACHE_HOME:-$HOME/.cache}/starship-chezmoi/count"' "${STARSHIP_CONFIG_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'local status_file="${XDG_CACHE_HOME:-$HOME/.cache}/starship-chezmoi/count"' "${P10K_CONFIG_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'if [[ -s "$status_file" ]]; then' "${P10K_CONFIG_PATH}"
     [ "${status}" -eq 0 ]
 }

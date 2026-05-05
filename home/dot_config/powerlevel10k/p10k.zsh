@@ -1647,7 +1647,7 @@
 
   function prompt_chezmoi_update() {
     local helper_path="${HOME}/.local/bin/common/chezmoi-notify-cache"
-    local status_file="${XDG_CACHE_HOME:-$HOME/.cache}/p10k-chezmoi/status"
+    local status_file="${XDG_CACHE_HOME:-$HOME/.cache}/starship-chezmoi/count"
 
     # --- Icon/emoji definitions ---
     local icon=$'\uf015'      # Home ()
@@ -1659,7 +1659,7 @@
     fi
 
     # --- Display processing ---
-    if [[ -f "$status_file" ]]; then
+    if [[ -s "$status_file" ]]; then
       local count=$(cat "$status_file")
 
       # Color: Red (196)

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # @file home/dot_local/bin/exact_common/executable_chezmoi-notify-cache
-# @brief Sync the chezmoi update notification caches used by p10k and Starship.
+# @brief Sync the shared chezmoi update notification cache used by p10k and Starship.
 # @description
 #   Fetches the tracked upstream ref, recomputes `HEAD..origin/master` on
-#   demand or only when cached results are stale, then updates both
-#   shell-specific cache directories together.
+#   demand or only when cached results are stale, then updates the shared
+#   notification cache consumed by both prompts.
 
 set -uo pipefail
 
@@ -17,14 +17,29 @@ function cache_root() {
     printf "%s\n" "${XDG_CACHE_HOME:-$HOME/.cache}"
 }
 
-# @description Return the Powerlevel10k cache directory path.
-function p10k_cache_dir() {
+# @description Return the shared chezmoi notification cache directory path.
+function notify_cache_dir() {
+    printf "%s\n" "$(cache_root)/chezmoi-notify"
+}
+
+# @description Return the legacy Powerlevel10k cache directory path.
+function legacy_p10k_cache_dir() {
     printf "%s\n" "$(cache_root)/p10k-chezmoi"
 }
 
-# @description Return the Starship cache directory path.
-function starship_cache_dir() {
+# @description Return the legacy Starship cache directory path.
+function legacy_starship_cache_dir() {
     printf "%s\n" "$(cache_root)/starship-chezmoi"
+}
+
+# @description Return the shared count file path.
+function notify_count_file() {
+    printf "%s\n" "$(notify_cache_dir)/count"
+}
+
+# @description Return the shared last_check file path.
+function notify_last_check_file() {
+    printf "%s\n" "$(notify_cache_dir)/last_check"
 }
 
 # @description Return the current Unix timestamp.
@@ -53,28 +68,43 @@ function cache_is_stale() {
     ((now - last_check >= CHECK_INTERVAL))
 }
 
-# @description Update both `last_check` files with the same timestamp.
+# @description Update the shared `last_check` file with the current timestamp.
 # @arg $1 integer Current Unix timestamp.
-function write_last_check_files() {
+function write_last_check_file() {
     local now="$1"
-    local p10k_dir
-    local starship_dir
+    local cache_dir
+    local last_check_file
 
-    p10k_dir="$(p10k_cache_dir)"
-    starship_dir="$(starship_cache_dir)"
+    cache_dir="$(notify_cache_dir)"
+    last_check_file="$(notify_last_check_file)"
 
-    mkdir -p "${p10k_dir}" "${starship_dir}" || return 0
-    printf "%s\n" "${now}" >| "${p10k_dir}/last_check"
-    printf "%s\n" "${now}" >| "${starship_dir}/last_check"
+    mkdir -p "${cache_dir}" || return 0
+    printf "%s\n" "${now}" >| "${last_check_file}"
     return 0
 }
 
-# @description Fetch the upstream ref, recompute the update count, and synchronize both caches.
+# @description Remove obsolete prompt-specific cache files after a successful refresh.
+function remove_legacy_cache_files() {
+    local p10k_dir
+    local starship_dir
+
+    p10k_dir="$(legacy_p10k_cache_dir)"
+    starship_dir="$(legacy_starship_cache_dir)"
+
+    rm -f \
+        "${p10k_dir}/status" \
+        "${p10k_dir}/last_check" \
+        "${starship_dir}/count" \
+        "${starship_dir}/last_check"
+    return 0
+}
+
+# @description Fetch the upstream ref, recompute the update count, and update the shared cache.
 function refresh() {
     local count
     local now
-    local p10k_dir
-    local starship_dir
+    local cache_dir
+    local count_file
 
     if ! command -v chezmoi > /dev/null 2>&1; then
         return 0
@@ -92,35 +122,32 @@ function refresh() {
         return 0
     fi
 
-    p10k_dir="$(p10k_cache_dir)"
-    starship_dir="$(starship_cache_dir)"
+    cache_dir="$(notify_cache_dir)"
+    count_file="$(notify_count_file)"
     now="$(current_time)"
 
-    mkdir -p "${p10k_dir}" "${starship_dir}" || return 0
+    mkdir -p "${cache_dir}" || return 0
 
     if ((count == 0)); then
-        rm -f "${p10k_dir}/status" "${starship_dir}/count"
+        rm -f "${count_file}"
     else
-        printf "%s\n" "${count}" >| "${p10k_dir}/status"
-        printf "%s\n" "${count}" >| "${starship_dir}/count"
+        printf "%s\n" "${count}" >| "${count_file}"
     fi
 
-    write_last_check_files "${now}"
+    write_last_check_file "${now}"
+    remove_legacy_cache_files
     return 0
 }
 
-# @description Refresh both notification caches only when either cache is stale.
+# @description Refresh the shared notification cache only when it is stale.
 function refresh_if_stale() {
     local now
-    local p10k_last_check_file
-    local starship_last_check_file
+    local last_check_file
 
     now="$(current_time)"
-    p10k_last_check_file="$(p10k_cache_dir)/last_check"
-    starship_last_check_file="$(starship_cache_dir)/last_check"
+    last_check_file="$(notify_last_check_file)"
 
-    if cache_is_stale "${p10k_last_check_file}" "${now}" ||
-        cache_is_stale "${starship_last_check_file}" "${now}"; then
+    if cache_is_stale "${last_check_file}" "${now}"; then
         refresh
     fi
 

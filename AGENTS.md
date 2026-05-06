@@ -9,7 +9,7 @@
 
 ## Response Rule
 
-- After reading this `AGENTS.md`, say: `🤖 I read the AGENTS.md for shunk031/dotfiles.`
+- After reading this `AGENTS.md`, say: `🤖 I read the project-level AGENTS.md for shunk031/dotfiles.`
 
 ## Comment Policy
 

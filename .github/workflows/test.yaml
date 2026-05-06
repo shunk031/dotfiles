@@ -1,16 +1,15 @@
 name: Unit test
 
 on:
-  # Required checks must always report a final status during the staged
-  # `master` -> `main` cutover.
+  # Required checks must always report a final status for PRs into `main`.
   # Do not add workflow-level path filters here: GitHub can leave skipped
   # required checks in a pending state and block merges.
   # Keep this workflow unconditional and decide inside jobs whether the full
   # test matrix is necessary for the current diff.
   push:
-    branches: [master, main]
+    branches: [main]
   pull_request:
-    branches: [master, main]
+    branches: [main]
 
 jobs:
   changes:

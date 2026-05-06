@@ -1,9 +1,8 @@
 name: MacOS
 
 on:
-  # Keep both branches during the staged default-branch migration.
   push:
-    branches: [master, main]
+    branches: [main]
     paths:
       - ".github/workflows/macos.yaml"
       - "setup.sh"
@@ -13,7 +12,7 @@ on:
       - "tests/install/macos/**"
 
   pull_request:
-    branches: [master, main]
+    branches: [main]
     paths:
       - ".github/workflows/macos.yaml"
       - "setup.sh"
@@ -72,7 +71,7 @@ jobs:
 
       - name: Set flag for auto-push in the benchmark action
         run: |
-          if [ "${{ github.event_name }}" = "push" ] && { [ "${{ github.ref }}" = "refs/heads/master" ] || [ "${{ github.ref }}" = "refs/heads/main" ]; }; then
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "auto_push=true" >> $GITHUB_ENV
           else
             echo "auto_push=false" >> $GITHUB_ENV

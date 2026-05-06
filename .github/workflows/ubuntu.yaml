@@ -1,9 +1,8 @@
 name: Ubuntu
 
 on:
-  # Keep both branches during the staged default-branch migration.
   push:
-    branches: [master, main]
+    branches: [main]
     paths:
       - ".github/workflows/ubuntu.yaml"
       - "setup.sh"
@@ -13,7 +12,7 @@ on:
       - "tests/install/ubuntu/**"
 
   pull_request:
-    branches: [master, main]
+    branches: [main]
     paths:
       - ".github/workflows/ubuntu.yaml"
       - "setup.sh"

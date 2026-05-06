@@ -25,7 +25,7 @@ declare -r DOTFILES_LOGO='
 '
 
 declare -r DOTFILES_REPO_URL="https://github.com/shunk031/dotfiles"
-declare -r BRANCH_NAME="${BRANCH_NAME:-master}"
+declare -r BRANCH_NAME="${BRANCH_NAME:-main}"
 
 function is_ci() {
     "${CI:-false}"

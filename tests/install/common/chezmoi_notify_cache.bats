@@ -49,7 +49,7 @@ function notify_last_check_file() {
 }
 
 function expected_refresh_calls() {
-    printf "git -- fetch -q\ngit -- rev-list --count HEAD..origin/master"
+    printf "git -- fetch -q\ngit -- rev-list --count HEAD..origin/main"
 }
 
 @test "[common] refresh clears caches when the dotfiles repo is already up to date" {

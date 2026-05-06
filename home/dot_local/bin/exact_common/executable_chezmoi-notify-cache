@@ -3,14 +3,14 @@
 # @file home/dot_local/bin/exact_common/executable_chezmoi-notify-cache
 # @brief Sync the shared chezmoi update notification cache used by p10k and Starship.
 # @description
-#   Fetches the tracked upstream ref, recomputes `HEAD..origin/master` on
+#   Fetches the tracked upstream ref, recomputes `HEAD..origin/main` on
 #   demand or only when cached results are stale, then updates the shared
 #   notification cache consumed by both prompts.
 
 set -uo pipefail
 
 readonly CHECK_INTERVAL=3600
-readonly UPSTREAM_REF="origin/master"
+readonly UPSTREAM_REF="origin/main"
 
 # @description Return the cache root honoring `XDG_CACHE_HOME`.
 function cache_root() {

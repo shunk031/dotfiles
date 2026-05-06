@@ -3,6 +3,7 @@ plugin.jupyterlab-settings
 .key.txt.age
 
 .mise
+.uv
 .tmux.conf.d/
 .agents/README.md
 .claude/README.md

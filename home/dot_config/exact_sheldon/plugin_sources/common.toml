@@ -70,10 +70,12 @@ export FZF_DEFAULT_OPTS="--reverse"
 
 [plugins.zsh-syntax-highlighting]
 github = 'zsh-users/zsh-syntax-highlighting'
+# Needs its widgets ready before the first keypress.
 apply = ['source']
 
 [plugins.zsh-autopair]
 github = 'hlissner/zsh-autopair'
+# Wraps the first edit widgets, so keep it eager too.
 apply = ['source']
 
 [plugins.zsh-autosuggestions]

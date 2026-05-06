@@ -5,7 +5,7 @@ Use this reference when the target file needs `shdoc`-compatible comments.
 ## Canonical Sources
 
 - Use the official `shdoc` README as the source of truth for supported tags and formatting.
-- Use `scripts/generate-docs.sh` as the local style baseline in this repository.
+- Use `install/common/mise.sh` as the local style baseline in this repository.
 - Prefer `@file` over `@name` here because the repo example already uses `@file`.
 
 ## Minimal File Header
@@ -55,7 +55,7 @@ Add more tags only when they describe observable behavior:
 # @option -n | --dry-run Print findings without modifying files.
 # @arg $1 path Target shell script.
 # @example
-#   lint_shdoc --dry-run scripts/generate-docs.sh
+#   lint_shdoc --dry-run install/common/mise.sh
 function lint_shdoc() {
     local target="$1"
 }

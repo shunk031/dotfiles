@@ -62,6 +62,10 @@ export FZF_DEFAULT_OPTS="--reverse"
 #
 # Zsh-related Plugins
 #
+# Keep the zle-critical plugins eager.
+# In tmux panes, deferring syntax-highlighting or autopair reintroduced a
+# post-prompt input hitch. Autosuggestions and completions can stay deferred
+# without hurting input readiness, so they remain deferred.
 
 [plugins.zsh-autosuggestions]
 github = 'zsh-users/zsh-autosuggestions'

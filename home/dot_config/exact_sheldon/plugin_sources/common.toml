@@ -63,17 +63,10 @@ export FZF_DEFAULT_OPTS="--reverse"
 # Zsh-related Plugins
 #
 # Keep the zle-critical plugins eager.
-# On fresh interactive zsh startup, deferring syntax-highlighting or
-# autopair reintroduced a post-prompt input hitch. Autosuggestions and
-# completions can stay deferred without hurting input readiness.
-
-[plugins.zsh-autosuggestions]
-github = 'zsh-users/zsh-autosuggestions'
-apply = ['defer']
-
-[plugins.zsh-completions]
-github = 'zsh-users/zsh-completions'
-apply = ['defer']
+# Deferring syntax-highlighting or autopair reintroduced a
+# post-prompt input hitch during fresh interactive zsh startup.
+# Autosuggestions and completions can stay deferred without
+# hurting input readiness.
 
 [plugins.zsh-syntax-highlighting]
 github = 'zsh-users/zsh-syntax-highlighting'
@@ -82,6 +75,14 @@ apply = ['source']
 [plugins.zsh-autopair]
 github = 'hlissner/zsh-autopair'
 apply = ['source']
+
+[plugins.zsh-autosuggestions]
+github = 'zsh-users/zsh-autosuggestions'
+apply = ['defer']
+
+[plugins.zsh-completions]
+github = 'zsh-users/zsh-completions'
+apply = ['defer']
 
 [plugins.zsh-history-on-success]
 github = 'nyoungstudios/zsh-history-on-success'

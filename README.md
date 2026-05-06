@@ -19,8 +19,7 @@ The setup scripts are aimed for [MacOS](https://www.apple.com/jp/macos), [Ubuntu
 
 The actual dotfiles exist under the [`home`](https://github.com/shunk031/dotfiles/tree/master/home) directory specified in the [`.chezmoiroot`](https://github.com/shunk031/dotfiles/blob/master/.chezmoiroot).
 See [.chezmoiroot - chezmoi](https://www.chezmoi.io/reference/special-files-and-directories/chezmoiroot/) more detail on the setting.
-
-### Tooling Snapshot
+The setup is centered on the following tools and runtime helpers:
 
 [![zsh-users/zsh](https://img.shields.io/github/v/tag/zsh-users/zsh?color=2885F1&display_name=release&label=zsh&logo=zsh&logoColor=2885F1&sort=semver)](https://github.com/zsh-users/zsh)
 [![tmux/tmux](https://img.shields.io/github/v/tag/tmux/tmux?color=1BB91F&display_name=release&label=tmux&logo=tmux&logoColor=1BB91F&sort=semver)](https://github.com/tmux/tmux)

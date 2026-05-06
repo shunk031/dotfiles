@@ -13,7 +13,7 @@ Use this skill to make shellscript comments parseable by `shdoc` without bloatin
 
 1. Inspect the target shell file before writing comments.
 2. Read `references/shdoc-rules.md` before editing comments.
-3. Use `scripts/generate-docs.sh` as the repo-local style example when working in this repository.
+3. Use `install/common/mise.sh` as the repo-local style example when working in this repository.
 4. Add or repair file-level annotations near the top of the file:
    - Prefer `@file` for the script identifier.
    - Add `@brief` for a single-sentence summary.

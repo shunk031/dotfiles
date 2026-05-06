@@ -19,6 +19,7 @@ The setup scripts are aimed for [MacOS](https://www.apple.com/jp/macos), [Ubuntu
 
 The actual dotfiles exist under the [`home`](https://github.com/shunk031/dotfiles/tree/master/home) directory specified in the [`.chezmoiroot`](https://github.com/shunk031/dotfiles/blob/master/.chezmoiroot).
 See [.chezmoiroot - chezmoi](https://www.chezmoi.io/reference/special-files-and-directories/chezmoiroot/) more detail on the setting.
+
 The following are the tools and coding assistants I mainly use in this setup.
 
 ### Shell and terminal tooling:
@@ -37,6 +38,14 @@ The following are the tools and coding assistants I mainly use in this setup.
 ## 📥 Setup
 
 To set up the dotfiles run the appropriate snippet in the terminal.
+
+<details>
+<summary>About the hosted <code>setup.sh</code> snippet</summary>
+
+The `curl` and `wget` snippets below download `setup.sh` from GitHub Pages.
+To keep `http://shunk031.me/dotfiles/setup.sh` and `https://shunk031.me/dotfiles/setup.sh` working, `Settings > Pages` must publish from the branch that contains `setup.sh` and use `/(root)` as the source folder.
+Selecting `/docs` would stop serving the repository-root `setup.sh`.
+</details>
 
 ### 💻 `MacOS` [![MacOS](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml)
 

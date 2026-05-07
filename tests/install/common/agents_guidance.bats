@@ -3,6 +3,8 @@
 readonly SHARED_AGENTS_PATH="./home/dot_config/exact_agents/AGENTS.md"
 readonly CODEX_AGENTS_PATH="./home/dot_config/codex/AGENTS.md"
 readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
+readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
+readonly CODEX_WORKLOG_AGENT_PATH="./home/dot_config/codex/agents/worklog-manager.toml"
 readonly AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS.md.tmpl"
 readonly CLAUDE_MD_PATH="./home/dot_config/claude/CLAUDE.md"
 readonly CLAUDE_SYMLINK_TEMPLATE="./home/dot_claude/symlink_CLAUDE.md.tmpl"
@@ -36,8 +38,25 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 @test "[common] agent guidance adapters point to the canonical files" {
     [ "$(< "${AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/AGENTS.md" ]
     [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.md" ]
+    [ "$(< "${CODEX_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/agents" ]
     [ "$(< "${CLAUDE_MD_PATH}")" = "@~/.agents/AGENTS.md" ]
     [ "$(< "${CLAUDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/CLAUDE.md" ]
+}
+
+@test "[common] codex worklog is delegated to the custom subagent" {
+    [ -f "${CODEX_WORKLOG_AGENT_PATH}" ]
+
+    run grep -F 'name = "worklog_manager"' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'sandbox_mode = "workspace-write"' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F "worklog_manager" "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '$(date +%Y%m%d_%H%M%S)_plan.md' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F "#### plan/todo/learn の frontmatter ルール" "${CODEX_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
 }
 
 @test "[common] layout readmes describe the adapter and canonical layout" {
@@ -66,6 +85,10 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "../dot_config/codex/AGENTS.md" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F "~/.codex/agents" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "../dot_config/codex/agents/" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -F "Edit the canonical source, not this adapter directory." "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
 
@@ -86,6 +109,10 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F "~/.codex/AGENTS.md" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "(AGENTS.md)" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.codex/agents" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "(agents/)" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "../../dot_codex/" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]

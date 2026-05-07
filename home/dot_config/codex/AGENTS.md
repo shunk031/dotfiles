@@ -35,6 +35,7 @@
   - `.agents/worklog/codex/plan/`: プロジェクトの計画や設計に関するドキュメントを格納するディレクトリ
     - `$(date +%Y%m%d_%H%M%S)_plan.md` のような形式でファイルを作成してください
     - 実装する前に計画を立て、必要であればユーザへの質問を行って計画用のドキュメントを更新してください。
+    - セッション開始時の最初のユーザープロンプトを `User Prompt` セクションに記録し、その後の要件変更や追加指示も時系列で追記してください。
   - `.agents/worklog/codex/todo/`: タスク管理用のディレクトリ
     - `$(date +%Y%m%d_%H%M%S)_todo.md` のような形式でファイルを作成してください
     - `.agents/worklog/codex/plan/` ディレクトリのドキュメントをもとに、実装するタスクを洗い出して記述してください。
@@ -50,7 +51,7 @@
     - `.agents/worklog/codex/learn/learn_index.md`: learn ファイルの要約インデックス。learn ファイルを新規作成・更新・削除した際は、必ずこのインデックスも更新してください。
     - インデックスの各エントリは 1 行で `- [タイトル](ファイル名) — 要約（150 文字以内）` の形式で記述してください。
   - 作成するファイルには以下の最低限の見出しを含めてください。
-    - plan: `Goal`, `Scope`, `Assumptions`, `Design`, `Tests`, `Open Questions`
+    - plan: `User Prompt`, `Goal`, `Scope`, `Assumptions`, `Design`, `Tests`, `Open Questions`
     - todo: `TODO`, `Done`
     - learn: `Date`, `Learnings`, `Plan Updates`
 

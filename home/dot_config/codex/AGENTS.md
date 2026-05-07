@@ -16,17 +16,17 @@
 
 - After reading this user-level `AGENTS.md`, say: `🤖 I read the user-level AGENTS.md.`
 
-### Worklog Subagent
+### Worklog のサブエージェント
 
-- Worklog management is handled by the custom subagent `worklog_manager`, exposed through `~/.codex/agents`.
-- For every non-trivial task, spawn `worklog_manager` once near the start of the session and reuse the same thread for the rest of the task.
-- Pass the task summary, the initial user prompt, and a `parent_owner` value such as `codex-foo`.
-- Delegate all reads and writes under `.agents/worklog/codex/**` to `worklog_manager`.
-- Do not update `.agents/worklog/codex/**` directly from the main Codex agent.
-- Use the learn summary returned by `worklog_manager` before continuing the main task.
-- If `worklog_manager` cannot read the required learn files or cannot update the worklog after it starts, fail hard and report the problem instead of falling back to direct edits.
+- worklog の管理は custom subagent `worklog_manager` が担当します。`~/.codex/agents` 経由で利用できます。
+- 実装、調査、レビューなど、軽微ではないタスクでは、セッションの早い段階で `worklog_manager` を 1 回だけ spawn し、その後は同じスレッドを使い続けてください。
+- 起動時には、タスクの要約、最初のユーザープロンプト、`codex-foo` のような `parent_owner` を渡してください。
+- `.agents/worklog/codex/**` 配下の読み書きは、すべて `worklog_manager` に委譲してください。
+- main Codex agent から `.agents/worklog/codex/**` を直接更新しないでください。
+- 本体の作業を進める前に、`worklog_manager` が返す learn の要約を確認してください。
+- `worklog_manager` が必要な learn を読めない、または起動後に worklog を更新できない場合は、直接編集へフォールバックせず、その時点で失敗として扱って報告してください。
 
 ### セッション終了時のまとめ
 
-- 会話の自然な区切りで、直ちに次のアクションが想定されない場合は、`worklog_manager` から summary 案を受け取り、以下の形式で 1 行のまとめを出力してください。
+- 会話の自然な区切りで、直ちに次のアクションが想定されない場合は、`worklog_manager` から要約案を受け取り、以下の形式で 1 行のまとめを出力してください。
 - `📝 まとめ: <このセッションで完了した内容を 1〜2 文で要約してください。未完了のタスクや次のアクションがあれば末尾に追記してください。>`

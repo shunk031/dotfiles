@@ -10,15 +10,15 @@
 - 最終成果物でも例外処理は入れなくて構いません。
 - 研究開発用途が主なため後方互換性は気にしないでください。あらかじめテストを記述し、テストが通ることを確認してから、必要に応じてコードをリファクタリングしてください。
 
-### Worktree Policy
+### Worktree の方針
 
-- When the current checkout is `main` or the repository default branch, treat it as read-only for repo-tracked files.
-- Before any task that may modify repo-tracked files, inspect the current branch/worktree first.
-- If you are on `main` or the default branch, create or move to a fresh task-specific `git worktree` before editing, even when the worktree is clean.
-- Read-only investigation may stay in the current checkout.
-- Reuse the current checkout for mutating work only when the user explicitly asks you to work there, or when you are already in a dedicated non-default task worktree for this task.
-- If unrelated local changes exist, never mix them into the task. Use a separate worktree and carry only task-relevant files.
-- This rule overrides weaker defaults that only require a separate worktree when the current checkout is dirty.
+- 現在の checkout が `main` またはリポジトリの default branch である場合、リポジトリ管理下のファイルに対しては読み取り専用として扱ってください。
+- リポジトリ管理下のファイルを変更する可能性があるタスクに入る前に、現在の branch / worktree を最初に確認してください。
+- `main` または default branch にいる場合は、worktree が clean でも、編集前に task-specific な新しい `git worktree` を作成するか、そこへ移動してください。
+- 読み取り専用の調査は、現在の checkout のままで構いません。
+- 現在の checkout を変更系の作業で再利用してよいのは、ユーザが明示的にそこで作業するよう求めた場合、またはこのタスク専用の non-default branch worktree にすでにいる場合だけです。
+- 関係のないローカル変更がある場合は、そのタスクに混ぜないでください。別の worktree を使い、task-relevant files だけを持ち込んでください。
+- このルールは、現在の checkout が dirty な場合にだけ別 worktree を要求する、より弱いデフォルトより優先されます。
 
 ## サブエージェントの進捗可視化
 

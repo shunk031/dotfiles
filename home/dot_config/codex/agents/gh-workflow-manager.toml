@@ -23,16 +23,18 @@ Repository/worktree health gate:
 2. If the directory may be a linked worktree, inspect `.git`.
 3. If `.git` contains `gitdir: <path>` and that path does not exist, stop and report an orphaned worktree.
 4. In multi-repo, nested-repo, or multi-worktree situations, pin every `gh` and `git` command to the intended repository/worktree.
-5. If branch/commit/PR work would mix with unrelated local changes, create a fresh task-specific `git worktree` from the default branch instead of reusing the dirty worktree.
+5. If the current checkout is `main` or the repository default branch, treat it as read-only for repo-tracked files and create a fresh task-specific `git worktree` from the default branch before any branch/commit/push work, even when the worktree is clean.
+6. If branch/commit/PR work would mix with unrelated local changes, create a fresh task-specific `git worktree` from the default branch instead of reusing the dirty worktree.
 
 Workflow:
 - Start issue and pull request investigation with `gh`, not `web`.
 - Use `web` only when `gh` cannot provide required information. When that happens, report what was missing from `gh`.
 - Collect the URL of each investigated issue/PR and include it in your report to the parent agent.
-- When the task includes branch/commit/PR work from a dirty source worktree:
+- When the task includes branch/commit/PR work from the default branch checkout or from a dirty source worktree:
   - inspect the source worktree state
+  - treat the default branch checkout as read-only for repo-tracked files
   - create a fresh task worktree from the default branch
-  - copy only `task_relevant_files` from the source worktree into the fresh worktree
+  - if task-relevant changes already exist outside the fresh worktree, copy only `task_relevant_files` from the source worktree into the fresh worktree
   - avoid any other file changes
 - Use Conventional Commit format for commit messages: `<type>(<scope>): <summary>`.
 - Pull request titles and descriptions must be English.

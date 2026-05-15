@@ -16,7 +16,7 @@ function write_file() {
 }
 
 function write_clean_fixture() {
-    write_file "${LEARN_ROOT}/learn_index.md" <<'EOF'
+    write_file "${LEARN_ROOT}/learn_index.md" << 'EOF'
 ## Active
 - [Repo layout](repo-layout.md) [stable] — Stable repo layout guidance.
 - [Default branch is main](default-branch-main.md) [stable] — Current default branch fact.
@@ -31,7 +31,7 @@ function write_clean_fixture() {
 - [Migration notes](migration-notes.md) [stable] — Historical migration notes.
 EOF
 
-    write_file "${LEARN_ROOT}/repo-layout.md" <<'EOF'
+    write_file "${LEARN_ROOT}/repo-layout.md" << 'EOF'
 ---
 type: learn
 id: learn-repo-layout
@@ -51,7 +51,7 @@ last_validated_at: 2026-05-15T00:00:00Z
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/default-branch-main.md" <<'EOF'
+    write_file "${LEARN_ROOT}/default-branch-main.md" << 'EOF'
 ---
 type: learn
 id: learn-default-branch-main
@@ -72,7 +72,7 @@ supersedes: default-branch-is-master.md
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/origin-main-recipe.md" <<'EOF'
+    write_file "${LEARN_ROOT}/origin-main-recipe.md" << 'EOF'
 ---
 type: learn
 id: learn-origin-main-recipe
@@ -93,7 +93,7 @@ review_after: 2099-01-01T00:00:00Z
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/default-branch-is-master.md" <<'EOF'
+    write_file "${LEARN_ROOT}/default-branch-is-master.md" << 'EOF'
 ---
 type: learn
 id: learn-default-branch-master
@@ -114,7 +114,7 @@ superseded_by: default-branch-main.md
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/migration-notes.md" <<'EOF'
+    write_file "${LEARN_ROOT}/migration-notes.md" << 'EOF'
 ---
 type: learn
 id: learn-migration-notes
@@ -136,7 +136,7 @@ EOF
 }
 
 function write_mixed_fixture() {
-    write_file "${LEARN_ROOT}/learn_index.md" <<'EOF'
+    write_file "${LEARN_ROOT}/learn_index.md" << 'EOF'
 ## Active
 - [Default branch is main](default-branch-main.md) [stable] — Current default branch fact.
 - [Legacy branch note](legacy-branch-note.md) [stable] — Active legacy entry without new metadata.
@@ -154,7 +154,7 @@ function write_mixed_fixture() {
 - [Migration notes](migration-notes.md) [stable] — Historical migration notes.
 EOF
 
-    write_file "${LEARN_ROOT}/default-branch-main.md" <<'EOF'
+    write_file "${LEARN_ROOT}/default-branch-main.md" << 'EOF'
 ---
 type: learn
 id: learn-default-branch-main
@@ -175,7 +175,7 @@ supersedes: default-branch-is-master.md
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/legacy-branch-note.md" <<'EOF'
+    write_file "${LEARN_ROOT}/legacy-branch-note.md" << 'EOF'
 ---
 type: learn
 id: learn-legacy-branch-note
@@ -192,7 +192,7 @@ apply_to:
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/origin-main-recipe.md" <<'EOF'
+    write_file "${LEARN_ROOT}/origin-main-recipe.md" << 'EOF'
 ---
 type: learn
 id: learn-origin-main-recipe
@@ -213,7 +213,7 @@ review_after: 2026-05-10T00:00:00Z
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/origin-master-recipe.md" <<'EOF'
+    write_file "${LEARN_ROOT}/origin-master-recipe.md" << 'EOF'
 ---
 type: learn
 id: learn-origin-master-recipe
@@ -234,7 +234,7 @@ review_after: 2099-01-01T00:00:00Z
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/default-branch-is-master.md" <<'EOF'
+    write_file "${LEARN_ROOT}/default-branch-is-master.md" << 'EOF'
 ---
 type: learn
 id: learn-default-branch-master
@@ -255,7 +255,7 @@ superseded_by: default-branch-main.md
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/broken-master-note.md" <<'EOF'
+    write_file "${LEARN_ROOT}/broken-master-note.md" << 'EOF'
 ---
 type: learn
 id: learn-broken-master-note
@@ -275,7 +275,7 @@ last_validated_at: 2026-05-15T00:00:00Z
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/migration-notes.md" <<'EOF'
+    write_file "${LEARN_ROOT}/migration-notes.md" << 'EOF'
 ---
 type: learn
 id: learn-migration-notes
@@ -295,7 +295,7 @@ last_validated_at: 2026-05-15T00:00:00Z
 2026-05-15
 EOF
 
-    write_file "${LEARN_ROOT}/stray-note.md" <<'EOF'
+    write_file "${LEARN_ROOT}/stray-note.md" << 'EOF'
 ---
 type: learn
 id: learn-stray-note

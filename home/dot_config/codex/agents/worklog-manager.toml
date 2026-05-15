@@ -17,9 +17,9 @@ Bootstrap:
 
 Startup workflow:
 1. Ensure `.agents/worklog/codex/plan/`, `todo/`, and `learn/` exist.
-2. Read `.agents/worklog/codex/learn/learn_index.md`.
-3. Read the specific learn files that are relevant to the task.
-4. Reply to the parent with a short summary of the relevant learnings and the owner you will use before you continue with routine updates.
+2. Read `.agents/worklog/codex/learn/learn_index.md` and treat only the `## Active` section as the startup source of truth.
+3. Read only the specific active learn files that are relevant to the task. `## Needs Review` may be consulted as reference but never as validated fact during startup. Do not read `## Superseded` or `## Archived` unless the parent explicitly asks for historical context.
+4. Reply to the parent with exactly three short sections in this order: `Active learnings`, `Needs revalidation`, `Ignored historical entries`. When an active learn has `freshness: drift_prone`, include it under `Active learnings` but state that the parent must revalidate it before relying on it. Also include the owner you will use before you continue with routine updates.
 
 Plan and todo rules:
 - Maintain the session worklog continuously while the parent agent works.
@@ -27,7 +27,7 @@ Plan and todo rules:
 - Required common keys: `type`, `id`, `owner`, `created_at`, `updated_at`.
 - Required `plan` key: `status`.
 - Required `todo` keys: `status`, `workstream`, `related_plan`.
-- Required `learn` keys: `validated`, `apply_to`.
+- Required `learn` keys: `validated`, `apply_to`, `status`, `freshness`, `last_validated_at`.
 - Use these headings for plan files: `User Prompt`, `Goal`, `Scope`, `Assumptions`, `Design`, `Tests`, `Open Questions`.
 - Use these headings for todo files: `TODO`, `Done`.
 - Use these headings for learn files: `Date`, `Learnings`, `Plan Updates`.
@@ -35,6 +35,12 @@ Plan and todo rules:
 - Record the first user prompt in the plan `User Prompt` section and append later requirement changes chronologically.
 - Keep `todo.status` within `active | blocked | done | superseded`.
 - Keep `plan.status` within `draft | active | done | superseded`.
+- Keep `learn.status` within `active | needs_review | superseded | archived`.
+- Keep `learn.freshness` within `stable | drift_prone`.
+- Use ISO `YYYY-MM-DD` strings for `last_validated_at` and `review_after`.
+- `freshness: drift_prone` requires `review_after`.
+- `status: superseded` requires `superseded_by`.
+- Replacement learn files should record the prior file in `supersedes`.
 
 Todo completion:
 - Move completed tasks from `# TODO` to `# Done`.
@@ -43,10 +49,16 @@ Todo completion:
 
 Learn rules:
 - Create or update a learn file only when the information is reusable and validated.
+- Do not promote session-limited facts, current branch/path/default branch, or state that can be rechecked immediately into learn files.
+- If a drift-prone repository fact must be stored, mark it `freshness: drift_prone` and set a concrete `review_after`.
 - Each learn file must state what was learned and where it should be applied.
 - When learn files change, update `.agents/worklog/codex/learn/learn_index.md`.
+- Keep the learn index in four sections: `## Active`, `## Needs Review`, `## Superseded`, `## Archived`.
 - Each index entry must be one line in this format:
-  `- [タイトル](ファイル名) — 要約（150 文字以内）`
+  `- [タイトル](ファイル名) [stable|drift_prone] — 要約（150 文字以内）`
+- `## Active` entries are startup-eligible only when their metadata is complete and current.
+- `## Needs Review` entries are reference candidates, not facts.
+- `## Superseded` and `## Archived` entries are historical and should stay out of startup unless the parent asks for history.
 - When learn changes affect the active plan, update the plan `Assumptions`, `Design`, or `Tests` accordingly.
 
 Output to parent:

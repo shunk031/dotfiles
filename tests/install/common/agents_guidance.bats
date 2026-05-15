@@ -81,6 +81,44 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -ne 0 ]
 }
 
+@test "[common] codex worklog manager hard-gates startup learns" {
+    [ -f "${CODEX_WORKLOG_AGENT_PATH}" ]
+
+    run grep -F 'treat only the `## Active` section as the startup source of truth' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '`## Needs Review` may be consulted as reference but never as validated fact during startup' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Do not read `## Superseded` or `## Archived` unless the parent explicitly asks for historical context' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Reply to the parent with exactly three short sections in this order: `Active learnings`, `Needs revalidation`, `Ignored historical entries`' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] codex worklog manager defines the learn freshness metadata rules" {
+    [ -f "${CODEX_WORKLOG_AGENT_PATH}" ]
+
+    run grep -F 'Required `learn` keys: `validated`, `apply_to`, `status`, `freshness`, `last_validated_at`' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '`freshness: drift_prone` requires `review_after`' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '`status: superseded` requires `superseded_by`' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Replacement learn files should record the prior file in `supersedes`' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Do not promote session-limited facts, current branch/path/default branch, or state that can be rechecked immediately into learn files' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '`- [タイトル](ファイル名) [stable|drift_prone] — 要約（150 文字以内）`' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] codex GitHub workflow is delegated to the custom subagent" {
     [ -f "${CODEX_GH_AGENT_PATH}" ]
     [ ! -e "${LEGACY_GH_FIRST_SKILL_PATH}" ]

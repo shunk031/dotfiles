@@ -1,0 +1,584 @@
+#!/usr/bin/env bash
+
+# @file home/dot_local/bin/exact_common/executable_codex-worklog-audit
+# @brief Audit Codex worklog learn metadata and index consistency.
+# @description
+#   Reads the learn index plus learn frontmatter under the configured worklog
+#   learn root, reports status counts and review deadlines, and fails `check`
+#   when startup-hard-gating would be unreliable.
+
+set -uo pipefail
+
+readonly TODAY="$(date +%F)"
+
+# @description Trim leading and trailing whitespace from a scalar value.
+# @arg $1 string Raw scalar value.
+function trim_scalar() {
+    local raw_value="${1:-}"
+
+    printf "%s\n" "${raw_value}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//'
+}
+
+# @description Resolve the learn root, honoring `CODEX_WORKLOG_LEARN_ROOT`.
+function resolve_learn_root() {
+    local source_path
+
+    if [ -n "${CODEX_WORKLOG_LEARN_ROOT:-}" ]; then
+        printf "%s\n" "${CODEX_WORKLOG_LEARN_ROOT}"
+        return 0
+    fi
+
+    if ! command -v chezmoi > /dev/null 2>&1; then
+        printf "chezmoi is required unless CODEX_WORKLOG_LEARN_ROOT is set\n" >&2
+        return 1
+    fi
+
+    source_path="$(chezmoi source-path)" || return 1
+    printf "%s/.agents/worklog/codex/learn\n" "${source_path}"
+}
+
+# @description Extract one scalar frontmatter value from a learn file.
+# @arg $1 path Learn file path.
+# @arg $2 string Frontmatter key.
+function frontmatter_value() {
+    local file_path="$1"
+    local key="$2"
+
+    awk -v key="${key}" '
+        BEGIN {
+            in_frontmatter = 0
+            seen_delimiter = 0
+        }
+
+        /^---[[:space:]]*$/ {
+            if (seen_delimiter == 0) {
+                in_frontmatter = 1
+                seen_delimiter = 1
+                next
+            }
+
+            if (in_frontmatter) {
+                exit
+            }
+        }
+
+        in_frontmatter && $0 ~ "^[[:space:]]*" key ":[[:space:]]*" {
+            sub("^[[:space:]]*" key ":[[:space:]]*", "", $0)
+            print $0
+            exit
+        }
+    ' "${file_path}"
+}
+
+# @description Convert a markdown section heading into a normalized status token.
+# @arg $1 string Markdown heading text without the `## ` prefix.
+function normalize_section() {
+    local heading="$1"
+
+    case "${heading}" in
+    Active)
+        printf "active\n"
+        ;;
+    "Needs Review")
+        printf "needs_review\n"
+        ;;
+    Superseded)
+        printf "superseded\n"
+        ;;
+    Archived)
+        printf "archived\n"
+        ;;
+    *)
+        printf "\n"
+        ;;
+    esac
+}
+
+# @description Parse `learn_index.md` into a TSV of section, filename, marker, and title.
+# @arg $1 path Learn root directory.
+# @arg $2 path Output TSV file.
+function collect_index_entries() {
+    local learn_root="$1"
+    local output_path="$2"
+    local index_path="${learn_root}/learn_index.md"
+    local section=""
+    local line
+    local filename
+    local marker
+    local title
+
+    : > "${output_path}"
+
+    while IFS= read -r line; do
+        case "${line}" in
+        "## "*)
+            section="$(normalize_section "${line#\#\# }")"
+            ;;
+        "- ["*)
+            if [ -z "${section}" ]; then
+                continue
+            fi
+
+            filename="$(printf "%s\n" "${line}" | sed -nE 's/^-[[:space:]]+\[(stable|drift_prone)\][[:space:]]+\[[^]]+\]\(([^)]+)\).*$/\2/p')"
+
+            if [ -z "${filename}" ]; then
+                filename="$(printf "%s\n" "${line}" | sed -nE 's/^-[[:space:]]+\[[^]]+\]\(([^)]+)\).*$/\1/p')"
+            fi
+            marker="$(printf "%s\n" "${line}" | sed -nE 's/^-[[:space:]]+\[(stable|drift_prone)\][[:space:]]+\[[^]]+\]\([^)]+\).*/\1/p')"
+
+            if [ -z "${marker}" ]; then
+                marker="$(printf "%s\n" "${line}" | sed -nE 's/^-[[:space:]]+\[[^]]+\]\([^)]+\)[[:space:]]+\[(stable|drift_prone)\].*/\1/p')"
+            fi
+
+            title="$(printf "%s\n" "${line}" | sed -nE 's/^-[[:space:]]+\[(stable|drift_prone)\][[:space:]]+\[([^]]+)\]\([^)]+\).*$/\2/p')"
+
+            if [ -z "${title}" ]; then
+                title="$(printf "%s\n" "${line}" | sed -nE 's/^-[[:space:]]+\[([^]]+)\]\([^)]+\)([[:space:]]+\[(stable|drift_prone)\])?.*$/\1/p')"
+            fi
+
+            printf "%s\t%s\t%s\t%s\n" "${section}" "${filename}" "${marker}" "${title}" >> "${output_path}"
+            ;;
+        esac
+    done < "${index_path}"
+}
+
+# @description Parse learn frontmatter into a TSV keyed by filename.
+# @arg $1 path Learn root directory.
+# @arg $2 path Output TSV file.
+function collect_learn_files() {
+    local learn_root="$1"
+    local output_path="$2"
+    local file_path
+    local filename
+    local status
+    local freshness
+    local last_validated_at
+    local review_after
+    local superseded_by
+    local supersedes
+
+    : > "${output_path}"
+
+    while IFS= read -r file_path; do
+        filename="${file_path##*/}"
+        status="$(trim_scalar "$(frontmatter_value "${file_path}" status)")"
+        freshness="$(trim_scalar "$(frontmatter_value "${file_path}" freshness)")"
+        last_validated_at="$(trim_scalar "$(frontmatter_value "${file_path}" last_validated_at)")"
+        review_after="$(trim_scalar "$(frontmatter_value "${file_path}" review_after)")"
+        superseded_by="$(trim_scalar "$(frontmatter_value "${file_path}" superseded_by)")"
+        supersedes="$(trim_scalar "$(frontmatter_value "${file_path}" supersedes)")"
+
+        printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+            "${filename}" \
+            "${status}" \
+            "${freshness}" \
+            "${last_validated_at}" \
+            "${review_after}" \
+            "${superseded_by}" \
+            "${supersedes}" >> "${output_path}"
+    done < <(find "${learn_root}" -maxdepth 1 -type f -name '*_learn.md' | sort)
+}
+
+# @description Look up one column from a TSV keyed by the first field.
+# @arg $1 path TSV file path.
+# @arg $2 string Key value for the first field.
+# @arg $3 integer One-based column index to return.
+function lookup_tsv_value() {
+    local tsv_path="$1"
+    local key="$2"
+    local column="$3"
+
+    awk -F '\t' -v key="${key}" -v column="${column}" '
+        $1 == key {
+            print $column
+            exit
+        }
+    ' "${tsv_path}"
+}
+
+# @description Check whether a TSV keyed by the first field contains the given key.
+# @arg $1 path TSV file path.
+# @arg $2 string Key value for the first field.
+function tsv_has_key() {
+    local tsv_path="$1"
+    local key="$2"
+
+    awk -F '\t' -v key="${key}" '
+        $1 == key {
+            found = 1
+            exit
+        }
+
+        END {
+            exit(found ? 0 : 1)
+        }
+    ' "${tsv_path}"
+}
+
+# @description Join index data with file metadata for downstream checks.
+# @arg $1 path Index TSV path.
+# @arg $2 path File metadata TSV path.
+# @arg $3 path Output TSV path.
+function build_joined_view() {
+    local index_tsv="$1"
+    local files_tsv="$2"
+    local output_path="$3"
+    local section
+    local filename
+    local marker
+    local title
+    local file_present
+    local status
+    local freshness
+    local last_validated_at
+    local review_after
+    local superseded_by
+    local supersedes
+
+    : > "${output_path}"
+
+    while IFS=$'\t' read -r section filename marker title; do
+        file_present="no"
+        status=""
+        freshness=""
+        last_validated_at=""
+        review_after=""
+        superseded_by=""
+        supersedes=""
+
+        if tsv_has_key "${files_tsv}" "${filename}"; then
+            file_present="yes"
+            status="$(lookup_tsv_value "${files_tsv}" "${filename}" 2)"
+            freshness="$(lookup_tsv_value "${files_tsv}" "${filename}" 3)"
+            last_validated_at="$(lookup_tsv_value "${files_tsv}" "${filename}" 4)"
+            review_after="$(lookup_tsv_value "${files_tsv}" "${filename}" 5)"
+            superseded_by="$(lookup_tsv_value "${files_tsv}" "${filename}" 6)"
+            supersedes="$(lookup_tsv_value "${files_tsv}" "${filename}" 7)"
+        fi
+
+        printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+            "${section}" \
+            "${filename}" \
+            "${marker}" \
+            "${status}" \
+            "${freshness}" \
+            "${last_validated_at}" \
+            "${review_after}" \
+            "${superseded_by}" \
+            "${supersedes}" \
+            "${file_present}" >> "${output_path}"
+    done < "${index_tsv}"
+}
+
+# @description Collect active entries that are missing required startup metadata.
+# @arg $1 path Joined TSV path.
+# @arg $2 path Output findings file.
+function collect_active_metadata_issues() {
+    local joined_tsv="$1"
+    local output_path="$2"
+
+    awk -F '\t' '
+        function append_issue(current, next_item) {
+            if (current == "") {
+                return next_item
+            }
+
+            return current ", " next_item
+        }
+
+        $1 == "active" && $10 == "yes" {
+            missing = ""
+
+            if ($4 == "") {
+                missing = append_issue(missing, "status")
+            }
+
+            if ($5 == "") {
+                missing = append_issue(missing, "freshness")
+            }
+
+            if ($6 == "") {
+                missing = append_issue(missing, "last_validated_at")
+            }
+
+            if ($5 == "drift_prone" && $7 == "") {
+                missing = append_issue(missing, "review_after")
+            }
+
+            if (missing != "") {
+                printf "- %s (%s)\n", $2, missing
+            }
+        }
+    ' "${joined_tsv}" > "${output_path}"
+}
+
+# @description Collect entries whose `review_after` date is already in the past.
+# @arg $1 path Joined TSV path.
+# @arg $2 path Output findings file.
+function collect_expired_reviews() {
+    local joined_tsv="$1"
+    local output_path="$2"
+
+    awk -F '\t' -v today="${TODAY}" '
+        $10 == "yes" && $7 != "" && $7 < today {
+            effective_status = $4
+
+            if (effective_status == "") {
+                effective_status = $1
+            }
+
+            printf "- %s (%s, review_after=%s)\n", $2, effective_status, $7
+        }
+    ' "${joined_tsv}" > "${output_path}"
+}
+
+# @description Collect broken `superseded_by` / `supersedes` relationships.
+# @arg $1 path File metadata TSV path.
+# @arg $2 path Output findings file.
+function collect_supersession_issues() {
+    local files_tsv="$1"
+    local output_path="$2"
+    local filename
+    local status
+    local freshness
+    local last_validated_at
+    local review_after
+    local superseded_by
+    local supersedes
+    local reciprocal
+
+    : > "${output_path}"
+
+    while IFS=$'\t' read -r filename status freshness last_validated_at review_after superseded_by supersedes; do
+        if [ "${status}" = "superseded" ]; then
+            if [ -z "${superseded_by}" ]; then
+                printf -- "- %s (missing superseded_by)\n" "${filename}" >> "${output_path}"
+            elif ! tsv_has_key "${files_tsv}" "${superseded_by}"; then
+                printf -- "- %s (superseded_by=%s)\n" "${filename}" "${superseded_by}" >> "${output_path}"
+            else
+                reciprocal="$(lookup_tsv_value "${files_tsv}" "${superseded_by}" 7)"
+
+                if [ "${reciprocal}" != "${filename}" ]; then
+                    printf -- "- %s (replacement %s is missing reciprocal supersedes)\n" "${filename}" "${superseded_by}" >> "${output_path}"
+                fi
+            fi
+        fi
+
+        if [ -n "${supersedes}" ] && ! tsv_has_key "${files_tsv}" "${supersedes}"; then
+            printf -- "- %s (supersedes=%s)\n" "${filename}" "${supersedes}" >> "${output_path}"
+        fi
+    done < "${files_tsv}"
+
+    sort -u -o "${output_path}" "${output_path}"
+}
+
+# @description Collect index-to-file inconsistencies.
+# @arg $1 path Index TSV path.
+# @arg $2 path File metadata TSV path.
+# @arg $3 path Joined TSV path.
+# @arg $4 path Output findings file.
+function collect_index_issues() {
+    local index_tsv="$1"
+    local files_tsv="$2"
+    local joined_tsv="$3"
+    local output_path="$4"
+    local tmp_dir
+    local indexed_files_path
+    local learn_files_path
+    local missing_on_disk_path
+    local missing_from_index_path
+
+    tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/codex-worklog-audit-index.XXXXXX")" || return 1
+    indexed_files_path="${tmp_dir}/indexed_files.txt"
+    learn_files_path="${tmp_dir}/learn_files.txt"
+    missing_on_disk_path="${tmp_dir}/missing_on_disk.txt"
+    missing_from_index_path="${tmp_dir}/missing_from_index.txt"
+
+    cut -f2 "${index_tsv}" | LC_ALL=C sort -u > "${indexed_files_path}"
+    cut -f1 "${files_tsv}" | LC_ALL=C sort -u > "${learn_files_path}"
+    comm -23 "${indexed_files_path}" "${learn_files_path}" > "${missing_on_disk_path}"
+    comm -13 "${indexed_files_path}" "${learn_files_path}" > "${missing_from_index_path}"
+
+    : > "${output_path}"
+
+    while IFS= read -r filename; do
+        [ -n "${filename}" ] || continue
+        printf -- "- indexed file missing on disk: %s\n" "${filename}" >> "${output_path}"
+    done < "${missing_on_disk_path}"
+
+    while IFS= read -r filename; do
+        [ -n "${filename}" ] || continue
+        printf -- "- file missing from index: %s\n" "${filename}" >> "${output_path}"
+    done < "${missing_from_index_path}"
+
+    awk -F '\t' '
+        $10 == "yes" && $4 != "" && $1 != $4 {
+            printf "- status mismatch: %s (index=%s, file=%s)\n", $2, $1, $4
+        }
+    ' "${joined_tsv}" >> "${output_path}"
+
+    rm -rf "${tmp_dir}"
+}
+
+# @description Count how many index entries belong to one status section.
+# @arg $1 path Index TSV path.
+# @arg $2 string Status token.
+function count_entries_for_status() {
+    local index_tsv="$1"
+    local status="$2"
+
+    awk -F '\t' -v status="${status}" '
+        $1 == status {
+            count += 1
+        }
+
+        END {
+            print count + 0
+        }
+    ' "${index_tsv}"
+}
+
+# @description Render a report section or `none` when it is empty.
+# @arg $1 string Heading.
+# @arg $2 path Findings file.
+function print_findings_section() {
+    local heading="$1"
+    local findings_path="$2"
+
+    printf "%s:\n" "${heading}"
+
+    if [ -s "${findings_path}" ]; then
+        cat "${findings_path}"
+    else
+        printf "none\n"
+    fi
+
+    printf "\n"
+}
+
+# @description Build the audit snapshots used by `summary` and `check`.
+# @arg $1 path Learn root directory.
+# @arg $2 path Scratch directory.
+function analyze_learn_root() {
+    local learn_root="$1"
+    local scratch_dir="$2"
+    local index_path="${learn_root}/learn_index.md"
+
+    if [ ! -d "${learn_root}" ]; then
+        printf "learn root not found: %s\n" "${learn_root}" >&2
+        return 1
+    fi
+
+    if [ ! -f "${index_path}" ]; then
+        printf "learn index not found: %s\n" "${index_path}" >&2
+        return 1
+    fi
+
+    collect_index_entries "${learn_root}" "${scratch_dir}/index.tsv"
+    collect_learn_files "${learn_root}" "${scratch_dir}/files.tsv"
+    build_joined_view "${scratch_dir}/index.tsv" "${scratch_dir}/files.tsv" "${scratch_dir}/joined.tsv"
+    collect_active_metadata_issues "${scratch_dir}/joined.tsv" "${scratch_dir}/active_metadata_issues.txt"
+    collect_expired_reviews "${scratch_dir}/joined.tsv" "${scratch_dir}/expired_reviews.txt"
+    collect_supersession_issues "${scratch_dir}/files.tsv" "${scratch_dir}/supersession_issues.txt"
+    collect_index_issues "${scratch_dir}/index.tsv" "${scratch_dir}/files.tsv" "${scratch_dir}/joined.tsv" "${scratch_dir}/index_issues.txt"
+
+    awk -F '\t' -v today="${TODAY}" '
+        $1 == "active" && $10 == "yes" && $7 != "" && $7 < today {
+            printf "- %s (review_after=%s)\n", $2, $7
+        }
+    ' "${scratch_dir}/joined.tsv" > "${scratch_dir}/active_expired_reviews.txt"
+}
+
+# @description Print the full audit summary to stdout.
+# @arg $1 path Learn root directory.
+function summary() {
+    local learn_root="$1"
+    local scratch_dir
+
+    scratch_dir="$(mktemp -d "${TMPDIR:-/tmp}/codex-worklog-audit.XXXXXX")" || return 1
+    if ! analyze_learn_root "${learn_root}" "${scratch_dir}"; then
+        rm -rf "${scratch_dir}"
+        return 1
+    fi
+
+    printf "Status counts:\n"
+    printf -- "- active: %s\n" "$(count_entries_for_status "${scratch_dir}/index.tsv" active)"
+    printf -- "- needs_review: %s\n" "$(count_entries_for_status "${scratch_dir}/index.tsv" needs_review)"
+    printf -- "- superseded: %s\n" "$(count_entries_for_status "${scratch_dir}/index.tsv" superseded)"
+    printf -- "- archived: %s\n\n" "$(count_entries_for_status "${scratch_dir}/index.tsv" archived)"
+
+    print_findings_section "Expired review_after" "${scratch_dir}/expired_reviews.txt"
+    print_findings_section "Active entries missing required metadata" "${scratch_dir}/active_metadata_issues.txt"
+    print_findings_section "Broken supersession links" "${scratch_dir}/supersession_issues.txt"
+    print_findings_section "Index mismatches" "${scratch_dir}/index_issues.txt"
+
+    rm -rf "${scratch_dir}"
+}
+
+# @description Run the audit and fail when startup-hard-gating would be unreliable.
+# @arg $1 path Learn root directory.
+function check() {
+    local learn_root="$1"
+    local scratch_dir
+    local failed=0
+
+    scratch_dir="$(mktemp -d "${TMPDIR:-/tmp}/codex-worklog-audit.XXXXXX")" || return 1
+    if ! analyze_learn_root "${learn_root}" "${scratch_dir}"; then
+        rm -rf "${scratch_dir}"
+        return 1
+    fi
+
+    printf "Status counts:\n"
+    printf -- "- active: %s\n" "$(count_entries_for_status "${scratch_dir}/index.tsv" active)"
+    printf -- "- needs_review: %s\n" "$(count_entries_for_status "${scratch_dir}/index.tsv" needs_review)"
+    printf -- "- superseded: %s\n" "$(count_entries_for_status "${scratch_dir}/index.tsv" superseded)"
+    printf -- "- archived: %s\n\n" "$(count_entries_for_status "${scratch_dir}/index.tsv" archived)"
+
+    print_findings_section "Expired review_after" "${scratch_dir}/expired_reviews.txt"
+    print_findings_section "Active entries missing required metadata" "${scratch_dir}/active_metadata_issues.txt"
+    print_findings_section "Broken supersession links" "${scratch_dir}/supersession_issues.txt"
+    print_findings_section "Index mismatches" "${scratch_dir}/index_issues.txt"
+
+    if [ -s "${scratch_dir}/active_expired_reviews.txt" ] || \
+        [ -s "${scratch_dir}/active_metadata_issues.txt" ] || \
+        [ -s "${scratch_dir}/supersession_issues.txt" ] || \
+        [ -s "${scratch_dir}/index_issues.txt" ]; then
+        failed=1
+    fi
+
+    if [ "${failed}" -eq 0 ]; then
+        printf "check: OK\n"
+        rm -rf "${scratch_dir}"
+        return 0
+    fi
+
+    printf "check: FAIL\n"
+    rm -rf "${scratch_dir}"
+    return 1
+}
+
+# @description Dispatch the helper subcommands.
+# @arg $1 string Either `summary` or `check`.
+function main() {
+    local command="${1:-}"
+    local learn_root
+
+    learn_root="$(resolve_learn_root)" || return 1
+
+    case "${command}" in
+    summary)
+        summary "${learn_root}"
+        ;;
+    check)
+        check "${learn_root}"
+        ;;
+    *)
+        printf "usage: %s {summary|check}\n" "${0##*/}" >&2
+        return 1
+        ;;
+    esac
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

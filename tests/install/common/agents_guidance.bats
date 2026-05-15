@@ -32,7 +32,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ ! -e "./home/dot_config/codex/AGENTS.codex.md" ]
     [ ! -e "./home/dot_codex/AGENTS.md.tmpl" ]
 
-    run grep -F '一旦 `~/.agents/AGENTS.md` を読んでください。' "${CODEX_AGENTS_PATH}"
+    run grep -F 'まずは `~/.agents/AGENTS.md` を読んでください。' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '`~/.codex/AGENTS.override.md`' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
@@ -80,7 +80,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "$(< "${CODEX_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/agents" ]
     run grep -F "@~/.agents/AGENTS.md" "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '一旦 `~/.agents/AGENTS.md` を読んでください。' "${CLAUDE_MD_PATH}"
+    run grep -F 'まずは `~/.agents/AGENTS.md` を読んでください。' "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
     [ "$(< "${CLAUDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/CLAUDE.md" ]
 }

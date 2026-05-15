@@ -1,6 +1,6 @@
 @~/.agents/AGENTS.md
 
-一旦 `~/.agents/AGENTS.md` を読んでください。
+まずは `~/.agents/AGENTS.md` を読んでください。
 
 ## Claude Only
 

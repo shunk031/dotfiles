@@ -9,7 +9,7 @@ function setup() {
 
 function write_learn_file() {
     local filename="$1"
-    local status="$2"
+    local learn_status="$2"
     local freshness="$3"
     local last_validated_at="$4"
     local review_after="$5"
@@ -26,8 +26,8 @@ function write_learn_file() {
         printf "%s\n" "validated: true"
         printf "%s\n" "apply_to: []"
 
-        if [ -n "${status}" ]; then
-            printf "%s\n" "status: ${status}"
+        if [ -n "${learn_status}" ]; then
+            printf "%s\n" "status: ${learn_status}"
         fi
 
         if [ -n "${freshness}" ]; then
@@ -56,7 +56,7 @@ function write_learn_file() {
 }
 
 function write_failing_fixture() {
-    cat > "${LEARN_ROOT}/learn_index.md" <<'EOF'
+    cat > "${LEARN_ROOT}/learn_index.md" << 'EOF'
 # learn_index.md
 
 ## Active
@@ -85,7 +85,7 @@ EOF
 }
 
 function write_healthy_fixture() {
-    cat > "${LEARN_ROOT}/learn_index.md" <<'EOF'
+    cat > "${LEARN_ROOT}/learn_index.md" << 'EOF'
 # learn_index.md
 
 ## Active

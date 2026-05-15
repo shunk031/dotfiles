@@ -539,9 +539,9 @@ function check() {
     print_findings_section "Broken supersession links" "${scratch_dir}/supersession_issues.txt"
     print_findings_section "Index mismatches" "${scratch_dir}/index_issues.txt"
 
-    if [ -s "${scratch_dir}/active_expired_reviews.txt" ] || \
-        [ -s "${scratch_dir}/active_metadata_issues.txt" ] || \
-        [ -s "${scratch_dir}/supersession_issues.txt" ] || \
+    if [ -s "${scratch_dir}/active_expired_reviews.txt" ] ||
+        [ -s "${scratch_dir}/active_metadata_issues.txt" ] ||
+        [ -s "${scratch_dir}/supersession_issues.txt" ] ||
         [ -s "${scratch_dir}/index_issues.txt" ]; then
         failed=1
     fi

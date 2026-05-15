@@ -23,6 +23,13 @@ The section determines the startup treatment:
 - `Superseded`: historical, skip unless migration/history is explicitly requested.
 - `Archived`: historical, skip unless migration/history is explicitly requested.
 
+## Startup Audit Gate
+
+- If `learn_index.md` exists, startup must run `scripts/codex_worklog_audit.py check` before reading any learn entry.
+- `check` must exit `0` before any `Active` entry can be treated as fact.
+- If `check` fails, stop startup and return the exact audit failures to the parent instead of falling back to best-effort learn selection.
+- `summary` is optional and is meant for diagnosis after a failure or for manual review.
+
 ## Frontmatter Rules
 
 Every plan, todo, and learn file keeps the common keys:

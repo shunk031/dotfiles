@@ -13,6 +13,8 @@ Shared skill:
 - Before you do anything else, read the canonical workflow at `~/.agents/skills/worklog-manager/SKILL.md`.
 - If that home-path skill is unavailable, resolve the repository root with `git rev-parse --show-toplevel` and read `home/dot_config/exact_agents/skills/worklog-manager/SKILL.md`.
 - Treat the shared skill and its bundled references/scripts as the source of truth for startup learn selection, plan/todo/learn metadata, stale-learn hard gating, and audit behavior.
+- The shared skill's startup audit is mandatory: if `.agents/worklog/codex/learn/learn_index.md` exists, run the bundled `codex_worklog_audit.py check` before reading any learn entry.
+- If that startup audit fails, fail hard and report the exact audit failures to the parent. Do not continue startup with best-effort learn selection.
 - If you cannot load the shared skill, fail hard and report that exact blocker to the parent. Do not improvise an alternate workflow.
 
 Bootstrap:

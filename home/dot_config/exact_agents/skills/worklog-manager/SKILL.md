@@ -22,6 +22,10 @@ It keeps startup context constrained to valid learn entries, maintains plan/todo
 1. Keep scope limited to `.agents/worklog/codex/**`. If the request needs repo edits, GitHub operations, or product decisions, hand that back to the parent agent.
 2. Bootstrap from `.agents/worklog/codex/learn/learn_index.md`.
    - Ensure `.agents/worklog/codex/plan/`, `todo/`, and `learn/` exist.
+   - If `learn_index.md` does not exist yet, skip the startup audit and continue with empty learn context.
+   - If `learn_index.md` exists, run `python3 ~/.agents/skills/worklog-manager/scripts/codex_worklog_audit.py check` before reading any learn entry.
+   - If the home-path script is unavailable in a repository context, resolve the repository root and run `python3 home/dot_config/exact_agents/skills/worklog-manager/scripts/codex_worklog_audit.py check`.
+   - If `check` fails, stop startup and report the exact audit failures to the parent. Do not continue with best-effort learn selection.
    - Treat `## Active` as the only startup source of truth.
    - Treat `## Needs Review` as context candidates, not facts.
    - Ignore `## Superseded` and `## Archived` unless the parent explicitly asks for history or migration context.
@@ -61,11 +65,12 @@ It keeps startup context constrained to valid learn entries, maintains plan/todo
 
 ## Audit
 
-Use the bundled audit helper before trusting an older corpus or after changing learn metadata:
+`check` is mandatory during startup whenever `learn_index.md` exists.
+Use `summary` for manual inspection or for diagnosing a failed startup audit after the failure has already been reported to the parent.
 
 ```bash
-uv run python ~/.agents/skills/worklog-manager/scripts/codex_worklog_audit.py summary
-uv run python ~/.agents/skills/worklog-manager/scripts/codex_worklog_audit.py check
+python3 ~/.agents/skills/worklog-manager/scripts/codex_worklog_audit.py check
+python3 ~/.agents/skills/worklog-manager/scripts/codex_worklog_audit.py summary
 ```
 
 Use `--learn-root <path>` when you need to audit fixtures or a non-default corpus.

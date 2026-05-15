@@ -45,20 +45,20 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared guidance defines 3-minute polling for gh and worklog subagents" {
-    run grep -F '`gh_workflow_manager` と `worklog_manager` では 180 秒を超えて待たず' "${SHARED_AGENTS_PATH}"
+@test "[common] codex override guidance defines 3-minute polling for gh and worklog subagents" {
+    run grep -F '`gh_workflow_manager` と `worklog_manager` では 180 秒を超えて待たず' "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`wait_agent(timeout_ms=180000)`' "${SHARED_AGENTS_PATH}"
+    run grep -F '`wait_agent(timeout_ms=180000)`' "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '同じ subagent スレッドへ `send_input` で追加の状態確認を送り' "${SHARED_AGENTS_PATH}"
+    run grep -F '同じ subagent スレッドへ `send_input` で追加の状態確認を送り' "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`現在の段階`、`次の段階`、`ブロッカーの有無`' "${SHARED_AGENTS_PATH}"
+    run grep -F '`現在の段階`、`次の段階`、`ブロッカーの有無`' "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`interrupt=true` は明らかな停止や即時の方針変更が必要な場合だけ使ってください' "${SHARED_AGENTS_PATH}"
+    run grep -F '`interrupt=true` は明らかな停止や即時の方針変更が必要な場合だけ使ってください' "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -eq 0 ]
 }
 

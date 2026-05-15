@@ -1,5 +1,5 @@
 - This directory is the canonical source for `~/.claude`.
-- [CLAUDE.md](CLAUDE.md) imports the shared guidance via `@~/.agents/AGENTS.md`; add Claude-specific guidance below that import when needed.
+- [CLAUDE.md](CLAUDE.md) references the shared guidance by telling Claude to read `~/.agents/AGENTS.md` first; add Claude-specific guidance below that note when needed.
 - [home/dot_claude/](../../dot_claude/) is only the adapter layer that exposes this source in the applied home layout.
 - The design keeps edits in one git-friendly place while preserving the familiar home path.
 - Edit files here; the adapter keeps the home path stable.

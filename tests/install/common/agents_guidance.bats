@@ -80,8 +80,6 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.md" ]
     [ "$(< "${CODEX_OVERRIDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.override.md" ]
     [ "$(< "${CODEX_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/agents" ]
-    run grep -F "@~/.agents/AGENTS.md" "${CLAUDE_MD_PATH}"
-    [ "${status}" -eq 0 ]
     run grep -F 'まずは `~/.agents/AGENTS.md` を読んでください。' "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
     [ "$(< "${CLAUDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/CLAUDE.md" ]
@@ -230,7 +228,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "~/.codex/AGENTS.md" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "@~/.agents/AGENTS.md" "${CANONICAL_AGENTS_README_PATH}"
+    run grep -F "first-read note" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -239,7 +237,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "../../dot_claude/" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "@~/.agents/AGENTS.md" "${CANONICAL_CLAUDE_README_PATH}"
+    run grep -F "telling Claude to read `~/.agents/AGENTS.md` first" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]

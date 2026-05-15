@@ -237,7 +237,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "../../dot_claude/" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "telling Claude to read `~/.agents/AGENTS.md` first" "${CANONICAL_CLAUDE_README_PATH}"
+    run grep -F 'telling Claude to read `~/.agents/AGENTS.md` first' "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]

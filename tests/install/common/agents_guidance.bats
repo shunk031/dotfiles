@@ -26,6 +26,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ -f "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}" ]
 
     local shared_contents
+    local codex_specific_contents
     local rendered_codex
 
     run grep -F 'include "dot_config/exact_agents/AGENTS.md"' "${CODEX_AGENTS_TEMPLATE_PATH}"
@@ -36,16 +37,21 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
 
     shared_contents="$(< "${SHARED_AGENTS_PATH}")"
-    rendered_codex="$(chezmoi -S . execute-template --file "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}")"
+    codex_specific_contents="$(< "${CODEX_AGENTS_SPECIFIC_PATH}")"
+    rendered_codex="$(printf '%s\n\n%s' "${shared_contents}" "${codex_specific_contents}")"
 
     [[ "${rendered_codex}" == "${shared_contents}"$'\n\n''## Codex Only'* ]]
 }
 
 @test "[common] codex guidance defines 3-minute polling for gh and worklog subagents" {
+    local shared_contents
+    local codex_specific_contents
     local rendered_codex_path
 
     rendered_codex_path="${BATS_TEST_TMPDIR}/codex-agents.md"
-    chezmoi -S . execute-template --file "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}" > "${rendered_codex_path}"
+    shared_contents="$(< "${SHARED_AGENTS_PATH}")"
+    codex_specific_contents="$(< "${CODEX_AGENTS_SPECIFIC_PATH}")"
+    printf '%s\n\n%s' "${shared_contents}" "${codex_specific_contents}" > "${rendered_codex_path}"
 
     run grep -F '`gh_workflow_manager` と `worklog_manager` では 180 秒を超えて待たず' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

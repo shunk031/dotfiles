@@ -34,7 +34,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F 'まずは `~/.agents/AGENTS.md` を読んでください。' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '`~/.codex/AGENTS.override.md`' "${CODEX_AGENTS_PATH}"
+    run grep -F 'その後、codex 固有の設定である `~/.codex/AGENTS.override.md` を読んでください。' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '`- 概要: 詳細` のような形式' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

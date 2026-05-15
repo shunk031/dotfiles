@@ -2,4 +2,4 @@
 
 まずは `~/.agents/AGENTS.md` を読んでください。
 
-Codex 固有の設定は `~/.codex/AGENTS.override.md` にあります。
+その後、codex 固有の設定である `~/.codex/AGENTS.override.md` を読んでください。

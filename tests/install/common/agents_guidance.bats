@@ -1,9 +1,10 @@
 #!/usr/bin/env bats
 
 readonly SHARED_AGENTS_PATH="./home/dot_config/exact_agents/AGENTS.md"
-readonly CODEX_AGENTS_TEMPLATE_PATH="./home/dot_config/codex/AGENTS.md.tmpl"
-readonly CODEX_AGENTS_SPECIFIC_PATH="./home/dot_config/codex/AGENTS.codex.md"
-readonly CODEX_AGENTS_ADAPTER_TEMPLATE_PATH="./home/dot_codex/AGENTS.md.tmpl"
+readonly CODEX_AGENTS_PATH="./home/dot_config/codex/AGENTS.md"
+readonly CODEX_AGENTS_OVERRIDE_PATH="./home/dot_config/codex/AGENTS.override.md"
+readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
+readonly CODEX_OVERRIDE_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.override.md.tmpl"
 readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
 readonly CODEX_WORKLOG_AGENT_PATH="./home/dot_config/codex/agents/worklog-manager.toml"
 readonly CODEX_WORKLOG_SKILL_PATH="./home/dot_config/exact_agents/skills/worklog-manager/SKILL.md"
@@ -23,40 +24,28 @@ readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/exact_agents/README.md"
 readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
 readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
-@test "[common] codex guidance renders the shared and Codex-only guidance together" {
+@test "[common] codex guidance is split between bridge and override files" {
     [ -f "${SHARED_AGENTS_PATH}" ]
-    [ -f "${CODEX_AGENTS_TEMPLATE_PATH}" ]
-    [ -f "${CODEX_AGENTS_SPECIFIC_PATH}" ]
-    [ -f "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}" ]
+    [ -f "${CODEX_AGENTS_PATH}" ]
+    [ -f "${CODEX_AGENTS_OVERRIDE_PATH}" ]
+    [ ! -e "./home/dot_config/codex/AGENTS.md.tmpl" ]
+    [ ! -e "./home/dot_config/codex/AGENTS.codex.md" ]
+    [ ! -e "./home/dot_codex/AGENTS.md.tmpl" ]
 
-    local shared_contents
-    local codex_specific_contents
-    local rendered_codex
-
-    run grep -F 'include "dot_config/exact_agents/AGENTS.md"' "${CODEX_AGENTS_TEMPLATE_PATH}"
+    run grep -F '一旦 `~/.agents/AGENTS.md` を読んでください。' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'include "dot_config/codex/AGENTS.codex.md"' "${CODEX_AGENTS_TEMPLATE_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F 'includeTemplate "dot_config/codex/AGENTS.md.tmpl" .' "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}"
+    run grep -F '`~/.codex/AGENTS.override.md`' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    shared_contents="$(< "${SHARED_AGENTS_PATH}")"
-    codex_specific_contents="$(< "${CODEX_AGENTS_SPECIFIC_PATH}")"
-    rendered_codex="$(printf '%s\n\n%s' "${shared_contents}" "${codex_specific_contents}")"
-
-    [[ "${rendered_codex}" == "${shared_contents}"$'\n\n''## Codex Only'* ]]
+    run grep -F '🤖 I read ~/.codex/AGENTS.override.md.' "${CODEX_AGENTS_OVERRIDE_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '🤖 I read the user-level AGENTS.md.' "${CODEX_AGENTS_OVERRIDE_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "## Codex Only" "${CODEX_AGENTS_OVERRIDE_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
-@test "[common] codex guidance defines 3-minute polling for gh and worklog subagents" {
-    local shared_contents
-    local codex_specific_contents
-    local rendered_codex_path
-
-    rendered_codex_path="${BATS_TEST_TMPDIR}/codex-agents.md"
-    shared_contents="$(< "${SHARED_AGENTS_PATH}")"
-    codex_specific_contents="$(< "${CODEX_AGENTS_SPECIFIC_PATH}")"
-    printf '%s\n\n%s' "${shared_contents}" "${codex_specific_contents}" > "${rendered_codex_path}"
-
+@test "[common] shared guidance defines 3-minute polling for gh and worklog subagents" {
     run grep -F '`gh_workflow_manager` と `worklog_manager` では 180 秒を超えて待たず' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
@@ -71,22 +60,23 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F '`interrupt=true` は明らかな停止や即時の方針変更が必要な場合だけ使ってください' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-
-    run grep -F '`wait_agent(timeout_ms=180000)`' "${rendered_codex_path}"
-    [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared and Claude entrypoints define acknowledgment messages" {
+@test "[common] shared, Claude, and Codex override entrypoints define acknowledgment messages" {
     run grep -F '🤖 I read ~/.agents/AGENTS.md.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
     run grep -F '🤖 I read ~/.claude/CLAUDE.md.' "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
+
+    run grep -F '🤖 I read ~/.codex/AGENTS.override.md.' "${CODEX_AGENTS_OVERRIDE_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] agent guidance adapters point to the canonical files" {
     [ "$(< "${AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/AGENTS.md" ]
-    [ -f "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}" ]
+    [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.md" ]
+    [ "$(< "${CODEX_OVERRIDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.override.md" ]
     [ "$(< "${CODEX_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/agents" ]
     run grep -F "@~/.agents/AGENTS.md" "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
@@ -118,11 +108,11 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F 'Keep `todo.status` within' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -ne 0 ]
 
-    run grep -F "worklog_manager" "${CODEX_AGENTS_SPECIFIC_PATH}"
+    run grep -F "worklog_manager" "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '$(date +%Y%m%d_%H%M%S)_plan.md' "${CODEX_AGENTS_SPECIFIC_PATH}"
+    run grep -F '$(date +%Y%m%d_%H%M%S)_plan.md' "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F "#### plan/todo/learn の frontmatter ルール" "${CODEX_AGENTS_SPECIFIC_PATH}"
+    run grep -F "#### plan/todo/learn の frontmatter ルール" "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -ne 0 ]
 }
 
@@ -181,13 +171,13 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F 'sandbox_mode = "workspace-write"' "${CODEX_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F "gh_workflow_manager" "${CODEX_AGENTS_SPECIFIC_PATH}"
+    run grep -F "gh_workflow_manager" "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "gh-first-workflow" "${CODEX_AGENTS_SPECIFIC_PATH}"
+    run grep -F "gh-first-workflow" "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F "gh pr create" "${CODEX_AGENTS_SPECIFIC_PATH}"
+    run grep -F "gh pr create" "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F "git rev-parse --show-toplevel" "${CODEX_AGENTS_SPECIFIC_PATH}"
+    run grep -F "git rev-parse --show-toplevel" "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -ne 0 ]
 }
 
@@ -215,11 +205,15 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F "~/.codex/AGENTS.md" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "AGENTS.md.tmpl" "${CODEX_README_PATH}"
+    run grep -F "../dot_config/codex/AGENTS.md" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../dot_config/exact_agents/AGENTS.md" "${CODEX_README_PATH}"
+    run grep -F "symlink_AGENTS.md.tmpl" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../dot_config/codex/AGENTS.codex.md" "${CODEX_README_PATH}"
+    run grep -F "~/.codex/AGENTS.override.md" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "../dot_config/codex/AGENTS.override.md" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "symlink_AGENTS.override.md.tmpl" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.codex/agents" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -250,15 +244,19 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F "~/.codex/AGENTS.md" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "AGENTS.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
+    run grep -F "(AGENTS.md)" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "AGENTS.codex.md" "${CANONICAL_CODEX_README_PATH}"
+    run grep -F "../../dot_codex/symlink_AGENTS.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.codex/AGENTS.override.md" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "AGENTS.override.md" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "../../dot_codex/symlink_AGENTS.override.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.codex/agents" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "(agents/)" "${CANONICAL_CODEX_README_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F "../../dot_codex/AGENTS.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]

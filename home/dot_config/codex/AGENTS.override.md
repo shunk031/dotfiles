@@ -1,6 +1,10 @@
-## Codex Only
+# AGENTS.override.md
 
-一旦 `~/.agents/AGENTS.md` を読んでください。
+## Override Response Rule
+
+- 必須応答: After reading this `AGENTS.override.md`, say: `🤖 I read ~/.codex/AGENTS.override.md.`
+
+## Codex Only
 
 ### Response Rule
 

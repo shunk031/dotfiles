@@ -41,8 +41,6 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F '🤖 I read ~/.codex/AGENTS.override.md.' "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '🤖 I read the user-level AGENTS.md.' "${CODEX_AGENTS_OVERRIDE_PATH}"
-    [ "${status}" -eq 0 ]
     run grep -F "## Codex Only" "${CODEX_AGENTS_OVERRIDE_PATH}"
     [ "${status}" -eq 0 ]
 }

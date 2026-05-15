@@ -6,10 +6,6 @@
 
 - 必須応答: After reading this `AGENTS.override.md`, say: `🤖 I read ~/.codex/AGENTS.override.md.`
 
-### User-Level Response Rule
-
-- 必須応答: After reading this user-level `AGENTS.md`, say: `🤖 I read the user-level AGENTS.md.`
-
 ### サブエージェントの進捗可視化
 
 - 委譲直後: subagent を spawn した直後に、親 agent は「何を委譲したか」と「最初に何を確認させるか」をユーザへ短く伝えてください。

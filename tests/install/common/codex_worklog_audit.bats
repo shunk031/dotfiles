@@ -111,6 +111,54 @@ EOF
     write_learn_file "archived_learn.md" "archived" "stable" "2026-05-14" "" "" ""
 }
 
+function write_edge_case_fixture() {
+    cat > "${LEARN_ROOT}/learn_index.md" << 'EOF'
+# learn_index.md
+
+## Future Ideas
+- [Ignored future learn](ignored_future_learn.md) [stable] — Unknown sections must stay out of the audit.
+
+## Active
+- [Missing review_after](active_missing_review_after_learn.md) [drift_prone] — Drift-prone active learn missing review_after.
+- [Status mismatch](status_mismatch_learn.md) [stable] — File metadata disagrees with the index section.
+- [Replacement without reciprocal](replacement_without_supersedes_learn.md) [stable] — Replacement learn missing reciprocal supersedes.
+- [Missing supersedes target](supersedes_missing_target_learn.md) [stable] — Learn points to a missing superseded file.
+
+## Superseded
+- [Missing replacement](superseded_missing_replacement_learn.md) [stable] — Superseded learn missing superseded_by.
+- [Needs reciprocal supersedes](superseded_nonreciprocal_learn.md) [stable] — Replacement exists but omits supersedes.
+EOF
+
+    write_learn_file "active_missing_review_after_learn.md" "active" "drift_prone" "2026-05-14" "" "" ""
+    write_learn_file "status_mismatch_learn.md" "needs_review" "stable" "2026-05-14" "" "" ""
+    write_learn_file "replacement_without_supersedes_learn.md" "active" "stable" "2026-05-14" "" "" ""
+    write_learn_file "supersedes_missing_target_learn.md" "active" "stable" "2026-05-14" "" "" "missing_target_learn.md"
+    write_learn_file "superseded_missing_replacement_learn.md" "superseded" "stable" "2026-05-14" "" "" ""
+    write_learn_file "superseded_nonreciprocal_learn.md" "superseded" "stable" "2026-05-14" "" "replacement_without_supersedes_learn.md" ""
+}
+
+function write_mock_chezmoi() {
+    local source_path="$1"
+    local mock_bin="${BATS_TEST_TMPDIR}/bin"
+
+    mkdir -p "${mock_bin}"
+
+    cat > "${mock_bin}/chezmoi" << EOF
+#!/usr/bin/env bash
+
+if [ "\${1:-}" = "source-path" ]; then
+    printf "%s\n" "${source_path}"
+    exit 0
+fi
+
+printf "unsupported chezmoi subcommand: %s\n" "\${1:-}" >&2
+exit 1
+EOF
+
+    chmod +x "${mock_bin}/chezmoi"
+    printf "%s\n" "${mock_bin}"
+}
+
 @test "[common] codex-worklog-audit summary reports counts and stale learn findings" {
     write_failing_fixture
 
@@ -148,4 +196,66 @@ EOF
     [[ "${output}" == *"Active entries missing required metadata:\nnone"* || "${output}" == *$'Active entries missing required metadata:\nnone'* ]]
     [[ "${output}" == *"Broken supersession links:\nnone"* || "${output}" == *$'Broken supersession links:\nnone'* ]]
     [[ "${output}" == *"Index mismatches:\nnone"* || "${output}" == *$'Index mismatches:\nnone'* ]]
+}
+
+@test "[common] codex-worklog-audit summary reports review, supersession, and status edge cases" {
+    write_edge_case_fixture
+
+    run env CODEX_WORKLOG_LEARN_ROOT="${LEARN_ROOT}" bash "${SCRIPT_PATH}" summary
+    [ "${status}" -eq 0 ]
+
+    [[ "${output}" == *"- active: 4"* ]]
+    [[ "${output}" == *"- superseded: 2"* ]]
+    [[ "${output}" == *"- active_missing_review_after_learn.md (review_after)"* ]]
+    [[ "${output}" == *"- superseded_missing_replacement_learn.md (missing superseded_by)"* ]]
+    [[ "${output}" == *"- superseded_nonreciprocal_learn.md (replacement replacement_without_supersedes_learn.md is missing reciprocal supersedes)"* ]]
+    [[ "${output}" == *"- supersedes_missing_target_learn.md (supersedes=missing_target_learn.md)"* ]]
+    [[ "${output}" == *"- status mismatch: status_mismatch_learn.md (index=active, file=needs_review)"* ]]
+    [[ "${output}" != *"ignored_future_learn.md"* ]]
+}
+
+@test "[common] codex-worklog-audit resolves the learn root through chezmoi source-path" {
+    local source_root="${BATS_TEST_TMPDIR}/chezmoi-source"
+    local mock_bin
+
+    export LEARN_ROOT="${source_root}/.agents/worklog/codex/learn"
+    mkdir -p "${LEARN_ROOT}"
+    write_healthy_fixture
+    mock_bin="$(write_mock_chezmoi "${source_root}")"
+
+    run env -u CODEX_WORKLOG_LEARN_ROOT PATH="${mock_bin}:${PATH}" bash "${SCRIPT_PATH}" check
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"check: OK"* ]]
+}
+
+@test "[common] codex-worklog-audit fails when the learn root path is missing" {
+    local missing_root="${BATS_TEST_TMPDIR}/missing-learn-root"
+
+    run env CODEX_WORKLOG_LEARN_ROOT="${missing_root}" bash "${SCRIPT_PATH}" summary
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"learn root not found: ${missing_root}"* ]]
+}
+
+@test "[common] codex-worklog-audit fails when the learn index is missing" {
+    local indexless_root="${BATS_TEST_TMPDIR}/indexless-root"
+
+    mkdir -p "${indexless_root}"
+
+    run env CODEX_WORKLOG_LEARN_ROOT="${indexless_root}" bash "${SCRIPT_PATH}" check
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"learn index not found: ${indexless_root}/learn_index.md"* ]]
+}
+
+@test "[common] codex-worklog-audit errors when chezmoi is unavailable and no learn root is set" {
+    run env -u CODEX_WORKLOG_LEARN_ROOT PATH="/usr/bin:/bin" bash "${SCRIPT_PATH}" summary
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"chezmoi is required unless CODEX_WORKLOG_LEARN_ROOT is set"* ]]
+}
+
+@test "[common] codex-worklog-audit rejects unsupported commands" {
+    write_healthy_fixture
+
+    run env CODEX_WORKLOG_LEARN_ROOT="${LEARN_ROOT}" bash "${SCRIPT_PATH}" unsupported
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"usage: executable_codex-worklog-audit {summary|check}"* ]]
 }

@@ -1,12 +1,12 @@
 # AGENTS.override.md
 
-## Override Response Rule
+## Codex Only
+
+### Override Response Rule
 
 - 必須応答: After reading this `AGENTS.override.md`, say: `🤖 I read ~/.codex/AGENTS.override.md.`
 
-## Codex Only
-
-### Response Rule
+### User-Level Response Rule
 
 - 必須応答: After reading this user-level `AGENTS.md`, say: `🤖 I read the user-level AGENTS.md.`
 

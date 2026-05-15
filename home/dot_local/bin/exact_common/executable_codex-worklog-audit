@@ -44,30 +44,7 @@ function frontmatter_value() {
     local file_path="$1"
     local key="$2"
 
-    awk -v key="${key}" '
-        BEGIN {
-            in_frontmatter = 0
-            seen_delimiter = 0
-        }
-
-        /^---[[:space:]]*$/ {
-            if (seen_delimiter == 0) {
-                in_frontmatter = 1
-                seen_delimiter = 1
-                next
-            }
-
-            if (in_frontmatter) {
-                exit
-            }
-        }
-
-        in_frontmatter && $0 ~ "^[[:space:]]*" key ":[[:space:]]*" {
-            sub("^[[:space:]]*" key ":[[:space:]]*", "", $0)
-            print $0
-            exit
-        }
-    ' "${file_path}"
+    awk -v key="${key}" 'BEGIN{in_frontmatter=0;seen_delimiter=0} /^---[[:space:]]*$/ {if(seen_delimiter==0){in_frontmatter=1;seen_delimiter=1;next} if(in_frontmatter){exit}} in_frontmatter && $0 ~ "^[[:space:]]*" key ":[[:space:]]*" {sub("^[[:space:]]*" key ":[[:space:]]*", "", $0); print $0; exit}' "${file_path}"
 }
 
 # @description Convert a markdown section heading into a normalized status token.
@@ -188,12 +165,7 @@ function lookup_tsv_value() {
     local key="$2"
     local column="$3"
 
-    awk -F '\t' -v key="${key}" -v column="${column}" '
-        $1 == key {
-            print $column
-            exit
-        }
-    ' "${tsv_path}"
+    awk -F '\t' -v key="${key}" -v column="${column}" '$1 == key {print $column; exit}' "${tsv_path}"
 }
 
 # @description Check whether a TSV keyed by the first field contains the given key.
@@ -203,16 +175,7 @@ function tsv_has_key() {
     local tsv_path="$1"
     local key="$2"
 
-    awk -F '\t' -v key="${key}" '
-        $1 == key {
-            found = 1
-            exit
-        }
-
-        END {
-            exit(found ? 0 : 1)
-        }
-    ' "${tsv_path}"
+    awk -F '\t' -v key="${key}" '$1 == key {found = 1; exit} END {exit(found ? 0 : 1)}' "${tsv_path}"
 }
 
 # @description Join index data with file metadata for downstream checks.
@@ -277,39 +240,7 @@ function collect_active_metadata_issues() {
     local joined_tsv="$1"
     local output_path="$2"
 
-    awk -F '\t' '
-        function append_issue(current, next_item) {
-            if (current == "") {
-                return next_item
-            }
-
-            return current ", " next_item
-        }
-
-        $1 == "active" && $10 == "yes" {
-            missing = ""
-
-            if ($4 == "") {
-                missing = append_issue(missing, "status")
-            }
-
-            if ($5 == "") {
-                missing = append_issue(missing, "freshness")
-            }
-
-            if ($6 == "") {
-                missing = append_issue(missing, "last_validated_at")
-            }
-
-            if ($5 == "drift_prone" && $7 == "") {
-                missing = append_issue(missing, "review_after")
-            }
-
-            if (missing != "") {
-                printf "- %s (%s)\n", $2, missing
-            }
-        }
-    ' "${joined_tsv}" > "${output_path}"
+    awk -F '\t' 'function append_issue(current, next_item) {return current == "" ? next_item : current ", " next_item} $1 == "active" && $10 == "yes" {missing = ""; if ($4 == "") {missing = append_issue(missing, "status")} if ($5 == "") {missing = append_issue(missing, "freshness")} if ($6 == "") {missing = append_issue(missing, "last_validated_at")} if ($5 == "drift_prone" && $7 == "") {missing = append_issue(missing, "review_after")} if (missing != "") {printf "- %s (%s)\n", $2, missing}}' "${joined_tsv}" > "${output_path}"
 }
 
 # @description Collect entries whose `review_after` date is already in the past.
@@ -319,17 +250,7 @@ function collect_expired_reviews() {
     local joined_tsv="$1"
     local output_path="$2"
 
-    awk -F '\t' -v today="${TODAY}" '
-        $10 == "yes" && $7 != "" && $7 < today {
-            effective_status = $4
-
-            if (effective_status == "") {
-                effective_status = $1
-            }
-
-            printf "- %s (%s, review_after=%s)\n", $2, effective_status, $7
-        }
-    ' "${joined_tsv}" > "${output_path}"
+    awk -F '\t' -v today="${TODAY}" '$10 == "yes" && $7 != "" && $7 < today {effective_status = $4; if (effective_status == "") {effective_status = $1} printf "- %s (%s, review_after=%s)\n", $2, effective_status, $7}' "${joined_tsv}" > "${output_path}"
 }
 
 # @description Collect broken `superseded_by` / `supersedes` relationships.
@@ -338,6 +259,7 @@ function collect_expired_reviews() {
 function collect_supersession_issues() {
     local files_tsv="$1"
     local output_path="$2"
+    local line
     local filename
     local status
     local freshness
@@ -349,7 +271,15 @@ function collect_supersession_issues() {
 
     : > "${output_path}"
 
-    while IFS=$'\t' read -r filename status freshness last_validated_at review_after superseded_by supersedes; do
+    while IFS= read -r line; do
+        filename="$(printf "%s\n" "${line}" | cut -f1)"
+        status="$(printf "%s\n" "${line}" | cut -f2)"
+        freshness="$(printf "%s\n" "${line}" | cut -f3)"
+        last_validated_at="$(printf "%s\n" "${line}" | cut -f4)"
+        review_after="$(printf "%s\n" "${line}" | cut -f5)"
+        superseded_by="$(printf "%s\n" "${line}" | cut -f6)"
+        supersedes="$(printf "%s\n" "${line}" | cut -f7)"
+
         if [ "${status}" = "superseded" ]; then
             if [ -z "${superseded_by}" ]; then
                 printf -- "- %s (missing superseded_by)\n" "${filename}" >> "${output_path}"
@@ -411,11 +341,7 @@ function collect_index_issues() {
         printf -- "- file missing from index: %s\n" "${filename}" >> "${output_path}"
     done < "${missing_from_index_path}"
 
-    awk -F '\t' '
-        $10 == "yes" && $4 != "" && $1 != $4 {
-            printf "- status mismatch: %s (index=%s, file=%s)\n", $2, $1, $4
-        }
-    ' "${joined_tsv}" >> "${output_path}"
+    awk -F '\t' '$10 == "yes" && $4 != "" && $1 != $4 {printf "- status mismatch: %s (index=%s, file=%s)\n", $2, $1, $4}' "${joined_tsv}" >> "${output_path}"
 
     rm -rf "${tmp_dir}"
 }
@@ -427,15 +353,7 @@ function count_entries_for_status() {
     local index_tsv="$1"
     local status="$2"
 
-    awk -F '\t' -v status="${status}" '
-        $1 == status {
-            count += 1
-        }
-
-        END {
-            print count + 0
-        }
-    ' "${index_tsv}"
+    awk -F '\t' -v status="${status}" '$1 == status {count += 1} END {print count + 0}' "${index_tsv}"
 }
 
 # @description Render a report section or `none` when it is empty.
@@ -482,11 +400,7 @@ function analyze_learn_root() {
     collect_supersession_issues "${scratch_dir}/files.tsv" "${scratch_dir}/supersession_issues.txt"
     collect_index_issues "${scratch_dir}/index.tsv" "${scratch_dir}/files.tsv" "${scratch_dir}/joined.tsv" "${scratch_dir}/index_issues.txt"
 
-    awk -F '\t' -v today="${TODAY}" '
-        $1 == "active" && $10 == "yes" && $7 != "" && $7 < today {
-            printf "- %s (review_after=%s)\n", $2, $7
-        }
-    ' "${scratch_dir}/joined.tsv" > "${scratch_dir}/active_expired_reviews.txt"
+    awk -F '\t' -v today="${TODAY}" '$1 == "active" && $10 == "yes" && $7 != "" && $7 < today {printf "- %s (review_after=%s)\n", $2, $7}' "${scratch_dir}/joined.tsv" > "${scratch_dir}/active_expired_reviews.txt"
 }
 
 # @description Print the full audit summary to stdout.

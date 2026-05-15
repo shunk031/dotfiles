@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Shared Response Rule
+
+- 必須応答: After reading the shared agent guidance from `~/.agents/AGENTS.md`, say: `🤖 I read ~/.agents/AGENTS.md.`
+
 ## ユーザーへの質問
 
 - 質問方針: ユーザが提供した情報に基づいて、最適な解決策を提案するための質問を行ってください。

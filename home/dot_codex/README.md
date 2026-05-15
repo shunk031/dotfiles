@@ -1,5 +1,5 @@
 - This directory is applied as `~/.codex`.
-- Chezmoi maps `~/.codex/AGENTS.md` to the canonical source in [home/dot_config/codex/AGENTS.md](../dot_config/codex/AGENTS.md).
+- [AGENTS.md.tmpl](AGENTS.md.tmpl) renders `~/.codex/AGENTS.md` from the canonical template in [home/dot_config/codex/AGENTS.md.tmpl](../dot_config/codex/AGENTS.md.tmpl), which combines [../dot_config/exact_agents/AGENTS.md](../dot_config/exact_agents/AGENTS.md) with [../dot_config/codex/AGENTS.codex.md](../dot_config/codex/AGENTS.codex.md).
 - Chezmoi maps `~/.codex/agents` to the canonical source in [home/dot_config/codex/agents/](../dot_config/codex/agents/).
 - The design keeps the home-facing path stable while the real files live in one git-friendly source tree.
 - Edit the canonical source, not this adapter directory.

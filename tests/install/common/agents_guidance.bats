@@ -1,8 +1,9 @@
 #!/usr/bin/env bats
 
 readonly SHARED_AGENTS_PATH="./home/dot_config/exact_agents/AGENTS.md"
-readonly CODEX_AGENTS_PATH="./home/dot_config/codex/AGENTS.md"
-readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
+readonly CODEX_AGENTS_TEMPLATE_PATH="./home/dot_config/codex/AGENTS.md.tmpl"
+readonly CODEX_AGENTS_SPECIFIC_PATH="./home/dot_config/codex/AGENTS.codex.md"
+readonly CODEX_AGENTS_ADAPTER_TEMPLATE_PATH="./home/dot_codex/AGENTS.md.tmpl"
 readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
 readonly CODEX_WORKLOG_AGENT_PATH="./home/dot_config/codex/agents/worklog-manager.toml"
 readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager.toml"
@@ -18,26 +19,34 @@ readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/exact_agents/README.md"
 readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
 readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
-@test "[common] codex guidance starts with the shared agent guidance" {
+@test "[common] codex guidance renders the shared and Codex-only guidance together" {
     [ -f "${SHARED_AGENTS_PATH}" ]
-    [ -f "${CODEX_AGENTS_PATH}" ]
+    [ -f "${CODEX_AGENTS_TEMPLATE_PATH}" ]
+    [ -f "${CODEX_AGENTS_SPECIFIC_PATH}" ]
+    [ -f "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}" ]
 
-    local shared_bytes
-    local shared_lines
     local shared_contents
-    local codex_prefix
+    local rendered_codex
 
-    shared_bytes="$(wc -c < "${SHARED_AGENTS_PATH}" | tr -d '[:space:]')"
-    shared_lines="$(wc -l < "${SHARED_AGENTS_PATH}" | tr -d '[:space:]')"
+    run grep -F 'include "dot_config/exact_agents/AGENTS.md"' "${CODEX_AGENTS_TEMPLATE_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'include "dot_config/codex/AGENTS.codex.md"' "${CODEX_AGENTS_TEMPLATE_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'includeTemplate "dot_config/codex/AGENTS.md.tmpl" .' "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}"
+    [ "${status}" -eq 0 ]
+
     shared_contents="$(< "${SHARED_AGENTS_PATH}")"
-    codex_prefix="$(head -c "${shared_bytes}" "${CODEX_AGENTS_PATH}")"
+    rendered_codex="$(chezmoi -S . execute-template --file "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}")"
 
-    [ "${codex_prefix}" = "${shared_contents}" ]
-
-    [ "$(sed -n "$((shared_lines + 2))p" "${CODEX_AGENTS_PATH}")" = "## Codex Only" ]
+    [[ "${rendered_codex}" == "${shared_contents}"$'\n\n''## Codex Only'* ]]
 }
 
 @test "[common] codex guidance defines 3-minute polling for gh and worklog subagents" {
+    local rendered_codex_path
+
+    rendered_codex_path="${BATS_TEST_TMPDIR}/codex-agents.md"
+    chezmoi -S . execute-template --file "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}" > "${rendered_codex_path}"
+
     run grep -F '`gh_workflow_manager` と `worklog_manager` では 180 秒を超えて待たず' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
@@ -53,15 +62,26 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F '`interrupt=true` は明らかな停止や即時の方針変更が必要な場合だけ使ってください' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`wait_agent(timeout_ms=180000)`' "${CODEX_AGENTS_PATH}"
+    run grep -F '`wait_agent(timeout_ms=180000)`' "${rendered_codex_path}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] shared and Claude entrypoints define acknowledgment messages" {
+    run grep -F '🤖 I read ~/.agents/AGENTS.md.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '🤖 I read ~/.claude/CLAUDE.md.' "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
 }
 
 @test "[common] agent guidance adapters point to the canonical files" {
     [ "$(< "${AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/AGENTS.md" ]
-    [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.md" ]
+    [ -f "${CODEX_AGENTS_ADAPTER_TEMPLATE_PATH}" ]
     [ "$(< "${CODEX_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/agents" ]
-    [ "$(< "${CLAUDE_MD_PATH}")" = "@~/.agents/AGENTS.md" ]
+    run grep -F "@~/.agents/AGENTS.md" "${CLAUDE_MD_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '一旦 `~/.agents/AGENTS.md` を読んでください。' "${CLAUDE_MD_PATH}"
+    [ "${status}" -eq 0 ]
     [ "$(< "${CLAUDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/CLAUDE.md" ]
 }
 
@@ -73,11 +93,11 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F 'sandbox_mode = "workspace-write"' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F "worklog_manager" "${CODEX_AGENTS_PATH}"
+    run grep -F "worklog_manager" "${CODEX_AGENTS_SPECIFIC_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '$(date +%Y%m%d_%H%M%S)_plan.md' "${CODEX_AGENTS_PATH}"
+    run grep -F '$(date +%Y%m%d_%H%M%S)_plan.md' "${CODEX_AGENTS_SPECIFIC_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F "#### plan/todo/learn の frontmatter ルール" "${CODEX_AGENTS_PATH}"
+    run grep -F "#### plan/todo/learn の frontmatter ルール" "${CODEX_AGENTS_SPECIFIC_PATH}"
     [ "${status}" -ne 0 ]
 }
 
@@ -90,13 +110,13 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F 'sandbox_mode = "workspace-write"' "${CODEX_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F "gh_workflow_manager" "${CODEX_AGENTS_PATH}"
+    run grep -F "gh_workflow_manager" "${CODEX_AGENTS_SPECIFIC_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "gh-first-workflow" "${CODEX_AGENTS_PATH}"
+    run grep -F "gh-first-workflow" "${CODEX_AGENTS_SPECIFIC_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F "gh pr create" "${CODEX_AGENTS_PATH}"
+    run grep -F "gh pr create" "${CODEX_AGENTS_SPECIFIC_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F "git rev-parse --show-toplevel" "${CODEX_AGENTS_PATH}"
+    run grep -F "git rev-parse --show-toplevel" "${CODEX_AGENTS_SPECIFIC_PATH}"
     [ "${status}" -ne 0 ]
 }
 
@@ -124,7 +144,11 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F "~/.codex/AGENTS.md" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../dot_config/codex/AGENTS.md" "${CODEX_README_PATH}"
+    run grep -F "AGENTS.md.tmpl" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "../dot_config/exact_agents/AGENTS.md" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "../dot_config/codex/AGENTS.codex.md" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.codex/agents" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -137,6 +161,10 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "../../exact_dot_agents/" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F "~/.codex/AGENTS.md" "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "@~/.agents/AGENTS.md" "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
 
@@ -144,18 +172,22 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "../../dot_claude/" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F "@~/.agents/AGENTS.md" "${CANONICAL_CLAUDE_README_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
 
     run grep -F "~/.codex/AGENTS.md" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "(AGENTS.md)" "${CANONICAL_CODEX_README_PATH}"
+    run grep -F "AGENTS.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "AGENTS.codex.md" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.codex/agents" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "(agents/)" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../../dot_codex/" "${CANONICAL_CODEX_README_PATH}"
+    run grep -F "../../dot_codex/AGENTS.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]

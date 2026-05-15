@@ -1,0 +1,4 @@
+interface:
+  display_name: "Worklog Manager"
+  short_description: "Manage Codex worklogs and stale learn state"
+  default_prompt: "Use $worklog-manager to manage Codex worklog files and audit stale learn metadata."

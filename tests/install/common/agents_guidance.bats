@@ -6,6 +6,10 @@ readonly CODEX_AGENTS_SPECIFIC_PATH="./home/dot_config/codex/AGENTS.codex.md"
 readonly CODEX_AGENTS_ADAPTER_TEMPLATE_PATH="./home/dot_codex/AGENTS.md.tmpl"
 readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
 readonly CODEX_WORKLOG_AGENT_PATH="./home/dot_config/codex/agents/worklog-manager.toml"
+readonly CODEX_WORKLOG_SKILL_PATH="./home/dot_config/exact_agents/skills/worklog-manager/SKILL.md"
+readonly CODEX_WORKLOG_SKILL_OPENAI_PATH="./home/dot_config/exact_agents/skills/worklog-manager/agents/openai.yaml"
+readonly CODEX_WORKLOG_RULES_PATH="./home/dot_config/exact_agents/skills/worklog-manager/references/learn_rules.md"
+readonly CODEX_WORKLOG_AUDIT_SCRIPT_PATH="./home/dot_config/exact_agents/skills/worklog-manager/scripts/codex_worklog_audit.py"
 readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager.toml"
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
 readonly AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS.md.tmpl"
@@ -98,6 +102,21 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F 'sandbox_mode = "workspace-write"' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F '~/.agents/skills/worklog-manager/SKILL.md' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'source of truth for startup learn selection, plan/todo/learn metadata, stale-learn hard gating, and audit behavior' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "startup audit is mandatory" "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "Do not continue startup with best-effort learn selection." "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`Active learnings`, `Needs revalidation`, `Ignored historical entries`' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Required `learn` keys:' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'Keep `todo.status` within' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -ne 0 ]
 
     run grep -F "worklog_manager" "${CODEX_AGENTS_SPECIFIC_PATH}"
     [ "${status}" -eq 0 ]
@@ -105,6 +124,52 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -ne 0 ]
     run grep -F "#### plan/todo/learn の frontmatter ルール" "${CODEX_AGENTS_SPECIFIC_PATH}"
     [ "${status}" -ne 0 ]
+}
+
+@test "[common] worklog skill defines stale-learn hard gating and audit resources" {
+    [ -f "${CODEX_WORKLOG_SKILL_PATH}" ]
+    [ -f "${CODEX_WORKLOG_SKILL_OPENAI_PATH}" ]
+    [ -f "${CODEX_WORKLOG_RULES_PATH}" ]
+    [ -f "${CODEX_WORKLOG_AUDIT_SCRIPT_PATH}" ]
+
+    run grep -F 'name: worklog-manager' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Treat `## Active` as the only startup source of truth.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'If `learn_index.md` exists, run `python3 ~/.agents/skills/worklog-manager/scripts/codex_worklog_audit.py check` before reading any learn entry.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'If `check` fails, stop startup and report the exact audit failures to the parent. Do not continue with best-effort learn selection.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Treat `## Needs Review` as context candidates, not facts.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Ignore `## Superseded` and `## Archived` unless the parent explicitly asks for history or migration context.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`Active learnings`' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`Needs revalidation`' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`Ignored historical entries`' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`status` must be one of `active | needs_review | superseded | archived`.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`freshness: drift_prone` requires `review_after`.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`status: superseded` requires `superseded_by`.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Replacement learn files should declare `supersedes`.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Do not promote session-local facts, current branch names, current paths, default-branch names' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`default branch is master` must not stay `active`' "${CODEX_WORKLOG_RULES_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'startup must run `scripts/codex_worklog_audit.py check` before reading any learn entry' "${CODEX_WORKLOG_RULES_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'stop startup and return the exact audit failures to the parent instead of falling back to best-effort learn selection' "${CODEX_WORKLOG_RULES_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`origin/master`' "${CODEX_WORKLOG_RULES_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'default_prompt: "Use $worklog-manager to manage Codex worklog files and audit stale learn metadata."' "${CODEX_WORKLOG_SKILL_OPENAI_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] codex GitHub workflow is delegated to the custom subagent" {

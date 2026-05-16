@@ -1,8 +1,7 @@
 # AGENTS.md
 
-## Shared Response Rule
-
-- 必須応答: After reading the shared agent guidance from `~/.agents/AGENTS.md`, say: `🤖 I read ~/.agents/AGENTS.md.`
+> [!NOTE]
+> After reading this `AGENTS.md`, say: `🤖 I read ~/.agents/AGENTS.md.`
 
 ## 指示の記述
 

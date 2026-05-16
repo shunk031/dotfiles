@@ -1,12 +1,9 @@
 # AGENTS.codex-only.md
 
+> [!NOTE]
+> After reading this `AGENTS.codex-only.md`, say: `🤖 I read ~/.codex/AGENTS.codex-only.md.`
+
 `~/.codex/AGENTS.md` から追加で読む Codex 固有の設定です。
-
-## Codex Only
-
-### Codex-Only Response Rule
-
-- 必須応答: After reading this `AGENTS.codex-only.md`, say: `🤖 I read ~/.codex/AGENTS.codex-only.md.`
 
 ### サブエージェントの進捗可視化
 

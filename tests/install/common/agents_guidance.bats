@@ -33,19 +33,23 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ ! -e "./home/dot_config/codex/AGENTS.md.tmpl" ]
     [ ! -e "./home/dot_codex/AGENTS.md.tmpl" ]
 
-    run grep -F 'まず `~/.agents/AGENTS.md` を読んでください。' "${CODEX_AGENTS_PATH}"
+    run grep -F '> [!NOTE]' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'その後 `~/.codex/AGENTS.codex-only.md` を読んでください。' "${CODEX_AGENTS_PATH}"
+    run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'この `~/.codex/AGENTS.md` に書かれている内容も適用してください。' "${CODEX_AGENTS_PATH}"
+    run grep -F -- '- まず `~/.agents/AGENTS.md` を読んでください。' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '🤖 I read ~/.codex/AGENTS.md.' "${CODEX_AGENTS_PATH}"
+    run grep -F -- '- そのうえで、この `~/.codex/AGENTS.md` に書かれている内容も適用してください。' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '## Codex Only' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F -- '- Codex only の追加の指示として `~/.codex/AGENTS.codex-only.md` を読んでください。' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '> [!NOTE]' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '> After reading this `AGENTS.codex-only.md`, say: `🤖 I read ~/.codex/AGENTS.codex-only.md.`' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '`~/.codex/AGENTS.md` から追加で読む Codex 固有の設定です。' "${CODEX_CODEX_ONLY_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F "## Codex Only" "${CODEX_CODEX_ONLY_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F '🤖 I read ~/.codex/AGENTS.codex-only.md.' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -66,14 +70,20 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared, Claude, and Codex entrypoints define acknowledgment messages" {
-    run grep -F '🤖 I read ~/.agents/AGENTS.md.' "${SHARED_AGENTS_PATH}"
+@test "[common] shared, Claude, and Codex entrypoints define acknowledgment note blocks" {
+    run grep -F '> [!NOTE]' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.agents/AGENTS.md.`' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '🤖 I read ~/.claude/CLAUDE.md.' "${CLAUDE_MD_PATH}"
+    run grep -F '> [!NOTE]' "${CLAUDE_MD_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '> After reading this `CLAUDE.md`, say: `🤖 I read ~/.claude/CLAUDE.md.`' "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '🤖 I read ~/.codex/AGENTS.md.' "${CODEX_AGENTS_PATH}"
+    run grep -F '> [!NOTE]' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 

@@ -214,7 +214,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "source-only and is not applied directly" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "~/.agents/AGENTS.md" "${CODEX_README_PATH}"
+    run grep -F "single home-level instruction file" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.codex/agents" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]

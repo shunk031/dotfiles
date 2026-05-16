@@ -1,4 +1,4 @@
-name = "worklog_manager"
+name = "worklog-manager"
 description = "Worklog-only agent that manages Codex session plan, todo, and learn files under .agents/worklog/codex."
 sandbox_mode = "workspace-write"
 developer_instructions = """

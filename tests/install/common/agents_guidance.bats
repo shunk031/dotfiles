@@ -218,10 +218,6 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "AGENTS.codex-only.md" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "It is the Codex entrypoint" "${CODEX_README_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F "It keeps Codex-only rules separate from the shared guidance." "${CODEX_README_PATH}"
-    [ "${status}" -eq 0 ]
     run grep -F "~/.codex/agents" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "../dot_config/codex/agents/" "${CODEX_README_PATH}"

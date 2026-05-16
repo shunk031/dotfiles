@@ -1,6 +1,6 @@
 - This directory is the canonical source for Codex runtime guidance.
 - [AGENTS.md](AGENTS.md) is exposed as `~/.codex/AGENTS.md` through [home/dot_codex/symlink_AGENTS.md.tmpl](../../dot_codex/symlink_AGENTS.md.tmpl). It is the materialized runtime file that combines the shared guidance from `~/.agents/AGENTS.md` with the Codex-only source in [AGENTS.codex-only.md](AGENTS.codex-only.md).
-- Note: [AGENTS.codex-only.md](AGENTS.codex-only.md) exists because Claude imports `~/.agents/AGENTS.md`, while Codex reads a single home-level instruction file. Keeping Codex-only rules in this source-only file prevents Claude from seeing them while still letting `~/.codex/AGENTS.md` contain the full Codex runtime guidance.
+- Note: [AGENTS.codex-only.md](AGENTS.codex-only.md) exists because Codex reads a single home-level instruction file. Keeping Codex-only rules in this source-only file lets `~/.codex/AGENTS.md` stay as the full runtime guidance while the source file itself is not applied directly.
 - [agents/](agents/) is exposed as `~/.codex/agents` through [home/dot_codex/](../../dot_codex/).
 - The design keeps edits in one git-friendly place while preserving the familiar home path.
 - Edit files here; the adapter keeps the home path stable.

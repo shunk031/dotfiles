@@ -42,7 +42,9 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "source-only file" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Claude imports `~/.agents/AGENTS.md`' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F 'Codex reads a single home-level instruction file' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '🤖 I read ~/.codex/AGENTS.codex-only.md.' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 }
 

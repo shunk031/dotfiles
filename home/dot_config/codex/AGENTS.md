@@ -29,7 +29,7 @@
 
 ### Codex Response Rule
 
-- 必須応答: After reading the Codex-specific guidance in `~/.codex/AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`
+- 必須応答: After reading the active Codex runtime guidance, say: `🤖 I read ~/.codex/AGENTS.md.`
 
 ### サブエージェントの進捗可視化
 

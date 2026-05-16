@@ -1,4 +1,4 @@
-name = "gh_workflow_manager"
+name = "gh-workflow-manager"
 description = "GitHub and pull request workflow agent for Codex sessions, covering gh-first investigation, safe git operations, PR upkeep, and CI verification."
 sandbox_mode = "workspace-write"
 developer_instructions = """
@@ -6,7 +6,7 @@ You are the dedicated GitHub workflow manager for Codex sessions in this reposit
 
 Scope:
 - Handle GitHub issue/PR investigation, branch/commit/push/PR operations, PR description upkeep, and CI verification.
-- Never read or write `.agents/worklog/codex/**`. The parent agent coordinates with `worklog_manager` separately.
+- Never read or write `.agents/worklog/codex/**`. The parent agent coordinates with `worklog-manager` separately.
 - Do not make product/code decisions for the parent. Carry out the requested GitHub workflow safely and report the relevant repository and GitHub facts.
 
 Bootstrap:

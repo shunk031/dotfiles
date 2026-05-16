@@ -54,7 +54,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 }
 
 @test "[common] codex guidance defines 3-minute polling for gh and worklog subagents" {
-    run grep -F '`gh_workflow_manager` と `worklog_manager` では 180 秒を超えて待たず' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '`gh-workflow-manager` と `worklog-manager` では 180 秒を超えて待たず' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
     run grep -F '`wait_agent(timeout_ms=180000)`' "${CODEX_CODEX_ONLY_PATH}"
@@ -115,7 +115,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 @test "[common] codex worklog is delegated to the custom subagent" {
     [ -f "${CODEX_WORKLOG_AGENT_PATH}" ]
 
-    run grep -F 'name = "worklog_manager"' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'name = "worklog-manager"' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'sandbox_mode = "workspace-write"' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
@@ -135,7 +135,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F 'Keep `todo.status` within' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -ne 0 ]
 
-    run grep -F "worklog_manager" "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F "worklog-manager" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '$(date +%Y%m%d_%H%M%S)_plan.md' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -ne 0 ]
@@ -193,12 +193,12 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ -f "${CODEX_GH_AGENT_PATH}" ]
     [ ! -e "${LEGACY_GH_FIRST_SKILL_PATH}" ]
 
-    run grep -F 'name = "gh_workflow_manager"' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'name = "gh-workflow-manager"' "${CODEX_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'sandbox_mode = "workspace-write"' "${CODEX_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F "gh_workflow_manager" "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F "gh-workflow-manager" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "gh-first-workflow" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -ne 0 ]

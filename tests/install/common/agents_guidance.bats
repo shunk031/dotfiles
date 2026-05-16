@@ -4,6 +4,7 @@ readonly SHARED_AGENTS_PATH="./home/dot_config/exact_agents/AGENTS.md"
 readonly CODEX_AGENTS_PATH="./home/dot_config/codex/AGENTS.md"
 readonly CODEX_CODEX_ONLY_PATH="./home/dot_config/codex/AGENTS.codex-only.md"
 readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
+readonly CODEX_CODEX_ONLY_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.codex-only.md.tmpl"
 readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
 readonly CODEX_WORKLOG_AGENT_PATH="./home/dot_config/codex/agents/worklog-manager.toml"
 readonly CODEX_WORKLOG_SKILL_PATH="./home/dot_config/exact_agents/skills/worklog-manager/SKILL.md"
@@ -23,7 +24,7 @@ readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/exact_agents/README.md"
 readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
 readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
-@test "[common] codex guidance is materialized from shared and codex-only sources" {
+@test "[common] codex guidance entrypoint reads shared and codex-only guidance" {
     [ -f "${SHARED_AGENTS_PATH}" ]
     [ -f "${CODEX_AGENTS_PATH}" ]
     [ -f "${CODEX_CODEX_ONLY_PATH}" ]
@@ -32,17 +33,17 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ ! -e "./home/dot_config/codex/AGENTS.md.tmpl" ]
     [ ! -e "./home/dot_codex/AGENTS.md.tmpl" ]
 
-    run grep -F '🤖 I read ~/.agents/AGENTS.md.' "${CODEX_AGENTS_PATH}"
+    run grep -F 'まず `~/.agents/AGENTS.md` を読んでください。' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '`- 概要: 詳細` のような形式' "${CODEX_AGENTS_PATH}"
+    run grep -F 'その後 `~/.codex/AGENTS.codex-only.md` を読んでください。' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "## Codex Only" "${CODEX_AGENTS_PATH}"
+    run grep -F 'この `~/.codex/AGENTS.md` に書かれている内容も適用してください。' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '🤖 I read ~/.codex/AGENTS.md.' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "source-only file" "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '`~/.codex/AGENTS.md` から追加で読む Codex 固有の設定です。' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Codex reads a single home-level instruction file' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F "## Codex Only" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '🤖 I read ~/.codex/AGENTS.codex-only.md.' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
@@ -79,6 +80,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 @test "[common] agent guidance adapters point to the canonical files" {
     [ "$(< "${AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/AGENTS.md" ]
     [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.md" ]
+    [ "$(< "${CODEX_CODEX_ONLY_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.codex-only.md" ]
     [ ! -e "./home/dot_codex/symlink_AGENTS.override.md.tmpl" ]
     [ "$(< "${CODEX_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/agents" ]
     run grep -F '@~/.agents/AGENTS.md' "${CLAUDE_MD_PATH}"
@@ -210,11 +212,15 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "symlink_AGENTS.md.tmpl" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F "~/.codex/AGENTS.codex-only.md" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "symlink_AGENTS.codex-only.md.tmpl" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -F "AGENTS.codex-only.md" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "source-only and is not applied directly" "${CODEX_README_PATH}"
+    run grep -F "It is the Codex entrypoint" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "single home-level instruction file" "${CODEX_README_PATH}"
+    run grep -F "It keeps Codex-only rules separate from the shared guidance." "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.codex/agents" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -227,7 +233,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "../../exact_dot_agents/" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "~/.codex/AGENTS.md" "${CANONICAL_AGENTS_README_PATH}"
+    run grep -F "read first from `~/.codex/AGENTS.md` before `~/.codex/AGENTS.codex-only.md`" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '@~/.agents/AGENTS.md' "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -247,13 +253,15 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F "~/.codex/AGENTS.md" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "(AGENTS.md)" "${CANONICAL_CODEX_README_PATH}"
+    run grep -F "It is the Codex entrypoint" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "../../dot_codex/symlink_AGENTS.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "AGENTS.codex-only.md" "${CANONICAL_CODEX_README_PATH}"
+    run grep -F "~/.codex/AGENTS.codex-only.md" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "single home-level instruction file" "${CANONICAL_CODEX_README_PATH}"
+    run grep -F "../../dot_codex/symlink_AGENTS.codex-only.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "AGENTS.codex-only.md" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.codex/agents" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]

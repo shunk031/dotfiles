@@ -1,10 +1,10 @@
 # AGENTS.codex-only.md
 
-> Note: `AGENTS.codex-only.md` is a source-only file. Codex reads a single home-level instruction file, so Codex-only rules live here and are materialized into `~/.codex/AGENTS.md` instead of being applied directly.
+`~/.codex/AGENTS.md` から追加で読む Codex 固有の設定です。
 
 ## Codex Only
 
-### Codex Response Rule
+### Codex-Only Response Rule
 
 - 必須応答: After reading this `AGENTS.codex-only.md`, say: `🤖 I read ~/.codex/AGENTS.codex-only.md.`
 

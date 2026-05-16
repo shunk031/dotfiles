@@ -95,6 +95,12 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F '関数シグネチャ案、疑似コード、または短いコードスニペットを必ず含めてください' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
+    run grep -F '実装判断が増える plan では' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '`どのファイルのどのシンボルをどう変えるか` が伝わる粒度で書いてください' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
     run grep -F '未完成の状態で `<proposed_plan>` を出してはいけません' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 

@@ -70,6 +70,20 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
 }
 
+@test "[common] codex guidance requires concrete coding plans" {
+    run grep -F '### Plan の具体性' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '対象ディレクトリ、追加・編集・削除するファイル、主要な変更内容' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'ディレクトリ構成やファイル単位の編集内容まで書いてください' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '簡単なコードスニペットも含めてください' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] shared, Claude, and Codex entrypoints define acknowledgment note blocks" {
     run grep -F '> [!NOTE]' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

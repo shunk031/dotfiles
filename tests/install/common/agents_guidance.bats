@@ -233,7 +233,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "../../exact_dot_agents/" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "read first from `~/.codex/AGENTS.md` before `~/.codex/AGENTS.codex-only.md`" "${CANONICAL_AGENTS_README_PATH}"
+    run grep -F 'read first from `~/.codex/AGENTS.md` before `~/.codex/AGENTS.codex-only.md`' "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '@~/.agents/AGENTS.md' "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]

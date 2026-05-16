@@ -291,7 +291,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] layout readmes stay repo-only" {
+@test "[common] layout docs and adapter-only config paths stay repo-only" {
     [ -f "${CHEZMOIIGNORE_PATH}" ]
 
     run grep -Fx ".agents/README.md" "${CHEZMOIIGNORE_PATH}"
@@ -300,6 +300,6 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -Fx ".codex/README.md" "${CHEZMOIIGNORE_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -Fx ".config/agents/README.md" "${CHEZMOIIGNORE_PATH}"
+    run grep -Fx ".config/agents" "${CHEZMOIIGNORE_PATH}"
     [ "${status}" -eq 0 ]
 }

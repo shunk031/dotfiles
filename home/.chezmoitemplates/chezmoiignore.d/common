@@ -8,7 +8,7 @@ plugin.jupyterlab-settings
 .agents/README.md
 .claude/README.md
 .codex/README.md
-.config/agents/README.md
+.config/agents
 .config/sheldon/plugin_sources
 .config/claude
 .config/codex

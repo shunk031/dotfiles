@@ -1,5 +1,6 @@
-- This directory is the canonical source for Codex-specific guidance.
-- [AGENTS.md](AGENTS.md) is exposed as `~/.codex/AGENTS.md` through [home/dot_codex/](../../dot_codex/).
+- This directory is the canonical source for Codex guidance.
+- [AGENTS.md](AGENTS.md) is exposed as `~/.codex/AGENTS.md` through [home/dot_codex/symlink_AGENTS.md.tmpl](../../dot_codex/symlink_AGENTS.md.tmpl). It is the Codex entrypoint and tells Codex to read the shared guidance in `~/.agents/AGENTS.md` first, then the Codex-only guidance in `~/.codex/AGENTS.codex-only.md`.
+- [AGENTS.codex-only.md](AGENTS.codex-only.md) is exposed as `~/.codex/AGENTS.codex-only.md` through [home/dot_codex/symlink_AGENTS.codex-only.md.tmpl](../../dot_codex/symlink_AGENTS.codex-only.md.tmpl). It keeps Codex-only rules separate from the shared guidance.
 - [agents/](agents/) is exposed as `~/.codex/agents` through [home/dot_codex/](../../dot_codex/).
 - The design keeps edits in one git-friendly place while preserving the familiar home path.
 - Edit files here; the adapter keeps the home path stable.

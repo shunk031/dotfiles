@@ -208,6 +208,27 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -ne 0 ]
 }
 
+@test "[common] codex GitHub workflow defines PR description structure and template priority" {
+    run grep -F 'first check whether the repository provides a pull request template and follow that structure when present' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'If no pull request template is available, use this default PR description structure:' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '  - `## Why`' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '  - `## What Changed`' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '  - `## Validation`' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'In either case, describe the full current PR, not only the latest delta.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Keep the `Validation` section repo-relative and never include local absolute paths.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] layout readmes describe the adapter and canonical layout" {
     [ -f "${AGENTS_README_PATH}" ]
     [ -f "${CLAUDE_README_PATH}" ]

@@ -1,10 +1,12 @@
-# AGENTS.override.md
+# AGENTS.codex-only.md
+
+> Note: `AGENTS.codex-only.md` is a source-only file. Claude imports `~/.agents/AGENTS.md`, while Codex reads a single home-level instruction file. Keeping Codex-only rules here lets `~/.codex/AGENTS.md` materialize the full Codex runtime guidance without leaking these rules into Claude.
 
 ## Codex Only
 
-### Override Response Rule
+### Codex Response Rule
 
-- 必須応答: After reading this `AGENTS.override.md`, say: `🤖 I read ~/.codex/AGENTS.override.md.`
+- 必須応答: After reading the Codex-specific guidance in `~/.codex/AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`
 
 ### サブエージェントの進捗可視化
 

@@ -1,5 +1,5 @@
 - This directory is the canonical source for `~/.agents`.
-- [AGENTS.md](AGENTS.md) is the shared guidance used directly by `~/.agents/AGENTS.md`, referenced from `~/.claude/CLAUDE.md` via its first-read note, and referenced from `~/.codex/AGENTS.md` via the Codex bridge file.
+- [AGENTS.md](AGENTS.md) is the shared guidance used directly by `~/.agents/AGENTS.md`, imported from `~/.claude/CLAUDE.md` with `@~/.agents/AGENTS.md`, and materialized into `~/.codex/AGENTS.md` together with the Codex-only source in `home/dot_config/codex/AGENTS.codex-only.md`.
 - [home/exact_dot_agents/](../../exact_dot_agents/) is only the adapter layer that exposes this source in the applied home layout.
 - The design keeps edits in one git-friendly place while preserving the familiar home path.
 - Edit files here; the adapter keeps the home path stable.

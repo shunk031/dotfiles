@@ -1,4 +1,4 @@
-まずは `~/.agents/AGENTS.md` を読んでください。
+@~/.agents/AGENTS.md
 
 ## Claude Only
 

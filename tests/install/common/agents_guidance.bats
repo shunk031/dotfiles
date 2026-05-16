@@ -50,19 +50,19 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 }
 
 @test "[common] codex guidance defines 3-minute polling for gh and worklog subagents" {
-    run grep -F '`gh_workflow_manager` と `worklog_manager` では 180 秒を超えて待たず' "${CODEX_AGENTS_PATH}"
+    run grep -F '`gh_workflow_manager` と `worklog_manager` では 180 秒を超えて待たず' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`wait_agent(timeout_ms=180000)`' "${CODEX_AGENTS_PATH}"
+    run grep -F '`wait_agent(timeout_ms=180000)`' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '同じ subagent スレッドへ `send_input` で追加の状態確認を送り' "${CODEX_AGENTS_PATH}"
+    run grep -F '同じ subagent スレッドへ `send_input` で追加の状態確認を送り' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`現在の段階`、`次の段階`、`ブロッカーの有無`' "${CODEX_AGENTS_PATH}"
+    run grep -F '`現在の段階`、`次の段階`、`ブロッカーの有無`' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`interrupt=true` は明らかな停止や即時の方針変更が必要な場合だけ使ってください' "${CODEX_AGENTS_PATH}"
+    run grep -F '`interrupt=true` は明らかな停止や即時の方針変更が必要な場合だけ使ってください' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -111,11 +111,11 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F 'Keep `todo.status` within' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -ne 0 ]
 
-    run grep -F "worklog_manager" "${CODEX_AGENTS_PATH}"
+    run grep -F "worklog_manager" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '$(date +%Y%m%d_%H%M%S)_plan.md' "${CODEX_AGENTS_PATH}"
+    run grep -F '$(date +%Y%m%d_%H%M%S)_plan.md' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F "#### plan/todo/learn の frontmatter ルール" "${CODEX_AGENTS_PATH}"
+    run grep -F "#### plan/todo/learn の frontmatter ルール" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -ne 0 ]
 }
 
@@ -174,13 +174,13 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F 'sandbox_mode = "workspace-write"' "${CODEX_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F "gh_workflow_manager" "${CODEX_AGENTS_PATH}"
+    run grep -F "gh_workflow_manager" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "gh-first-workflow" "${CODEX_AGENTS_PATH}"
+    run grep -F "gh-first-workflow" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F "gh pr create" "${CODEX_AGENTS_PATH}"
+    run grep -F "gh pr create" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F "git rev-parse --show-toplevel" "${CODEX_AGENTS_PATH}"
+    run grep -F "git rev-parse --show-toplevel" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -ne 0 ]
 }
 

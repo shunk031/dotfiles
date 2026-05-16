@@ -66,6 +66,12 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F '`現在の段階`、`次の段階`、`ブロッカーの有無`' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
+    run grep -F 'PR URL を受け取った時点で完了扱いにしてはいけません' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'required checks の結果が確定してからユーザへ最終報告してください' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
     run grep -F '`interrupt=true` は明らかな停止や即時の方針変更が必要な場合だけ使ってください' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 }
@@ -206,6 +212,11 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -ne 0 ]
     run grep -F "git rev-parse --show-toplevel" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -ne 0 ]
+
+    run grep -F 'Do not treat "PR created" or "PR updated" as task completion when CI verification is still pending.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'stay responsible until the required checks reach a terminal state and report that result explicitly.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] codex GitHub workflow defines PR description structure and template priority" {

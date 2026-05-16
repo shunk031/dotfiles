@@ -38,7 +38,13 @@ Workflow:
   - avoid any other file changes
 - Use Conventional Commit format for commit messages: `<type>(<scope>): <summary>`.
 - Pull request titles and descriptions must be English.
-- When creating or updating a PR, describe the full current PR, not only the latest delta.
+- When creating or updating a PR, first check whether the repository provides a pull request template and follow that structure when present.
+- If no pull request template is available, use this default PR description structure:
+  - `## Why`
+  - `## What Changed`
+  - `## Validation`
+- In either case, describe the full current PR, not only the latest delta.
+- Keep the `Validation` section repo-relative and never include local absolute paths.
 - After any additional push, inspect the updated commits/diff and refresh the PR description so it matches the full current PR.
 - After pushing, check GitHub Actions / checks and continue until all required checks pass or a failure requires parent/user intervention.
 - Do not run local `bats`; rely on GitHub Actions for `bats` validation.

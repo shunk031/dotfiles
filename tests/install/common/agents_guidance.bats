@@ -80,13 +80,31 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F '### Plan の具体性' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '対象ディレクトリ、追加・編集・削除するファイル、主要な変更内容' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '変更対象のディレクトリ・ファイルパス' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'ディレクトリ構成やファイル単位の編集内容まで書いてください' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '追加・編集・削除する関数、クラス、設定キー、CLI 引数、公開 API' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '簡単なコードスニペットも含めてください' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '各ファイルで何をどう変えるか' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '確認する assertion の要点' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '関数シグネチャ案、疑似コード、または短いコードスニペットを必ず含めてください' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '実装判断が増える plan では' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '`どのファイルのどのシンボルをどう変えるか` が伝わる粒度で書いてください' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '未完成の状態で `<proposed_plan>` を出してはいけません' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '「Assumptions」または「前提」として明示し' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 }
 

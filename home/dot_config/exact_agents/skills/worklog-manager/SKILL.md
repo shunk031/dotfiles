@@ -55,6 +55,74 @@ It keeps startup context constrained to valid learn entries, maintains plan/todo
      `- [Title](file.md) [stable|drift_prone] — Summary`
 5. When learn changes affect the active plan, update the plan `Assumptions`, `Design`, or `Tests` sections to match.
 
+## Conflict Handling
+
+Use this flow only when a later user direction conflicts with the current session facts.
+For this workflow, `startup facts` means only the learn entries listed under the startup summary `Active learnings`.
+`Needs revalidation`, `## Needs Review`, and any `active` learn with `freshness: drift_prone` are context only and are not `startup facts`.
+
+The conflict detection scope is limited to:
+
+- `startup facts`
+- current plan `Assumptions`
+- unfinished todo items
+
+When a later user message conflicts with one of those sources:
+
+1. Identify the exact source that is being contradicted.
+2. Return `CONFLICT_REPORT` to the parent.
+3. Wait for `CONFIRM_OVERRIDE`, `REJECT_OVERRIDE`, or `NEEDS_USER_CLARIFICATION`.
+4. Rewrite session-local plan/todo state only after `CONFIRM_OVERRIDE`.
+5. Do not update persistent learn state at this stage.
+6. If you later record this session outcome in a learn file, use `Plan Updates` to note that it is a corpus migration candidate only after revalidation evidence exists.
+
+The audit validates corpus integrity, not parent confirmation flow.
+
+Use these parent-facing message contracts:
+
+```text
+CONFLICT_REPORT
+source_type: startup_fact|plan_assumption|todo
+source_ref: <learn filename | plan section | todo line>
+old_statement: <current assumption>
+user_request: <new direction>
+rationale: <why this is a direction change instead of a minor refinement>
+proposed_session_action: ignore_for_session|rewrite_plan_todo
+learn_update: pending_revalidation
+```
+
+```text
+CONFIRM_OVERRIDE
+source_ref: <same value>
+approved_action: rewrite_plan_todo
+```
+
+```text
+REJECT_OVERRIDE
+source_ref: <same value>
+keep_existing_assumption: true
+```
+
+```text
+NEEDS_USER_CLARIFICATION
+source_ref: <same value>
+clarification_question: <short question>
+```
+
+Do not write `.agents/worklog/codex/**` before confirmation.
+
+After `CONFIRM_OVERRIDE`, rewrite `.agents/worklog/codex/**` with these rules:
+
+- `User Prompt` update: append the user message that changed direction.
+- `Assumptions` note: keep the old assumption, but annotate it with `Superseded in this session by user direction on YYYY-MM-DD`.
+- `Design` update: add the new direction.
+- `Open Questions` revalidation note: add one line when persistent learn revalidation is still needed.
+- `TODO` rewrite: move unfinished items that depend on the old assumption to `# Done`, mark the individual line as superseded after the confirmed direction change, do not replace them with the literal line `[x] Superseded by confirmed direction change`, and add replacement work under `# TODO`.
+- Keep top-level `todo.status` as `active` because the session is still in progress.
+
+If the parent responds with `REJECT_OVERRIDE`, keep plan/todo unchanged and tell the parent `existing assumption kept`.
+If the parent responds with `NEEDS_USER_CLARIFICATION`, keep plan/todo unchanged and wait for the parent's clarification flow.
+
 ## Learn Promotion Gate
 
 - Do not promote session-local facts, current branch names, current paths, default-branch names, or any repo state that is cheap to re-check right now.

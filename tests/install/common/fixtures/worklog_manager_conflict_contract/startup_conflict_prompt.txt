@@ -1,0 +1,9 @@
+conflict-report::source_type: startup_fact|plan_assumption|todo
+conflict-report::CONFLICT_REPORT
+conflict-report::source_ref
+conflict-report::proposed_session_action: ignore_for_session|rewrite_plan_todo
+conflict-report::learn_update: pending_revalidation
+conflict-report::Do not write `.agents/worklog/codex/**` before confirmation.
+clarification-rejection::NEEDS_USER_CLARIFICATION
+clarification-rejection::REJECT_OVERRIDE
+clarification-rejection::plan/todo unchanged

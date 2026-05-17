@@ -1,6 +1,8 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./home/dot_config/exact_agents/skills/worklog-manager/scripts/codex_worklog_audit.py"
+readonly SKILL_PATH="./home/dot_config/exact_agents/skills/worklog-manager/SKILL.md"
+readonly RULES_PATH="./home/dot_config/exact_agents/skills/worklog-manager/references/learn_rules.md"
 readonly FIXED_NOW="2026-05-15T00:00:00Z"
 
 function setup() {
@@ -351,4 +353,12 @@ EOF
     run python3 "${SCRIPT_PATH}" check --learn-root "${LEARN_ROOT}" --now "${FIXED_NOW}"
     [ "${status}" -eq 0 ]
     [ "${output}" = "OK: no startup-breaking worklog learn issues found." ]
+}
+
+@test "[common] conflict handling stays outside codex_worklog_audit responsibilities" {
+    run grep -F 'The audit validates corpus integrity, not parent confirmation flow.' "${SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Session-local overrides are governed by the conflict contract, not by audit.' "${RULES_PATH}"
+    [ "${status}" -eq 0 ]
 }

@@ -1,0 +1,7 @@
+confirmed-override::CONFIRM_OVERRIDE
+confirmed-override::`User Prompt` update
+confirmed-override::`Assumptions` note
+confirmed-override::`Design` update
+confirmed-override::`Open Questions` revalidation note
+confirmed-override::`TODO` rewrite
+confirmed-override::Keep top-level `todo.status` as `active`

@@ -153,6 +153,20 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F '`Active learnings`, `Needs revalidation`, `Ignored historical entries`' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F 'CONFLICT_REPORT' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'source_type: startup_fact|plan_assumption|todo' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'CONFIRM_OVERRIDE' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'REJECT_OVERRIDE' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'NEEDS_USER_CLARIFICATION' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Do not write `.agents/worklog/codex/**` before confirmation.' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'pending_revalidation' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
 
     run grep -F 'Required `learn` keys:' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -ne 0 ]
@@ -191,6 +205,26 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F '`Ignored historical entries`' "${CODEX_WORKLOG_SKILL_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F '`startup facts`' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'are context only and are not `startup facts`.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'CONFLICT_REPORT' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'source_type: startup_fact|plan_assumption|todo' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'CONFIRM_OVERRIDE' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'REJECT_OVERRIDE' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'NEEDS_USER_CLARIFICATION' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Do not write `.agents/worklog/codex/**` before confirmation.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'learn_update: pending_revalidation' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'The audit validates corpus integrity, not parent confirmation flow.' "${CODEX_WORKLOG_SKILL_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -F '`status` must be one of `active | needs_review | superseded | archived`.' "${CODEX_WORKLOG_SKILL_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '`freshness: drift_prone` requires `review_after`.' "${CODEX_WORKLOG_SKILL_PATH}"
@@ -208,6 +242,10 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F 'stop startup and return the exact audit failures to the parent instead of falling back to best-effort learn selection' "${CODEX_WORKLOG_RULES_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '`origin/master`' "${CODEX_WORKLOG_RULES_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Session-local override is not a corpus migration.' "${CODEX_WORKLOG_RULES_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Session-local overrides are governed by the conflict contract, not by audit.' "${CODEX_WORKLOG_RULES_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'default_prompt: "Use $worklog-manager to manage Codex worklog files and audit stale learn metadata."' "${CODEX_WORKLOG_SKILL_OPENAI_PATH}"
     [ "${status}" -eq 0 ]

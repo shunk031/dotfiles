@@ -140,6 +140,20 @@ supersedes: default-branch-is-master.md
 - If an older recipe assumes `origin/master`, move it to `Needs Review` until it is revalidated on the current `main` workflow.
 - Drift-prone repo state should stay out of `Active` unless it has a fresh validation date and a review deadline.
 
+## Session-local override
+
+- Session-local override is not a corpus migration.
+- User direction alone must not move a learn entry to `needs_review` or `superseded`.
+- A confirmed override still keeps persistent learn state unchanged until repo, system, or execution evidence exists.
+- When a confirmed override plus revalidation evidence shows an `active` learn is obsolete, move it in the next corpus update to `needs_review` or `superseded`.
+- Session-local overrides are governed by the conflict contract, not by audit.
+
+```yaml
+trigger: user asks for a different workflow than the startup fact assumes
+immediate_action: session-local override only
+persistent_action: defer until revalidation evidence exists
+```
+
 ## Audit Contract
 
 `scripts/codex_worklog_audit.py summary` reports:

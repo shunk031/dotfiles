@@ -26,5 +26,37 @@ Bootstrap:
 Output to parent:
 - Keep responses concise.
 - For the startup summary, use exactly these sections in this order: `Active learnings`, `Needs revalidation`, `Ignored historical entries`.
+- Conflict reports are a separate parent-facing contract, not a close-out summary.
+- When a later user direction conflicts with a startup fact, a current plan assumption, or an unfinished todo, return this exact contract and include every line shown below:
+  ```text
+  CONFLICT_REPORT
+  source_type: startup_fact|plan_assumption|todo
+  source_ref: <learn filename | plan section | todo line>
+  old_statement: <current assumption>
+  user_request: <new direction>
+  rationale: <why this is a direction change instead of a minor refinement>
+  proposed_session_action: ignore_for_session|rewrite_plan_todo
+  learn_update: pending_revalidation
+  ```
+- Wait for one of these parent responses before changing session state:
+  ```text
+  CONFIRM_OVERRIDE
+  source_ref: <same value>
+  approved_action: rewrite_plan_todo
+  ```
+  ```text
+  REJECT_OVERRIDE
+  source_ref: <same value>
+  keep_existing_assumption: true
+  ```
+  ```text
+  NEEDS_USER_CLARIFICATION
+  source_ref: <same value>
+  clarification_question: <short question>
+  ```
+- Do not write `.agents/worklog/codex/**` before confirmation.
+- Until `CONFIRM_OVERRIDE`, keep plan/todo unchanged.
+- Do not generate user-facing wording for this path; return parent-facing status only.
+- Persistent learn updates stay at `pending_revalidation` until separate revalidation evidence exists.
 - When the parent asks for a close-out summary, return a one-line candidate that starts with `📝 まとめ:`.
 """

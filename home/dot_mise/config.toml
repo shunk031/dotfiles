@@ -33,6 +33,7 @@ shfmt = "latest"
 "github:shuntaka9576/blocc" = { version = "latest", os = ["linux"] }
 
 "cargo:pueue" = "latest"
+dust = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

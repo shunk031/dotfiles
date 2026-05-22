@@ -339,6 +339,18 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F "~/.agents" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F 'The `exact_` segment in this path is a chezmoi source-state attribute' "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'https://www.chezmoi.io/reference/source-state-attributes/' "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'dot_` changes a target name to start with `.`' "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'exact_` removes entries in the target directory that are not explicitly managed in the source state' "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '.config/agents' "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '../../.chezmoitemplates/chezmoiignore.d/common' "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -F "../../exact_dot_agents/" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'read first from `~/.codex/AGENTS.md` before `~/.codex/AGENTS.codex-only.md`' "${CANONICAL_AGENTS_README_PATH}"
@@ -348,6 +360,8 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F "AGENTS.codex-only.md" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "The diagram below describes this repository's source-of-truth layout" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
 
     run grep -F "~/.claude" "${CANONICAL_CLAUDE_README_PATH}"

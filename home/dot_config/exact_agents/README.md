@@ -1,8 +1,10 @@
-- This directory is the canonical source for `~/.agents`.
-- [AGENTS.md](AGENTS.md) is the shared guidance used directly by `~/.agents/AGENTS.md`, imported from `~/.claude/CLAUDE.md` with `@~/.agents/AGENTS.md`, and read first from `~/.codex/AGENTS.md` before `~/.codex/AGENTS.codex-only.md`.
-- [home/exact_dot_agents/](../../exact_dot_agents/) is only the adapter layer that exposes this source in the applied home layout.
-- The design keeps edits in one git-friendly place while preserving the familiar home path.
-- Edit files here; the adapter keeps the home path stable.
+In this repo, this directory is the editable shared source for agent guidance that is exposed as `~/.agents` through adapter templates. The `exact_` segment in this path is a chezmoi source-state attribute, not a generic "canonical source" naming convention. See the official chezmoi reference for [Source state attributes](https://www.chezmoi.io/reference/source-state-attributes/).
+
+In chezmoi, `dot_` changes a target name to start with `.`, while `exact_` removes entries in the target directory that are not explicitly managed in the source state. This repo does not apply `.config/agents` directly: [home/.chezmoitemplates/chezmoiignore.d/common](../../.chezmoitemplates/chezmoiignore.d/common) ignores that target, while [home/exact_dot_agents/](../../exact_dot_agents/) provides the home-facing `~/.agents` adapter.
+
+[AGENTS.md](AGENTS.md) is the shared guidance used directly by `~/.agents/AGENTS.md`, imported from `~/.claude/CLAUDE.md` with `@~/.agents/AGENTS.md`, and read first from `~/.codex/AGENTS.md` before `~/.codex/AGENTS.codex-only.md`. Edit files here; the adapter keeps the home path stable.
+
+The diagram below describes this repository's source-of-truth layout, not the meaning of chezmoi's `exact_` attribute itself.
 
 ## Layout Overview
 

@@ -309,7 +309,7 @@ def main() -> int:
 
     try:
         open_browser(target_url, run_dir, profile_dir, args.browser, headed=args.headed)
-        wait_for_comment_composer(run_dir, args.ready_timeout, args.poll_interval)
+        wait_for_comment_composer(run_dir, args.ready_timeout, args.poll_interval, headed=args.headed)
         attachments = upload_files(
             run_dir,
             staged_files,
@@ -478,7 +478,12 @@ def close_browser(run_dir: Path) -> None:
         return
 
 
-def wait_for_comment_composer(run_dir: Path, ready_timeout: int, poll_interval: float) -> None:
+def wait_for_comment_composer(
+    run_dir: Path,
+    ready_timeout: int,
+    poll_interval: float,
+    headed: bool = False,
+) -> None:
     """Poll until a visible GitHub comment composer is ready for uploads."""
 
     started_at = time.monotonic()
@@ -487,7 +492,7 @@ def wait_for_comment_composer(run_dir: Path, ready_timeout: int, poll_interval: 
         if result.get("found"):
             return
         page_url = str(result.get("pageUrl", ""))
-        if "/login" in page_url or "/session" in page_url:
+        if not headed and ("/login" in page_url or "/session" in page_url):
             raise SystemExit(
                 f"GitHub login required (redirected to: {page_url})\n"
                 "Re-run with --headed to log in, then re-run without --headed for normal headless use."
@@ -548,7 +553,7 @@ def upload_files(
                         except subprocess.CalledProcessError:
                             if profile_dir:
                                 open_browser(target_url, run_dir, profile_dir, browser, headed=headed)
-                        wait_for_comment_composer(run_dir, ready_timeout, poll_interval)
+                        wait_for_comment_composer(run_dir, ready_timeout, poll_interval, headed=headed)
                 continue
             if not upload_result.get("ok"):
                 error = upload_result.get("error", "unknown-error")
@@ -561,7 +566,7 @@ def upload_files(
                     time.sleep(60)
                     if target_url:
                         run_playwright(["goto", target_url], cwd=run_dir)
-                        wait_for_comment_composer(run_dir, ready_timeout, poll_interval)
+                        wait_for_comment_composer(run_dir, ready_timeout, poll_interval, headed=headed)
                 continue
             composer_after = str(upload_result.get("after", ""))
             snapshot_after = capture_snapshot(run_dir)

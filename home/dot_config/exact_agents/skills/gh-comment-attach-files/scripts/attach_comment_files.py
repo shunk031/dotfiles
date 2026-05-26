@@ -10,6 +10,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -260,6 +261,11 @@ def parse_args() -> argparse.Namespace:
         help="Leave the Playwright CLI browser open after collecting URLs",
     )
     parser.add_argument(
+        "--headed",
+        action="store_true",
+        help="Run browser in headed (visible) mode. Use when login is required; headless is the default.",
+    )
+    parser.add_argument(
         "--keep-run-dir",
         action="store_true",
         help="Keep the staged Playwright run directory under .playwright-cli",
@@ -302,7 +308,7 @@ def main() -> int:
     staged_files = stage_files(source_files, uploads_dir)
 
     try:
-        open_browser(target_url, run_dir, profile_dir, args.browser)
+        open_browser(target_url, run_dir, profile_dir, args.browser, headed=args.headed)
         wait_for_comment_composer(run_dir, args.ready_timeout, args.poll_interval)
         attachments = upload_files(
             run_dir,
@@ -313,6 +319,7 @@ def main() -> int:
             poll_interval=args.poll_interval,
             profile_dir=profile_dir,
             browser=getattr(args, "browser", None),
+            headed=args.headed,
         )
     finally:
         if not args.leave_open:
@@ -438,7 +445,13 @@ def sanitize_component(value: str) -> str:
     return sanitized[:80]
 
 
-def open_browser(target_url: str, run_dir: Path, profile_dir: Path, browser: str | None) -> None:
+def open_browser(
+    target_url: str,
+    run_dir: Path,
+    profile_dir: Path,
+    browser: str | None,
+    headed: bool = False,
+) -> None:
     """Open the target page in a persistent Playwright CLI browser session."""
 
     command = [
@@ -446,10 +459,11 @@ def open_browser(target_url: str, run_dir: Path, profile_dir: Path, browser: str
         "@playwright/cli",
         "open",
         target_url,
-        "--headed",
         "--profile",
         str(profile_dir),
     ]
+    if headed:
+        command.append("--headed")
     if browser:
         command.extend(["--browser", browser])
     run(command, cwd=run_dir)
@@ -472,9 +486,14 @@ def wait_for_comment_composer(run_dir: Path, ready_timeout: int, poll_interval: 
         result = prepare_comment_composer(run_dir)
         if result.get("found"):
             return
+        page_url = str(result.get("pageUrl", ""))
+        if "/login" in page_url or "/session" in page_url:
+            raise SystemExit(
+                f"GitHub login required (redirected to: {page_url})\n"
+                "Re-run with --headed to log in, then re-run without --headed for normal headless use."
+            )
         if time.monotonic() - started_at >= ready_timeout:
-            page_url = result.get("pageUrl", "")
-            page_title = result.get("pageTitle", "")
+            page_title = str(result.get("pageTitle", ""))
             raise SystemExit(
                 f"Timed out waiting for a GitHub comment composer. Last page: {page_title} {page_url}".strip()
             )
@@ -503,9 +522,9 @@ def upload_files(
     poll_interval: float = 2.0,
     profile_dir: Path | None = None,
     browser: str | None = None,
+    headed: bool = False,
 ) -> list[tuple[StagedFile, str]]:
     """Upload staged files one by one and collect their hosted URLs."""
-    import sys
 
     attachments: list[tuple[StagedFile, str]] = []
     for staged_file in staged_files:
@@ -528,7 +547,7 @@ def upload_files(
                             run_playwright(["goto", target_url], cwd=run_dir)
                         except subprocess.CalledProcessError:
                             if profile_dir:
-                                open_browser(target_url, run_dir, profile_dir, browser)
+                                open_browser(target_url, run_dir, profile_dir, browser, headed=headed)
                         wait_for_comment_composer(run_dir, ready_timeout, poll_interval)
                 continue
             if not upload_result.get("ok"):
@@ -555,7 +574,7 @@ def upload_files(
                 break
             print(
                 f"  Attempt {attempt}/3: URL not found for {staged_file.staged_name}, retrying ...",
-                file=__import__("sys").stderr,
+                file=sys.stderr,
             )
             if attempt < 3:
                 time.sleep(30)

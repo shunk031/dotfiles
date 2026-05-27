@@ -13,7 +13,7 @@ readonly CHEZMOIIGNORE_PATH="./home/.chezmoitemplates/chezmoiignore.d/common"
     [ ! -e "${LEGACY_CMUX_SYMLINK_TEMPLATE}" ]
     [ "$(< "${CMUX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_cmux/private_cmux.json" ]
 
-    run grep -F '".config/cmux/cmux.json is missing.' "${CMUX_PAYLOAD_PATH}"
+    run grep -F 'cmux creates this template on launch when ~/.config/cmux/cmux.json is missing.' "${CMUX_PAYLOAD_PATH}"
     [ "${status}" -eq 0 ]
 }
 

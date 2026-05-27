@@ -1,4 +1,5 @@
 theme = iTerm2 Default
+window-theme = "ghostty"
 
 font-family = RobotoMono Nerd Font Mono
 font-size = 12

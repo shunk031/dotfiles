@@ -4,6 +4,8 @@ plugin.jupyterlab-settings
 
 .mise
 .uv
+.cmux
+.ghostty
 .tmux.conf.d/
 .agents/README.md
 .claude/README.md

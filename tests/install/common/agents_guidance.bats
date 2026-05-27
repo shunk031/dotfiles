@@ -294,6 +294,21 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
     run grep -F 'Keep the `Validation` section repo-relative and never include local absolute paths.' "${CODEX_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
+
+    run grep -F 'In the `Validation` section, prefer repeated command-based steps instead of bullet lists.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'For each command-based validation step, write one short natural-language line that explains what the command verified, then place the exact command in a fenced `shell` block.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Use descriptive lines such as `Check the updated guidance assertions.` or `Inspect the staged diff for formatting issues.`, not placeholder labels like `Try command 1`.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Repeat that pattern for each command-based validation step.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'If a validation item is not command-based, keep it as one short prose line without forcing a code block.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] layout readmes describe the adapter and canonical layout" {

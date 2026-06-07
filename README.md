@@ -34,6 +34,7 @@ The following are the tools and coding assistants I mainly use in this setup.
 
 [![anthropics/claude-code](https://img.shields.io/github/v/tag/anthropics/claude-code?color=D97757&display_name=release&label=claude-code&logo=claude&logoColor=D97757&sort=semver)](https://github.com/anthropics/claude-code)
 [![openai/codex](https://img.shields.io/github/v/tag/openai/codex?color=0081A5&display_name=release&label=codex&logo=openaigym&logoColor=0081A5&sort=semver)](https://github.com/openai/codex)
+[![google-gemini/gemini-cli](https://img.shields.io/github/v/tag/google-gemini/gemini-cli?color=8E75B2&display_name=release&label=googlegemini&logo=googlegemini&logoColor=8E75B2&sort=semver)](https://github.com/google-gemini/gemini-cli)
 
 ## 📥 Setup
 

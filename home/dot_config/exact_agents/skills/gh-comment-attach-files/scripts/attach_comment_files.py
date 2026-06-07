@@ -10,12 +10,12 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Sequence
-
 
 TEXTAREA_SELECTORS = [
     "textarea#new_comment_field",
@@ -181,7 +181,13 @@ async (page) => {
       if (!(element instanceof HTMLTextAreaElement)) return false;
       const value = element.value || "";
       if (value === previous) return false;
-      return value.includes(stagedName) || urlHints.some((hint) => value.includes(hint));
+      // Count URL hint occurrences rather than checking stagedName, which would
+      // falsely trigger on the "![Uploading stagedName…]()" placeholder GitHub
+      // inserts before the real URL is assigned.
+      const countHints = (text) => urlHints.reduce(
+        (sum, h) => sum + (text.split(h).length - 1), 0
+      );
+      return countHints(value) > countHints(previous);
     },
     {
       selector: "[data-gh-comment-attach='textarea']",
@@ -255,6 +261,11 @@ def parse_args() -> argparse.Namespace:
         help="Leave the Playwright CLI browser open after collecting URLs",
     )
     parser.add_argument(
+        "--headed",
+        action="store_true",
+        help="Run browser in headed (visible) mode. Use when login is required; headless is the default.",
+    )
+    parser.add_argument(
         "--keep-run-dir",
         action="store_true",
         help="Keep the staged Playwright run directory under .playwright-cli",
@@ -297,9 +308,19 @@ def main() -> int:
     staged_files = stage_files(source_files, uploads_dir)
 
     try:
-        open_browser(target_url, run_dir, profile_dir, args.browser)
-        wait_for_comment_composer(run_dir, args.ready_timeout, args.poll_interval)
-        attachments = upload_files(run_dir, staged_files, timeout_ms=args.ready_timeout * 1000)
+        open_browser(target_url, run_dir, profile_dir, args.browser, headed=args.headed)
+        wait_for_comment_composer(run_dir, args.ready_timeout, args.poll_interval, headed=args.headed)
+        attachments = upload_files(
+            run_dir,
+            staged_files,
+            timeout_ms=args.ready_timeout * 1000,
+            target_url=target_url,
+            ready_timeout=args.ready_timeout,
+            poll_interval=args.poll_interval,
+            profile_dir=profile_dir,
+            browser=getattr(args, "browser", None),
+            headed=args.headed,
+        )
     finally:
         if not args.leave_open:
             close_browser(run_dir)
@@ -424,7 +445,13 @@ def sanitize_component(value: str) -> str:
     return sanitized[:80]
 
 
-def open_browser(target_url: str, run_dir: Path, profile_dir: Path, browser: str | None) -> None:
+def open_browser(
+    target_url: str,
+    run_dir: Path,
+    profile_dir: Path,
+    browser: str | None,
+    headed: bool = False,
+) -> None:
     """Open the target page in a persistent Playwright CLI browser session."""
 
     command = [
@@ -432,10 +459,11 @@ def open_browser(target_url: str, run_dir: Path, profile_dir: Path, browser: str
         "@playwright/cli",
         "open",
         target_url,
-        "--headed",
         "--profile",
         str(profile_dir),
     ]
+    if headed:
+        command.append("--headed")
     if browser:
         command.extend(["--browser", browser])
     run(command, cwd=run_dir)
@@ -450,7 +478,12 @@ def close_browser(run_dir: Path) -> None:
         return
 
 
-def wait_for_comment_composer(run_dir: Path, ready_timeout: int, poll_interval: float) -> None:
+def wait_for_comment_composer(
+    run_dir: Path,
+    ready_timeout: int,
+    poll_interval: float,
+    headed: bool = False,
+) -> None:
     """Poll until a visible GitHub comment composer is ready for uploads."""
 
     started_at = time.monotonic()
@@ -458,12 +491,16 @@ def wait_for_comment_composer(run_dir: Path, ready_timeout: int, poll_interval: 
         result = prepare_comment_composer(run_dir)
         if result.get("found"):
             return
-        if time.monotonic() - started_at >= ready_timeout:
-            page_url = result.get("pageUrl", "")
-            page_title = result.get("pageTitle", "")
+        page_url = str(result.get("pageUrl", ""))
+        if not headed and ("/login" in page_url or "/session" in page_url):
             raise SystemExit(
-                "Timed out waiting for a GitHub comment composer. "
-                f"Last page: {page_title} {page_url}".strip()
+                f"GitHub login required (redirected to: {page_url})\n"
+                "Re-run with --headed to log in, then re-run without --headed for normal headless use."
+            )
+        if time.monotonic() - started_at >= ready_timeout:
+            page_title = str(result.get("pageTitle", ""))
+            raise SystemExit(
+                f"Timed out waiting for a GitHub comment composer. Last page: {page_title} {page_url}".strip()
             )
         time.sleep(poll_interval)
 
@@ -481,25 +518,73 @@ def prepare_comment_composer(run_dir: Path) -> dict[str, object]:
     )
 
 
-def upload_files(run_dir: Path, staged_files: Sequence[StagedFile], timeout_ms: int) -> list[tuple[StagedFile, str]]:
+def upload_files(
+    run_dir: Path,
+    staged_files: Sequence[StagedFile],
+    timeout_ms: int,
+    target_url: str = "",
+    ready_timeout: int = 180,
+    poll_interval: float = 2.0,
+    profile_dir: Path | None = None,
+    browser: str | None = None,
+    headed: bool = False,
+) -> list[tuple[StagedFile, str]]:
     """Upload staged files one by one and collect their hosted URLs."""
 
     attachments: list[tuple[StagedFile, str]] = []
     for staged_file in staged_files:
-        composer_before = get_composer_markdown(run_dir)
-        snapshot_before = capture_snapshot(run_dir)
-        upload_result = perform_upload(run_dir, staged_file, timeout_ms)
-        composer_after = str(upload_result.get("after", ""))
-        snapshot_after = capture_snapshot(run_dir)
-        attachment_url = find_attachment_url(
-            staged_name=staged_file.staged_name,
-            before_texts=[composer_before, snapshot_before],
-            after_texts=[composer_after, snapshot_after],
-        )
-        if not attachment_url:
-            raise SystemExit(
-                f"Failed to find an attachment URL for staged file: {staged_file.staged_name}"
+        attachment_url = None
+        for attempt in range(1, 4):
+            try:
+                composer_before = get_composer_markdown(run_dir)
+                snapshot_before = capture_snapshot(run_dir)
+                upload_result = perform_upload(run_dir, staged_file, timeout_ms)
+            except subprocess.CalledProcessError as exc:
+                print(
+                    f"  Upload attempt {attempt}/3 crashed for {staged_file.staged_name}: {exc}",
+                    file=sys.stderr,
+                )
+                if attempt < 3:
+                    print("  Waiting 30s, then reopening browser ...", file=sys.stderr)
+                    time.sleep(30)
+                    if target_url:
+                        try:
+                            run_playwright(["goto", target_url], cwd=run_dir)
+                        except subprocess.CalledProcessError:
+                            if profile_dir:
+                                open_browser(target_url, run_dir, profile_dir, browser, headed=headed)
+                        wait_for_comment_composer(run_dir, ready_timeout, poll_interval, headed=headed)
+                continue
+            if not upload_result.get("ok"):
+                error = upload_result.get("error", "unknown-error")
+                print(
+                    f"  Upload attempt {attempt}/3 failed for {staged_file.staged_name}: {error}",
+                    file=sys.stderr,
+                )
+                if attempt < 3:
+                    print("  Waiting 60s before retry ...", file=sys.stderr)
+                    time.sleep(60)
+                    if target_url:
+                        run_playwright(["goto", target_url], cwd=run_dir)
+                        wait_for_comment_composer(run_dir, ready_timeout, poll_interval, headed=headed)
+                continue
+            composer_after = str(upload_result.get("after", ""))
+            snapshot_after = capture_snapshot(run_dir)
+            attachment_url = find_attachment_url(
+                staged_name=staged_file.staged_name,
+                before_texts=[composer_before, snapshot_before],
+                after_texts=[composer_after, snapshot_after],
             )
+            if attachment_url:
+                break
+            print(
+                f"  Attempt {attempt}/3: URL not found for {staged_file.staged_name}, retrying ...",
+                file=sys.stderr,
+            )
+            if attempt < 3:
+                time.sleep(30)
+        if not attachment_url:
+            raise SystemExit(f"Failed to upload {staged_file.staged_name} after 3 attempts")
         attachments.append((staged_file, attachment_url))
     return attachments
 
@@ -519,10 +604,6 @@ def perform_upload(run_dir: Path, staged_file: StagedFile, timeout_ms: int) -> d
         ["--raw", "run-code", UPLOAD_CODE_TEMPLATE.replace("__PAYLOAD__", json.dumps(payload))],
         cwd=run_dir,
     )
-    if not result.get("ok"):
-        raise SystemExit(
-            f"Upload failed for {staged_file.staged_name}: {result.get('error', 'unknown-error')}"
-        )
     return result
 
 
@@ -603,9 +684,12 @@ def run_playwright_value(arguments: Sequence[str], cwd: Path) -> object:
 
     result = run_playwright(arguments, cwd=cwd)
     stdout = result.stdout.strip()
-    if not stdout:
+    if not stdout or stdout == "undefined":
         return ""
-    return json.loads(stdout)
+    try:
+        return json.loads(stdout)
+    except json.JSONDecodeError:
+        return ""
 
 
 def run(command: Sequence[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:

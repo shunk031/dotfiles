@@ -1,0 +1,13 @@
+{
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "general": {
+    "enableAutoUpdate": true
+  },
+  "ui": {
+    "inlineThinkingMode": "full"
+  }
+}

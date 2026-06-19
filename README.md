@@ -34,7 +34,7 @@ The following are the tools and coding assistants I mainly use in this setup.
 
 [![anthropics/claude-code](https://img.shields.io/github/v/tag/anthropics/claude-code?color=D97757&display_name=release&label=claude-code&logo=claude&logoColor=D97757&sort=semver)](https://github.com/anthropics/claude-code)
 [![openai/codex](https://img.shields.io/github/v/tag/openai/codex?color=0081A5&display_name=release&label=codex&logo=openaigym&logoColor=0081A5&sort=semver)](https://github.com/openai/codex)
-[![google-antigravity/antigravity-cli](https://img.shields.io/github/v/tag/google-antigravity/antigravity-cli?color=8E75B2&display_name=release&label=antigravity-cli&sort=semver)](https://github.com/google-antigravity/antigravity-cli)
+[![google-antigravity/antigravity-cli](https://img.shields.io/github/v/tag/google-antigravity/antigravity-cli?color=8E75B2&display_name=release&label=antigravity-cli&logo=googlegemini&logoColor=8E75B2&sort=semver)](https://github.com/google-antigravity/antigravity-cli)
 
 ## 📥 Setup
 

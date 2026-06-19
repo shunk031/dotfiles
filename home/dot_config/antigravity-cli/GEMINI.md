@@ -3,6 +3,6 @@
 > [!NOTE]
 > After reading this `GEMINI.md`, say: `🤖 I read ~/.gemini/GEMINI.md.`
 
-## Gemini Only
+## Antigravity Only
 
-- 現在のところ、Gemini 固有の設定はありませんが、将来的に追加される可能性があります。
+- 現在のところ、Antigravity 固有の設定はありませんが、将来的に追加される可能性があります。

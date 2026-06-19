@@ -34,7 +34,6 @@ shfmt = "latest"
 
 "cargo:pueue" = "latest"
 dust = "latest"
-"npm:@google/gemini-cli" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

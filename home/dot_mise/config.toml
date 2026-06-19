@@ -34,6 +34,7 @@ shfmt = "latest"
 
 "cargo:pueue" = "latest"
 dust = "latest"
+"aqua:google-antigravity/antigravity-cli" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

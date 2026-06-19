@@ -1,7 +1,7 @@
 @~/.agents/AGENTS.md
 
 > [!NOTE]
-> After reading this `AGY.md`, say: `🤖 I read ~/.gemini/AGY.md.`
+> After reading this `GEMINI.md`, say: `🤖 I read ~/.gemini/GEMINI.md.`
 
 ## Antigravity Only
 

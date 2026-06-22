@@ -37,6 +37,7 @@ yq = "latest"
 "npm:fast-cli" = "latest"
 "npm:@openai/codex" = "latest"
 "npm:pyright" = "latest"
+"npm:agmsg" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

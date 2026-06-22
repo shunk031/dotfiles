@@ -1,4 +1,5 @@
 [tools]
+# Keep tools sorted by backend group and package name, ignoring backend prefixes and leading `@`.
 go = "latest"
 node = "lts"
 rust = "latest"
@@ -32,12 +33,12 @@ yq = "latest"
 "github:shuntaka9576/blocc" = { version = "latest", os = ["linux"] }
 "github:x-motemen/ghq" = "latest"
 
+"npm:agmsg" = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:bash-language-server" = "latest"
 "npm:fast-cli" = "latest"
 "npm:@openai/codex" = "latest"
 "npm:pyright" = "latest"
-"npm:agmsg" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

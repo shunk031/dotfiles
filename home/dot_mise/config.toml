@@ -1,10 +1,13 @@
 [tools]
-# Keep tools sorted by backend group and package name, ignoring backend prefixes and leading `@`.
+# Keep each group sorted by package name, ignoring backend prefixes and leading `@`.
+
+# Language runtimes
 go = "latest"
 node = "lts"
-rust = "latest"
 python = "3.11"
+rust = "latest"
 
+# CLI tools
 age = "latest"
 aws-cli = "latest"
 bats = "latest"
@@ -24,15 +27,19 @@ uv = "latest"
 yazi = "latest"
 yq = "latest"
 
+# Aqua tools
 "aqua:google-antigravity/antigravity-cli" = "latest"
 
+# Cargo tools
 "cargo:pueue" = "latest"
 
+# GitHub release tools
 "github:cli/cli" = "latest"
 "github:d-kuro/gwq" = "latest"
 "github:shuntaka9576/blocc" = { version = "latest", os = ["linux"] }
 "github:x-motemen/ghq" = "latest"
 
+# npm tools
 "npm:agmsg" = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:bash-language-server" = "latest"

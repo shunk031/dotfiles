@@ -26,7 +26,7 @@ function activate_mise() {
 # @description Install agmsg runtime assets.
 #
 function install_agmsg() {
-    agmsg install
+    agmsg install --cmd agmsg
 }
 
 #

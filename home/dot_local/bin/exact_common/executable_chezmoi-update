@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+
+# @file home/dot_local/bin/exact_common/executable_chezmoi-update
+# @brief Update and apply the public and private chezmoi source repositories.
+# @description
+#   Fetches the latest `origin/main` for each selected source, fast-forwards
+#   clean main checkouts only, then runs `chezmoi apply --verbose`.
+
+set -Eeuo pipefail
+
+readonly DEFAULT_BRANCH="main"
+readonly PRIVATE_SOURCE="${HOME}/.local/share/chezmoi-private"
+readonly PRIVATE_CONFIG="${HOME}/.config/chezmoi-private/chezmoi.yaml"
+
+# @description Print command usage.
+function usage() {
+    printf "usage: chezmoi-update [all|public|private]\n" >&2
+}
+
+# @description Export `GITHUB_TOKEN` from `gh auth token` when it is unset.
+function ensure_github_token() {
+    if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+        export GITHUB_TOKEN
+        GITHUB_TOKEN="$(gh auth token)"
+    fi
+}
+
+# @description Run a chezmoi command for the selected source.
+# @arg $1 string Source name, either `public` or `private`.
+function run_chezmoi() {
+    local source_name="$1"
+    shift
+
+    case "${source_name}" in
+    public)
+        chezmoi "$@"
+        ;;
+    private)
+        chezmoi --source "${PRIVATE_SOURCE}" --config "${PRIVATE_CONFIG}" "$@"
+        ;;
+    *)
+        printf "unknown source: %s\n" "${source_name}" >&2
+        return 1
+        ;;
+    esac
+}
+
+# @description Print the human-readable label for a source name.
+# @arg $1 string Source name, either `public` or `private`.
+function source_label() {
+    case "$1" in
+    public)
+        printf "public\n"
+        ;;
+    private)
+        printf "private\n"
+        ;;
+    esac
+}
+
+# @description Refuse dirty or non-main source checkouts.
+# @arg $1 string Source name, either `public` or `private`.
+function assert_clean_main() {
+    local source_name="$1"
+    local label
+    local branch
+    local status
+
+    label="$(source_label "${source_name}")"
+    branch="$(run_chezmoi "${source_name}" git -- rev-parse --abbrev-ref HEAD)"
+
+    if [[ "${branch}" != "${DEFAULT_BRANCH}" ]]; then
+        printf "Error: %s chezmoi source is on %s, expected %s.\n" "${label}" "${branch}" "${DEFAULT_BRANCH}" >&2
+        return 1
+    fi
+
+    status="$(run_chezmoi "${source_name}" git -- status --porcelain)"
+    if [[ -n "${status}" ]]; then
+        printf "Error: %s chezmoi source has uncommitted changes.\n" "${label}" >&2
+        printf "%s\n" "${status}" >&2
+        return 1
+    fi
+}
+
+# @description Fetch and fast-forward the selected source from `origin/main`.
+# @arg $1 string Source name, either `public` or `private`.
+function fast_forward_source() {
+    local source_name="$1"
+    local label
+    local local_rev
+    local remote_rev
+    local base_rev
+
+    label="$(source_label "${source_name}")"
+
+    run_chezmoi "${source_name}" git -- fetch --prune origin
+
+    local_rev="$(run_chezmoi "${source_name}" git -- rev-parse HEAD)"
+    remote_rev="$(run_chezmoi "${source_name}" git -- rev-parse "origin/${DEFAULT_BRANCH}")"
+    base_rev="$(run_chezmoi "${source_name}" git -- merge-base HEAD "origin/${DEFAULT_BRANCH}")"
+
+    if [[ "${local_rev}" == "${remote_rev}" ]]; then
+        return 0
+    fi
+
+    if [[ "${local_rev}" != "${base_rev}" ]]; then
+        printf "Error: %s chezmoi source is ahead of or diverged from origin/%s.\n" "${label}" "${DEFAULT_BRANCH}" >&2
+        return 1
+    fi
+
+    run_chezmoi "${source_name}" git -- merge --ff-only "origin/${DEFAULT_BRANCH}"
+}
+
+# @description Apply the selected chezmoi source.
+# @arg $1 string Source name, either `public` or `private`.
+function apply_source() {
+    local source_name="$1"
+
+    run_chezmoi "${source_name}" apply --verbose
+}
+
+# @description Update and apply one chezmoi source.
+# @arg $1 string Source name, either `public` or `private`.
+function update_source() {
+    local source_name="$1"
+    local label
+
+    label="$(source_label "${source_name}")"
+    printf "Updating %s chezmoi source...\n" "${label}"
+
+    assert_clean_main "${source_name}"
+    fast_forward_source "${source_name}"
+    apply_source "${source_name}"
+}
+
+# @description Dispatch the selected update target.
+# @arg $1 string Optional target, one of `all`, `public`, or `private`.
+function main() {
+    local target="${1:-all}"
+
+    if (($# > 1)); then
+        usage
+        return 1
+    fi
+
+    case "${target}" in
+    all)
+        ensure_github_token
+        update_source public
+        update_source private
+        ;;
+    public | private)
+        ensure_github_token
+        update_source "${target}"
+        ;;
+    *)
+        usage
+        return 1
+        ;;
+    esac
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

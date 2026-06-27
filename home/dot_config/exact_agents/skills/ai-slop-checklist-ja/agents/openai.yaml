@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Slop Checklist JA"
+  short_description: "AI臭い日本語を深く点検し、具体的な修正案まで出す"
+  default_prompt: "$ai-slop-checklist-ja を使って、この日本語草稿のAI臭さを点検し、具体的な修正案を出してください。"

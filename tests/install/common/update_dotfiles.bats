@@ -2,7 +2,7 @@
 
 # shellcheck disable=SC2030,SC2031
 
-readonly SCRIPT_PATH="./home/dot_local/bin/exact_common/executable_chezmoi-update"
+readonly SCRIPT_PATH="./home/dot_local/bin/exact_common/executable_update-dotfiles"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
@@ -191,5 +191,5 @@ EOF
 @test "[common] invalid target prints usage" {
     run bash "${SCRIPT_PATH}" nope
     [ "${status}" -eq 1 ]
-    [[ "${output}" == *"usage: chezmoi-update [all|public|private]"* ]]
+    [[ "${output}" == *"usage: update-dotfiles [all|public|private]"* ]]
 }

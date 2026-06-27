@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file home/dot_local/bin/exact_common/executable_chezmoi-update
+# @file home/dot_local/bin/exact_common/executable_update-dotfiles
 # @brief Update and apply the public and private chezmoi source repositories.
 # @description
 #   Fetches the latest `origin/main` for each selected source, fast-forwards
@@ -14,7 +14,7 @@ readonly PRIVATE_CONFIG="${HOME}/.config/chezmoi-private/chezmoi.yaml"
 
 # @description Print command usage.
 function usage() {
-    printf "usage: chezmoi-update [all|public|private]\n" >&2
+    printf "usage: update-dotfiles [all|public|private]\n" >&2
 }
 
 # @description Export `GITHUB_TOKEN` from `gh auth token` when it is unset.

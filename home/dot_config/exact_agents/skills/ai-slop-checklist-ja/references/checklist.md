@@ -1,88 +1,88 @@
-# AI Slop Checklist JA Reference
+# AI 臭さチェックリスト詳細
 
-## Priority
+## 優先順位
 
-Review from deep to shallow. Surface cleanup alone does not remove AI-like writing.
+深い問題から浅い問題へ見る。表層だけを整えても AI 臭さは残る。
 
-1. Position: The writer has a concrete, contestable claim.
-2. Agency: The text says who saw, chose, failed, judged, or acted.
-3. Structure: The piece avoids template-like headings and predictable reversals.
-4. Vocabulary: The text does not inflate small ideas with abstract mood words.
-5. Rhythm: Sentence length, paragraph density, tone, and endings vary naturally.
-6. Symbols: Punctuation, quotes, emoji, and markdown artifacts are not doing the writing.
+1. 立場: 書き手が、反論可能な具体的主張を持っている。
+2. 主体: 誰が見た、選んだ、失敗した、判断した、行動したのかが見える。
+3. 構造: 見出し、反転構文、三項並列がテンプレ化していない。
+4. 語彙: 小さな話を抽象語や雰囲気語で膨らませていない。
+5. リズム: 文の長さ、段落密度、温度、着地に自然なムラがある。
+6. 記号: ダッシュ、カギ括弧、絵文字、Markdown 残骸に文章を任せていない。
 
-## Five-Axis Score
+## 5 軸採点
 
-Score each axis from 1 to 10. Total below 35/50 means rewrite is usually recommended.
-For brief operational messages, prioritize fitness for purpose over the numeric score.
+各軸を 1 から 10 点で採点する。合計が 35/50 未満なら、基本的に書き直しを勧める。
+短い業務連絡では、点数より目的に合っているかを優先する。
 
 | Axis | Question |
 |---|---|
-| 立場 | Is there a concrete claim someone could disagree with? |
-| 主体性 | Is it clear who did, saw, chose, failed, or judged something? |
-| 具体性 | Does the text descend into scenes, constraints, names, numbers, or lived context? |
-| リズム | Do sentence length, paragraph size, endings, and emotional temperature vary? |
-| 削減 | Can broad claims, decoration, and abstract padding be removed? |
+| 立場 | 誰かが反論できる具体的な主張があるか。 |
+| 主体性 | 誰が何を見て、選び、失敗し、判断したのかが分かるか。 |
+| 具体性 | 場面、制約、固有名詞、数値、体験に降りているか。 |
+| リズム | 文の長さ、段落サイズ、文末、温度にムラがあるか。 |
+| 削減 | 大きな主語、装飾、抽象的な水増しを削れるか。 |
 
-## Checklist
+## チェックリスト
 
-### Position
+### 立場
 
-- Does the text say what the writer personally takes responsibility for?
-- Does it avoid hiding behind "多くの人", "現代社会", "私たち", or "一般に"?
-- Does it include a claim that could be refuted, not only "重要だ" or "本質的だ"?
-- Does it avoid ending with "場合による", "ケースバイケース", or broad all-positive balance when a judgment is needed?
+- 書き手が何を自分の判断として引き受けているかが見えるか。
+- `多くの人`、`現代社会`、`私たち`、`一般に` のような主語に逃げていないか。
+- `重要だ`、`本質的だ` だけで終わらず、反論可能な主張になっているか。
+- 判断が必要な場面で、`場合による`、`ケースバイケース`、全方位肯定で終えていないか。
 
-### Agency
+### 主体
 
-- Replace vague or false agency when it hides the actor: "課題が浮き彫りになる", "文化が醸成される", "データが示す".
-- Name the actor when it matters: "I checked", "the team decided", "users reported", "the benchmark failed".
-- Keep uncertainty when it is real: "らしい", "ようだ", "と聞いた", "自分の範囲では".
-- Do not add actors, experiences, or numbers that are not present in the source.
+- 行為者を隠す曖昧な主体を直す。例: `課題が浮き彫りになる`、`文化が醸成される`、`データが示す`。
+- 必要なところでは行為者を名指しする。例: `自分が確認した`、`チームで決めた`、`ユーザーから報告があった`、`ベンチマークが落ちた`。
+- 本当に不確かなことは、`らしい`、`ようだ`、`と聞いた`、`自分の範囲では` のように不確かさを残す。
+- 元文にない行為者、体験、数値は足さない。
 
-### Structure
+### 構造
 
-- Avoid proposition-style H2 headings that make every section sound like a mini essay.
-- Replace "AではなくB" or "AでもBでもなくC" with direct claims when contrast adds no value.
-- Be suspicious of exactly three principles, three perspectives, or three takeaways.
-- Break uniform paragraph patterns such as setup -> quote -> abstraction -> neat lesson.
-- Let some sections end plainly instead of forcing every paragraph into a polished conclusion.
+- すべての節が小論文のように見える命題型 H2 を避ける。
+- 対比に意味が薄い `AではなくB`、`AでもBでもなくC` は、B や C を直接書く。
+- `3つの原則`、`3つの観点`、`3つの学び` が必要か疑う。
+- `導入 -> 引用 -> 抽象化 -> きれいな教訓` のような段落パターンが続いていないか見る。
+- すべての段落をきれいな結論で閉じようとせず、普通に終える箇所を残す。
 
-### Vocabulary
+### 語彙
 
-- Cut repeated atmosphere words such as "本質", "思想", "解像度", "熱量", "手触り", "文脈", "営み", "設計".
-- Avoid inflating small personal observations with grand nouns such as "真理", "美学", "境地", "結末".
-- Replace avoidable katakana and tech metaphors with plain Japanese: "OSをアップデート", "ハック", "インストール", "リファクタリング".
-- Watch for translation-like verbs: "示している", "物語っている", "収斂する", "位置づけられる".
-- Do not remove necessary technical terms when they are precise.
+- `本質`、`思想`、`解像度`、`熱量`、`手触り`、`文脈`、`営み`、`設計` のような雰囲気語を重ねない。
+- 小さな体験や観察を、`真理`、`美学`、`境地`、`結末` のような大きい名詞で膨らませない。
+- 避けられるカタカナ語や技術メタファーは普通の日本語に戻す。例: `OSをアップデート`、`ハック`、`インストール`、`リファクタリング`。
+- `示している`、`物語っている`、`収斂する`、`位置づけられる` のような翻訳調の動詞に注意する。
+- 正確な技術用語は、必要なら消さない。
 
-### Rhythm
+### リズム
 
-- Mix short and long sentences only where the meaning benefits.
-- Vary endings. Avoid a whole draft ending every sentence with the same politeness or lesson-like cadence.
-- Read the text aloud mentally. Mark places where breath, commas, or emphasis feel mechanically even.
-- Allow middle-temperature words when appropriate: "悪くない", "微妙", "まあまあ", "よく分からない".
+- 意味に効くところで、短い文と長い文を混ぜる。
+- 文末を散らす。全体が同じ丁寧さ、同じ教訓調で終わらないようにする。
+- 頭の中で音読し、息継ぎ、読点、強調が機械的に揃っている箇所を見る。
+- 必要なら、`悪くない`、`微妙`、`まあまあ`、`よく分からない` のような中間温度の言葉を残す。
 
-### Symbols
+### 記号
 
-- Replace full-width dashes with a comma, colon, line break, or direct sentence.
-- Use Japanese quotes only for names, direct quotes, or real emphasis that earns them.
-- Replace middle-dot list chains with normal conjunctions when the list is not a proper noun or label.
-- Remove markdown residue such as `**`, colon-plus-space patterns, and evenly scattered decorative emoji.
+- 全角ダッシュは、読点、コロン、改行、または普通の文に置き換える。
+- カギ括弧は、固有名詞、直接引用、本当に必要な強調に限る。
+- 固有名詞やラベルでない中黒並列は、`と`、`や`、読点に戻す。
+- `**`、コロン後の半角スペース、等間隔に撒かれた装飾絵文字などの残骸を消す。
 
-## Fixing Order
+## 修正順
 
-1. Ask for missing writer material if the position is absent.
-2. Make the claim more concrete or narrower.
-3. Name actors and remove vague agency.
-4. Flatten template structure and repeated contrast.
-5. Cut inflated vocabulary and translation-like phrasing.
-6. Adjust rhythm.
-7. Clean symbols and formatting.
+1. 書き手の立場がないなら、不足している材料を確認する。
+2. 主張を具体化するか、範囲を狭める。
+3. 行為者を名指しし、曖昧な主体を減らす。
+4. テンプレ構造と反復する対比を崩す。
+5. 大げさな語彙と翻訳調を削る。
+6. リズムを整える。
+7. 記号とフォーマットを掃除する。
 
-## Rewrite Rules
+## 書き換えルール
 
-- If the user asks for a rewrite, produce one concise version first, then a short note about what changed.
-- If key writer material is missing, provide a partial rewrite and list the missing material.
-- Keep the original meaning unless the user explicitly asks for stronger editorial intervention.
-- Prefer small, concrete edits over theatrical "human-like" messiness.
+- ユーザーが書き換えを求めたら、まず短い修正版を出し、そのあと変更点を少しだけ説明する。
+- 書き手の材料が足りない場合は、部分的な修正案と不足材料を出す。
+- ユーザーが強い編集を求めていない限り、元の意味を保つ。
+- 人間らしく見せるための芝居がかった乱れより、小さく具体的な修正を優先する。

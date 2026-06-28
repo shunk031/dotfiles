@@ -31,3 +31,13 @@ function _macos_browser() {
 }
 zsh-defer _macos_browser
 '''
+
+[plugins.socktainer-docker-host]
+inline = '''
+function _socktainer_docker_host() {
+    if [[ -z "$DOCKER_HOST" && "$OSTYPE" == darwin* ]]; then
+        export DOCKER_HOST="unix://${HOME}/.socktainer/container.sock"
+    fi
+}
+zsh-defer _socktainer_docker_host
+'''

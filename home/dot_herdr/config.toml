@@ -90,6 +90,9 @@ switch_tab = ""
 # close_tab = "prefix+shift+x"
 # rename_pane = "prefix+shift+p"
 # edit_scrollback = "prefix+e"
+copy_mode = "prefix+["
+# Copy-mode movement is handled by Herdr itself after entering copy mode.
+# Available non-hjkl keys include arrows, Home/End, PageUp/PageDown, ctrl+b/f, and ctrl+u/d.
 focus_pane_left = "prefix+h"
 focus_pane_down = ["prefix+j", "prefix+ctrl+n"]
 focus_pane_up = ["prefix+k", "prefix+ctrl+p"]

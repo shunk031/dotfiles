@@ -59,7 +59,7 @@ manifest_check = true
 # Named punctuation such as minus, comma, ampersand, plus, and backtick is also accepted.
 # Most reliable direct bindings are ctrl+letter, function keys, and explicit modified chords.
 # alt+..., cmd/super, and punctuation-with-modifiers may depend on your terminal/tmux setup.
-prefix = "ctrl+z"
+prefix = "ctrl+q"
 
 # Prefix-mode actions
 # help = "prefix+?"

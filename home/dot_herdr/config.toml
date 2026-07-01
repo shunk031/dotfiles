@@ -42,13 +42,13 @@
 [update]
 # Update channel used by background version checks and `herdr update`.
 # Use "stable" for normal releases or "preview" for opt-in preview builds.
-# channel = "stable"
+channel = "stable"
 
 # Check herdr.dev for new Herdr versions in the background.
-# version_check = true
+version_check = true
 
 # Check herdr.dev for remote agent-detection manifest updates in the background.
-# manifest_check = true
+manifest_check = true
 
 [keys]
 # Prefix key to enter prefix mode (default: "ctrl+b")

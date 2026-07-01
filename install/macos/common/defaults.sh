@@ -112,6 +112,7 @@ function defaults_dock() {
         "$(dock_item /Applications/Visual\ Studio\ Code.app)" \
         "$(dock_item /Applications/Slack.app)" \
         "$(dock_item /Applications/iTerm.app)" \
+        "$(dock_item /Applications/cmux.app)" \
         "$(dock_item "$(get_system_app_path)")"
 }
 

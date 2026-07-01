@@ -1,39 +1,53 @@
 [tools]
+# Keep each group sorted by package name, ignoring backend prefixes and leading `@`.
+
+# Language runtimes
 go = "latest"
 node = "lts"
-rust = "latest"
 python = "3.11"
+rust = "latest"
 
+# CLI tools
 age = "latest"
 aws-cli = "latest"
 bats = "latest"
 bun = "latest"
 chezmoi = "latest"
 dotenvx = "latest"
+dust = "latest"
 eza = "latest"
 fd = "latest"
 gcloud = "latest"
-jq = "latest"
 hugo-extended = "0.136.5"
+jq = "latest"
+kubectx = "latest"
+rg = "latest"
+shellcheck = "latest"
+shfmt = "latest"
+sqlite = "latest"
 uv = "latest"
 yazi = "latest"
 yq = "latest"
-shellcheck = "latest"
-shfmt = "latest"
 
-"npm:@anthropic-ai/claude-code" = "latest"
-"npm:@openai/codex" = "latest"
-"npm:bash-language-server" = "latest"
-"npm:pyright" = "latest"
-"npm:fast-cli" = "latest"
+# Aqua tools
+"aqua:google-antigravity/antigravity-cli" = "latest"
 
-"github:x-motemen/ghq" = "latest"
-"github:d-kuro/gwq" = "latest"
-"github:cli/cli" = "latest"
-"github:shuntaka9576/blocc" = { version = "latest", os = ["linux"] }
-
+# Cargo tools
 "cargo:pueue" = "latest"
-dust = "latest"
+
+# GitHub release tools
+"github:cli/cli" = "latest"
+"github:d-kuro/gwq" = "latest"
+"github:shuntaka9576/blocc" = { version = "latest", os = ["linux"] }
+"github:x-motemen/ghq" = "latest"
+
+# npm tools
+"npm:agmsg" = "latest"
+"npm:@anthropic-ai/claude-code" = "latest"
+"npm:bash-language-server" = "latest"
+"npm:fast-cli" = "latest"
+"npm:@openai/codex" = "latest"
+"npm:pyright" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

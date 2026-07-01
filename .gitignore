@@ -7,6 +7,12 @@ coverage*
 .playwright-cli
 
 .agents/worklog/
+.playwright-cli/
+
+home/dot_config/exact_agents/skills/skill-creator
+
+home/dot_config/claude/commands/agmsg.md
+home/dot_config/exact_agents/skills/agmsg/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

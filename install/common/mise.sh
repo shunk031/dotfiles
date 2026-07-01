@@ -19,12 +19,12 @@ readonly DEFAULT_NPM_MIN_RELEASE_AGE_DAYS=7
 #
 function install_mise() {
     # https://mise.run
-    local version="v2026.3.7"
-    local url="https://raw.githubusercontent.com/jdx/mise/refs/tags/${version}/packaging/standalone/install.envsubst"
+    local version="v2026.6.13"
+    local url="https://github.com/jdx/mise/releases/download/${version}/install.sh"
 
-    export MISE_CURRENT_VERSION="${version}"
-    curl "${url}" | sh
-    unset MISE_CURRENT_VERSION
+    export MISE_VERSION="${version}"
+    curl -fsSL "${url}" | sh
+    unset MISE_VERSION
 
     eval "$(~/.local/bin/mise activate bash)"
 }
@@ -33,8 +33,9 @@ function install_mise() {
 # @description Run `mise install` with the repository npm age gate.
 #
 function run_mise_install() {
-    # `MISE_CURRENT_VERSION` is interpreted by mise as a tool env override for `current`.
+    # These installer envvars are interpreted by mise as tool env overrides.
     unset MISE_CURRENT_VERSION
+    unset MISE_VERSION
     mise install --before "${DEFAULT_NPM_MIN_RELEASE_AGE_DAYS}d"
 }
 

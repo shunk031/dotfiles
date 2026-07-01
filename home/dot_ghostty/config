@@ -1,0 +1,14 @@
+theme = iTerm2 Default
+window-theme = "ghostty"
+
+font-family = RobotoMono Nerd Font Mono
+font-size = 12
+font-thicken
+font-feature = "-calt"
+font-feature = "-dlig"
+font-feature = "-liga"
+
+cursor-style = block
+cursor-style-blink = true
+
+background = #000000

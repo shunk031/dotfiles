@@ -1,0 +1,19 @@
+{
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "general": {
+    "enableAutoUpdate": true
+  },
+  "context": {
+    "fileName": [
+      "AGENTS.md",
+      "GEMINI.md"
+    ]
+  },
+  "ui": {
+    "inlineThinkingMode": "full"
+  }
+}

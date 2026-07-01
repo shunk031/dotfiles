@@ -4,8 +4,6 @@
 benchmarks/results
 coverage*
 
-.playwright-cli
-
 .agents/worklog/
 .playwright-cli/
 

@@ -50,7 +50,7 @@ Resolve the page with `gh`:
 
 ```bash
 uv run python ~/.agents/skills/gh-comment-attach-files/scripts/attach_comment_files.py \
-  --repo ghe.corp.yahoo.co.jp/OWNER/REPO \
+  --repo OWNER/REPO \
   --pr 123 \
   results/report.md results/chart.png
 ```

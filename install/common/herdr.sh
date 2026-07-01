@@ -15,6 +15,11 @@ fi
 readonly MISE_BIN="${HOME}/.local/bin/mise"
 readonly HERDR_SKILL_REPO="ogulcancelik/herdr"
 readonly HERDR_SKILL_NAME="herdr"
+readonly HERDR_SKILL_AGENTS=(
+    claude-code
+    codex
+    antigravity-cli
+)
 
 readonly HERDR_INTEGRATIONS=(
     claude
@@ -43,7 +48,11 @@ function install_herdr_integrations() {
 # @description Install the shared Herdr skill globally.
 #
 function install_herdr_skill() {
-    npx -y skills add "${HERDR_SKILL_REPO}" --skill "${HERDR_SKILL_NAME}" -g
+    npx -y skills add "${HERDR_SKILL_REPO}" \
+        --skill "${HERDR_SKILL_NAME}" \
+        --agent "${HERDR_SKILL_AGENTS[@]}" \
+        --global \
+        --yes
 }
 
 #

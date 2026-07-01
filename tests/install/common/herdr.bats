@@ -55,7 +55,7 @@ EOF
 
     run cat "${BATS_TEST_TMPDIR}/npx_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "-y skills add ogulcancelik/herdr --skill herdr -g" ]
+    [ "${output}" = "-y skills add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
 }
 
 @test "[common] herdr script runs full installation workflow" {
@@ -97,5 +97,5 @@ EOF
 
     run cat "${BATS_TEST_TMPDIR}/npx_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "1|-y skills add ogulcancelik/herdr --skill herdr -g" ]
+    [ "${output}" = "1|-y skills add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
 }

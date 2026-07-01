@@ -50,10 +50,26 @@ Resolve the page with `gh`:
 
 ```bash
 uv run python ~/.agents/skills/gh-comment-attach-files/scripts/attach_comment_files.py \
-  --repo ghe.corp.yahoo.co.jp/OWNER/REPO \
+  --repo OWNER/REPO \
   --pr 123 \
   results/report.md results/chart.png
 ```
+
+Large uploads that may need multiple runs:
+
+```bash
+uv run python ~/.agents/skills/gh-comment-attach-files/scripts/attach_comment_files.py \
+  --repo OWNER/REPO \
+  --pr 123 \
+  --resume-manifest attachments.jsonl \
+  --sleep-between-files 2 \
+  --max-files-per-run 60 \
+  results/*.png
+```
+
+When `--resume-manifest` is set, each successful upload is appended as JSONL.
+Rerunning the same command skips files that already have a `source_path` entry in
+the manifest and returns those existing URLs in the normal JSON output.
 
 ## Output
 
@@ -78,6 +94,8 @@ The script prints JSON only:
 - `staged_name` may differ from the original basename so duplicate filenames stay distinct.
 - The default persistent profile lives under `./.playwright-cli/gh-comment-attach-files/profile`.
 - Use `--leave-open` when you want to keep the browser and draft comment visible after the URLs are collected.
+- Use `--max-files-per-run` with `--resume-manifest` to chunk large attachment sets without losing completed URLs.
+- Diagnostic progress, retry information, and the final run directory on failure are printed to stderr.
 
 ## Resources
 

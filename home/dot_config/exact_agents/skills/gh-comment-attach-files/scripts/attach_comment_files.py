@@ -10,12 +10,12 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Sequence
-
 
 TEXTAREA_SELECTORS = [
     "textarea#new_comment_field",
@@ -181,7 +181,13 @@ async (page) => {
       if (!(element instanceof HTMLTextAreaElement)) return false;
       const value = element.value || "";
       if (value === previous) return false;
-      return value.includes(stagedName) || urlHints.some((hint) => value.includes(hint));
+      // Count URL hint occurrences rather than checking stagedName, which would
+      // falsely trigger on the "![Uploading stagedName…]()" placeholder GitHub
+      // inserts before the real URL is assigned.
+      const countHints = (text) => urlHints.reduce(
+        (sum, h) => sum + (text.split(h).length - 1), 0
+      );
+      return countHints(value) > countHints(previous);
     },
     {
       selector: "[data-gh-comment-attach='textarea']",
@@ -224,8 +230,12 @@ def parse_args() -> argparse.Namespace:
     target_group.add_argument("--repo", help="GitHub repo in [HOST/]OWNER/REPO form")
 
     issue_pr_group = parser.add_mutually_exclusive_group()
-    issue_pr_group.add_argument("--issue", type=int, help="Issue number to resolve with gh")
-    issue_pr_group.add_argument("--pr", type=int, help="Pull request number to resolve with gh")
+    issue_pr_group.add_argument(
+        "--issue", type=int, help="Issue number to resolve with gh"
+    )
+    issue_pr_group.add_argument(
+        "--pr", type=int, help="Pull request number to resolve with gh"
+    )
 
     parser.add_argument(
         "--browser",
@@ -255,9 +265,32 @@ def parse_args() -> argparse.Namespace:
         help="Leave the Playwright CLI browser open after collecting URLs",
     )
     parser.add_argument(
+        "--headed",
+        action="store_true",
+        help="Run browser in headed (visible) mode. Use when login is required; headless is the default.",
+    )
+    parser.add_argument(
         "--keep-run-dir",
         action="store_true",
         help="Keep the staged Playwright run directory under .playwright-cli",
+    )
+    parser.add_argument(
+        "--resume-manifest",
+        help=(
+            "JSONL manifest used to resume large uploads. Existing source_path "
+            "entries are skipped and new successes are appended."
+        ),
+    )
+    parser.add_argument(
+        "--sleep-between-files",
+        type=float,
+        default=0.0,
+        help="Seconds to sleep after each successful upload (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--max-files-per-run",
+        type=int,
+        help="Upload at most this many pending files in one invocation",
     )
     parser.add_argument(
         "files",
@@ -270,6 +303,10 @@ def parse_args() -> argparse.Namespace:
         parser.error("--repo requires either --issue or --pr")
     if not args.repo and (args.issue or args.pr):
         parser.error("--issue/--pr requires --repo")
+    if args.sleep_between_files < 0:
+        parser.error("--sleep-between-files must be >= 0")
+    if args.max_files_per_run is not None and args.max_files_per_run < 1:
+        parser.error("--max-files-per-run must be >= 1")
     return args
 
 
@@ -295,17 +332,51 @@ def main() -> int:
     profile_dir.mkdir(parents=True, exist_ok=True)
 
     staged_files = stage_files(source_files, uploads_dir)
+    resume_manifest = resolve_optional_path(args.resume_manifest)
+    resumed_urls = load_resume_manifest(resume_manifest)
+    resumed_attachments, pending_staged_files = partition_staged_files(
+        staged_files,
+        resumed_urls,
+        args.max_files_per_run,
+    )
 
-    try:
-        open_browser(target_url, run_dir, profile_dir, args.browser)
-        wait_for_comment_composer(run_dir, args.ready_timeout, args.poll_interval)
-        attachments = upload_files(run_dir, staged_files, timeout_ms=args.ready_timeout * 1000)
-    finally:
-        if not args.leave_open:
-            close_browser(run_dir)
-        if not args.keep_run_dir and not args.leave_open:
-            shutil.rmtree(run_dir, ignore_errors=True)
+    uploaded_attachments: list[tuple[StagedFile, str]] = []
+    if pending_staged_files:
+        workflow_failed = False
+        try:
+            open_browser(
+                target_url, run_dir, profile_dir, args.browser, headed=args.headed
+            )
+            wait_for_comment_composer(
+                run_dir, args.ready_timeout, args.poll_interval, headed=args.headed
+            )
+            uploaded_attachments = upload_files(
+                run_dir,
+                pending_staged_files,
+                timeout_ms=args.ready_timeout * 1000,
+                target_url=target_url,
+                ready_timeout=args.ready_timeout,
+                poll_interval=args.poll_interval,
+                profile_dir=profile_dir,
+                browser=getattr(args, "browser", None),
+                headed=args.headed,
+                resume_manifest=resume_manifest,
+                sleep_between_files=args.sleep_between_files,
+            )
+        except BaseException:
+            workflow_failed = True
+            raise
+        finally:
+            if not args.leave_open:
+                close_browser(run_dir)
+            if not workflow_failed and not args.keep_run_dir and not args.leave_open:
+                shutil.rmtree(run_dir, ignore_errors=True)
+    elif not args.keep_run_dir:
+        shutil.rmtree(run_dir, ignore_errors=True)
 
+    attachments = order_completed_attachments(
+        staged_files, resumed_attachments + uploaded_attachments
+    )
     payload = {
         "target_url": target_url,
         "attachments": [
@@ -383,6 +454,17 @@ def resolve_profile_dir(profile_dir: str) -> Path:
     return (Path.cwd() / candidate).resolve()
 
 
+def resolve_optional_path(path: str | None) -> Path | None:
+    """Resolve an optional path argument against the current working tree."""
+
+    if path is None:
+        return None
+    candidate = Path(path).expanduser()
+    if candidate.is_absolute():
+        return candidate
+    return (Path.cwd() / candidate).resolve()
+
+
 def stage_files(source_files: Sequence[Path], uploads_dir: Path) -> list[StagedFile]:
     """Copy source files into the upload workspace with unique staged names."""
 
@@ -424,7 +506,112 @@ def sanitize_component(value: str) -> str:
     return sanitized[:80]
 
 
-def open_browser(target_url: str, run_dir: Path, profile_dir: Path, browser: str | None) -> None:
+def load_resume_manifest(manifest_path: Path | None) -> dict[str, str]:
+    """Load previously uploaded attachment URLs from a JSONL resume manifest."""
+
+    if manifest_path is None or not manifest_path.exists():
+        return {}
+
+    completed: dict[str, str] = {}
+    with manifest_path.open(encoding="utf-8") as manifest:
+        for line_number, line in enumerate(manifest, start=1):
+            if not line.strip():
+                continue
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise SystemExit(
+                    f"Invalid JSON in resume manifest line {line_number}: {manifest_path}"
+                ) from exc
+            source_path = entry.get("source_path")
+            attachment_url = entry.get("attachment_url")
+            if not isinstance(source_path, str) or not isinstance(attachment_url, str):
+                raise SystemExit(
+                    f"Resume manifest line {line_number} must contain source_path and attachment_url: "
+                    f"{manifest_path}"
+                )
+            completed[source_path] = attachment_url
+    return completed
+
+
+def append_resume_manifest(
+    manifest_path: Path | None,
+    target_url: str,
+    staged_file: StagedFile,
+    attachment_url: str,
+) -> None:
+    """Append one successful upload to the resume manifest."""
+
+    if manifest_path is None:
+        return
+
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    entry = {
+        "target_url": target_url,
+        "source_path": str(staged_file.source_path),
+        "staged_name": staged_file.staged_name,
+        "attachment_url": attachment_url,
+    }
+    with manifest_path.open("a", encoding="utf-8") as manifest:
+        manifest.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def partition_staged_files(
+    staged_files: Sequence[StagedFile],
+    resumed_urls: dict[str, str],
+    max_files_per_run: int | None,
+) -> tuple[list[tuple[StagedFile, str]], list[StagedFile]]:
+    """Split staged files into already completed and pending files for this run."""
+
+    resumed_attachments: list[tuple[StagedFile, str]] = []
+    pending_staged_files: list[StagedFile] = []
+    for staged_file in staged_files:
+        attachment_url = resumed_urls.get(str(staged_file.source_path))
+        if attachment_url:
+            print(
+                f"Skipping already uploaded file: {staged_file.source_path}",
+                file=sys.stderr,
+            )
+            resumed_attachments.append((staged_file, attachment_url))
+        else:
+            pending_staged_files.append(staged_file)
+
+    if max_files_per_run is not None:
+        deferred_count = max(0, len(pending_staged_files) - max_files_per_run)
+        pending_staged_files = pending_staged_files[:max_files_per_run]
+        if deferred_count:
+            print(
+                f"Deferring {deferred_count} pending file(s) because --max-files-per-run={max_files_per_run}",
+                file=sys.stderr,
+            )
+
+    return resumed_attachments, pending_staged_files
+
+
+def order_completed_attachments(
+    staged_files: Sequence[StagedFile],
+    attachments: Sequence[tuple[StagedFile, str]],
+) -> list[tuple[StagedFile, str]]:
+    """Return completed attachments in the same order as the input files."""
+
+    urls_by_source_path = {
+        str(staged_file.source_path): url for staged_file, url in attachments
+    }
+    ordered: list[tuple[StagedFile, str]] = []
+    for staged_file in staged_files:
+        attachment_url = urls_by_source_path.get(str(staged_file.source_path))
+        if attachment_url:
+            ordered.append((staged_file, attachment_url))
+    return ordered
+
+
+def open_browser(
+    target_url: str,
+    run_dir: Path,
+    profile_dir: Path,
+    browser: str | None,
+    headed: bool = False,
+) -> None:
     """Open the target page in a persistent Playwright CLI browser session."""
 
     command = [
@@ -432,10 +619,11 @@ def open_browser(target_url: str, run_dir: Path, profile_dir: Path, browser: str
         "@playwright/cli",
         "open",
         target_url,
-        "--headed",
         "--profile",
         str(profile_dir),
     ]
+    if headed:
+        command.append("--headed")
     if browser:
         command.extend(["--browser", browser])
     run(command, cwd=run_dir)
@@ -450,7 +638,12 @@ def close_browser(run_dir: Path) -> None:
         return
 
 
-def wait_for_comment_composer(run_dir: Path, ready_timeout: int, poll_interval: float) -> None:
+def wait_for_comment_composer(
+    run_dir: Path,
+    ready_timeout: int,
+    poll_interval: float,
+    headed: bool = False,
+) -> None:
     """Poll until a visible GitHub comment composer is ready for uploads."""
 
     started_at = time.monotonic()
@@ -458,12 +651,16 @@ def wait_for_comment_composer(run_dir: Path, ready_timeout: int, poll_interval: 
         result = prepare_comment_composer(run_dir)
         if result.get("found"):
             return
-        if time.monotonic() - started_at >= ready_timeout:
-            page_url = result.get("pageUrl", "")
-            page_title = result.get("pageTitle", "")
+        page_url = str(result.get("pageUrl", ""))
+        if not headed and ("/login" in page_url or "/session" in page_url):
             raise SystemExit(
-                "Timed out waiting for a GitHub comment composer. "
-                f"Last page: {page_title} {page_url}".strip()
+                f"GitHub login required (redirected to: {page_url})\n"
+                "Re-run with --headed to log in, then re-run without --headed for normal headless use."
+            )
+        if time.monotonic() - started_at >= ready_timeout:
+            page_title = str(result.get("pageTitle", ""))
+            raise SystemExit(
+                f"Timed out waiting for a GitHub comment composer. Last page: {page_title} {page_url}".strip()
             )
         time.sleep(poll_interval)
 
@@ -476,35 +673,133 @@ def prepare_comment_composer(run_dir: Path) -> dict[str, object]:
         "inputSelectors": FILE_INPUT_SELECTORS,
     }
     return run_playwright_json(
-        ["--raw", "run-code", PREPARE_COMPOSER_CODE.replace("__PAYLOAD__", json.dumps(payload))],
+        [
+            "--raw",
+            "run-code",
+            PREPARE_COMPOSER_CODE.replace("__PAYLOAD__", json.dumps(payload)),
+        ],
         cwd=run_dir,
     )
 
 
-def upload_files(run_dir: Path, staged_files: Sequence[StagedFile], timeout_ms: int) -> list[tuple[StagedFile, str]]:
+def upload_files(
+    run_dir: Path,
+    staged_files: Sequence[StagedFile],
+    timeout_ms: int,
+    target_url: str = "",
+    ready_timeout: int = 180,
+    poll_interval: float = 2.0,
+    profile_dir: Path | None = None,
+    browser: str | None = None,
+    headed: bool = False,
+    resume_manifest: Path | None = None,
+    sleep_between_files: float = 0.0,
+) -> list[tuple[StagedFile, str]]:
     """Upload staged files one by one and collect their hosted URLs."""
 
     attachments: list[tuple[StagedFile, str]] = []
     for staged_file in staged_files:
-        composer_before = get_composer_markdown(run_dir)
-        snapshot_before = capture_snapshot(run_dir)
-        upload_result = perform_upload(run_dir, staged_file, timeout_ms)
-        composer_after = str(upload_result.get("after", ""))
-        snapshot_after = capture_snapshot(run_dir)
-        attachment_url = find_attachment_url(
-            staged_name=staged_file.staged_name,
-            before_texts=[composer_before, snapshot_before],
-            after_texts=[composer_after, snapshot_after],
-        )
+        attachment_url = None
+        for attempt in range(1, 4):
+            print(
+                f"  Upload attempt {attempt}/3 for {staged_file.staged_name}",
+                file=sys.stderr,
+            )
+            try:
+                composer_before = get_composer_markdown(run_dir)
+                snapshot_before = capture_snapshot(run_dir)
+                upload_result = perform_upload(run_dir, staged_file, timeout_ms)
+            except subprocess.CalledProcessError as exc:
+                print(
+                    f"  Upload attempt {attempt}/3 crashed for {staged_file.staged_name}: {exc}",
+                    file=sys.stderr,
+                )
+                if attempt < 3:
+                    print("  Waiting 30s, then reopening browser ...", file=sys.stderr)
+                    time.sleep(30)
+                    if target_url:
+                        try:
+                            run_playwright(["goto", target_url], cwd=run_dir)
+                        except subprocess.CalledProcessError:
+                            if profile_dir:
+                                open_browser(
+                                    target_url,
+                                    run_dir,
+                                    profile_dir,
+                                    browser,
+                                    headed=headed,
+                                )
+                        wait_for_comment_composer(
+                            run_dir, ready_timeout, poll_interval, headed=headed
+                        )
+                continue
+            if not upload_result.get("ok"):
+                error = upload_result.get("error", "unknown-error")
+                print(
+                    f"  Upload attempt {attempt}/3 failed for {staged_file.staged_name}: {error}",
+                    file=sys.stderr,
+                )
+                if attempt < 3:
+                    print("  Waiting 60s before retry ...", file=sys.stderr)
+                    time.sleep(60)
+                    if target_url:
+                        run_playwright(["goto", target_url], cwd=run_dir)
+                        wait_for_comment_composer(
+                            run_dir, ready_timeout, poll_interval, headed=headed
+                        )
+                continue
+            composer_after = str(upload_result.get("after", ""))
+            snapshot_after = capture_snapshot(run_dir)
+            before_url_count = count_attachment_url_hints(
+                composer_before + "\n" + snapshot_before
+            )
+            after_url_count = count_attachment_url_hints(
+                composer_after + "\n" + snapshot_after
+            )
+            page_title = str(upload_result.get("pageTitle", ""))
+            page_url = str(upload_result.get("pageUrl", ""))
+            print(
+                "  Upload attempt "
+                f"{attempt}/3 observed URLs {before_url_count}->{after_url_count} "
+                f"for {staged_file.staged_name}; page={page_title!r} {page_url}",
+                file=sys.stderr,
+            )
+            attachment_url = find_attachment_url(
+                staged_name=staged_file.staged_name,
+                before_texts=[composer_before, snapshot_before],
+                after_texts=[composer_after, snapshot_after],
+            )
+            if attachment_url:
+                break
+            placeholder_remains = has_upload_placeholder(
+                composer_after, staged_file.staged_name
+            )
+            print(
+                f"  Attempt {attempt}/3: URL not found for {staged_file.staged_name}; "
+                f"upload placeholder remains={placeholder_remains}",
+                file=sys.stderr,
+            )
+            if attempt < 3:
+                print("  Waiting 30s before retry ...", file=sys.stderr)
+                time.sleep(30)
         if not attachment_url:
             raise SystemExit(
-                f"Failed to find an attachment URL for staged file: {staged_file.staged_name}"
+                f"Failed to upload {staged_file.staged_name} after 3 attempts\nRun directory: {run_dir}"
             )
+        append_resume_manifest(resume_manifest, target_url, staged_file, attachment_url)
         attachments.append((staged_file, attachment_url))
+        if sleep_between_files > 0:
+            print(
+                f"  Sleeping {sleep_between_files:g}s before next file ...",
+                file=sys.stderr,
+            )
+            time.sleep(sleep_between_files)
     return attachments
 
 
-def perform_upload(run_dir: Path, staged_file: StagedFile, timeout_ms: int) -> dict[str, object]:
+def perform_upload(
+    run_dir: Path, staged_file: StagedFile, timeout_ms: int
+) -> dict[str, object]:
     """Attach one staged file and return the updated composer state."""
 
     payload = {
@@ -516,13 +811,13 @@ def perform_upload(run_dir: Path, staged_file: StagedFile, timeout_ms: int) -> d
         "urlHints": list(ATTACHMENT_URL_HINTS),
     }
     result = run_playwright_json(
-        ["--raw", "run-code", UPLOAD_CODE_TEMPLATE.replace("__PAYLOAD__", json.dumps(payload))],
+        [
+            "--raw",
+            "run-code",
+            UPLOAD_CODE_TEMPLATE.replace("__PAYLOAD__", json.dumps(payload)),
+        ],
         cwd=run_dir,
     )
-    if not result.get("ok"):
-        raise SystemExit(
-            f"Upload failed for {staged_file.staged_name}: {result.get('error', 'unknown-error')}"
-        )
     return result
 
 
@@ -547,7 +842,9 @@ def capture_snapshot(run_dir: Path) -> str:
     return run_playwright(["snapshot"], cwd=run_dir).stdout
 
 
-def find_attachment_url(staged_name: str, before_texts: Sequence[str], after_texts: Sequence[str]) -> str | None:
+def find_attachment_url(
+    staged_name: str, before_texts: Sequence[str], after_texts: Sequence[str]
+) -> str | None:
     """Infer the newly inserted attachment URL from before/after page state."""
 
     before_links = extract_attachment_links("\n".join(before_texts))
@@ -571,6 +868,18 @@ def find_attachment_url(staged_name: str, before_texts: Sequence[str], after_tex
     return None
 
 
+def count_attachment_url_hints(text: str) -> int:
+    """Count GitHub attachment URL hints in arbitrary text."""
+
+    return sum(text.count(hint) for hint in ATTACHMENT_URL_HINTS)
+
+
+def has_upload_placeholder(text: str, staged_name: str) -> bool:
+    """Return whether GitHub's temporary upload placeholder is still present."""
+
+    return f"![Uploading {staged_name}]" in text
+
+
 def extract_attachment_links(text: str) -> list[dict[str, str]]:
     """Extract GitHub attachment Markdown links from arbitrary text."""
 
@@ -583,7 +892,9 @@ def extract_attachment_links(text: str) -> list[dict[str, str]]:
     return links
 
 
-def run_playwright(arguments: Sequence[str], cwd: Path) -> subprocess.CompletedProcess[str]:
+def run_playwright(
+    arguments: Sequence[str], cwd: Path
+) -> subprocess.CompletedProcess[str]:
     """Run a Playwright CLI command inside the temporary workspace."""
 
     return run(["npx", "@playwright/cli", *arguments], cwd=cwd)
@@ -603,12 +914,17 @@ def run_playwright_value(arguments: Sequence[str], cwd: Path) -> object:
 
     result = run_playwright(arguments, cwd=cwd)
     stdout = result.stdout.strip()
-    if not stdout:
+    if not stdout or stdout == "undefined":
         return ""
-    return json.loads(stdout)
+    try:
+        return json.loads(stdout)
+    except json.JSONDecodeError:
+        return ""
 
 
-def run(command: Sequence[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+def run(
+    command: Sequence[str], cwd: Path | None = None
+) -> subprocess.CompletedProcess[str]:
     """Run a subprocess with captured text output and inherited environment."""
 
     return subprocess.run(

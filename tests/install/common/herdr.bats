@@ -57,3 +57,45 @@ EOF
     [ "${status}" -eq 0 ]
     [ "${output}" = "-y skills add ogulcancelik/herdr --skill herdr -g" ]
 }
+
+@test "[common] herdr script runs full installation workflow" {
+    mkdir -p "${BATS_TEST_TMPDIR}/bin"
+
+    cat > "${MISE_BIN}" << 'EOF'
+#!/usr/bin/env bash
+if [ "$*" = "activate bash" ]; then
+    printf '%s\n' 'export HERDR_TEST_MISE_ACTIVATED=1'
+fi
+EOF
+    chmod +x "${MISE_BIN}"
+
+    cat > "${BATS_TEST_TMPDIR}/bin/herdr" << 'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${HERDR_CALLS_PATH}"
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/bin/herdr"
+
+    cat > "${BATS_TEST_TMPDIR}/bin/npx" << 'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "${HERDR_TEST_MISE_ACTIVATED:-unset}|$*" > "${NPX_CALLS_PATH}"
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/bin/npx"
+
+    run env \
+        DOTFILES_DEBUG=1 \
+        HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_args.txt" \
+        HOME="${HOME}" \
+        NPX_CALLS_PATH="${BATS_TEST_TMPDIR}/npx_args.txt" \
+        PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" \
+        bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run cat "${BATS_TEST_TMPDIR}/herdr_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "integration install claude" ]
+    [ "${lines[1]}" = "integration install codex" ]
+
+    run cat "${BATS_TEST_TMPDIR}/npx_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "1|-y skills add ogulcancelik/herdr --skill herdr -g" ]
+}

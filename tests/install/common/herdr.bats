@@ -20,7 +20,7 @@ function teardown() {
 }
 
 @test "[common] activate_mise evaluates mise activation output" {
-    cat > "${MISE_BIN}" <<'EOF'
+    cat > "${MISE_BIN}" << 'EOF'
 #!/usr/bin/env bash
 if [ "$*" = "activate bash" ]; then
     printf '%s\n' 'export HERDR_TEST_MISE_ACTIVATED=1'

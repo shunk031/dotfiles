@@ -6,13 +6,8 @@ function setup() {
     source "${SCRIPT_PATH}"
 }
 
-function teardown() {
-    run uninstall_docker
-}
-
-@test "[macos] docker" {
+@test "[macos] remove docker desktop" {
     DOTFILES_DEBUG=1 bash "${SCRIPT_PATH}"
 
-    [ -x "$(command -v docker)" ]
-    # [ -x "$(command -v docker-compose)" ]
+    [ ! -d "/Applications/Docker.app" ]
 }

@@ -4,6 +4,12 @@ In chezmoi, `dot_` changes a target name to start with `.`, while `exact_` remov
 
 [AGENTS.md](AGENTS.md) is the shared guidance used directly by `~/.agents/AGENTS.md`, imported from `~/.claude/CLAUDE.md` with `@~/.agents/AGENTS.md`, and read first from `~/.codex/AGENTS.md` before `~/.codex/AGENTS.codex-only.md`. Shared long-form agent instructions live in [agents/](agents/) and are exposed as `~/.agents/agents`; Claude Markdown wrappers and Codex TOML wrappers explicitly tell each tool to read the same shared Markdown first. Edit files here; the adapter keeps the home path stable.
 
+## Skill Ignore Policy
+
+`~/.agents/skills` and `~/.claude/skills` both point to `home/dot_config/exact_agents/skills`, so global skill installers can write generated skills back into the chezmoi source tree.
+
+New skill directories under `home/dot_config/exact_agents/skills` are ignored by default. When a skill should be managed by this repository, add that skill to the `.gitignore` allowlist and keep the reason for managing it clear in the PR.
+
 The diagram below describes this repository's source-of-truth layout, not the meaning of chezmoi's `exact_` attribute itself.
 
 ## Layout Overview

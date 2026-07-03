@@ -7,10 +7,28 @@ coverage*
 .agents/worklog/
 .playwright-cli/
 
-home/dot_config/exact_agents/skills/skill-creator
+# ~/.agents/skills and ~/.claude/skills point here, so global skill installers
+# can expand generated skills into the chezmoi source tree. Ignore generated
+# skills by default and explicitly allow repo-managed skills below.
+home/dot_config/exact_agents/skills/*
+!home/dot_config/exact_agents/skills/ai-slop-checklist-ja/
+!home/dot_config/exact_agents/skills/ai-slop-checklist-ja/**
+!home/dot_config/exact_agents/skills/convert-to-transformers/
+!home/dot_config/exact_agents/skills/convert-to-transformers/**
+!home/dot_config/exact_agents/skills/gh-comment-attach-files/
+!home/dot_config/exact_agents/skills/gh-comment-attach-files/**
+!home/dot_config/exact_agents/skills/high-impact-journal-publishing/
+!home/dot_config/exact_agents/skills/high-impact-journal-publishing/**
+!home/dot_config/exact_agents/skills/humanizer-ja/
+!home/dot_config/exact_agents/skills/humanizer-ja/**
+!home/dot_config/exact_agents/skills/python-uv-workflow/
+!home/dot_config/exact_agents/skills/python-uv-workflow/**
+!home/dot_config/exact_agents/skills/shdoc-shell-docs/
+!home/dot_config/exact_agents/skills/shdoc-shell-docs/**
+!home/dot_config/exact_agents/skills/worklog-manager/
+!home/dot_config/exact_agents/skills/worklog-manager/**
 
 home/dot_config/claude/commands/agmsg.md
-home/dot_config/exact_agents/skills/agmsg/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

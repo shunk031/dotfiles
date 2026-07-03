@@ -9,6 +9,7 @@
 - Public source: Files under `home/` are the public source state and are applied by `chezmoi` into the user's `$HOME` directory.
 - Private source: Private dotfiles are managed separately from `~/.local/share/chezmoi-private` with config at `~/.config/chezmoi-private/chezmoi.yaml`.
 - Management boundary: Treat the public `home/` tree and the private `chezmoi` source/config as separate management domains.
+- Agent skills: `home/dot_config/exact_agents/skills/*` is ignored by default because global skill installers write through symlinked runtime paths. When adding a repo-managed skill, add an explicit `.gitignore` allowlist entry for that skill.
 
 ## Comment Policy
 

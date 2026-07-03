@@ -33,6 +33,18 @@ EOF
     [ "${HERDR_TEST_MISE_ACTIVATED}" = "1" ]
 }
 
+@test "[common] install_herdr installs herdr with mise" {
+    function mise() {
+        printf '%s\n' "$*" > "${BATS_TEST_TMPDIR}/mise_args.txt"
+    }
+
+    install_herdr
+
+    run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "install herdr" ]
+}
+
 @test "[common] install_herdr_integrations installs configured integrations" {
     function herdr() {
         printf '%s\n' "$*" >> "${BATS_TEST_TMPDIR}/herdr_args.txt"
@@ -63,8 +75,10 @@ EOF
 
     cat > "${MISE_BIN}" << 'EOF'
 #!/usr/bin/env bash
+printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
 if [ "$*" = "activate bash" ]; then
     printf '%s\n' 'export HERDR_TEST_MISE_ACTIVATED=1'
+    printf '%s\n' "export PATH=\"${HOME}/.local/bin:${PATH}\""
 fi
 EOF
     chmod +x "${MISE_BIN}"
@@ -85,10 +99,16 @@ EOF
         DOTFILES_DEBUG=1 \
         HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_args.txt" \
         HOME="${HOME}" \
+        MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt" \
         NPX_CALLS_PATH="${BATS_TEST_TMPDIR}/npx_args.txt" \
         PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" \
         bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
+
+    run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "activate bash" ]
+    [ "${lines[1]}" = "install herdr" ]
 
     run cat "${BATS_TEST_TMPDIR}/herdr_args.txt"
     [ "${status}" -eq 0 ]

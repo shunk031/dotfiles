@@ -8,6 +8,7 @@ plugin.jupyterlab-settings
 .ghostty
 .tmux.conf.d/
 .agents/README.md
+.agents/.skill-lock.json
 .claude/README.md
 .codex/README.md
 .config/agents

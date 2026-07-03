@@ -36,6 +36,13 @@ function activate_mise() {
 }
 
 #
+# @description Install Herdr with `mise`.
+#
+function install_herdr() {
+    mise install herdr
+}
+
+#
 # @description Install Herdr integrations for every configured coding agent.
 #
 function install_herdr_integrations() {
@@ -60,6 +67,7 @@ function install_herdr_skill() {
 #
 function main() {
     activate_mise
+    install_herdr
     install_herdr_integrations
     install_herdr_skill
 }

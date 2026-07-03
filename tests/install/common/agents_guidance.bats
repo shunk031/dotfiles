@@ -82,36 +82,64 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] codex guidance requires concrete coding plans" {
-    run grep -F '### Plan の具体性' "${CODEX_CODEX_ONLY_PATH}"
+@test "[common] shared guidance requires concrete coding plans" {
+    run grep -F '## Plan の具体性' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '変更対象のディレクトリ・ファイルパス' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '変更対象のディレクトリ・ファイルパス' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '追加・編集・削除する関数、クラス、設定キー、CLI 引数、公開 API' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '追加・編集・削除する関数、クラス、設定キー、CLI 引数、公開 API' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '各ファイルで何をどう変えるか' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '各ファイルで何をどう変えるか' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '確認する assertion の要点' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '確認する assertion の要点' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '関数シグネチャ案、疑似コード、または短いコードスニペットを必ず含めてください' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '関数シグネチャ案、疑似コード、または短いコードスニペットを必ず含めてください' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '実装判断が増える plan では' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '実装判断が増える plan では' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`どのファイルのどのシンボルをどう変えるか` が伝わる粒度で書いてください' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '`どのファイルのどのシンボルをどう変えるか` が伝わる粒度で書いてください' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '未完成の plan を最終 plan として提示してはいけません' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '「Assumptions」または「前提」として明示し' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] codex-only guidance keeps the proposed_plan gate and defers to shared plan rules" {
+    run grep -F '### Plan の具体性 (Codex 固有)' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'plan の具体性の共通ルールは `~/.agents/AGENTS.md` の「Plan の具体性」を適用してください' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
     run grep -F '未完成の状態で `<proposed_plan>` を出してはいけません' "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '「Assumptions」または「前提」として明示し' "${CODEX_CODEX_ONLY_PATH}"
+    run grep -F '変更対象のディレクトリ・ファイルパス' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] shared guidance protects uncommitted diffs" {
+    run grep -F '## 未コミット差分の保護' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
+
+    run grep -F '自分が作ったと明確に証明できない差分を、明示的な許可なしに戻してはいけません' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '差分を戻すのではなく、stage 対象を限定する、別 worktree を使う、またはユーザーへ確認してください' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '## 未コミット差分の保護' "${CODEX_CODEX_ONLY_PATH}"
+    [ "${status}" -ne 0 ]
 }
 
 @test "[common] shared, Claude, and Codex entrypoints define acknowledgment note blocks" {

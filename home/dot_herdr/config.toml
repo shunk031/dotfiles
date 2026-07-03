@@ -172,7 +172,6 @@ navigate_workspace_down = "ctrl+n"
 
 # Ask for a tab name before creating a new tab.
 # Set false to create tabs immediately with generated names.
-# prompt_new_tab_name = true
 prompt_new_tab_name = false
 
 # Draw borders around split panes.

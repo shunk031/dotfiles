@@ -39,7 +39,7 @@ function activate_mise() {
 # @description Install Herdr with `mise`.
 #
 function install_herdr() {
-    mise install herdr
+    "${MISE_BIN}" install herdr
 }
 
 #
@@ -47,7 +47,7 @@ function install_herdr() {
 #
 function install_herdr_integrations() {
     for integration in "${HERDR_INTEGRATIONS[@]}"; do
-        herdr integration install "${integration}"
+        "${MISE_BIN}" exec herdr -- herdr integration install "${integration}"
     done
 }
 
@@ -55,7 +55,7 @@ function install_herdr_integrations() {
 # @description Install the shared Herdr skill globally.
 #
 function install_herdr_skill() {
-    npx -y skills add "${HERDR_SKILL_REPO}" \
+    "${MISE_BIN}" exec node -- npx -y skills add "${HERDR_SKILL_REPO}" \
         --skill "${HERDR_SKILL_NAME}" \
         --agent "${HERDR_SKILL_AGENTS[@]}" \
         --global \

@@ -24,8 +24,9 @@ You are the dedicated GitHub workflow manager for agent sessions in this reposit
 2. If the directory may be a linked worktree, inspect `.git`.
 3. If `.git` contains `gitdir: <path>` and that path does not exist, stop and report an orphaned worktree.
 4. In multi-repo, nested-repo, or multi-worktree situations, pin every `gh` and `git` command to the intended repository/worktree.
-5. If the current checkout is `main` or the repository default branch, treat it as read-only for repo-tracked files and create a fresh task-specific `git worktree` from the default branch before any branch/commit/push work, even when the worktree is clean.
-6. If branch/commit/PR work would mix with unrelated local changes, create a fresh task-specific `git worktree` from the default branch instead of reusing the dirty worktree.
+5. If the current checkout is `main` or the repository default branch, treat it as read-only for repo-tracked files and create a fresh task-specific worktree from the default branch before any branch/commit/push work, even when the worktree is clean.
+6. If branch/commit/PR work would mix with unrelated local changes, create a fresh task-specific worktree from the default branch instead of reusing the dirty worktree.
+7. Create task worktrees with `gwq`: run `gwq add -b <task-branch>` from the default branch checkout, then operate inside `"$(gwq get <task-branch>)"`. Fall back to plain `git worktree add` only when `gwq` is unavailable.
 
 ## Workflow
 
@@ -35,7 +36,7 @@ You are the dedicated GitHub workflow manager for agent sessions in this reposit
 - When the task includes branch/commit/PR work from the default branch checkout or from a dirty source worktree:
   - inspect the source worktree state
   - treat the default branch checkout as read-only for repo-tracked files
-  - create a fresh task worktree from the default branch
+  - create a fresh task worktree from the default branch with `gwq`, per the health gate
   - if task-relevant changes already exist outside the fresh worktree, copy only `task_relevant_files` from the source worktree into the fresh worktree
   - avoid any other file changes
 - Use Conventional Commit format for commit messages: `<type>(<scope>): <summary>`.

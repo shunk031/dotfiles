@@ -17,9 +17,10 @@
 
 ## Git / PR Workflow
 
-- Default branch read-only: When the current checkout is `main` or the repository default branch, treat repo-tracked files as read-only and create a task-specific `git worktree` from the default branch before any edit, commit, or push work, even when the worktree is clean.
-- Dirty worktree: When you are asked to create a branch, commit, or pull request and the current worktree contains unrelated staged, unstaged, or untracked changes, create a separate `git worktree` from the default branch.
-- Change isolation: In that separate `git worktree`, apply only the changes relevant to the current task and do not mix unrelated changes into the branch or pull request.
+- Default branch read-only: When the current checkout is `main` or the repository default branch, treat repo-tracked files as read-only and create a task-specific worktree from the default branch before any edit, commit, or push work, even when the worktree is clean.
+- Dirty worktree: When you are asked to create a branch, commit, or pull request and the current worktree contains unrelated staged, unstaged, or untracked changes, create a separate task-specific worktree from the default branch.
+- Worktree tooling: Create task worktrees with [`gwq`](https://github.com/d-kuro/gwq): run `gwq add -b <task-branch>` from the default branch checkout, then move there with `cd "$(gwq get <task-branch>)"`. Fall back to plain `git worktree add` only when `gwq` is unavailable.
+- Change isolation: In that separate worktree, apply only the changes relevant to the current task and do not mix unrelated changes into the branch or pull request.
 - Worktree priority: Only prioritize the current branch or worktree when the user explicitly asks you to work there.
 - Commit messages: Use the Conventional Commits format `<type>(<scope>): <summary>` with a lowercase, imperative summary (see <https://www.conventionalcommits.org/en/v1.0.0/>).
 - Post-push CI: After pushing to GitHub, always check the GitHub Actions CI results. If CI fails, investigate the failure, fix the issue, push again, and repeat until all CI checks pass.

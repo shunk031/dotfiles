@@ -7,15 +7,21 @@ readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
 readonly CODEX_CODEX_ONLY_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.codex-only.md.tmpl"
 readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
 readonly CODEX_WORKLOG_AGENT_PATH="./home/dot_config/codex/agents/worklog-manager.toml"
+readonly SHARED_WORKLOG_AGENT_PATH="./home/dot_config/exact_agents/agents/worklog-manager.md"
 readonly CODEX_WORKLOG_SKILL_PATH="./home/dot_config/exact_agents/skills/worklog-manager/SKILL.md"
 readonly CODEX_WORKLOG_SKILL_OPENAI_PATH="./home/dot_config/exact_agents/skills/worklog-manager/agents/openai.yaml"
 readonly CODEX_WORKLOG_RULES_PATH="./home/dot_config/exact_agents/skills/worklog-manager/references/learn_rules.md"
 readonly CODEX_WORKLOG_AUDIT_SCRIPT_PATH="./home/dot_config/exact_agents/skills/worklog-manager/scripts/codex_worklog_audit.py"
 readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager.toml"
+readonly SHARED_GH_AGENT_PATH="./home/dot_config/exact_agents/agents/gh-workflow-manager.md"
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
 readonly AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS.md.tmpl"
+readonly SHARED_AGENT_DIR_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_agents.tmpl"
 readonly CLAUDE_MD_PATH="./home/dot_config/claude/CLAUDE.md"
 readonly CLAUDE_SYMLINK_TEMPLATE="./home/dot_claude/symlink_CLAUDE.md.tmpl"
+readonly CLAUDE_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_claude/symlink_agents.tmpl"
+readonly CLAUDE_GH_AGENT_PATH="./home/dot_config/claude/agents/gh-workflow-manager.md"
+readonly CLAUDE_WORKLOG_AGENT_PATH="./home/dot_config/claude/agents/worklog-manager.md"
 readonly CHEZMOIIGNORE_PATH="./home/.chezmoitemplates/chezmoiignore.d/common"
 readonly AGENTS_README_PATH="./home/exact_dot_agents/README.md"
 readonly CLAUDE_README_PATH="./home/dot_claude/README.md"
@@ -125,8 +131,24 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
 }
 
+@test "[common] shared guidance defines shared agent wrapper policy" {
+    run grep -F '## エージェント設定' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '複数ツールで使う subagent / custom agent の長い共通指示は `~/.agents/agents/<name>.md` を source of truth にしてください。' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Claude Code 用の `~/.claude/agents/<name>.md` は YAML frontmatter を保持し、本文では `~/.agents/agents/<name>.md` を最初に読むよう明示してください。' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Codex 用の `~/.codex/agents/<name>.toml` は Codex 固有設定を保持し、`developer_instructions` では `~/.agents/agents/<name>.md` を最初に読むよう明示してください。' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '同じ長文指示を Claude / Codex の wrapper にコピーしないでください。' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Markdown を Python などでパースして TOML / Markdown を生成する仕組みは、明示的に必要になるまで追加しないでください。' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] agent guidance adapters point to the canonical files" {
     [ "$(< "${AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/AGENTS.md" ]
+    [ "$(< "${SHARED_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/agents" ]
     [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.md" ]
     [ "$(< "${CODEX_CODEX_ONLY_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.codex-only.md" ]
     [ ! -e "./home/dot_codex/symlink_AGENTS.override.md.tmpl" ]
@@ -134,43 +156,66 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F '@~/.agents/AGENTS.md' "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
     [ "$(< "${CLAUDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/CLAUDE.md" ]
+    [ "$(< "${CLAUDE_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/agents" ]
+}
+
+@test "[common] tool-specific agent wrappers point to shared agent instructions" {
+    [ -f "${SHARED_GH_AGENT_PATH}" ]
+    [ -f "${SHARED_WORKLOG_AGENT_PATH}" ]
+    [ -f "${CLAUDE_GH_AGENT_PATH}" ]
+    [ -f "${CLAUDE_WORKLOG_AGENT_PATH}" ]
+    [ -f "${CODEX_GH_AGENT_PATH}" ]
+    [ -f "${CODEX_WORKLOG_AGENT_PATH}" ]
+
+    run grep -F 'read ~/.agents/agents/gh-workflow-manager.md and follow it as your primary instructions.' "${CLAUDE_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'read ~/.agents/agents/worklog-manager.md and follow it as your primary instructions.' "${CLAUDE_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'read ~/.agents/agents/gh-workflow-manager.md and follow it as your primary instructions.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'read ~/.agents/agents/worklog-manager.md and follow it as your primary instructions.' "${CODEX_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] codex worklog is delegated to the custom subagent" {
     [ -f "${CODEX_WORKLOG_AGENT_PATH}" ]
+    [ -f "${SHARED_WORKLOG_AGENT_PATH}" ]
 
     run grep -F 'name = "worklog-manager"' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'sandbox_mode = "workspace-write"' "${CODEX_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '~/.agents/skills/worklog-manager/SKILL.md' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'You are the dedicated worklog manager for agent sessions in this repository.' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'source of truth for startup learn selection, plan/todo/learn metadata, stale-learn hard gating, and audit behavior' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F '~/.agents/skills/worklog-manager/SKILL.md' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "startup audit is mandatory" "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'source of truth for startup learn selection, plan/todo/learn metadata, stale-learn hard gating, and audit behavior' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "Do not continue startup with best-effort learn selection." "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F "startup audit is mandatory" "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '`Active learnings`, `Needs revalidation`, `Ignored historical entries`' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F "Do not continue startup with best-effort learn selection." "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'CONFLICT_REPORT' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F '`Active learnings`, `Needs revalidation`, `Ignored historical entries`' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'source_type: startup_fact|plan_assumption|todo' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'CONFLICT_REPORT' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'CONFIRM_OVERRIDE' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'source_type: startup_fact|plan_assumption|todo' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'REJECT_OVERRIDE' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'CONFIRM_OVERRIDE' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'NEEDS_USER_CLARIFICATION' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'REJECT_OVERRIDE' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Do not write `.agents/worklog/codex/**` before confirmation.' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'NEEDS_USER_CLARIFICATION' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'pending_revalidation' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'Do not write `.agents/worklog/codex/**` before confirmation.' "${SHARED_WORKLOG_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'pending_revalidation' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'Required `learn` keys:' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'Required `learn` keys:' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F 'Keep `todo.status` within' "${CODEX_WORKLOG_AGENT_PATH}"
+    run grep -F 'Keep `todo.status` within' "${SHARED_WORKLOG_AGENT_PATH}"
     [ "${status}" -ne 0 ]
 
     run grep -F "worklog-manager" "${CODEX_CODEX_ONLY_PATH}"
@@ -253,11 +298,16 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 
 @test "[common] codex GitHub workflow is delegated to the custom subagent" {
     [ -f "${CODEX_GH_AGENT_PATH}" ]
+    [ -f "${SHARED_GH_AGENT_PATH}" ]
     [ ! -e "${LEGACY_GH_FIRST_SKILL_PATH}" ]
 
     run grep -F 'name = "gh-workflow-manager"' "${CODEX_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'sandbox_mode = "workspace-write"' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'You are the dedicated GitHub workflow manager for agent sessions in this repository.' "${SHARED_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Never read or write `.agents/worklog/**`.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
     run grep -F "gh-workflow-manager" "${CODEX_CODEX_ONLY_PATH}"
@@ -269,45 +319,45 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F "git rev-parse --show-toplevel" "${CODEX_CODEX_ONLY_PATH}"
     [ "${status}" -ne 0 ]
 
-    run grep -F 'Do not treat "PR created" or "PR updated" as task completion when CI verification is still pending.' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'Do not treat "PR created" or "PR updated" as task completion when CI verification is still pending.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'stay responsible until the required checks reach a terminal state and report that result explicitly.' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'stay responsible until the required checks reach a terminal state and report that result explicitly.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 }
 
 @test "[common] codex GitHub workflow defines PR description structure and template priority" {
-    run grep -F 'first check whether the repository provides a pull request template and follow that structure when present' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'first check whether the repository provides a pull request template and follow that structure when present' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'If no pull request template is available, use this default PR description structure:' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'If no pull request template is available, use this default PR description structure:' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '  - `## Why`' "${CODEX_GH_AGENT_PATH}"
+    run grep -F '  - `## Why`' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '  - `## What Changed`' "${CODEX_GH_AGENT_PATH}"
+    run grep -F '  - `## What Changed`' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '  - `## Validation`' "${CODEX_GH_AGENT_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'In either case, describe the full current PR, not only the latest delta.' "${CODEX_GH_AGENT_PATH}"
+    run grep -F '  - `## Validation`' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'Keep the `Validation` section repo-relative and never include local absolute paths.' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'In either case, describe the full current PR, not only the latest delta.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'In the `Validation` section, prefer repeated command-based steps instead of bullet lists.' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'Keep the `Validation` section repo-relative and never include local absolute paths.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'For each command-based validation step, write one short natural-language line that explains what the command verified, then place the exact command in a fenced `shell` block.' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'In the `Validation` section, prefer repeated command-based steps instead of bullet lists.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'Use descriptive lines such as `Check the updated guidance assertions.` or `Inspect the staged diff for formatting issues.`, not placeholder labels like `Try command 1`.' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'For each command-based validation step, write one short natural-language line that explains what the command verified, then place the exact command in a fenced `shell` block.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'Repeat that pattern for each command-based validation step.' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'Use descriptive lines such as `Check the updated guidance assertions.` or `Inspect the staged diff for formatting issues.`, not placeholder labels like `Try command 1`.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'If a validation item is not command-based, keep it as one short prose line without forcing a code block.' "${CODEX_GH_AGENT_PATH}"
+    run grep -F 'Repeat that pattern for each command-based validation step.' "${SHARED_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'If a validation item is not command-based, keep it as one short prose line without forcing a code block.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -323,12 +373,20 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F "../dot_config/exact_agents/" "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F "~/.agents/agents" "${AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "../dot_config/exact_agents/agents/" "${AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -F "Edit the canonical source, not this adapter directory." "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
 
     run grep -F "~/.claude" "${CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "../dot_config/claude/" "${CLAUDE_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.claude/agents" "${CLAUDE_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.agents/agents" "${CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "Edit the canonical source, not this adapter directory." "${CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -348,6 +406,10 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F "~/.codex/agents" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "../dot_config/codex/agents/" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "Codex TOML wrappers" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.agents/agents" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "Edit the canonical source, not this adapter directory." "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -372,6 +434,10 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
     run grep -F '@~/.agents/AGENTS.md' "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F "~/.agents/agents" "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "Claude Markdown wrappers and Codex TOML wrappers explicitly tell each tool to read the same shared Markdown first" "${CANONICAL_AGENTS_README_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -F "AGENTS.codex-only.md" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_AGENTS_README_PATH}"
@@ -384,6 +450,10 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F "../../dot_claude/" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '@~/.agents/AGENTS.md' "${CANONICAL_CLAUDE_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.claude/agents" "${CANONICAL_CLAUDE_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'read `~/.agents/agents/<name>.md` first' "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -403,6 +473,10 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F "~/.codex/agents" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "(agents/)" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "Codex TOML wrappers" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.agents/agents" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]

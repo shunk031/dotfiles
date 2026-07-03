@@ -1,4 +1,5 @@
 - This directory is applied as `~/.claude`.
 - Chezmoi maps it to the canonical source in [home/dot_config/claude/](../dot_config/claude/).
+- Chezmoi maps `~/.claude/agents` to Claude wrapper agents in [home/dot_config/claude/agents/](../dot_config/claude/agents/). Those wrappers tell Claude to read shared instructions from `~/.agents/agents`.
 - The design keeps the home-facing path stable while the real files live in one git-friendly source tree.
 - Edit the canonical source, not this adapter directory.

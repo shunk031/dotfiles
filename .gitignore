@@ -28,6 +28,10 @@ home/dot_config/exact_agents/skills/*
 !home/dot_config/exact_agents/skills/worklog-manager/
 !home/dot_config/exact_agents/skills/worklog-manager/**
 
+# Keep runtime artifacts inside allowlisted skills ignored; this must stay
+# after the allowlist entries above because the last matching pattern wins.
+home/dot_config/exact_agents/skills/*/.playwright-cli/
+
 home/dot_config/claude/commands/agmsg.md
 
 ### Python ###

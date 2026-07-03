@@ -64,11 +64,12 @@ prefix = "ctrl+q"
 
 # Prefix-mode actions
 # help = "prefix+?"
-# settings = "prefix+s"
+# Disable the rarely used settings shortcut so prefix+s can match tmux's session picker habit.
+settings = ""
 detach = "prefix+d"
 reload_config = ["prefix+shift+r", "prefix+ctrl+r"]
 open_notification_target = ""
-# workspace_picker = "prefix+w"
+workspace_picker = "prefix+s"
 # goto = "prefix+g"
 # new_workspace = "prefix+shift+n"
 # new_worktree = "prefix+shift+g"
@@ -78,8 +79,8 @@ open_notification_target = ""
 # close_workspace = "prefix+shift+d"
 # previous_workspace = "" # optional, unset by default
 # next_workspace = ""     # optional, unset by default
-# previous_agent = ""     # optional, unset by default
-# next_agent = ""         # optional, unset by default
+previous_agent = "prefix+shift+a"
+next_agent = "prefix+a"
 # focus_agent = ""        # optional indexed binding, e.g. "prefix+alt+1..9"
 # remote_image_paste = "ctrl+v" # only active in herdr --remote; empty disables raw-key image paste
 new_tab = "prefix+c"
@@ -110,8 +111,8 @@ close_pane = ["prefix+x", "prefix+ctrl+k"]
 
 # Navigate-mode movement. These local shortcuts win while navigate mode is open.
 # They are independent from focus_pane_*. Do not include prefix+, esc, enter, tab, or 1..9 here.
-# navigate_workspace_up = "up"
-# navigate_workspace_down = "down"
+navigate_workspace_up = "ctrl+p"
+navigate_workspace_down = "ctrl+n"
 # navigate_pane_left = "h"      # left arrow always focuses the pane to the left
 # navigate_pane_down = "j"
 # navigate_pane_up = "k"

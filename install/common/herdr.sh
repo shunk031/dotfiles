@@ -27,7 +27,7 @@ readonly HERDR_INTEGRATIONS=(
 )
 
 #
-# @description Activate `mise` so Herdr and Node.js resolve from the configured toolchain.
+# @description Activate `mise` so Herdr and skills resolve from the configured toolchain.
 #
 function activate_mise() {
     if [ -x "${MISE_BIN}" ]; then
@@ -55,7 +55,7 @@ function install_herdr_integrations() {
 # @description Install the shared Herdr skill globally.
 #
 function install_herdr_skill() {
-    "${MISE_BIN}" exec node -- npx -y skills add "${HERDR_SKILL_REPO}" \
+    "${MISE_BIN}" exec npm:skills -- skills add "${HERDR_SKILL_REPO}" \
         --skill "${HERDR_SKILL_NAME}" \
         --agent "${HERDR_SKILL_AGENTS[@]}" \
         --global \

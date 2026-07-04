@@ -75,7 +75,7 @@ EOF
 
     run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "exec node -- npx -y skills add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
+    [ "${output}" = "exec npm:skills -- skills add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
 }
 
 @test "[common] herdr script runs full installation workflow" {
@@ -105,18 +105,18 @@ printf '%s\n' "$*" >> "${HERDR_CALLS_PATH}"
 EOF
     chmod +x "${BATS_TEST_TMPDIR}/bin/herdr"
 
-    cat > "${BATS_TEST_TMPDIR}/bin/npx" << 'EOF'
+    cat > "${BATS_TEST_TMPDIR}/bin/skills" << 'EOF'
 #!/usr/bin/env bash
-printf '%s\n' "${HERDR_TEST_MISE_ACTIVATED:-unset}|$*" > "${NPX_CALLS_PATH}"
+printf '%s\n' "${HERDR_TEST_MISE_ACTIVATED:-unset}|$*" > "${SKILLS_CALLS_PATH}"
 EOF
-    chmod +x "${BATS_TEST_TMPDIR}/bin/npx"
+    chmod +x "${BATS_TEST_TMPDIR}/bin/skills"
 
     run env \
         DOTFILES_DEBUG=1 \
         HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_args.txt" \
         HOME="${HOME}" \
         MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt" \
-        NPX_CALLS_PATH="${BATS_TEST_TMPDIR}/npx_args.txt" \
+        SKILLS_CALLS_PATH="${BATS_TEST_TMPDIR}/skills_args.txt" \
         PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" \
         bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
@@ -127,14 +127,14 @@ EOF
     [ "${lines[1]}" = "install herdr" ]
     [ "${lines[2]}" = "exec herdr -- herdr integration install claude" ]
     [ "${lines[3]}" = "exec herdr -- herdr integration install codex" ]
-    [ "${lines[4]}" = "exec node -- npx -y skills add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
+    [ "${lines[4]}" = "exec npm:skills -- skills add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
 
     run cat "${BATS_TEST_TMPDIR}/herdr_args.txt"
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "integration install claude" ]
     [ "${lines[1]}" = "integration install codex" ]
 
-    run cat "${BATS_TEST_TMPDIR}/npx_args.txt"
+    run cat "${BATS_TEST_TMPDIR}/skills_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "1|-y skills add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
+    [ "${output}" = "1|add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
 }

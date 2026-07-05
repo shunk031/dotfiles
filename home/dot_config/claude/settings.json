@@ -1,6 +1,9 @@
 {
   "model": "opusplan",
   "alwaysThinkingEnabled": true,
+  "env": {
+    "DISABLE_AUTOUPDATER": "1"
+  },
   "plansDirectory": "./.agents/worklog/claude",
   "permissions": {
     "deny": [

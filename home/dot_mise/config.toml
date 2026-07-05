@@ -2,54 +2,54 @@
 # Keep each group sorted by package name, ignoring backend prefixes and leading `@`.
 
 # Language runtimes
-go = "latest"
+go = "1.26.4"
 node = "lts"
 python = "3.11"
-rust = "latest"
+rust = "1.96.0"
 
 # CLI tools
-age = "latest"
-aws-cli = "latest"
-bats = "latest"
-bun = "latest"
-chezmoi = "latest"
-dotenvx = "latest"
-dust = "latest"
-eza = "latest"
-fd = "latest"
-gcloud = "latest"
-herdr = "latest"
+age = "1.3.1"
+aws-cli = "2.35.15"
+bats = "1.13.0"
+bun = "1.3.14"
+chezmoi = "2.70.5"
+dotenvx = "2.1.4"
+dust = "1.2.4"
+eza = "0.23.4"
+fd = "10.4.2"
+gcloud = "575.0.0"
+herdr = "0.7.1"
 hugo-extended = "0.136.5"
-jq = "latest"
-kubectx = "latest"
-rg = "latest"
-shellcheck = "latest"
-shfmt = "latest"
-sqlite = "latest"
-uv = "latest"
-yazi = "latest"
-yq = "latest"
+jq = "1.8.2"
+kubectx = "0.11.0"
+rg = "15.1.0"
+shellcheck = "0.11.0"
+shfmt = "3.13.1"
+sqlite = "3.53.3"
+uv = "0.11.26"
+yazi = "26.5.6"
+yq = "4.53.3"
 
 # Aqua tools
-"aqua:google-antigravity/antigravity-cli" = "latest"
+"aqua:google-antigravity/antigravity-cli" = "1.0.16"
 
 # Cargo tools
-"cargo:pueue" = "latest"
+"cargo:pueue" = "4.0.4"
 
 # GitHub release tools
-"github:cli/cli" = "latest"
-"github:d-kuro/gwq" = "latest"
-"github:shuntaka9576/blocc" = { version = "latest", os = ["linux"] }
-"github:x-motemen/ghq" = "latest"
+"github:cli/cli" = "2.96.0"
+"github:d-kuro/gwq" = "0.1.1"
+"github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }
+"github:x-motemen/ghq" = "1.10.1"
 
 # npm tools
-"npm:agmsg" = "latest"
-"npm:@anthropic-ai/claude-code" = "latest"
-"npm:bash-language-server" = "latest"
-"npm:fast-cli" = "latest"
-"npm:@openai/codex" = "latest"
-"npm:pyright" = "latest"
-"npm:skills" = "latest"
+"npm:agmsg" = "1.1.5"
+"npm:@anthropic-ai/claude-code" = "2.1.201"
+"npm:bash-language-server" = "5.6.0"
+"npm:fast-cli" = "5.2.0"
+"npm:@openai/codex" = "0.142.5"
+"npm:pyright" = "1.1.411"
+"npm:skills" = "1.5.14"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

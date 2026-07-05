@@ -4,7 +4,7 @@
 # Language runtimes
 go = "1.26.4"
 node = "lts"
-python = "3.11"
+python = "3.14.6"
 rust = "1.96.0"
 
 # CLI tools
@@ -19,7 +19,7 @@ eza = "0.23.4"
 fd = "10.4.2"
 gcloud = "575.0.0"
 herdr = "0.7.1"
-hugo-extended = "0.136.5"
+hugo-extended = "0.163.3"
 jq = "1.8.2"
 kubectx = "0.11.0"
 rg = "15.1.0"

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "dependencyDashboard": true,
+  "labels": ["dependencies"],
+  "branchPrefix": "renovate/",
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "mise": {
+    "managerFilePatterns": [
+      "/(^|/)home/dot_mise/config\\.toml$/"
+    ]
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["mise"],
+      "matchPackageNames": [
+        "npm:@anthropic-ai/claude-code",
+        "npm:@openai/codex"
+      ],
+      "groupName": "agent CLIs"
+    },
+    {
+      "matchManagers": ["mise"],
+      "groupName": "mise tools",
+      "matchPackageNames": [
+        "!npm:@anthropic-ai/claude-code",
+        "!npm:@openai/codex"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# @file home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl
+# @brief Install pinned mise tools after `chezmoi apply`.
+# @description
+#   Keeps mise-managed tools aligned with the applied pinned versions while
+#   leaving first-time mise bootstrap to the existing run-once install script.
+
+set -Eeuo pipefail
+
+readonly MISE_BIN="${HOME}/.local/bin/mise"
+readonly DEFAULT_MISE_MIN_RELEASE_AGE_DAYS=7
+
+if [ ! -x "${MISE_BIN}" ]; then
+    exit 0
+fi
+
+unset MISE_CURRENT_VERSION
+unset MISE_VERSION
+
+if [ -z "${GITHUB_TOKEN:-}" ] && command -v gh > /dev/null 2>&1; then
+    if GITHUB_TOKEN="$(gh auth token 2> /dev/null)" && [ -n "${GITHUB_TOKEN}" ]; then
+        export GITHUB_TOKEN
+    else
+        unset GITHUB_TOKEN
+    fi
+fi
+
+"${MISE_BIN}" install --before "${DEFAULT_MISE_MIN_RELEASE_AGE_DAYS}d"

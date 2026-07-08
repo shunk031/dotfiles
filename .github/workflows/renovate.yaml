@@ -3,7 +3,7 @@ name: Renovate
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 18 * * 0"
+    - cron: "0 18 * * 0" # At 18:00 on Sunday.
 
 permissions:
   contents: read

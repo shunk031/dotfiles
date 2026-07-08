@@ -22,8 +22,21 @@
     },
     {
       "matchManagers": ["mise"],
+      "matchPackageNames": ["python"],
+      "matchUpdateTypes": ["minor", "major"],
+      "groupName": "Python runtime"
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchPackageNames": ["python"],
+      "matchUpdateTypes": ["patch"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["mise"],
       "groupName": "mise tools",
       "matchPackageNames": [
+        "!python",
         "!npm:@anthropic-ai/claude-code",
         "!npm:@openai/codex"
       ]

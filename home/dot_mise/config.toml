@@ -4,7 +4,7 @@
 # Language runtimes
 go = "1.26.4"
 node = "lts"
-python = "3.11"
+python = "3.14.6"
 rust = "1.96.0"
 
 # CLI tools

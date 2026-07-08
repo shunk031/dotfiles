@@ -32,6 +32,11 @@ home/dot_config/exact_agents/skills/*
 # after the allowlist entries above because the last matching pattern wins.
 home/dot_config/exact_agents/skills/*/.playwright-cli/
 
+# Herdr and other integrations may generate Claude hooks here. Ignore generated
+# hooks by default and explicitly allow repo-managed hooks below.
+home/dot_config/claude/hooks/*
+!home/dot_config/claude/hooks/enforce-uv.sh
+
 home/dot_config/claude/commands/agmsg.md
 
 ### Python ###

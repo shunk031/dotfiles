@@ -67,7 +67,7 @@ EOF
     [ -x "$(command -v mise)" ]
 }
 
-@test "[common] run_mise_install uses hardcoded min-release-age days" {
+@test "[common] run_mise_install uses mise config release-age policy" {
     printf "min-release-age=99\n" > "${HOME}/.npmrc"
 
     function mise() {
@@ -78,7 +78,7 @@ EOF
 
     run cat "${BATS_TEST_TMPDIR}/mise_install_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "install --before ${DEFAULT_NPM_MIN_RELEASE_AGE_DAYS}d" ]
+    [ "${output}" = "install" ]
 }
 
 @test "[common] run_after template installs pinned mise tools after apply" {
@@ -89,7 +89,7 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install --before 7d\nGITHUB_TOKEN=' ]
+    [ "${output}" = $'install\nGITHUB_TOKEN=' ]
 }
 
 @test "[common] run_after template skips when mise is not installed" {
@@ -111,7 +111,7 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install --before 7d\nGITHUB_TOKEN=existing-token' ]
+    [ "${output}" = $'install\nGITHUB_TOKEN=existing-token' ]
     [ ! -e "${GH_CALLS_PATH}" ]
 }
 
@@ -124,7 +124,7 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install --before 7d\nGITHUB_TOKEN=stub-token' ]
+    [ "${output}" = $'install\nGITHUB_TOKEN=stub-token' ]
     [ "$(< "${GH_CALLS_PATH}")" = "auth token" ]
 }
 
@@ -137,6 +137,6 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install --before 7d\nGITHUB_TOKEN=' ]
+    [ "${output}" = $'install\nGITHUB_TOKEN=' ]
     [ "$(< "${GH_CALLS_PATH}")" = "auth token" ]
 }

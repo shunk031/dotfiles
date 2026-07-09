@@ -9,7 +9,6 @@
 set -Eeuo pipefail
 
 readonly MISE_BIN="${HOME}/.local/bin/mise"
-readonly DEFAULT_MISE_MIN_RELEASE_AGE_DAYS=7
 
 if [ ! -x "${MISE_BIN}" ]; then
     exit 0
@@ -26,4 +25,4 @@ if [ -z "${GITHUB_TOKEN:-}" ] && command -v gh > /dev/null 2>&1; then
     fi
 fi
 
-"${MISE_BIN}" install --before "${DEFAULT_MISE_MIN_RELEASE_AGE_DAYS}d"
+"${MISE_BIN}" install

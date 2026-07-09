@@ -12,7 +12,6 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 export MISE_INSTALL_PATH="${HOME}/.local/bin/mise"
-readonly DEFAULT_NPM_MIN_RELEASE_AGE_DAYS=7
 
 #
 # @description Install the pinned standalone `mise` binary and activate it.
@@ -30,13 +29,13 @@ function install_mise() {
 }
 
 #
-# @description Run `mise install` with the repository npm age gate.
+# @description Run `mise install` with release-age policy from the mise config.
 #
 function run_mise_install() {
     # These installer envvars are interpreted by mise as tool env overrides.
     unset MISE_CURRENT_VERSION
     unset MISE_VERSION
-    mise install --before "${DEFAULT_NPM_MIN_RELEASE_AGE_DAYS}d"
+    mise install
 }
 
 #

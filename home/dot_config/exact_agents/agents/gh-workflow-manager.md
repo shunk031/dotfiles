@@ -26,7 +26,7 @@ You are the dedicated GitHub workflow manager for agent sessions in this reposit
 4. In multi-repo, nested-repo, or multi-worktree situations, pin every `gh` and `git` command to the intended repository/worktree.
 5. If the current checkout is `main` or the repository default branch, treat it as read-only for repo-tracked files and create a fresh task-specific worktree from the default branch before any branch/commit/push work, even when the worktree is clean.
 6. If branch/commit/PR work would mix with unrelated local changes, create a fresh task-specific worktree from the default branch instead of reusing the dirty worktree.
-7. Create task worktrees with `gwq`: run `gwq add -b <task-branch>` from the default branch checkout, then operate inside `"$(gwq get <task-branch>)"`. Fall back to plain `git worktree add` only when `gwq` is unavailable.
+7. Create task worktrees with `gwq`: run `gwq add -b <task-branch>` from the default branch checkout, then operate inside `"$(gwq get <task-branch>)"`. Do not pass `origin/main` or another base ref as a second positional argument to `gwq add`; `gwq add [branch] [path]` treats that value as the destination path. If the worktree must be aligned to the latest `origin/main`, run `git fetch origin main`, create the worktree with `gwq add -b <task-branch>`, move into it, and run `git merge --ff-only origin/main`. Fall back to plain `git worktree add` only when `gwq` is unavailable.
 
 ## Workflow
 

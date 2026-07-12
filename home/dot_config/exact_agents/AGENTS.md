@@ -35,7 +35,7 @@
 - 既定ブランチ: 現在の checkout が `main` またはリポジトリの default branch である場合、リポジトリ管理下のファイルに対しては読み取り専用として扱ってください。
 - 事前確認: リポジトリ管理下のファイルを変更する可能性があるタスクに入る前に、現在の branch / worktree を最初に確認してください。
 - 編集前: `main` または default branch にいる場合は、worktree が clean でも、編集前に task-specific な新しい worktree を作成するか、そこへ移動してください。
-- 作成手順: worktree の作成には [`gwq`](https://github.com/d-kuro/gwq) を使ってください。default branch の checkout で `gwq add -b <task-branch>` を実行して作成し、`cd "$(gwq get <task-branch>)"` で移動してから編集を始めてください。`gwq` が使えない環境でのみ `git worktree add` にフォールバックしてください。
+- 作成手順: worktree の作成には [`gwq`](https://github.com/d-kuro/gwq) を使ってください。default branch の checkout で `gwq add -b <task-branch>` を実行して作成し、`cd "$(gwq get <task-branch>)"` で移動してから編集を始めてください。`gwq add [branch] [path]` の第 2 引数は作成先 path なので、base ref のつもりで `origin/main` などを渡してはいけません。作成元を最新の `origin/main` に合わせる必要がある場合は、先に `git fetch origin main` し、worktree へ移動してから `git merge --ff-only origin/main` を実行してください。`gwq` が使えない環境でのみ `git worktree add` にフォールバックしてください。
 - 調査: 読み取り専用の調査は、現在の checkout のままで構いません。
 - 再利用条件: 現在の checkout を変更系の作業で再利用してよいのは、ユーザが明示的にそこで作業するよう求めた場合、またはこのタスク専用の non-default branch worktree にすでにいる場合だけです。
 - ローカル変更: 関係のないローカル変更がある場合は、そのタスクに混ぜないでください。別の worktree を使い、task-relevant files だけを持ち込んでください。

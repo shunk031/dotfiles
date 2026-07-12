@@ -142,6 +142,14 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -ne 0 ]
 }
 
+@test "[common] shared guidance prevents gwq base-ref misuse" {
+    run grep -F 'base ref のつもりで `origin/main` などを渡してはいけません' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'worktree へ移動してから `git merge --ff-only origin/main` を実行してください' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] shared, Claude, and Codex entrypoints define acknowledgment note blocks" {
     run grep -F '> [!NOTE]' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

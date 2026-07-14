@@ -19,6 +19,8 @@ function setup() {
     export PRIVATE_LOCAL_REV="private-local"
     export PRIVATE_REMOTE_REV="private-local"
     export PRIVATE_BASE_REV="private-local"
+    export PUBLIC_STASH_POP_STATUS=0
+    export PRIVATE_STASH_POP_STATUS=0
     PATH="${TEST_BIN_DIR}:$(getconf PATH)"
     export PATH
 
@@ -80,6 +82,15 @@ if [[ "${1:-}" == "git" && "${2:-}" == "--" ]]; then
             printf "%s\n" "${PRIVATE_BASE_REV}"
         fi
         ;;
+    stash)
+        if [[ "$2" == "pop" ]]; then
+            if [[ "${source_name}" == "public" ]]; then
+                exit "${PUBLIC_STASH_POP_STATUS}"
+            else
+                exit "${PRIVATE_STASH_POP_STATUS}"
+            fi
+        fi
+        ;;
     fetch | merge)
         ;;
     esac
@@ -135,14 +146,32 @@ EOF
     [ "$(grep -c '^public:' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
 }
 
-@test "[common] dirty source stops before fetch and apply" {
+@test "[common] dirty source is stashed before update and restored after apply" {
     export PUBLIC_STATUS=" M home/dot_zshrc"
 
     run bash "${SCRIPT_PATH}" public
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"Stashing local public chezmoi source changes..."* ]]
+    [[ "${output}" == *"Restoring local public chezmoi source changes..."* ]]
+    run grep -F 'public:git -- stash push --include-untracked -m update-dotfiles autostash: public' "${CHEZMOI_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'public:git -- stash pop --index' "${CHEZMOI_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    run tail -n 1 "${CHEZMOI_CALLS_PATH}"
+    [ "${output}" = "public:git -- stash pop --index" ]
+}
+
+@test "[common] autostash restore failure reports the remaining stash risk" {
+    export PUBLIC_STATUS=" M home/dot_zshrc"
+    export PUBLIC_STASH_POP_STATUS=1
+
+    run bash "${SCRIPT_PATH}" public
     [ "${status}" -eq 1 ]
-    [[ "${output}" == *"has uncommitted changes"* ]]
-    [ "$(grep -c 'fetch --prune origin' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
-    [ "$(grep -c 'apply --verbose' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
+    [[ "${output}" == *"failed to restore public chezmoi source autostash"* ]]
+    run grep -F 'public:apply --verbose' "${CHEZMOI_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'public:git -- stash pop --index' "${CHEZMOI_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] non-main branch stops before fetch and apply" {

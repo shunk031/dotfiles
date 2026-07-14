@@ -4,7 +4,8 @@
 # @brief Update and apply the public and private chezmoi source repositories.
 # @description
 #   Fetches the latest `origin/main` for each selected source, fast-forwards
-#   clean main checkouts only, then runs `chezmoi apply --verbose`.
+#   main checkouts only, temporarily stashes local source changes, then runs
+#   `chezmoi apply --verbose`.
 
 set -Eeuo pipefail
 
@@ -58,13 +59,12 @@ function source_label() {
     esac
 }
 
-# @description Refuse dirty or non-main source checkouts.
+# @description Refuse non-main source checkouts.
 # @arg $1 string Source name, either `public` or `private`.
-function assert_clean_main() {
+function assert_main() {
     local source_name="$1"
     local label
     local branch
-    local status
 
     label="$(source_label "${source_name}")"
     branch="$(run_chezmoi "${source_name}" git -- rev-parse --abbrev-ref HEAD)"
@@ -73,11 +73,43 @@ function assert_clean_main() {
         printf "Error: %s chezmoi source is on %s, expected %s.\n" "${label}" "${branch}" "${DEFAULT_BRANCH}" >&2
         return 1
     fi
+}
+
+# @description Return whether the selected source has local changes.
+# @arg $1 string Source name, either `public` or `private`.
+function source_has_changes() {
+    local source_name="$1"
+    local status
 
     status="$(run_chezmoi "${source_name}" git -- status --porcelain)"
-    if [[ -n "${status}" ]]; then
-        printf "Error: %s chezmoi source has uncommitted changes.\n" "${label}" >&2
-        printf "%s\n" "${status}" >&2
+    [[ -n "${status}" ]]
+}
+
+# @description Stash local source changes, including untracked files.
+# @arg $1 string Source name, either `public` or `private`.
+function stash_source_changes() {
+    local source_name="$1"
+    local label
+
+    label="$(source_label "${source_name}")"
+    printf "Stashing local %s chezmoi source changes...\n" "${label}"
+    run_chezmoi "${source_name}" git -- stash push --include-untracked -m "update-dotfiles autostash: ${label}"
+}
+
+# @description Restore a source autostash after the update attempt.
+# @arg $1 string Source name, either `public` or `private`.
+function restore_source_autostash() {
+    local source_name="$1"
+    local label
+
+    label="$(source_label "${source_name}")"
+    printf "Restoring local %s chezmoi source changes...\n" "${label}"
+
+    # `stash pop` can conflict after the source fast-forwards. Git keeps the
+    # stash in that case, so report the failure instead of hiding local work in
+    # an easy-to-forget stash entry.
+    if ! run_chezmoi "${source_name}" git -- stash pop --index; then
+        printf "Error: failed to restore %s chezmoi source autostash. Resolve the conflict, then inspect the remaining stash entry.\n" "${label}" >&2
         return 1
     fi
 }
@@ -124,13 +156,34 @@ function apply_source() {
 function update_source() {
     local source_name="$1"
     local label
+    local autostashed=0
+    local update_status=0
+    local restore_status=0
 
     label="$(source_label "${source_name}")"
     printf "Updating %s chezmoi source...\n" "${label}"
 
-    assert_clean_main "${source_name}"
-    fast_forward_source "${source_name}"
-    apply_source "${source_name}"
+    assert_main "${source_name}"
+
+    if source_has_changes "${source_name}"; then
+        stash_source_changes "${source_name}"
+        autostashed=1
+    fi
+
+    fast_forward_source "${source_name}" || update_status=$?
+    if ((update_status == 0)); then
+        apply_source "${source_name}" || update_status=$?
+    fi
+
+    if ((autostashed)); then
+        restore_source_autostash "${source_name}" || restore_status=$?
+    fi
+
+    if ((restore_status != 0)); then
+        return "${restore_status}"
+    fi
+
+    return "${update_status}"
 }
 
 # @description Dispatch the selected update target.

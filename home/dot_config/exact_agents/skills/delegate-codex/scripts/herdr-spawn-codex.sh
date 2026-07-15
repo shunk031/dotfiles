@@ -13,7 +13,16 @@ BOOT="$1"
 LABEL="${HERDR_SPAWN_LABEL:-impl}"
 WS="${HERDR_WORKSPACE_ID:?not inside herdr}"
 
-TAB=$(herdr tab create --workspace "$WS" --label "$LABEL" --no-focus |
+ENV_ARGS=()
+for KEY in ${HERDR_SPAWN_ENV_KEYS:-}; do
+    if [[ ! "$KEY" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+        echo "invalid HERDR_SPAWN_ENV_KEYS entry: $KEY" >&2
+        exit 2
+    fi
+    ENV_ARGS+=(--env "${KEY}=${!KEY-}")
+done
+
+TAB=$(herdr tab create --workspace "$WS" --label "$LABEL" "${ENV_ARGS[@]}" --no-focus |
     uv run --no-project python -c 'import sys,json;print(json.load(sys.stdin)["result"]["tab"]["tab_id"])')
 PANE=$(herdr pane list --workspace "$WS" | TAB="$TAB" uv run --no-project python -c '
 import sys, json, os

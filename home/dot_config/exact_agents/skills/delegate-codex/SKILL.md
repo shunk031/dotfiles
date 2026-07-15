@@ -50,6 +50,7 @@ scripts/spawn-codex-tab.sh "$TEAM" "$NAME" "$PROJECT" [boot-prompt]
 ```
 
 The wrapper calls `~/.agents/skills/agmsg/scripts/spawn.sh` with a Herdr terminal template. Environment-specific Codex CLI arguments are injected by agmsg from `~/.agmsg/config/spawn_options.yaml`; see `~/.agents/AGENTS-private.md` for the local values and setup steps.
+Set `HERDR_SPAWN_ENV_KEYS` to a space-separated list of environment variable names to pass selected values through to `herdr tab create` as `--env KEY=VALUE`.
 
 Before the first spawn in a new project or worktree, confirm the Codex trust settings for that path; see `~/.agents/AGENTS-private.md` for the local trust procedure. In tmux environments, agmsg `spawn.sh` also supports its standard `--split` mode, but this skill's Herdr wrapper creates a new labeled tab so it does not split the user's current pane.
 

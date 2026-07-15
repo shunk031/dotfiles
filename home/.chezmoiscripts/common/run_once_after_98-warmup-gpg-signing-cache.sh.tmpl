@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Keep this run-once script near the end of the install flow because it may
+# prompt for the GPG signing passphrase. It intentionally runs after chezmoi
+# has applied ~/.gnupg/gpg-agent.conf, private keys, and git config, and just
+# before the existing run_once_after_99-install-gh-extensions.sh.tmpl step.
+# The later run_after_99-refresh-chezmoi-notify-cache.sh.tmpl is lightweight
+# and runs on every apply, so the interactive GPG warm-up stays in this
+# run-once step instead.
+
+{{ include "../install/common/gpg.sh" }}

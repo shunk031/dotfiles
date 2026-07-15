@@ -82,7 +82,7 @@ Use this template:
 ## 報告
 ```
 
-In `## 変更対象`, list concrete file paths and ownership boundaries. In `## 完了条件`, list the exact verification commands or CI expectations. In `## 報告`, ask the implementer to reply with the PR URL, CI state, and any review notes. The implementer's own GitHub workflow guidance is responsible for commit, push, PR, and CI discipline.
+In `## 変更対象`, list concrete file paths and ownership boundaries. In `## 完了条件`, list the exact verification commands or CI expectations, and always include that completion means PR creation plus green CI only: the implementer must not merge; `main` reviews and leaves the merge decision to the user. In `## 報告`, ask the implementer to reply with the PR URL, CI state, and any review notes. The implementer's own GitHub workflow guidance is responsible for commit, push, PR, and CI discipline.
 
 ## Nudge Rules
 
@@ -116,6 +116,7 @@ For long-running work, repeat non-intrusive checks: wait for the pane status, re
 
 - Implementer: make the repository changes, run local verification, commit, confirm HTTPS push configuration when required by the environment, push, open or update the PR, and monitor CI until it is green or clearly blocked.
 - `main`: frame the task, monitor progress, review the diff and CI report, request follow-up changes when needed, approve or make the merge decision, and clean up the disposable implementer after the work is accepted.
+- Merge execution: merge only when the user explicitly instructs `main` to merge that specific PR. Do not carry forward an apparent blanket approval from prior context to a new PR, and do not let `main` or the implementer self-merge because the change looks small or routine.
 
 Keep push, PR creation or update, and CI confirmation on the implementer side. The implementer Codex should use its own GitHub workflow guidance for git and GitHub write operations.
 

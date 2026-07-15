@@ -91,8 +91,8 @@ In `## 変更対象`, list concrete file paths and ownership boundaries. In `## 
   scripts/nudge-codex.sh <pane_id> "inbox を確認して着手してください"
   ```
 
-- Do not force-queue messages into a working pane with `herdr pane send-keys <pane_id> tab`. agmsg messages remain in the recipient's inbox, so wait until the Codex pane is idle and nudge then.
-- If `nudge-codex.sh` exits with code 3, the pane is not idle. Wait until the pane's `agent_status` is no longer `working`, then retry the nudge.
+- Do not force-queue messages into a working pane with `herdr pane send-keys <pane_id> tab`. agmsg messages remain in the recipient's inbox, so wait until the Codex pane is idle or done and nudge then.
+- If `nudge-codex.sh` exits with code 3, the pane is not idle or done. Wait until the pane's `agent_status` is `idle` or `done`, then retry the nudge.
 - Always run the occupancy check before a nudge. If the pane has become user-occupied, stop operating it and spawn a fresh implementer.
 
 ## Monitoring
@@ -109,7 +109,7 @@ Check the coordinator inbox for reports:
 ~/.agents/skills/agmsg/scripts/inbox.sh "$TEAM" main
 ```
 
-For long-running work, repeat non-intrusive checks: wait for the pane status, read the inbox, review reported progress, and nudge only when the pane is idle and still owned by `main`.
+For long-running work, repeat non-intrusive checks: wait for the pane status, read the inbox, review reported progress, and nudge only when the pane is idle or done and still owned by `main`.
 
 ## Review Split
 

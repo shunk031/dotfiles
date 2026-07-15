@@ -159,8 +159,19 @@ jobs:
             exit 1
           fi
 
-      - name: Upload coverage to Codecov
+      - name: Check coverage report
+        id: coverage-report
         if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' }}
+        run: |
+          if [ -f ./coverage/coverage.xml ]; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+            echo "::warning::coverage/coverage.xml was not generated; skipping Codecov upload."
+          fi
+
+      - name: Upload coverage to Codecov
+        if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' && steps.coverage-report.outputs.exists == 'true' }}
         uses: codecov/codecov-action@v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

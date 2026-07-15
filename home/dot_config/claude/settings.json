@@ -1,5 +1,5 @@
 {
-  "model": "opusplan",
+  "model": "claude-fable-5",
   "alwaysThinkingEnabled": true,
   "env": {
     "DISABLE_AUTOUPDATER": "1"
@@ -68,6 +68,7 @@
     "type": "command",
     "command": "npx ccstatusline@latest"
   },
+  "skipDangerousModePermissionPrompt": true,
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
     "claude-mem@thedotmack": true

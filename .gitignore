@@ -15,6 +15,8 @@ home/dot_config/exact_agents/skills/*
 !home/dot_config/exact_agents/skills/ai-slop-checklist-ja/**
 !home/dot_config/exact_agents/skills/convert-to-transformers/
 !home/dot_config/exact_agents/skills/convert-to-transformers/**
+!home/dot_config/exact_agents/skills/delegate-codex/
+!home/dot_config/exact_agents/skills/delegate-codex/**
 !home/dot_config/exact_agents/skills/gh-comment-attach-files/
 !home/dot_config/exact_agents/skills/gh-comment-attach-files/**
 !home/dot_config/exact_agents/skills/high-impact-journal-publishing/

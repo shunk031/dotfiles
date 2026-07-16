@@ -11,6 +11,14 @@ Delegate implementation work to a disposable Codex implementer in a fresh Herdr 
 
 This skill is intentionally repository-agnostic. Do not encode local-only settings here. For environment-specific Codex trust, launch options, git, or GitHub behavior, read `~/.agents/AGENTS-private.md` and follow the relevant section.
 
+## Always Delegate
+
+When `main` is about to perform implementation work, repository edits, commits, pushes, PR creation or updates, or CI confirmation for any task, use this skill and delegate the work to a fresh implementer instead of doing the work directly.
+
+This applies even when the change looks small, documentation-only, or routine. `main` may inspect context, frame the task, monitor progress, review the resulting diff, and decide whether more changes are needed, but the disposable implementer owns the repository modifications and GitHub workflow.
+
+This rule is for the coordinator role. If the current agent is already acting as an `impl-<task-slug>` implementer for a delegated task, complete that assigned work in its own task worktree instead of recursively spawning another implementer.
+
 ## Roles And Naming
 
 - Team: derive the agmsg team name from the repository remote, not from the worktree directory:

@@ -34,6 +34,7 @@
 
 ### GitHub / PR のサブエージェント
 
+- 明示 skill gate: ユーザーが `$delegate-codex` または `delegate-codex` を明示した場合は、`gh-workflow-manager` ではなく `delegate-codex` の手順を優先してください。この場合でも PR 作成・更新と CI / required checks の完了確認は必要で、実装者は merge してはいけません。main は agent を起動する前に、どの skill / agent を使うかをユーザーへ短く宣言してください。
 - 担当: GitHub / PR workflow は custom subagent `gh-workflow-manager` が担当します。`~/.codex/agents` 経由で利用できます。
 - 起動条件: issue / PR の調査、branch / commit / push、pull request の作成・更新、CI 確認に入る前に、`gh-workflow-manager` を 1 回だけ spawn し、その後は同じスレッドを使い続けてください。
 - 起動時入力: 起動時には、タスクの要約、最初のユーザープロンプト、`codex-foo` のような `parent_owner` を渡してください。dirty な作業ツリーから差分を切り出す場合は、対象ファイル一覧も明示してください。

@@ -15,6 +15,8 @@ This skill is intentionally repository-agnostic. Do not encode local-only settin
 
 Use this skill for any write work in any repository, including this dotfiles repository itself. Code changes, documentation edits, configuration or dotfiles changes, commits, pushes, and pull request creation or updates all go through a disposable implementer. `main` must not commit or push directly, even for a one-line change and even when the repository is not the current project.
 
+If the user explicitly names `$delegate-codex` or `delegate-codex`, treat this skill as the controlling workflow for the turn. Do not substitute `gh-workflow-manager`, a generic worker, or any other PR agent merely because the task includes GitHub, push, pull request, or CI work. If Codex-only PR or GitHub workflow guidance appears to conflict, route the whole write and PR workflow through the disposable Codex described by this skill, and keep `main` as coordinator, reviewer, and explicit-merge executor only. Before spawning any agent for write or PR work, state the selected skill and agent in a short user-facing update.
+
 Task size never creates an exception. "Small enough to do myself" is not a valid reason to skip delegation.
 
 At the start of every new delegation, re-open this `SKILL.md` and follow the current procedure from the skill. Do not reproduce the delegation flow from memory; remembered steps drift from the source of truth.

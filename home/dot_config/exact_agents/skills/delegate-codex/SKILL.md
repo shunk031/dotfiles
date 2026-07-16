@@ -13,9 +13,13 @@ This skill is intentionally repository-agnostic. Do not encode local-only settin
 
 ## Always Delegate
 
-When `main` is about to perform implementation work, repository edits, commits, pushes, PR creation or updates, or CI confirmation for any task, use this skill and delegate the work to a fresh implementer instead of doing the work directly.
+Use this skill for any write work in any repository, including this dotfiles repository itself. Code changes, documentation edits, configuration or dotfiles changes, commits, pushes, and pull request creation or updates all go through a disposable implementer. `main` must not commit or push directly, even for a one-line change and even when the repository is not the current project.
 
-This applies even when the change looks small, documentation-only, or routine. `main` may inspect context, frame the task, monitor progress, review the resulting diff, and decide whether more changes are needed, but the disposable implementer owns the repository modifications and GitHub workflow.
+Task size never creates an exception. "Small enough to do myself" is not a valid reason to skip delegation.
+
+At the start of every new delegation, re-open this `SKILL.md` and follow the current procedure from the skill. Do not reproduce the delegation flow from memory; remembered steps drift from the source of truth.
+
+`main` may directly perform read-only investigation, send or receive agmsg messages, monitor, nudge, or clean up Herdr-managed implementers, run GitHub read operations, and execute a merge only when the user explicitly instructs `main` to merge that specific pull request.
 
 This rule is for the coordinator role. If the current agent is already acting as an `impl-<task-slug>` implementer for a delegated task, complete that assigned work in its own task worktree instead of recursively spawning another implementer.
 

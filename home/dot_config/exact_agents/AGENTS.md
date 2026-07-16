@@ -16,6 +16,18 @@
 
 - 質問方針: ユーザが提供した情報に基づいて、最適な解決策を提案するための質問を行ってください。
 
+## ユーザーへの報告・回答の書き方
+
+- 簡潔さ: 報告・回答は簡潔に書いてください。詳細は求められたときに展開してください。
+- 箇条書きの構成: 箇条書きを使うときはパラグラフ・ライティングに従い、親項目を topic sentence、子項目(ネスト)を support sentence とし、必要なら最後の子項目を conclusion sentence にしてください。
+  ```
+  - topic sentence
+    - support sentence
+    - support sentence
+    - conclusion sentence
+  ```
+- フラットな羅列の回避: topic なしに support level の文を並べないでください。項目が 1 階層で並ぶ場合は、各項目がそれぞれ topic sentence として自立していることを確認してください。
+
 ## エージェント設定
 
 - 共有指示: 複数ツールで使う subagent / custom agent の長い共通指示は `~/.agents/agents/<name>.md` を source of truth にしてください。

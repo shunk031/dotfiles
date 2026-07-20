@@ -28,6 +28,16 @@
   ```
 - フラットな羅列の回避: topic なしに support level の文を並べないでください。項目が 1 階層で並ぶ場合は、各項目がそれぞれ topic sentence として自立していることを確認してください。
 
+## GitHub issue / PR comment の書き方
+
+- 成果物としての扱い: GitHub issue / PR comment はチャット返信ではなく、repository-facing な成果物として扱ってください。
+- 使用言語: GitHub comment の本文は、その repository / project の既定言語に合わせてください。public OSS repository では、repository が明確に日本語運用である場合、またはユーザーが日本語を明示した場合を除き、英語を default にしてください。
+- 口調: GitHub comment には「訂正します」「すみません」「そういう意味ではなく」「I misunderstood」などの会話上の修復表現や、ユーザー向けの meta commentary を含めないでください。
+- 内容: GitHub comment は中立的・事実ベース・監査可能で、あとから読む repository maintainer に役立つ内容にしてください。
+- 投稿前確認: 投稿または編集の前に、comment 本文を現在の repository の事実、実行した command、確認した check / report と照合してください。曖昧な要約よりも、具体的な検証結果・対象ファイル・残っている blocker を優先してください。
+- 詳細の畳み込み: 長い診断ログや調査詳細は、短い summary を付けた `<details>` に入れて、comment の先頭では結論と必要な action が読めるようにしてください。
+- 誤投稿時の対応: 不適切な comment を投稿した場合は、可能な限り既存 comment を編集して修正してください。悪い comment を残したまま、重複する訂正 comment を新規投稿しないでください。
+
 ## エージェント設定
 
 - 共有指示: 複数ツールで使う subagent / custom agent の長い共通指示は `~/.agents/agents/<name>.md` を source of truth にしてください。

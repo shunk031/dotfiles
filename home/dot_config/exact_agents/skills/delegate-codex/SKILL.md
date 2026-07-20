@@ -60,10 +60,21 @@ Use the bundled wrapper to create the implementer in a new Herdr tab:
 TEAM=$(basename -s .git "$(git remote get-url origin)")
 NAME=impl-<task-slug>
 PROJECT=<task-worktree-path>
-scripts/spawn-codex-tab.sh "$TEAM" "$NAME" "$PROJECT" [boot-prompt]
+scripts/spawn-codex-tab.sh "$TEAM" "$NAME" "$PROJECT"
 ```
 
-The wrapper calls `~/.agents/skills/agmsg/scripts/spawn.sh` with a Herdr terminal template. Environment-specific Codex CLI arguments are injected by agmsg from `~/.agmsg/config/spawn_options.yaml`; see `~/.agents/AGENTS-private.md` for the local values and setup steps.
+The wrapper must return only machine-readable placement lines:
+
+```text
+tab_id=<herdr-tab-id>
+pane_id=<herdr-pane-id>
+```
+
+If it prints `spawned ... in tmux`, `spawned ... in a new terminal window`, or any other agmsg `spawn.sh` placement text, treat that as a failed spawn. Do not send a task message; fix the wrapper or restart with a clean Herdr tab first.
+
+The wrapper creates the Herdr tab directly and pre-registers the Codex identity with agmsg. It intentionally does not call `~/.agents/skills/agmsg/scripts/spawn.sh`, because `spawn.sh` prefers tmux placement when `$TMUX` is set and can silently create a narrow pane instead of the required Herdr tab.
+
+Set `HERDR_CODEX_BIN` when the local environment needs a Codex wrapper instead of the plain `codex` executable.
 Set `HERDR_SPAWN_ENV_KEYS` to a space-separated list of environment variable names to pass selected values through to `herdr tab create` as `--env KEY=VALUE`.
 
 Before the first spawn in a new project or worktree, confirm the Codex trust settings for that path; see `~/.agents/AGENTS-private.md` for the local trust procedure. In tmux environments, agmsg `spawn.sh` also supports its standard `--split` mode, but this skill's Herdr wrapper creates a new labeled tab so it does not split the user's current pane.

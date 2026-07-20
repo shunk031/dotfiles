@@ -74,6 +74,7 @@ If it prints `spawned ... in tmux`, `spawned ... in a new terminal window`, or a
 
 The wrapper creates the Herdr tab directly and pre-registers the Codex identity with agmsg. It intentionally does not call `~/.agents/skills/agmsg/scripts/spawn.sh`, because `spawn.sh` prefers tmux placement when `$TMUX` is set and can silently create a narrow pane instead of the required Herdr tab.
 
+The wrapper injects environment-specific Codex CLI arguments from agmsg's per-type `spawn_options.yaml` using the same `codex:` semantics as `~/.agents/skills/agmsg/scripts/spawn.sh`; a missing file or missing `codex:` section is a no-op.
 Set `HERDR_CODEX_BIN` when the local environment needs a Codex wrapper instead of the plain `codex` executable.
 Set `HERDR_SPAWN_ENV_KEYS` to a space-separated list of environment variable names to pass selected values through to `herdr tab create` as `--env KEY=VALUE`.
 

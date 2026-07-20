@@ -43,6 +43,7 @@ WS="${HERDR_WORKSPACE_ID:?not inside herdr}"
 CODEX_BIN="${HERDR_CODEX_BIN:-codex}"
 AGMSG_SCRIPTS_DIR="${AGMSG_SCRIPTS_DIR:-$HOME/.agents/skills/agmsg/scripts}"
 JOIN_SCRIPT="$AGMSG_SCRIPTS_DIR/join.sh"
+SPAWN_OPTIONS_SCRIPT="$AGMSG_SCRIPTS_DIR/lib/spawn-options.sh"
 
 [ -d "$PROJECT" ] || {
     echo "spawn-codex-tab: project path does not exist: $PROJECT" >&2
@@ -62,6 +63,12 @@ command -v "$CODEX_BIN" > /dev/null 2>&1 || {
     echo "spawn-codex-tab: agmsg join.sh not found: $JOIN_SCRIPT" >&2
     exit 1
 }
+[ -r "$SPAWN_OPTIONS_SCRIPT" ] || {
+    echo "spawn-codex-tab: agmsg spawn-options.sh not found: $SPAWN_OPTIONS_SCRIPT" >&2
+    exit 1
+}
+# shellcheck disable=SC1090
+source "$SPAWN_OPTIONS_SCRIPT"
 
 ENV_ARGS=()
 for KEY in ${HERDR_SPAWN_ENV_KEYS:-}; do
@@ -74,6 +81,11 @@ done
 
 AGMSG_RESOLVE_PROJECT=0 "$JOIN_SCRIPT" "$TEAM" "$NAME" codex "$PROJECT" > /dev/null
 
+CODEX_ARGS=()
+while IFS= read -r _spawn_opt_tok; do
+    CODEX_ARGS+=("$_spawn_opt_tok")
+done < <(agmsg_spawn_options_tokens codex)
+
 BOOT_DIR="${TMPDIR:-/tmp}/delegate-codex-spawn"
 mkdir -p "$BOOT_DIR"
 find "$BOOT_DIR" -name 'boot-*.sh' -type f -mtime +1 -delete 2> /dev/null || true
@@ -84,7 +96,11 @@ mv "$BOOT_BASE" "$BOOT"
     echo '#!/usr/bin/env bash'
     echo 'set -euo pipefail'
     printf 'cd %q\n' "$PROJECT"
-    printf 'exec %q %q\n' "$CODEX_BIN" "/agmsg actas $NAME"
+    printf 'exec %q' "$CODEX_BIN"
+    for ARG in "${CODEX_ARGS[@]}"; do
+        printf ' %q' "$ARG"
+    done
+    printf ' %q\n' "/agmsg actas $NAME"
 } > "$BOOT"
 chmod +x "$BOOT"
 

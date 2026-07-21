@@ -31,22 +31,30 @@ Use Consultation Mode when the user wants a disposable Codex consultant for dire
 
 Create one consultant per consultation. Use `consult-<topic-slug>` for the agmsg role and `consult: <topic-slug>` for the Herdr tab label.
 
+Create a read-only anchor worktree for the consultation before spawning:
+
+```shell
+gwq add -b consult/<topic-slug>
+PROJECT=$(gwq get consult/<topic-slug>)
+```
+
 Spawn the consultant through the same Herdr wrapper used in [Spawn](#spawn):
 
 ```shell
 TEAM=$(basename -s .git "$(git remote get-url origin)")
 NAME=consult-<topic-slug>
-PROJECT=<read-only-anchor-worktree-path>
 scripts/spawn-codex-tab.sh "$TEAM" "$NAME" "$PROJECT"
 ```
 
-The `PROJECT` must be a read-only anchor worktree created for the consultation with `gwq add`. A dedicated path is required even for consultation because agmsg resolves identity per `(project, type)` pair and may not handle multiple Codex identities in the same project path reliably.
+The `PROJECT` must be the dedicated read-only anchor worktree created for the consultation. A dedicated path is required even for consultation because agmsg resolves identity per `(project, type)` pair and may not handle multiple Codex identities in the same project path reliably.
 
 Send the initial task message from `main` to the consultant with agmsg:
 
 ```shell
 ~/.agents/skills/agmsg/scripts/send.sh "$TEAM" main "$NAME" "<message>"
 ```
+
+When the message contains Markdown code fences, pass it with single quotes or through a variable or heredoc; do not place triple-backtick content directly inside a Bash double-quoted string because backticks trigger command substitution.
 
 Use this template and fill in every placeholder before sending:
 
@@ -79,11 +87,13 @@ Send that summary with:
 Use team `<team>` and your role `consult-<topic-slug>`. After sending the summary, tell the user only: "結果を親エージェントに引き継ぎました". Do not show the user the words agmsg, Herdr, pane id, or any internal command.
 ````
 
-After spawning and sending the task message, nudge the consultant exactly once so it reads the briefing before the user enters the pane:
+After spawning and sending the task message, make exactly one successful pre-consultation nudge so the consultant reads the briefing before the user enters the pane:
 
 ```shell
 scripts/nudge-codex.sh <pane_id> "inbox を確認して相談準備をしてください"
 ```
+
+If this nudge exits with code 3 because Codex is still booting or not idle, follow [Nudge Rules](#nudge-rules) and retry after the pane reaches `idle` or `done` until this one pre-consultation nudge succeeds.
 
 Wait for the pane to transition to working, finish reading the briefing, print its ready message, and return to idle by using the same non-intrusive waiting pattern as [Monitoring](#monitoring). Only after this readiness confirmation, tell the user in plain language:
 
@@ -91,9 +101,14 @@ Wait for the pane to transition to working, finish reading the briefing, print i
 相談用のタブ `consult: <topic-slug>` を開きました。そちらで直接お話しください。終わったら「相談おわりました」と伝えてください。
 ```
 
-Treat the consultation pane as user-occupied from the moment this user-facing guidance is sent. Do not nudge it again, read the pane transcript, or otherwise operate it with Herdr while the consultation is active. Wait for the result through the `main` agmsg inbox as described in [Monitoring](#monitoring), then reflect the received consultation result in the next work.
+Treat the consultation pane as user-occupied from the moment this user-facing guidance is sent. Do not nudge it again, read the pane transcript, or otherwise operate it with Herdr while the consultation is active. Wait for the result through the `main` agmsg inbox as described in [Monitoring](#monitoring), then reflect the received consultation result in the next work. If the user confirms outside the pane that the consultation is finished without a summary, `main` may proceed to cleanup without waiting for a consultant summary.
 
-After receiving the consultation summary, ask the user whether they need any additional consultation before cleanup. If there is no additional consultation, close the Herdr tab, reset the consultant registration by following [Cleanup](#cleanup), and remove the read-only anchor worktree.
+After receiving the consultation summary, ask the user whether they need any additional consultation before cleanup. If there is no additional consultation, the consultation's user-occupied state ends and the normal [Cleanup](#cleanup) procedure is allowed. Close the Herdr tab and reset the consultant registration, then remove the read-only anchor worktree and delete the branch created for the anchor worktree:
+
+```shell
+gwq remove consult/<topic-slug>
+git branch -D consult/<topic-slug>
+```
 
 ## Roles And Naming
 

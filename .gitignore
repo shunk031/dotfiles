@@ -13,6 +13,8 @@ coverage*
 home/dot_config/exact_agents/skills/*
 !home/dot_config/exact_agents/skills/ai-slop-checklist-ja/
 !home/dot_config/exact_agents/skills/ai-slop-checklist-ja/**
+!home/dot_config/exact_agents/skills/cgd-dev-identity/
+!home/dot_config/exact_agents/skills/cgd-dev-identity/**
 !home/dot_config/exact_agents/skills/convert-to-transformers/
 !home/dot_config/exact_agents/skills/convert-to-transformers/**
 !home/dot_config/exact_agents/skills/delegate-codex/

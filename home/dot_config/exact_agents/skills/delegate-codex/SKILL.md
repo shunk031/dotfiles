@@ -64,6 +64,8 @@ Use this template and fill in every placeholder before sending:
 
 The user will appear directly in this pane after startup. Your primary job is to answer and discuss with the user in this pane. Do not send intermediate status reports to main.
 
+After reading this briefing, print a short ready message in the pane such as "相談の準備ができました。どうぞお話しください" and wait for the user. Do not send an agmsg reply to main for this readiness signal.
+
 ## Completion Protocol
 
 When the user says "相談おわりました" or any close variant or synonym, summarize the consultation for main. Include the conclusion, decisions, unresolved questions, and recommended actions in a structured message.
@@ -77,13 +79,19 @@ Send that summary with:
 Use team `<team>` and your role `consult-<topic-slug>`. After sending the summary, tell the user only: "結果を親エージェントに引き継ぎました". Do not show the user the words agmsg, Herdr, pane id, or any internal command.
 ````
 
-Immediately after spawning the consultant, tell the user in plain language:
+After spawning and sending the task message, nudge the consultant exactly once so it reads the briefing before the user enters the pane:
+
+```shell
+scripts/nudge-codex.sh <pane_id> "inbox を確認して相談準備をしてください"
+```
+
+Wait for the pane to transition to working, finish reading the briefing, print its ready message, and return to idle by using the same non-intrusive waiting pattern as [Monitoring](#monitoring). Only after this readiness confirmation, tell the user in plain language:
 
 ```text
 相談用のタブ `consult: <topic-slug>` を開きました。そちらで直接お話しください。終わったら「相談おわりました」と伝えてください。
 ```
 
-Treat the consultation pane as user-occupied from spawn onward. Do not nudge it, read the pane transcript, or otherwise operate it with Herdr while the consultation is active. Wait for the result through the `main` agmsg inbox as described in [Monitoring](#monitoring), then reflect the received consultation result in the next work.
+Treat the consultation pane as user-occupied from the moment this user-facing guidance is sent. Do not nudge it again, read the pane transcript, or otherwise operate it with Herdr while the consultation is active. Wait for the result through the `main` agmsg inbox as described in [Monitoring](#monitoring), then reflect the received consultation result in the next work.
 
 After receiving the consultation summary, ask the user whether they need any additional consultation before cleanup. If there is no additional consultation, close the Herdr tab, reset the consultant registration by following [Cleanup](#cleanup), and remove the read-only anchor worktree.
 

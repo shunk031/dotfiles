@@ -2,37 +2,37 @@
 # Keep each group sorted by package name, ignoring backend prefixes and leading `@`.
 
 # Language runtimes
-go = "1.26.4"
+go = "1.26.5"
 node = "lts"
-python = "3.11"
-rust = "1.96.0"
+python = "3.14.6"
+rust = "1.97.1"
 
 # CLI tools
 bun = "1.3.14"
-eza = "0.23.4"
+eza = "0.23.5"
 gcloud = "575.0.0"
-herdr = "0.7.1"
+herdr = "0.7.4"
 sqlite = "3.53.3"
 
 # Aqua tools
 "aqua:FiloSottile/age" = "1.3.1"
-"aqua:google-antigravity/antigravity-cli" = "1.0.16"
-"aqua:aws/aws-cli" = "2.35.15"
+"aqua:google-antigravity/antigravity-cli" = "1.1.3"
+"aqua:aws/aws-cli" = "2.36.1"
 "aqua:bats-core/bats-core" = "1.13.0"
-"aqua:twpayne/chezmoi" = "2.70.5"
+"aqua:twpayne/chezmoi" = "2.71.0"
 "aqua:anthropics/claude-code" = "2.1.217"
 "aqua:openai/codex" = "0.142.5"
-"aqua:dotenvx/dotenvx" = "2.1.4"
+"aqua:dotenvx/dotenvx" = "2.14.0"
 "aqua:bootandy/dust" = "1.2.4"
 "aqua:sharkdp/fd" = "10.4.2"
 "aqua:cli/cli" = "2.96.0"
 "aqua:x-motemen/ghq" = "1.10.1"
 "aqua:jqlang/jq" = "1.8.2"
 "aqua:ahmetb/kubectx" = "0.11.0"
-"aqua:BurntSushi/ripgrep" = "15.1.0"
+"aqua:BurntSushi/ripgrep" = "15.2.0"
 "aqua:koalaman/shellcheck" = "0.11.0"
 "aqua:mvdan/sh" = "3.13.1"
-"aqua:astral-sh/uv" = "0.11.26"
+"aqua:astral-sh/uv" = "0.11.29"
 "aqua:sxyazi/yazi" = "26.5.6"
 "aqua:mikefarah/yq" = "4.53.3"
 
@@ -45,11 +45,11 @@ sqlite = "3.53.3"
 "github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }
 
 # npm tools
-"npm:agmsg" = "1.1.5"
+"npm:agmsg" = "1.1.8"
 "npm:bash-language-server" = "5.6.0"
 "npm:fast-cli" = "5.2.0"
 "npm:pyright" = "1.1.411"
-"npm:skills" = "1.5.14"
+"npm:skills" = "1.5.19"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]

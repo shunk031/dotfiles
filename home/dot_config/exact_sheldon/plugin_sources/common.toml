@@ -62,6 +62,21 @@ export FZF_DEFAULT_OPTS="--reverse"
 #
 # Zsh-related Plugins
 #
+# Keep the zle-critical plugins eager.
+# Deferring syntax-highlighting or autopair reintroduced a
+# post-prompt input hitch during fresh interactive zsh startup.
+# Autosuggestions and completions can stay deferred without
+# hurting input readiness.
+
+[plugins.zsh-syntax-highlighting]
+github = 'zsh-users/zsh-syntax-highlighting'
+# Needs its widgets ready before the first keypress.
+apply = ['source']
+
+[plugins.zsh-autopair]
+github = 'hlissner/zsh-autopair'
+# Wraps the first edit widgets, so keep it eager too.
+apply = ['source']
 
 [plugins.zsh-autosuggestions]
 github = 'zsh-users/zsh-autosuggestions'
@@ -69,14 +84,6 @@ apply = ['defer']
 
 [plugins.zsh-completions]
 github = 'zsh-users/zsh-completions'
-apply = ['defer']
-
-[plugins.zsh-syntax-highlighting]
-github = 'zsh-users/zsh-syntax-highlighting'
-apply = ['defer']
-
-[plugins.zsh-autopair]
-github = 'hlissner/zsh-autopair'
 apply = ['defer']
 
 [plugins.zsh-history-on-success]
@@ -112,7 +119,35 @@ setopt INC_APPEND_HISTORY
 #
 
 [plugins.mise]
-inline = 'eval "$(~/.local/bin/mise activate zsh)"'
+inline = '''
+eval "$(~/.local/bin/mise activate zsh --no-hook-env)"
+
+function _mise_hook() {
+    eval "$(~/.local/bin/mise hook-env -s zsh)"
+}
+
+function _mise_hook_precmd() {
+    eval "$(~/.local/bin/mise hook-env -s zsh --reason precmd)"
+}
+
+function _mise_hook_chpwd() {
+    eval "$(~/.local/bin/mise hook-env -s zsh --reason chpwd)"
+}
+
+typeset -ag precmd_functions
+typeset -ag chpwd_functions
+
+if [[ -z "${precmd_functions[(r)_mise_hook_precmd]+1}" ]]; then
+    precmd_functions=( _mise_hook_precmd ${precmd_functions[@]} )
+fi
+
+if [[ -z "${chpwd_functions[(r)_mise_hook_chpwd]+1}" ]]; then
+    chpwd_functions=( _mise_hook_chpwd ${chpwd_functions[@]} )
+fi
+
+_mise_hook
+export __MISE_ZSH_PRECMD_RUN=1
+'''
 
 #
 # Language-related plugins
@@ -123,14 +158,13 @@ inline = '''
 function _lang() {
     export LANG='en_US.UTF-8'
 }
-zsh-defer _lang
+_lang
 '''
 
 [plugins.go]
 inline = '''
 function _go() {
     export GOPATH="${HOME}/ghq"
-    export GOROOT=$(go env GOROOT)
 
     typeset -gU path
     path=(
@@ -139,7 +173,7 @@ function _go() {
         ${HOME}/.go/bin(N-/)
     )
 }
-zsh-defer _go
+_go
 '''
 
 [plugins.rust]
@@ -151,7 +185,7 @@ function _rust() {
         ${HOME}/.cargo/bin(N-/)
     )
 }
-zsh-defer _rust
+_rust
 '''
 
 [plugins.bun]
@@ -207,5 +241,5 @@ function _private_dotfiles() {
         source "$filepath"
     fi
 }
-zsh-defer _private_dotfiles
+_private_dotfiles
 '''

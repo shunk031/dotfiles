@@ -20,7 +20,7 @@ sqlite = "3.53.3"
 "aqua:aws/aws-cli" = "2.35.15"
 "aqua:bats-core/bats-core" = "1.13.0"
 "aqua:twpayne/chezmoi" = "2.70.5"
-"aqua:anthropics/claude-code" = "2.1.201"
+"aqua:anthropics/claude-code" = "2.1.217"
 "aqua:openai/codex" = "0.142.5"
 "aqua:dotenvx/dotenvx" = "2.1.4"
 "aqua:bootandy/dust" = "1.2.4"
@@ -41,7 +41,7 @@ sqlite = "3.53.3"
 
 # GitHub release tools
 "github:d-kuro/gwq" = "0.1.1"
-"github:router-for-me/CLIProxyAPI" = "7.2.66"
+"github:router-for-me/CLIProxyAPI" = "7.2.94"
 "github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }
 
 # npm tools

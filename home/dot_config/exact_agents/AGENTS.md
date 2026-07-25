@@ -3,6 +3,11 @@
 > [!NOTE]
 > After reading this `AGENTS.md`, say: `🤖 I read ~/.agents/AGENTS.md.`
 
+## Language Policy
+
+- Reasoning language: Think and reason in English by default.
+- Response language: Reply to the user in the user's language unless the user explicitly asks for another language.
+
 ## 指示の記述
 
 - 記述形式: 詳細な指示は `- 概要: 詳細` のような形式で整理してください。

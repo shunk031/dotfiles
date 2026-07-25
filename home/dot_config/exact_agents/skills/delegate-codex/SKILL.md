@@ -207,6 +207,40 @@ In `## 変更対象`, list concrete file paths and ownership boundaries. In `## 
 - If `nudge-codex.sh` exits with code 3, the pane is not idle or done. Wait until the pane's `agent_status` is `idle` or `done`, then retry the nudge.
 - Always run the occupancy check before a nudge. If the pane has become user-occupied, stop operating it and spawn a fresh implementer.
 
+## Restart Recovery
+
+At the start of a session after a host, shell, or Herdr restart, run the lane sweep before operating existing implementers:
+
+```shell
+~/.claude/skills/delegate-codex/scripts/sweep-codex-lanes.sh
+```
+
+The sweep scans `impl:` and `consult:` Herdr tabs and classifies each lane as `ALIVE`, `DEAD`, or `ZOMBIE`. Treat `DEAD` and `ZOMBIE` lanes as unavailable for new work until they are recovered or removed. Treat Codex lanes that were started before the restart as suspect even when the sweep reports `ALIVE`; verify recent transcript ownership and progress before nudging them.
+
+Recover a stale implementer with the same worktree and role:
+
+1. Close the stale Herdr tab:
+
+   ```shell
+   herdr tab close <tab_id>
+   ```
+
+2. Remove the stale Codex agmsg registration:
+
+   ```shell
+   ~/.agents/skills/agmsg/scripts/reset.sh "$PROJECT" codex "$NAME"
+   ```
+
+3. Spawn a replacement in the same worktree:
+
+   ```shell
+   ~/.claude/skills/delegate-codex/scripts/spawn-codex-tab.sh "$TEAM" "$NAME" "$PROJECT"
+   ```
+
+4. Resend the task context through agmsg and nudge the new pane with the standard [Nudge Rules](#nudge-rules).
+
+Use the plain `codex` executable for `spawn-codex-tab.sh` unless the local environment instructions explicitly require another executable. The wrapper already injects profile options from agmsg spawn options; setting `HERDR_CODEX_BIN=codex-dev` in an environment where spawn options also provide `--profile` can duplicate profile arguments and fail startup.
+
 ## Monitoring
 
 Wait for the implementer's current turn to finish with:

@@ -59,6 +59,11 @@
             "type": "command",
             "command": "bash ~/.claude/hooks/herdr-agent-state.sh session",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/skills/delegate-codex/scripts/sweep-codex-lanes.sh --hook",
+            "timeout": 10
           }
         ]
       }

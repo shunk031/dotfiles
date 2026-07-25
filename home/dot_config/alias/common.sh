@@ -4,7 +4,7 @@
 # These aliases wrap common repository and local workflow commands.
 
 # Use eza for ls command
-alias ls="eza --long --group --header --binary --time-style=long-iso --icons"
+alias ls="eza --long --group --header --binary --time-style=long-iso --icons=auto"
 
 # Alias for private chezmoi configuration
 # ref. https://www.chezmoi.io/user-guide/frequently-asked-questions/design/#can-chezmoi-support-multiple-sources-or-multiple-source-states

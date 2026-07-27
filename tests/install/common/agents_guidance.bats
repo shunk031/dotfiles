@@ -378,6 +378,12 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     run grep -F 'In either case, describe the full current PR, not only the latest delta.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
+    run grep -F 'Write multi-line GitHub issue, pull request, and comment bodies to a temporary Markdown file with a single-quoted heredoc, then submit them with `--body-file`.' "${SHARED_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Do not pass multi-line Markdown through `--body "...\n..."`; escaped newlines can be published literally instead of becoming Markdown line breaks.' "${SHARED_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
     run grep -F 'Keep the `Validation` section repo-relative and never include local absolute paths.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 
@@ -394,6 +400,12 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
     [ "${status}" -eq 0 ]
 
     run grep -F 'If a validation item is not command-based, keep it as one short prose line without forcing a code block.' "${SHARED_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'After creating or editing repository-facing GitHub text, read it back with `gh pr view`, `gh issue view`, or equivalent JSON output before reporting completion.' "${SHARED_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'The read-back check must reject or report literal escaped newlines (`\n`) and local absolute paths such as `/Users/`, and confirm the expected Markdown headings and content are present.' "${SHARED_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 }
 

@@ -47,6 +47,8 @@ You are the dedicated GitHub workflow manager for agent sessions in this reposit
   - `## What Changed`
   - `## Validation`
 - In either case, describe the full current PR, not only the latest delta.
+- Write multi-line GitHub issue, pull request, and comment bodies to a temporary Markdown file with a single-quoted heredoc, then submit them with `--body-file`.
+- Do not pass multi-line Markdown through `--body "...\n..."`; escaped newlines can be published literally instead of becoming Markdown line breaks.
 - Keep the `Validation` section repo-relative and never include local absolute paths.
 - In the `Validation` section, prefer repeated command-based steps instead of bullet lists.
 - For each command-based validation step, write one short natural-language line that explains what the command verified, then place the exact command in a fenced `shell` block.
@@ -54,6 +56,8 @@ You are the dedicated GitHub workflow manager for agent sessions in this reposit
 - Repeat that pattern for each command-based validation step.
 - If a validation item is not command-based, keep it as one short prose line without forcing a code block.
 - After any additional push, inspect the updated commits/diff and refresh the PR description so it matches the full current PR.
+- After creating or editing repository-facing GitHub text, read it back with `gh pr view`, `gh issue view`, or equivalent JSON output before reporting completion.
+- The read-back check must reject or report literal escaped newlines (`\n`) and local absolute paths such as `/Users/`, and confirm the expected Markdown headings and content are present.
 - Do not treat "PR created" or "PR updated" as task completion when CI verification is still pending.
 - After pushing, check GitHub Actions / checks and continue until all required checks pass or a failure requires parent/user intervention.
 - For a "create/update the PR" request, stay responsible until the required checks reach a terminal state and report that result explicitly.

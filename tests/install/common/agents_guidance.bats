@@ -18,6 +18,9 @@ readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/exact_agents/README.md"
 readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
 readonly SHARED_SKILLS_SYMLINK_DIR="./home/exact_dot_agents/skills"
 readonly CLAUDE_SKILLS_KEEP_PATH="./home/dot_claude/skills/.keep"
+readonly CLAUDE_SKILL_DIR_SYMLINK_TEMPLATE="./home/dot_claude/symlink_skills.tmpl"
+readonly GEMINI_SKILLS_SYMLINK_DIR="./home/dot_gemini/config/skills"
+readonly GEMINI_SKILL_DIR_SYMLINK_TEMPLATE="./home/dot_gemini/config/symlink_skills.tmpl"
 readonly LINK_SHARED_SKILLS_SCRIPT="./home/.chezmoiscripts/common/run_after_90-link-shared-skills.sh.tmpl"
 readonly GITIGNORE_PATH="./.gitignore"
 
@@ -285,12 +288,35 @@ readonly GITIGNORE_PATH="./.gitignore"
 
 @test "[common] shared skills pool exposes repo-managed skills through per-skill symlink templates" {
     [ ! -e "./home/exact_dot_agents/symlink_skills.tmpl" ]
-    [ ! -e "./home/dot_claude/symlink_skills.tmpl" ]
+    [ ! -e "${CLAUDE_SKILL_DIR_SYMLINK_TEMPLATE}" ]
+    [ ! -e "${GEMINI_SKILL_DIR_SYMLINK_TEMPLATE}" ]
     [ -d "${SHARED_SKILLS_SYMLINK_DIR}" ]
 
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_humanizer-ja.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/humanizer-ja" ]
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/setup-agent-docs" ]
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shdoc-shell-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shdoc-shell-docs" ]
+}
+
+@test "[common] Gemini skills expose repo-managed skills through per-skill symlink templates" {
+    [ -d "${GEMINI_SKILLS_SYMLINK_DIR}" ]
+
+    local skills="ai-slop-checklist-ja cgd-dev-identity convert-to-transformers gh-comment-attach-files high-impact-journal-publishing humanizer-ja python-uv-workflow setup-agent-docs shdoc-shell-docs"
+    local skill
+    local template
+    local expected
+
+    for skill in ${skills}; do
+        template="${GEMINI_SKILLS_SYMLINK_DIR}/symlink_${skill}.tmpl"
+        expected="{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/${skill}"
+        [ -f "${template}" ]
+        [ "$(< "${template}")" = "${expected}" ]
+    done
+
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_agmsg.tmpl" ]
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_delegate-codex.tmpl" ]
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_herdr.tmpl" ]
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_skill-creator.tmpl" ]
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_worklog-manager.tmpl" ]
 }
 
 @test "[common] Claude skills directory is a real, installer-writable directory" {

@@ -1,6 +1,8 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./install/ubuntu/common/setup_timezone.sh"
+readonly SETUP_TIMEZONE_TEMPLATE="./home/.chezmoiscripts/ubuntu/run_once_before_40-setup-timezone.sh.tmpl"
+readonly DEPENDENCIES_TEMPLATE="./home/.chezmoiscripts/ubuntu/run_once_before_50-common-dependencies.sh.tmpl"
 
 function run_setup_timezone_with_stubs() {
     local timezone="${1:-Asia/Tokyo}"
@@ -58,4 +60,10 @@ function run_setup_timezone_with_stubs() {
     run cat "${TIMEZONE_PATH}"
     [ "${status}" -eq 0 ]
     [ "${output}" = "Etc/UTC" ]
+}
+
+@test "[ubuntu-common] setup_timezone hook runs before common dependencies" {
+    [ -f "${SETUP_TIMEZONE_TEMPLATE}" ]
+    [ -f "${DEPENDENCIES_TEMPLATE}" ]
+    [[ "${SETUP_TIMEZONE_TEMPLATE}" < "${DEPENDENCIES_TEMPLATE}" ]]
 }

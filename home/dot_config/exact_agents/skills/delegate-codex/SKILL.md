@@ -195,6 +195,10 @@ Use this template:
 
 In `## 変更対象`, list concrete file paths and ownership boundaries. In `## 完了条件`, list the exact verification commands or CI expectations, and always include that completion means PR creation plus green CI only: the implementer must not merge; `main` reviews and leaves the merge decision to the user. In `## 報告`, ask the implementer to reply with the PR URL, CI state, and any review notes. The implementer's own GitHub workflow guidance is responsible for commit, push, PR, and CI discipline.
 
+Task messages that ask the implementer to create or update GitHub PR, issue, or comment bodies must require temp-file body handling: write multi-line Markdown to a temporary file with a single-quoted heredoc and pass it with `gh ... --body-file <file>`, never with `--body "...\n..."` or shell-escaped inline strings.
+
+Before reporting completion, the implementer must read body content back with `gh pr view ... --json body --jq .body`, `gh issue view`, or equivalent, reject/report literal `\n` and `/Users/`, and report body read-back pass together with the PR URL and CI state.
+
 ## Nudge Rules
 
 - Nudge only through the bundled helper:
@@ -264,6 +268,8 @@ For long-running work, repeat non-intrusive checks: wait for the pane status, re
 - Merge execution: merge only when the user explicitly instructs `main` to merge that specific PR. Do not carry forward an apparent blanket approval from prior context to a new PR, and do not let `main` or the implementer self-merge because the change looks small or routine.
 
 Keep push, PR creation or update, and CI confirmation on the implementer side. The implementer Codex should use its own GitHub workflow guidance for git and GitHub write operations.
+
+When the implementer directly creates or updates a PR, issue, or comment body, the same temp-file body and read-back guard is part of the implementer's completion criteria. A PR URL alone is not enough; the report must include body read-back pass and CI state.
 
 ## Cleanup
 

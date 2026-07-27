@@ -40,6 +40,9 @@
 - 口調: GitHub comment には「訂正します」「すみません」「そういう意味ではなく」「I misunderstood」などの会話上の修復表現や、ユーザー向けの meta commentary を含めないでください。
 - 内容: GitHub comment は中立的・事実ベース・監査可能で、あとから読む repository maintainer に役立つ内容にしてください。
 - 投稿前確認: 投稿または編集の前に、comment 本文を現在の repository の事実、実行した command、確認した check / report と照合してください。曖昧な要約よりも、具体的な検証結果・対象ファイル・残っている blocker を優先してください。
+- 本文の渡し方: GitHub issue body / PR description / PR comment のような multi-line Markdown は、必ず一時 Markdown file を single-quoted heredoc で作り、`gh ... --body-file <file>` で投稿・更新してください。
+- 禁止: `gh ... --body "...\n..."` や shell-escaped multi-line body の直渡しは、literal `\n` が公開されるため使わないでください。
+- Read-back: 作成または編集後は `gh pr view`、`gh issue view`、`gh api` などで本文を read back し、literal escaped newlines (`\n`)、local absolute paths such as `/Users/`、期待見出しの欠落を検出してから完了報告してください。
 - 詳細の畳み込み: 長い診断ログや調査詳細は、短い summary を付けた `<details>` に入れて、comment の先頭では結論と必要な action が読めるようにしてください。
 - 誤投稿時の対応: 不適切な comment を投稿した場合は、可能な限り既存 comment を編集して修正してください。悪い comment を残したまま、重複する訂正 comment を新規投稿しないでください。
 

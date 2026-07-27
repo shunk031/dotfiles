@@ -5,6 +5,7 @@
 *fuga*
 
 **/.claude/settings.local.json
+.playwright-cli/
 
 ### Linux ###
 *~

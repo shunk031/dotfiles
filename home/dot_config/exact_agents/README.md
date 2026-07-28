@@ -2,7 +2,7 @@ In this repo, this directory is the editable shared source for agent guidance th
 
 In chezmoi, `dot_` changes a target name to start with `.`, while `exact_` removes entries in the target directory that are not explicitly managed in the source state. This repo does not apply `.config/agents` directly: [home/.chezmoitemplates/chezmoiignore.d/common](../../.chezmoitemplates/chezmoiignore.d/common) ignores that target, while [home/exact_dot_agents/](../../exact_dot_agents/) provides the home-facing `~/.agents` adapter.
 
-[AGENTS.md](AGENTS.md) is the shared guidance used directly by `~/.agents/AGENTS.md`, imported from `~/.claude/CLAUDE.md` with `@~/.agents/AGENTS.md`, and read first from `~/.codex/AGENTS.md` before `~/.codex/AGENTS.codex-only.md`. Shared long-form agent instructions live in [agents/](agents/) and are exposed as `~/.agents/agents`; Claude Markdown wrappers and Codex TOML wrappers explicitly tell each tool to read the same shared Markdown first. Edit files here; the adapter keeps the home path stable.
+[AGENTS.md](AGENTS.md) is the shared guidance used directly by `~/.agents/AGENTS.md` and imported from `~/.claude/CLAUDE.md` with `@~/.agents/AGENTS.md`. Shared long-form agent instructions live in [agents/](agents/) and are exposed as `~/.agents/agents`; Claude Markdown wrappers explicitly tell the tool to read the same shared Markdown first. Edit files here; the adapter keeps the home path stable.
 
 ## Skill Ignore Policy
 
@@ -18,7 +18,6 @@ The diagram below describes this repository's source-of-truth layout, not the me
 flowchart LR
   subgraph RUNTIME["runtime"]
     U_CLAUDE["Claude Code"]
-    U_CODEX["Codex"]
   end
 
   subgraph HOME["$HOME"]
@@ -29,10 +28,6 @@ flowchart LR
     H_SHARED(["~/.agents/AGENTS.md"])
     H_SHARED_AGENTS(["~/.agents/agents/"])
     H_SHARED_SKILLS(["~/.agents/skills/"])
-
-    H_CODEX(["~/.codex/AGENTS.md"])
-    H_CODEX_ONLY(["~/.codex/AGENTS.codex-only.md"])
-    H_CODEX_AGENTS(["~/.codex/agents/"])
   end
 
   subgraph CHEZMOI["chezmoi source state"]
@@ -46,10 +41,6 @@ flowchart LR
       A_SHARED["home/exact_dot_agents/symlink_AGENTS.md.tmpl"]
       A_SHARED_AGENTS["home/exact_dot_agents/symlink_agents.tmpl"]
       A_SHARED_SKILLS["home/exact_dot_agents/symlink_skills.tmpl"]
-
-      A_CODEX["home/dot_codex/symlink_AGENTS.md.tmpl"]
-      A_CODEX_ONLY["home/dot_codex/symlink_AGENTS.codex-only.md.tmpl"]
-      A_CODEX_AGENTS["home/dot_codex/symlink_agents.tmpl"]
     end
 
     subgraph CANONICAL["canonical source"]
@@ -59,10 +50,6 @@ flowchart LR
       S_SHARED["home/dot_config/exact_agents/AGENTS.md"]
       S_SHARED_AGENTS["home/dot_config/exact_agents/agents/"]
       S_SHARED_SKILLS["home/dot_config/exact_agents/skills/"]
-
-      S_CODEX["home/dot_config/codex/AGENTS.md"]
-      S_CODEX_ONLY["home/dot_config/codex/AGENTS.codex-only.md"]
-      S_CODEX_AGENTS["home/dot_config/codex/agents/"]
     end
   end
 
@@ -72,12 +59,6 @@ flowchart LR
   H_CLAUDE --> H_SHARED
   H_CLAUDE_AGENTS --> H_SHARED_AGENTS
 
-  U_CODEX --> H_CODEX
-  U_CODEX --> H_SHARED_SKILLS
-  U_CODEX --> H_CODEX_AGENTS
-  H_CODEX_AGENTS --> H_SHARED_AGENTS
-  H_CODEX --> H_SHARED --> H_CODEX_ONLY
-
   H_CLAUDE --> A_CLAUDE --> S_CLAUDE
   H_CLAUDE_AGENTS --> A_CLAUDE_AGENTS --> S_CLAUDE_AGENTS
   H_CLAUDE_SKILLS --> A_CLAUDE_SKILLS --> S_SHARED_SKILLS
@@ -86,17 +67,11 @@ flowchart LR
   H_SHARED_AGENTS --> A_SHARED_AGENTS --> S_SHARED_AGENTS
   H_SHARED_SKILLS --> A_SHARED_SKILLS --> S_SHARED_SKILLS
 
-  H_CODEX --> A_CODEX --> S_CODEX
-  H_CODEX_ONLY --> A_CODEX_ONLY --> S_CODEX_ONLY
-  H_CODEX_AGENTS --> A_CODEX_AGENTS --> S_CODEX_AGENTS
-
   classDef runtime fill:#f5f5f5,stroke:#444,color:#111;
   classDef agents fill:#eef7ee,stroke:#4f7a4f,color:#111;
   classDef claude fill:#eef4ff,stroke:#4a6fa5,color:#111;
-  classDef codex fill:#fff3e8,stroke:#b26b2a,color:#111;
 
-  class U_CLAUDE,U_CODEX runtime;
+  class U_CLAUDE runtime;
   class H_SHARED,H_SHARED_AGENTS,H_SHARED_SKILLS,A_SHARED,A_SHARED_AGENTS,A_SHARED_SKILLS,S_SHARED,S_SHARED_AGENTS,S_SHARED_SKILLS agents;
   class H_CLAUDE,H_CLAUDE_AGENTS,H_CLAUDE_SKILLS,A_CLAUDE,A_CLAUDE_AGENTS,A_CLAUDE_SKILLS,S_CLAUDE,S_CLAUDE_AGENTS claude;
-  class H_CODEX,H_CODEX_ONLY,H_CODEX_AGENTS,A_CODEX,A_CODEX_ONLY,A_CODEX_AGENTS,S_CODEX,S_CODEX_ONLY,S_CODEX_AGENTS codex;
 ```

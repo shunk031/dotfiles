@@ -104,7 +104,7 @@ readonly GITIGNORE_PATH="./.gitignore"
 @test "[common] shared guidance defines agent teams delegation policy" {
     run grep -F '## 実装タスクの委譲 (agent teams)' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '- 委譲方針: 実装タスクでは Claude Code の agent teams を使い、メインエージェントをオーケストレータ、チームメイトを実装者としてください。' "${SHARED_AGENTS_PATH}"
+    run grep -F -- '- 委譲方針: 実装タスクでは Claude Code の agent teams を使い、メインエージェントをオーケストレータ、チームメイトを実装者としてください。' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'チームメイトが使うモデルや起動方法などの環境固有設定は、このファイルには書かず `~/.agents/AGENTS-private.md` を参照してください。' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

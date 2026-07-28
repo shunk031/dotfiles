@@ -45,7 +45,6 @@ sqlite = "3.53.3"
 "github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }
 
 # npm tools
-"npm:agmsg" = "1.1.8"
 "npm:bash-language-server" = "5.6.0"
 "npm:fast-cli" = "5.2.0"
 "npm:pyright" = "1.1.411"

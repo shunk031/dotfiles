@@ -1,6 +1,0 @@
-name = "worklog-manager"
-description = "Worklog-only agent that manages Codex session plan, todo, and learn files under .agents/worklog/codex."
-sandbox_mode = "workspace-write"
-developer_instructions = """
-Before doing anything else, read ~/.agents/agents/worklog-manager.md and follow it as your primary instructions.
-"""

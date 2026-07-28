@@ -21,7 +21,6 @@ sqlite = "3.53.3"
 "aqua:bats-core/bats-core" = "1.13.0"
 "aqua:twpayne/chezmoi" = "2.71.0"
 "aqua:anthropics/claude-code" = "2.1.217"
-"aqua:openai/codex" = "0.142.5"
 "aqua:dotenvx/dotenvx" = "2.14.0"
 "aqua:bootandy/dust" = "1.2.4"
 "aqua:sharkdp/fd" = "10.4.2"
@@ -56,6 +55,5 @@ idiomatic_version_file_enable_tools = ["python"]
 minimum_release_age = "7d"
 minimum_release_age_excludes = [
   "aqua:anthropics/claude-code",
-  "aqua:openai/codex",
   "aqua:google-antigravity/antigravity-cli",
 ]

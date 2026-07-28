@@ -15,8 +15,7 @@
     {
       "matchManagers": ["mise"],
       "matchPackageNames": [
-        "npm:@anthropic-ai/claude-code",
-        "npm:@openai/codex"
+        "npm:@anthropic-ai/claude-code"
       ],
       "groupName": "agent CLIs"
     },
@@ -37,8 +36,7 @@
       "groupName": "mise tools",
       "matchPackageNames": [
         "!python",
-        "!npm:@anthropic-ai/claude-code",
-        "!npm:@openai/codex"
+        "!npm:@anthropic-ai/claude-code"
       ]
     }
   ]

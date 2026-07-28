@@ -17,7 +17,7 @@
       "Read(.env.*)",
       "Read(id_rsa*)",
       "Read(id_ed25519*)",
-      "Write(.env*)"
+      "Edit(.env*)"
     ],
     "defaultMode": "plan"
   },

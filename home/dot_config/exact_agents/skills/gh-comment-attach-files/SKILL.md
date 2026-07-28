@@ -11,7 +11,7 @@ description: Attach local files to a GitHub issue or pull request comment via Pl
 
 ## When To Use
 
-Use this skill when you need GitHub to host local files and give back anonymized attachment URLs, but you do not want Codex to submit the issue or pull request comment itself.
+Use this skill when you need GitHub to host local files and give back anonymized attachment URLs, but you do not want the agent to submit the issue or pull request comment itself.
 
 Typical cases:
 

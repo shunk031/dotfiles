@@ -26,7 +26,7 @@ write 操作を始める前に、作業シェルと worktree で以下を確認�
    export GH_TOKEN="$CGD_DEV_GH_TOKEN"
    ```
 
-   Claude Code / Codex の shell tool のようにコマンドごとに新しい shell が立つ環境では `export` は次のコマンドへ持続しないため、per-command prefix を正とする。
+   Claude Code の shell tool のようにコマンドごとに新しい shell が立つ環境では `export` は次のコマンドへ持続しないため、per-command prefix を正とする。
 
 2. GitHub identity と org repository の push 権限を確認する。`gh api user` はログイン中のアカウント確認にしかならず、org リソースへのアクセス可否は検証できない:
 

@@ -5,7 +5,7 @@ description: リポジトリを coding agent 対応にするときの agent ド�
 
 # setup-agent-docs
 
-リポジトリに agent 向けドキュメントを配線するときの標準パターン。Claude Code / Codex など複数の coding agent が同じ実体を読み、重複や乖離が生まれないようにする。
+リポジトリに agent 向けドキュメントを配線するときの標準パターン。複数の coding agent が同じ実体を読み、重複や乖離が生まれないようにする。
 
 ## 配線ルール
 
@@ -25,7 +25,7 @@ description: リポジトリを coding agent 対応にするときの agent ド�
   git add CLAUDE.md   # mode 120000 で追跡されることを確認: git ls-files -s CLAUDE.md
   ```
 
-  symlink にする理由: Claude Code・Codex・その他ツールが同一実体を読むため、import 記法の対応差やコピー乖離が発生しない。
+  symlink にする理由: Claude Code・その他ツールが同一実体を読むため、import 記法の対応差やコピー乖離が発生しない。
 
 - repo-local skill の配線: skill の source of truth は `.agents/skills/<name>/SKILL.md` に置き、`.claude/skills` は相対 symlink としてコミットする。
 
@@ -34,7 +34,7 @@ description: リポジトリを coding agent 対応にするときの agent ド�
   ln -s ../.agents/skills .claude/skills
   ```
 
-  Codex は Claude の skill 機構を持たないが、SKILL.md はただの Markdown なので、AGENTS.md から `.agents/skills/<name>/SKILL.md` のパス参照で同じ手順を辿らせる。
+  Claude の skill 機構を持たない coding agent でも、SKILL.md はただの Markdown なので、AGENTS.md から `.agents/skills/<name>/SKILL.md` のパス参照で同じ手順を辿らせる。
 
 - private 境界: 社内ネットワーク、起動プロファイル、proxy 事情などの private 情報はリポジトリに一切書かない。必要な箇所には「環境固有の設定は `~/.agents/AGENTS-private.md` の該当節を参照」というポインタだけを置く。グローバル AGENTS.md が AGENTS-private.md の読み込みを指示しているため、ポインタだけで agent は辿れる。
 

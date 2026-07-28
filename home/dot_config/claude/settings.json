@@ -6,8 +6,7 @@
     "DISABLE_AUTOUPDATER": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
-    "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
-    "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+    "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3"
   },
   "plansDirectory": "./.agents/worklog/claude",
   "permissions": {

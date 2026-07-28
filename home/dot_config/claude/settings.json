@@ -1,6 +1,7 @@
 {
   "model": "opusplan",
   "alwaysThinkingEnabled": true,
+  "disableClaudeAiConnectors": true,
   "env": {
     "DISABLE_AUTOUPDATER": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",

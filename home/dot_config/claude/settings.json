@@ -11,6 +11,7 @@
   },
   "plansDirectory": "./.agents/worklog/claude",
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
@@ -18,8 +19,7 @@
       "Read(id_rsa*)",
       "Read(id_ed25519*)",
       "Edit(.env*)"
-    ],
-    "defaultMode": "plan"
+    ]
   },
   "hooks": {
     "PreToolUse": [

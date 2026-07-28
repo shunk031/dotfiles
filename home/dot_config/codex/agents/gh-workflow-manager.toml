@@ -1,6 +1,0 @@
-name = "gh-workflow-manager"
-description = "GitHub and pull request workflow agent for Codex sessions, covering gh-first investigation, safe git operations, PR upkeep, and CI verification."
-sandbox_mode = "workspace-write"
-developer_instructions = """
-Before doing anything else, read ~/.agents/agents/gh-workflow-manager.md and follow it as your primary instructions.
-"""

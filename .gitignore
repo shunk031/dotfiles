@@ -17,8 +17,6 @@ home/dot_config/exact_agents/skills/*
 !home/dot_config/exact_agents/skills/cgd-dev-identity/**
 !home/dot_config/exact_agents/skills/convert-to-transformers/
 !home/dot_config/exact_agents/skills/convert-to-transformers/**
-!home/dot_config/exact_agents/skills/delegate-codex/
-!home/dot_config/exact_agents/skills/delegate-codex/**
 !home/dot_config/exact_agents/skills/gh-comment-attach-files/
 !home/dot_config/exact_agents/skills/gh-comment-attach-files/**
 !home/dot_config/exact_agents/skills/high-impact-journal-publishing/
@@ -42,8 +40,6 @@ home/dot_config/exact_agents/skills/*/.playwright-cli/
 # hooks by default and explicitly allow repo-managed hooks below.
 home/dot_config/claude/hooks/*
 !home/dot_config/claude/hooks/enforce-uv.sh
-
-home/dot_config/claude/commands/agmsg.md
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

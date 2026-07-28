@@ -7,33 +7,6 @@ coverage*
 .agents/worklog/
 .playwright-cli/
 
-# ~/.agents/skills and ~/.claude/skills point here, so global skill installers
-# can expand generated skills into the chezmoi source tree. Ignore generated
-# skills by default and explicitly allow repo-managed skills below.
-home/dot_config/exact_agents/skills/*
-!home/dot_config/exact_agents/skills/ai-slop-checklist-ja/
-!home/dot_config/exact_agents/skills/ai-slop-checklist-ja/**
-!home/dot_config/exact_agents/skills/cgd-dev-identity/
-!home/dot_config/exact_agents/skills/cgd-dev-identity/**
-!home/dot_config/exact_agents/skills/convert-to-transformers/
-!home/dot_config/exact_agents/skills/convert-to-transformers/**
-!home/dot_config/exact_agents/skills/gh-comment-attach-files/
-!home/dot_config/exact_agents/skills/gh-comment-attach-files/**
-!home/dot_config/exact_agents/skills/high-impact-journal-publishing/
-!home/dot_config/exact_agents/skills/high-impact-journal-publishing/**
-!home/dot_config/exact_agents/skills/humanizer-ja/
-!home/dot_config/exact_agents/skills/humanizer-ja/**
-!home/dot_config/exact_agents/skills/python-uv-workflow/
-!home/dot_config/exact_agents/skills/python-uv-workflow/**
-!home/dot_config/exact_agents/skills/setup-agent-docs/
-!home/dot_config/exact_agents/skills/setup-agent-docs/**
-!home/dot_config/exact_agents/skills/shdoc-shell-docs/
-!home/dot_config/exact_agents/skills/shdoc-shell-docs/**
-
-# Keep runtime artifacts inside allowlisted skills ignored; this must stay
-# after the allowlist entries above because the last matching pattern wins.
-home/dot_config/exact_agents/skills/*/.playwright-cli/
-
 # Herdr and other integrations may generate Claude hooks here. Ignore generated
 # hooks by default and explicitly allow repo-managed hooks below.
 home/dot_config/claude/hooks/*

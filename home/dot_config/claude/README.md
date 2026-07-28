@@ -1,6 +1,7 @@
 - This directory is the canonical source for `~/.claude`.
 - [CLAUDE.md](CLAUDE.md) imports the shared guidance with `@~/.agents/AGENTS.md`; add Claude-specific guidance below that import when needed.
 - [agents/](agents/) contains Claude subagent wrappers exposed as `~/.claude/agents`. Keep long shared instructions in `~/.agents/agents`; each wrapper keeps Claude subagent frontmatter and tells Claude to read `~/.agents/agents/<name>.md` first.
+- `~/.claude/skills` is a real, Claude-only directory, not part of this canonical source: skill installers write generated skills there directly, and a `run_after` script subscribes it to the shared skills pool at `~/.agents/skills` (see [home/dot_config/exact_agents/README.md](../exact_agents/README.md#skill-pool-and-subscription-policy)).
 - [home/dot_claude/](../../dot_claude/) is only the adapter layer that exposes this source in the applied home layout.
 - The design keeps edits in one git-friendly place while preserving the familiar home path.
 - Edit files here; the adapter keeps the home path stable.

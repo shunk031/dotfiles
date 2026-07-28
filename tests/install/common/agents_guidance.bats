@@ -14,6 +14,10 @@ readonly AGENTS_README_PATH="./home/exact_dot_agents/README.md"
 readonly CLAUDE_README_PATH="./home/dot_claude/README.md"
 readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/exact_agents/README.md"
 readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
+readonly SHARED_SKILLS_SYMLINK_DIR="./home/exact_dot_agents/skills"
+readonly CLAUDE_SKILLS_KEEP_PATH="./home/dot_claude/skills/.keep"
+readonly LINK_SHARED_SKILLS_SCRIPT="./home/.chezmoiscripts/common/run_after_90-link-shared-skills.sh.tmpl"
+readonly GITIGNORE_PATH="./.gitignore"
 
 @test "[common] codex guidance entrypoints are removed" {
     [ -f "${SHARED_AGENTS_PATH}" ]
@@ -275,4 +279,43 @@ readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
     [ "${status}" -eq 0 ]
     run grep -Fx ".config/agents" "${CHEZMOIIGNORE_PATH}"
     [ "${status}" -eq 0 ]
+}
+
+@test "[common] shared skills pool exposes repo-managed skills through per-skill symlink templates" {
+    [ ! -e "./home/exact_dot_agents/symlink_skills.tmpl" ]
+    [ ! -e "./home/dot_claude/symlink_skills.tmpl" ]
+    [ -d "${SHARED_SKILLS_SYMLINK_DIR}" ]
+
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_humanizer-ja.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/humanizer-ja" ]
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/setup-agent-docs" ]
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shdoc-shell-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shdoc-shell-docs" ]
+}
+
+@test "[common] Claude skills directory is a real, installer-writable directory" {
+    [ -f "${CLAUDE_SKILLS_KEEP_PATH}" ]
+    [ ! -s "${CLAUDE_SKILLS_KEEP_PATH}" ]
+}
+
+@test "[common] run_after script subscribes tool skills directories to the shared pool" {
+    [ -f "${LINK_SHARED_SKILLS_SCRIPT}" ]
+
+    run grep -F 'POOL="${HOME}/.agents/skills"' "${LINK_SHARED_SKILLS_SCRIPT}"
+    [ "${status}" -eq 0 ]
+    run grep -F '"${HOME}/.claude/skills"' "${LINK_SHARED_SKILLS_SCRIPT}"
+    [ "${status}" -eq 0 ]
+    run grep -F '{{ if ne (env "CI") "true" -}}' "${LINK_SHARED_SKILLS_SCRIPT}"
+    [ "${status}" -eq 0 ]
+
+    # Never clobber a real, installer-written entry with a pool symlink.
+    run grep -F 'if [ -e "${target}" ] && [ ! -L "${target}" ]; then' "${LINK_SHARED_SKILLS_SCRIPT}"
+    [ "${status}" -eq 0 ]
+
+    # Prune dangling pool symlinks whose pool entry has been removed.
+    run grep -F 'if [ ! -e "${link_target}" ]; then' "${LINK_SHARED_SKILLS_SCRIPT}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] gitignore no longer allowlists repo-managed skills" {
+    run grep -F "exact_agents/skills" "${GITIGNORE_PATH}"
+    [ "${status}" -eq 1 ]
 }

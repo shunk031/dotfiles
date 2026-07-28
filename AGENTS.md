@@ -9,7 +9,7 @@
 - Public source: Files under `home/` are the public source state and are applied by `chezmoi` into the user's `$HOME` directory.
 - Private source: Private dotfiles are managed separately from `~/.local/share/chezmoi-private` with config at `~/.config/chezmoi-private/chezmoi.yaml`.
 - Management boundary: Treat the public `home/` tree and the private `chezmoi` source/config as separate management domains.
-- Agent skills: `home/dot_config/exact_agents/skills/*` is ignored by default because global skill installers write through symlinked runtime paths. When adding a repo-managed skill, add an explicit `.gitignore` allowlist entry for that skill.
+- Agent skills: `~/.agents/skills` is a real directory (the shared skills pool); repo-managed skills live in `home/dot_config/exact_agents/skills/<name>/` and are exposed there through one `home/exact_dot_agents/skills/symlink_<name>.tmpl` per skill. `~/.claude/skills` is a real, Claude-only directory so `npx skills add --agent claude-code` and similar installers can write generated skills without touching the chezmoi source tree. A `run_after` script (`home/.chezmoiscripts/common/run_after_90-link-shared-skills.sh.tmpl`) links every pool entry into each tool's skills directory on every `chezmoi apply`, without overwriting locally installed (non-symlink) entries. To make an installer-added skill repo-managed, move its directory into `home/dot_config/exact_agents/skills/` and add a matching symlink template.
 
 ## Comment Policy
 

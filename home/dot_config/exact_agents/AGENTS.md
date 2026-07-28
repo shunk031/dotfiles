@@ -50,9 +50,15 @@
 
 - 共有指示: 複数ツールで使う subagent / custom agent の長い共通指示は `~/.agents/agents/<name>.md` を source of truth にしてください。
 - Claude wrapper: Claude Code 用の `~/.claude/agents/<name>.md` は YAML frontmatter を保持し、本文では `~/.agents/agents/<name>.md` を最初に読むよう明示してください。
-- Codex wrapper: Codex 用の `~/.codex/agents/<name>.toml` は Codex 固有設定を保持し、`developer_instructions` では `~/.agents/agents/<name>.md` を最初に読むよう明示してください。
-- 重複回避: 同じ長文指示を Claude / Codex の wrapper にコピーしないでください。
+- 重複回避: 同じ長文指示を wrapper にコピーしないでください。
 - 単純さ: Markdown を Python などでパースして TOML / Markdown を生成する仕組みは、明示的に必要になるまで追加しないでください。
+
+## 大規模タスクの委譲 (agent teams)
+
+- 委譲方針: 大規模な実装タスクでは Claude Code の agent teams を使い、メインエージェントをオーケストレータ、チームメイトを実装者としてください。
+  - タスク開始時に作業を独立した単位へ分割し、チームメイトへ割り当ててから実装に入ってください。
+  - オーケストレータは計画・レビュー・統合に専念し、実装はチームメイトに任せてください。
+- 環境固有設定: チームメイトが使うモデルや起動方法などの環境固有設定は、このファイルには書かず `~/.agents/AGENTS-private.md` を参照してください。
 
 ## コーディング全般について
 

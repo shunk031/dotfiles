@@ -63,7 +63,6 @@ EOF
     run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "exec herdr -- herdr integration install claude" ]
-    [ "${lines[1]}" = "exec herdr -- herdr integration install codex" ]
 }
 
 @test "[common] install_herdr_skill installs the shared skill globally" {
@@ -75,7 +74,7 @@ EOF
 
     run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "exec npm:skills -- skills add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
+    [ "${output}" = "exec npm:skills -- skills add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
 }
 
 @test "[common] herdr script runs full installation workflow" {
@@ -126,15 +125,13 @@ EOF
     [ "${lines[0]}" = "activate bash" ]
     [ "${lines[1]}" = "install herdr" ]
     [ "${lines[2]}" = "exec herdr -- herdr integration install claude" ]
-    [ "${lines[3]}" = "exec herdr -- herdr integration install codex" ]
-    [ "${lines[4]}" = "exec npm:skills -- skills add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
+    [ "${lines[3]}" = "exec npm:skills -- skills add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
 
     run cat "${BATS_TEST_TMPDIR}/herdr_args.txt"
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "integration install claude" ]
-    [ "${lines[1]}" = "integration install codex" ]
 
     run cat "${BATS_TEST_TMPDIR}/skills_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "1|add ogulcancelik/herdr --skill herdr --agent claude-code codex antigravity-cli --global --yes" ]
+    [ "${output}" = "1|add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
 }

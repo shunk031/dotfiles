@@ -17,13 +17,11 @@ readonly HERDR_SKILL_REPO="ogulcancelik/herdr"
 readonly HERDR_SKILL_NAME="herdr"
 readonly HERDR_SKILL_AGENTS=(
     claude-code
-    codex
     antigravity-cli
 )
 
 readonly HERDR_INTEGRATIONS=(
     claude
-    codex
 )
 
 #

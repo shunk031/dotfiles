@@ -8,7 +8,6 @@ readonly CODEX_WORKLOG_RULES_PATH="./home/dot_config/exact_agents/skills/worklog
 readonly CODEX_WORKLOG_AUDIT_SCRIPT_PATH="./home/dot_config/exact_agents/skills/worklog-manager/scripts/codex_worklog_audit.py"
 readonly SHARED_GH_AGENT_PATH="./home/dot_config/exact_agents/agents/gh-workflow-manager.md"
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
-readonly DELEGATE_CODEX_SKILL_PATH="./home/dot_config/exact_agents/skills/delegate-codex/SKILL.md"
 readonly AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS.md.tmpl"
 readonly SHARED_AGENT_DIR_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_agents.tmpl"
 readonly CLAUDE_MD_PATH="./home/dot_config/claude/CLAUDE.md"
@@ -296,7 +295,7 @@ readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared and delegate guidance reject inline multi-line GitHub bodies" {
+@test "[common] shared guidance rejects inline multi-line GitHub bodies" {
     run grep -F 'GitHub issue body / PR description / PR comment のような multi-line Markdown は、必ず一時 Markdown file を single-quoted heredoc で作り、`gh ... --body-file <file>` で投稿・更新してください。' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
@@ -304,15 +303,6 @@ readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
     [ "${status}" -eq 0 ]
 
     run grep -F 'literal escaped newlines (`\n`)、local absolute paths such as `/Users/`、期待見出しの欠落を検出してから完了報告してください。' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Task messages that ask the implementer to create or update GitHub PR, issue, or comment bodies must require temp-file body handling: write multi-line Markdown to a temporary file with a single-quoted heredoc and pass it with `gh ... --body-file <file>`, never with `--body "...\n..."` or shell-escaped inline strings.' "${DELEGATE_CODEX_SKILL_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Before reporting completion, the implementer must read body content back with `gh pr view ... --json body --jq .body`, `gh issue view`, or equivalent, reject/report literal `\n` and `/Users/`, and report body read-back pass together with the PR URL and CI state.' "${DELEGATE_CODEX_SKILL_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'A PR URL alone is not enough; the report must include body read-back pass and CI state.' "${DELEGATE_CODEX_SKILL_PATH}"
     [ "${status}" -eq 0 ]
 }
 

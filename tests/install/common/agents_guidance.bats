@@ -97,11 +97,18 @@ readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
     [ "${status}" -eq 0 ]
     run grep -F 'Claude Code 用の `~/.claude/agents/<name>.md` は YAML frontmatter を保持し、本文では `~/.agents/agents/<name>.md` を最初に読むよう明示してください。' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Codex 用の `~/.codex/agents/<name>.toml` は Codex 固有設定を保持し、`developer_instructions` では `~/.agents/agents/<name>.md` を最初に読むよう明示してください。' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F '同じ長文指示を Claude / Codex の wrapper にコピーしないでください。' "${SHARED_AGENTS_PATH}"
+    run grep -F '同じ長文指示を wrapper にコピーしないでください。' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'Markdown を Python などでパースして TOML / Markdown を生成する仕組みは、明示的に必要になるまで追加しないでください。' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] shared guidance defines agent teams delegation policy" {
+    run grep -F '## 大規模タスクの委譲 (agent teams)' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '大規模な実装タスクでは Claude Code の agent teams を使い、メインエージェントをオーケストレータ、チームメイトを実装者としてください。' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'チームメイトが使うモデルや起動方法などの環境固有設定は、このファイルには書かず `~/.agents/AGENTS-private.md` を参照してください。' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 

@@ -4,6 +4,7 @@ readonly SCRIPT_PATH="./install/common/mise.sh"
 readonly TMPL_SCRIPT_GLOB="./home/.chezmoiscripts/common/run_once_after_*-install-mise.sh.tmpl"
 readonly RUN_AFTER_TEMPLATE="./home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 readonly MISE_CONFIG_SOURCE="./home/dot_mise/config.toml"
+readonly MISE_BASH_SOURCE="./home/dot_config/exact_shell/mise.bash"
 
 function write_mise_config() {
     local version="$1"
@@ -46,10 +47,11 @@ function teardown() {
 }
 
 function render_run_after_template() {
-    local content
+    local content source_dir
 
+    source_dir="./home"
     content="$(< "${RUN_AFTER_TEMPLATE}")"
-    content="${content//'{{ .chezmoi.sourceDir }}'/.\/home}"
+    content="${content//'{{ .chezmoi.sourceDir }}'/${source_dir}}"
     printf '%s\n' "${content}" > "${RUN_AFTER_SCRIPT}"
     chmod +x "${RUN_AFTER_SCRIPT}"
 }
@@ -65,7 +67,11 @@ case "\$1" in
         printf 'mise ${version}\\n'
         ;;
     activate)
-        printf 'export PATH="%s:\$PATH"\\n' "\$(dirname "\${MISE_INSTALL_PATH}")"
+        if [ "\${2:-}" = "bash" ] && [ "\${3:-}" = "--shims" ]; then
+            printf 'export PATH="%s:\$PATH"\\n' "\${HOME}/.local/share/mise/shims"
+        else
+            printf 'export PATH="%s:\$PATH"\\n' "\$(dirname "\${MISE_INSTALL_PATH}")"
+        fi
         ;;
     install)
         printf 'install\\n' >> "\${MISE_CALLS_PATH}"
@@ -107,7 +113,11 @@ case "$1" in
         printf 'mise 2026.6.13\n'
         ;;
     activate)
-        printf 'export PATH="%s:$PATH"\n' "$(dirname "${MISE_INSTALL_PATH}")"
+        if [ "${2:-}" = "bash" ] && [ "${3:-}" = "--shims" ]; then
+            printf 'export PATH="%s:$PATH"\n' "${HOME}/.local/share/mise/shims"
+        else
+            printf 'export PATH="%s:$PATH"\n' "$(dirname "${MISE_INSTALL_PATH}")"
+        fi
         ;;
     install)
         printf 'install\n' >> "${MISE_CALLS_PATH}"
@@ -146,10 +156,65 @@ EOF
     chmod +x "${TEST_BIN_DIR}/gh"
 }
 
+function write_chezmoi_shim() {
+    local shims_dir="${HOME}/.local/share/mise/shims"
+
+    mkdir -p "${shims_dir}"
+    cat > "${shims_dir}/chezmoi" << 'EOF'
+#!/usr/bin/env bash
+
+printf 'chezmoi shim\n'
+EOF
+    chmod +x "${shims_dir}/chezmoi"
+}
+
+function run_mise_bash_startup() {
+    run env -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 bash -c "$1"
+}
+
 @test "[common] mise config declares a parseable top-level min_version" {
     run get_mise_min_version_from_config "${MISE_CONFIG_SOURCE}"
     [ "${status}" -eq 0 ]
     [[ "${output}" =~ ^[0-9]+[.][0-9]+[.][0-9]+$ ]]
+}
+
+@test "[common] mise bash startup exits cleanly when mise is absent" {
+    local expected_path="${PATH}"
+
+    run_mise_bash_startup 'source "'"${MISE_BASH_SOURCE}"'"; printf "%s\n" "${PATH}"'
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "${expected_path}" ]
+}
+
+@test "[common] mise bash startup exposes mise and mise shims" {
+    write_mise_stub
+    write_chezmoi_shim
+
+    run_mise_bash_startup 'source "'"${MISE_BASH_SOURCE}"'"; command -v mise; command -v chezmoi'
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "${MISE_INSTALL_PATH}" ]
+    [ "${lines[1]}" = "${HOME}/.local/share/mise/shims/chezmoi" ]
+}
+
+@test "[common] mise bash startup avoids duplicate PATH entries" {
+    write_mise_stub
+    write_chezmoi_shim
+
+    run_mise_bash_startup '
+        count_path_entry() {
+            local entry="$1"
+
+            printf "%s" "${PATH}" | tr : "\n" | awk -v entry="${entry}" "\$0 == entry { count++ } END { print count + 0 }"
+        }
+
+        source "'"${MISE_BASH_SOURCE}"'"
+        source "'"${MISE_BASH_SOURCE}"'"
+        count_path_entry "${HOME}/.local/bin"
+        count_path_entry "${HOME}/.local/share/mise/shims"
+    '
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "1" ]
+    [ "${lines[1]}" = "1" ]
 }
 
 @test "[common] get_mise_min_version_from_config reads top-level min_version" {

@@ -231,9 +231,7 @@ EOF
     run ensure_mise_min_version
     [ "${status}" -eq 0 ]
     [ -e "${BATS_TEST_TMPDIR}/curl_args.txt" ]
-    run get_installed_mise_version
-    [ "${status}" -eq 0 ]
-    [ "${output}" = "2026.6.13" ]
+    [ "$(< "${BATS_TEST_TMPDIR}/installer_env.txt")" = "MISE_VERSION=v2026.6.13" ]
 }
 
 @test "[common] mise" {

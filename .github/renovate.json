@@ -11,7 +11,28 @@
       "/(^|/)home/dot_mise/config\\.toml$/"
     ]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)home/dot_mise/config\\.toml$/"
+      ],
+      "matchStrings": [
+        "^(?:[ \\t]*#.*\\n|[ \\t]*\\n)*[ \\t]*min_version[ \\t]*=[ \\t]*\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "depNameTemplate": "jdx/mise",
+      "packageNameTemplate": "jdx/mise",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver-coerced",
+      "extractVersionTemplate": "^v?(?<version>\\d+\\.\\d+\\.\\d+)$"
+    }
+  ],
   "packageRules": [
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["jdx/mise"],
+      "groupName": "mise bootstrap"
+    },
     {
       "matchManagers": ["mise"],
       "matchPackageNames": [

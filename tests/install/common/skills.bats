@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./install/common/skill-creator.sh"
-readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_after_04-install-skill-creator.sh.tmpl"
+readonly SCRIPT_PATH="./install/common/skills.sh"
+readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_after_04-install-skills.sh.tmpl"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
@@ -23,7 +23,7 @@ EOF
     chmod +x "${MISE_BIN}"
 }
 
-@test "[common] skill-creator run-once template exists" {
+@test "[common] skills run-once template exists" {
     [ -f "${TMPL_SCRIPT_PATH}" ]
 }
 
@@ -31,36 +31,36 @@ EOF
     cat > "${MISE_BIN}" << 'EOF'
 #!/usr/bin/env bash
 if [ "$*" = "activate bash" ]; then
-    printf '%s\n' 'export SKILL_CREATOR_TEST_MISE_ACTIVATED=1'
+    printf '%s\n' 'export SKILLS_TEST_MISE_ACTIVATED=1'
 fi
 EOF
     chmod +x "${MISE_BIN}"
 
     activate_mise
 
-    [ "${SKILL_CREATOR_TEST_MISE_ACTIVATED}" = "1" ]
+    [ "${SKILLS_TEST_MISE_ACTIVATED}" = "1" ]
 }
 
-@test "[common] install_skill_creator_skill installs the skill globally" {
+@test "[common] install_skills installs configured upstream skills globally" {
     MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
     export MISE_CALLS_PATH
     write_mise_logger
 
-    install_skill_creator_skill
+    install_skills
 
     run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
     [ "${status}" -eq 0 ]
     [ "${output}" = "exec npm:skills -- skills add anthropics/skills --skill skill-creator --agent claude-code --global --yes" ]
 }
 
-@test "[common] skill-creator script runs full installation workflow" {
+@test "[common] skills script runs full installation workflow" {
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
 
     cat > "${MISE_BIN}" << 'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
 if [ "$*" = "activate bash" ]; then
-    printf '%s\n' 'export SKILL_CREATOR_TEST_MISE_ACTIVATED=1'
+    printf '%s\n' 'export SKILLS_TEST_MISE_ACTIVATED=1'
     printf '%s\n' "export PATH=\"${HOME}/.local/bin:${PATH}\""
 fi
 if [ "$1" = "exec" ]; then
@@ -76,7 +76,7 @@ EOF
 
     cat > "${BATS_TEST_TMPDIR}/bin/skills" << 'EOF'
 #!/usr/bin/env bash
-printf '%s\n' "${SKILL_CREATOR_TEST_MISE_ACTIVATED:-unset}|$*" > "${SKILLS_CALLS_PATH}"
+printf '%s\n' "${SKILLS_TEST_MISE_ACTIVATED:-unset}|$*" > "${SKILLS_CALLS_PATH}"
 EOF
     chmod +x "${BATS_TEST_TMPDIR}/bin/skills"
 

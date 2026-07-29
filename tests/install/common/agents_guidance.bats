@@ -3,6 +3,8 @@
 readonly SHARED_AGENTS_PATH="./home/dot_config/exact_agents/AGENTS.md"
 readonly SHARED_GH_AGENT_PATH="./home/dot_config/exact_agents/agents/gh-workflow-manager.md"
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
+readonly SKILL_CREATOR_SHARED_SKILL_PATH="./home/dot_config/exact_agents/skills/skill-creator"
+readonly SKILL_CREATOR_SYMLINK_TEMPLATE="./home/exact_dot_agents/skills/symlink_skill-creator.tmpl"
 readonly AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS.md.tmpl"
 readonly SHARED_AGENT_DIR_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_agents.tmpl"
 readonly CLAUDE_MD_PATH="./home/dot_config/claude/CLAUDE.md"
@@ -294,6 +296,14 @@ readonly GITIGNORE_PATH="./.gitignore"
 @test "[common] Claude skills directory is a real, installer-writable directory" {
     [ -f "${CLAUDE_SKILLS_KEEP_PATH}" ]
     [ ! -s "${CLAUDE_SKILLS_KEEP_PATH}" ]
+}
+
+@test "[common] skill-creator remains installer-managed for Claude Code" {
+    [ ! -e "${SKILL_CREATOR_SHARED_SKILL_PATH}" ]
+    [ ! -e "${SKILL_CREATOR_SYMLINK_TEMPLATE}" ]
+
+    run grep -F 'skill-creator' "${CANONICAL_CLAUDE_README_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] run_after script subscribes tool skills directories to the shared pool" {

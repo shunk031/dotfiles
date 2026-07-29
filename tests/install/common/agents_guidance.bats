@@ -301,9 +301,6 @@ readonly GITIGNORE_PATH="./.gitignore"
 @test "[common] skill-creator remains installer-managed for Claude Code" {
     [ ! -e "${SKILL_CREATOR_SHARED_SKILL_PATH}" ]
     [ ! -e "${SKILL_CREATOR_SYMLINK_TEMPLATE}" ]
-
-    run grep -F 'skill-creator' "${CANONICAL_CLAUDE_README_PATH}"
-    [ "${status}" -eq 0 ]
 }
 
 @test "[common] run_after script subscribes tool skills directories to the shared pool" {

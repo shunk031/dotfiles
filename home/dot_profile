@@ -1,3 +1,5 @@
-export PATH="$PATH:$HOME/.local/bin"
-eval "$(mise activate bash --shims)"
-
+# for mise shims
+# shellcheck source=dot_config/exact_shell/mise.bash
+if [ -f "${HOME%/}/.config/shell/mise.bash" ]; then
+    . "${HOME%/}/.config/shell/mise.bash"
+fi

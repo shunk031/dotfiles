@@ -12,6 +12,8 @@ In chezmoi, `dot_` changes a target name to start with `.`, while `exact_` remov
 
 To make an installer-added skill repo-managed, move its directory into `home/dot_config/exact_agents/skills/` and add a matching `home/exact_dot_agents/skills/symlink_<name>.tmpl`; the next `chezmoi apply` then relinks it as a shared pool entry.
 
+Installer-managed skills should stay in their tool-specific skills directories unless they are intentionally reviewed and promoted to the shared pool with that directory-plus-template pair.
+
 The diagram below describes this repository's source-of-truth layout, not the meaning of chezmoi's `exact_` attribute itself.
 
 ## Layout Overview

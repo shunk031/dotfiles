@@ -27,9 +27,6 @@ function activate_mise() {
 # @description Install upstream skills managed by tool-specific installers.
 #
 function install_skills() {
-    [ ! -e "${HOME}/.claude/skills/skill-creator" ] || return 0
-    [ -x "${MISE_BIN}" ] || return 0
-
     "${MISE_BIN}" exec npm:skills -- skills add anthropics/skills \
         --skill skill-creator \
         --agent claude-code \

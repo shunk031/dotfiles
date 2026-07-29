@@ -7,6 +7,7 @@ min_version = "2026.6.13"
 go = "1.26.5"
 node = "lts"
 python = "3.14.6"
+ruby = "4.0.6"
 rust = "1.97.1"
 
 # CLI tools
@@ -54,6 +55,7 @@ sqlite = "3.53.3"
 [settings]
 idiomatic_version_file_enable_tools = ["python"]
 minimum_release_age = "7d"
+ruby.compile = false
 minimum_release_age_excludes = [
   "aqua:anthropics/claude-code",
   "aqua:google-antigravity/antigravity-cli",

@@ -53,6 +53,23 @@ EOF
     [ "${output}" = "exec npm:skills -- skills add anthropics/skills --skill skill-creator --agent claude-code --global --yes" ]
 }
 
+@test "[common] install_skills skips when mise is unavailable" {
+    install_skills
+
+    [ ! -e "${BATS_TEST_TMPDIR}/mise_args.txt" ]
+}
+
+@test "[common] install_skills keeps an existing local skill" {
+    MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
+    export MISE_CALLS_PATH
+    write_mise_logger
+    mkdir -p "${HOME}/.claude/skills/skill-creator"
+
+    install_skills
+
+    [ ! -e "${BATS_TEST_TMPDIR}/mise_args.txt" ]
+}
+
 @test "[common] skills script runs full installation workflow" {
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
 

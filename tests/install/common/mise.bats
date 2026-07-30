@@ -5,6 +5,8 @@ readonly TMPL_SCRIPT_GLOB="./home/.chezmoiscripts/common/run_once_after_*-instal
 readonly RUN_AFTER_TEMPLATE="./home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 readonly MISE_CONFIG_SOURCE="./home/dot_mise/config.toml"
 readonly MISE_BASH_SOURCE="./home/dot_config/exact_shell/mise.bash"
+readonly MISE_ZSH_SOURCE="./home/dot_config/exact_shell/mise.zsh"
+readonly ZSHENV_SOURCE="./home/dot_zshenv"
 
 function write_mise_config() {
     local version="$1"
@@ -172,6 +174,17 @@ function run_mise_bash_startup() {
     run env -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 bash -c "$1"
 }
 
+function install_zshenv_sources() {
+    mkdir -p "${HOME}/.config/shell"
+    cp "${ZSHENV_SOURCE}" "${HOME}/.zshenv"
+    cp "${MISE_ZSH_SOURCE}" "${HOME}/.config/shell/mise.zsh"
+}
+
+function run_mise_zsh_startup() {
+    command -v zsh > /dev/null 2>&1 || skip "zsh is not installed"
+    run env -u ZDOTDIR -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 zsh -c "$1"
+}
+
 @test "[common] mise config declares a parseable top-level min_version" {
     run get_mise_min_version_from_config "${MISE_CONFIG_SOURCE}"
     [ "${status}" -eq 0 ]
@@ -215,6 +228,74 @@ function run_mise_bash_startup() {
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "1" ]
     [ "${lines[1]}" = "1" ]
+}
+
+@test "[common] mise zsh startup leaves PATH unchanged when mise is absent" {
+    local expected_path="${PATH}"
+
+    mkdir -p "${HOME}/.local/bin" "${HOME}/.local/share/mise/shims"
+
+    run_mise_zsh_startup 'source "'"${MISE_ZSH_SOURCE}"'"; printf "%s\n" "${PATH}"'
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "${expected_path}" ]
+}
+
+@test "[common] mise zsh startup exposes mise and mise shims" {
+    write_mise_stub
+    write_chezmoi_shim
+
+    run_mise_zsh_startup 'source "'"${MISE_ZSH_SOURCE}"'"; command -v mise; command -v chezmoi'
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "${MISE_INSTALL_PATH}" ]
+    [ "${lines[1]}" = "${HOME}/.local/share/mise/shims/chezmoi" ]
+}
+
+@test "[common] mise zsh startup avoids duplicate PATH entries" {
+    write_mise_stub
+    write_chezmoi_shim
+
+    run_mise_zsh_startup '
+        count_path_entry() {
+            local entry="$1"
+
+            printf "%s" "${PATH}" | tr : "\n" | awk -v entry="${entry}" "\$0 == entry { count++ } END { print count + 0 }"
+        }
+
+        source "'"${MISE_ZSH_SOURCE}"'"
+        source "'"${MISE_ZSH_SOURCE}"'"
+        count_path_entry "${HOME}/.local/bin"
+        count_path_entry "${HOME}/.local/share/mise/shims"
+    '
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "1" ]
+    [ "${lines[1]}" = "1" ]
+}
+
+@test "[common] zshenv sources minimal mise startup after zshenv_private" {
+    write_mise_stub
+    write_chezmoi_shim
+    install_zshenv_sources
+    mkdir -p "${HOME}/private-bin"
+    cat > "${HOME}/.zshenv_private" << EOF
+export ZSHENV_PRIVATE_LOADED=1
+export PATH="${HOME}/private-bin:\${PATH}"
+EOF
+
+    run_mise_zsh_startup '
+        printf "%s\n" "${PATH}" | tr : "\n" | awk "NR <= 3"
+        command -v mise
+        command -v chezmoi
+        printf "%s\n" "${ZSHENV_PRIVATE_LOADED:-}"
+        printf "%s %s\n" "${+_zshenv_private}" "${+_zshenv_mise}"
+    '
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "${HOME}/.local/share/mise/shims" ]
+    [ "${lines[1]}" = "${HOME}/.local/bin" ]
+    [ "${lines[2]}" = "${HOME}/private-bin" ]
+    [ "${lines[3]}" = "${MISE_INSTALL_PATH}" ]
+    [ "${lines[4]}" = "${HOME}/.local/share/mise/shims/chezmoi" ]
+    [ "${lines[5]}" = "1" ]
+    [ "${lines[6]}" = "0 0" ]
 }
 
 @test "[common] get_mise_min_version_from_config reads top-level min_version" {

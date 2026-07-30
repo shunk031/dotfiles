@@ -13,6 +13,9 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 declare -r SSH_PORT="${DOTFILES_SERVER_SSH_PORT:-22}"
+declare -r SSHD_CONFIG_PATH="${DOTFILES_SSHD_CONFIG_PATH:-/etc/ssh/sshd_config}"
+declare -r SSH_SERVICE_COMMAND="${DOTFILES_SSH_SERVICE_COMMAND:-/usr/sbin/service}"
+declare -r SSH_SERVICE_NAME="${DOTFILES_SSH_SERVICE_NAME:-ssh}"
 
 #
 # @description Install the Ubuntu OpenSSH server package and its prerequisites.
@@ -25,23 +28,35 @@ function install_openssh_server() {
 }
 
 #
-# @description Merge proxy-related variables into `AcceptEnv` in `sshd_config`.
+# @description Merge proxy and CLIProxyAPI variables into `AcceptEnv` in `sshd_config`.
 #
 function configure_accept_env() {
-    local current add merged
+    local merged value
+    local -a add values
 
-    # Get existing AcceptEnv values (empty if not set)
-    current=$(grep '^AcceptEnv' /etc/ssh/sshd_config | sed 's/^AcceptEnv //')
+    add=(
+        HTTP_PROXY
+        HTTPS_PROXY
+        NO_PROXY
+        http_proxy
+        https_proxy
+        no_proxy
+        CLI_PROXY_API_CALLBACK_PORT
+        CLI_PROXY_API_PROXY_URL
+    )
+    values=()
 
-    # Variables to append
-    add="HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy no_proxy"
+    while IFS= read -r value; do
+        if [ -n "${value}" ]; then
+            values+=("${value}")
+        fi
+    done < <(awk '/^[[:space:]]*AcceptEnv[[:space:]]/ { for (i = 2; i <= NF; i++) print $i }' "${SSHD_CONFIG_PATH}")
 
-    # Merge and remove duplicates
-    merged=$(echo "$current $add" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+    values+=("${add[@]}")
+    merged=$(printf '%s\n' "${values[@]}" | awk 'NF && !seen[$0]++ { printf "%s%s", sep, $0; sep = " " }')
 
-    # Remove existing entries and keep a single AcceptEnv line
-    sudo sed -i '/^AcceptEnv/d' /etc/ssh/sshd_config
-    echo "AcceptEnv $merged" | sudo tee -a /etc/ssh/sshd_config
+    sudo sed -i '/^[[:space:]]*AcceptEnv[[:space:]]/d' "${SSHD_CONFIG_PATH}"
+    printf 'AcceptEnv %s\n' "${merged}" | sudo tee -a "${SSHD_CONFIG_PATH}" > /dev/null
 }
 
 #
@@ -51,27 +66,29 @@ function setup_sshd() {
     sudo mkdir -p /var/run/sshd
     mkdir -p ${HOME}/.ssh
 
-    sudo sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
-        sudo sed -i "s/^#\?Port .*/Port ${SSH_PORT}/" /etc/ssh/sshd_config &&
-        sudo sed -i 's/^#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/' /etc/ssh/sshd_config &&
-        sudo sed -i 's/^#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config &&
+    sudo sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/' "${SSHD_CONFIG_PATH}" &&
+        sudo sed -i "s/^#\?Port .*/Port ${SSH_PORT}/" "${SSHD_CONFIG_PATH}" &&
+        sudo sed -i 's/^#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/' "${SSHD_CONFIG_PATH}" &&
+        sudo sed -i 's/^#PubkeyAuthentication yes/PubkeyAuthentication yes/' "${SSHD_CONFIG_PATH}" &&
         sudo sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
     configure_accept_env
 
-    # check the /etc/ssh/sshd_config
     sudo /usr/sbin/sshd -t
 
-    # create .ssh/authorized_keys if not exists
     touch ${HOME}/.ssh/authorized_keys
 }
 
 #
-# @description Start the SSH service after configuration has been validated.
+# @description Reload the SSH service when it is running, otherwise start it.
 #
 function run_sshd() {
-    # run sshd
-    sudo /usr/sbin/service ssh start
+    if sudo "${SSH_SERVICE_COMMAND}" "${SSH_SERVICE_NAME}" status > /dev/null 2>&1; then
+        sudo "${SSH_SERVICE_COMMAND}" "${SSH_SERVICE_NAME}" reload || sudo "${SSH_SERVICE_COMMAND}" "${SSH_SERVICE_NAME}" restart
+        return
+    fi
+
+    sudo "${SSH_SERVICE_COMMAND}" "${SSH_SERVICE_NAME}" start
 }
 
 #

@@ -58,6 +58,7 @@
 
 - 共有指示: 複数ツールで使う subagent / custom agent の長い共通指示は `~/.agents/agents/<name>.md` を source of truth にしてください。
 - Claude wrapper: Claude Code 用の `~/.claude/agents/<name>.md` は YAML frontmatter を保持し、本文では `~/.agents/agents/<name>.md` を最初に読むよう明示してください。
+- Skill 管理: managed skill を追加・更新するときは、本文を `home/dot_config/exact_agents/skills/<skill>/SKILL.md` に置き、公開用 symlink template を `home/exact_dot_agents/skills/symlink_<skill>.tmpl` に追加してください。
 - 重複回避: 同じ長文指示を wrapper にコピーしないでください。
 - 単純さ: Markdown を Python などでパースして TOML / Markdown を生成する仕組みは、明示的に必要になるまで追加しないでください。
 

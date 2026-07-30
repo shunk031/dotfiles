@@ -23,8 +23,58 @@ EOF
     chmod +x "${MISE_BIN}"
 }
 
+function write_mise_with_stale_named_runner() {
+    cat > "${MISE_BIN}" << 'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
+
+if [ "$1" = "exec" ]; then
+    if [ "${2:-}" != "--" ]; then
+        printf '%s\n' 'SyntaxError: The requested module '\''node:util'\'' does not provide an export named '\''styleText'\''' >&2
+        printf '%s\n' 'Node.js v18.20.3' >&2
+        exit 1
+    fi
+
+    shift 2
+    "$@"
+fi
+EOF
+    chmod +x "${MISE_BIN}"
+}
+
 @test "[common] herdr run-once template exists" {
     [ -f "${TMPL_SCRIPT_PATH}" ]
+}
+
+@test "[common] herdr installer does not bypass the active mise toolchain" {
+    run grep -En 'exec[[:space:]]+[^[:space:]-][^[:space:]]*[[:space:]]+--' "${SCRIPT_PATH}"
+
+    [ "${status}" -eq 1 ]
+}
+
+@test "[common] install_herdr_skill succeeds when the named npm runner is stale" {
+    mkdir -p "${BATS_TEST_TMPDIR}/bin"
+    MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
+    SKILLS_CALLS_PATH="${BATS_TEST_TMPDIR}/skills_args.txt"
+    export MISE_CALLS_PATH SKILLS_CALLS_PATH
+    write_mise_with_stale_named_runner
+
+    cat > "${BATS_TEST_TMPDIR}/bin/skills" << 'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" > "${SKILLS_CALLS_PATH}"
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/bin/skills"
+
+    PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" run install_herdr_skill
+    [ "${status}" -eq 0 ]
+
+    run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "exec -- skills add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
+
+    run cat "${BATS_TEST_TMPDIR}/skills_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
 }
 
 @test "[common] activate_mise evaluates mise activation output" {
@@ -62,7 +112,7 @@ EOF
 
     run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "exec herdr -- herdr integration install claude" ]
+    [ "${lines[0]}" = "exec -- herdr integration install claude" ]
 }
 
 @test "[common] install_herdr_skill installs the shared skill globally" {
@@ -74,7 +124,7 @@ EOF
 
     run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "exec npm:skills -- skills add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
+    [ "${output}" = "exec -- skills add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
 }
 
 @test "[common] herdr script runs full installation workflow" {
@@ -124,8 +174,8 @@ EOF
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "activate bash" ]
     [ "${lines[1]}" = "install herdr" ]
-    [ "${lines[2]}" = "exec herdr -- herdr integration install claude" ]
-    [ "${lines[3]}" = "exec npm:skills -- skills add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
+    [ "${lines[2]}" = "exec -- herdr integration install claude" ]
+    [ "${lines[3]}" = "exec -- skills add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
 
     run cat "${BATS_TEST_TMPDIR}/herdr_args.txt"
     [ "${status}" -eq 0 ]

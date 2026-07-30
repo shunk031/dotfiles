@@ -45,7 +45,7 @@ function install_herdr() {
 #
 function install_herdr_integrations() {
     for integration in "${HERDR_INTEGRATIONS[@]}"; do
-        "${MISE_BIN}" exec herdr -- herdr integration install "${integration}"
+        "${MISE_BIN}" exec -- herdr integration install "${integration}"
     done
 }
 
@@ -53,7 +53,7 @@ function install_herdr_integrations() {
 # @description Install the shared Herdr skill globally.
 #
 function install_herdr_skill() {
-    "${MISE_BIN}" exec npm:skills -- skills add "${HERDR_SKILL_REPO}" \
+    "${MISE_BIN}" exec -- skills add "${HERDR_SKILL_REPO}" \
         --skill "${HERDR_SKILL_NAME}" \
         --agent "${HERDR_SKILL_AGENTS[@]}" \
         --global \

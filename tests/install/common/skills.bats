@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./install/common/skills.sh"
+readonly MISE_HELPERS_PATH="./tests/install/common/mise_helpers.bash"
 readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_after_04-install-skills.sh.tmpl"
 
 function setup() {
@@ -8,6 +9,7 @@ function setup() {
     mkdir -p "${HOME}/.local/bin"
 
     source "${SCRIPT_PATH}"
+    source "${MISE_HELPERS_PATH}"
 }
 
 function teardown() {
@@ -23,33 +25,8 @@ EOF
     chmod +x "${MISE_BIN}"
 }
 
-function write_mise_with_stale_named_runner() {
-    cat > "${MISE_BIN}" << 'EOF'
-#!/usr/bin/env bash
-printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
-
-if [ "$1" = "exec" ]; then
-    if [ "${2:-}" != "--" ]; then
-        printf '%s\n' 'SyntaxError: The requested module '\''node:util'\'' does not provide an export named '\''styleText'\''' >&2
-        printf '%s\n' 'Node.js v18.20.3' >&2
-        exit 1
-    fi
-
-    shift 2
-    "$@"
-fi
-EOF
-    chmod +x "${MISE_BIN}"
-}
-
 @test "[common] skills run-once template exists" {
     [ -f "${TMPL_SCRIPT_PATH}" ]
-}
-
-@test "[common] skills installer does not bypass the active mise toolchain" {
-    run grep -En 'exec[[:space:]]+[^[:space:]-][^[:space:]]*[[:space:]]+--' "${SCRIPT_PATH}"
-
-    [ "${status}" -eq 1 ]
 }
 
 @test "[common] install_skills succeeds when the named npm runner is stale" {
@@ -114,11 +91,8 @@ if [ "$*" = "activate bash" ]; then
     printf '%s\n' "export PATH=\"${HOME}/.local/bin:${PATH}\""
 fi
 if [ "$1" = "exec" ]; then
-    shift
-    while [ "$1" != "--" ]; do
-        shift
-    done
-    shift
+    [ "${2:-}" = "--" ] || exit 1
+    shift 2
     "$@"
 fi
 EOF

@@ -30,6 +30,17 @@
             "command": "~/.claude/hooks/enforce-uv.sh"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "set -euo pipefail\npayload=\"$(cat)\"\nif [ \"${CLAUDE_CODE_CHILD_SESSION:-}\" = \"1\" ]; then\n    exit 0\nfi\n\ntool=\"$(jq -r '.tool_name // empty' <<<\"$payload\")\"\nfile_path=\"$(jq -r '.tool_input.file_path // empty' <<<\"$payload\")\"\ncommand_text=\"$(jq -r '.tool_input.command // empty' <<<\"$payload\")\"\n\nis_global_claude_settings_path() {\n    local path=\"$1\"\n    case \"$path\" in\n        \"$HOME/.claude\" | \"$HOME/.claude/\"* | ~/.claude | ~/.claude/*)\n            return 0\n            ;;\n    esac\n    return 1\n}\n\nis_inside_git_repo() {\n    local target=\"${1:-}\"\n    local dir\n    if [ -z \"$target\" ]; then\n        git rev-parse --show-toplevel >/dev/null 2>&1\n        return\n    fi\n    if [ -d \"$target\" ]; then\n        dir=\"$target\"\n    else\n        dir=\"$(dirname \"$target\")\"\n    fi\n    [ -d \"$dir\" ] || return 1\n    git -C \"$dir\" rev-parse --show-toplevel >/dev/null 2>&1\n}\n\nis_read_only_bash() {\n    local command=\"$1\"\n    command=\"${command#\"${command%%[![:space:]]*}\"}\"\n    command=\"${command%\"${command##*[![:space:]]}\"}\"\n    if [[ \"$command\" == *\";\"* || \"$command\" == *\"&&\"* || \"$command\" == *\"||\"* || \"$command\" == *\"|\"* || \"$command\" == *\">\"* || \"$command\" == *\"<\"* || \"$command\" == *\" --output\"* || \"$command\" == *'`'* || \"$command\" == *'$('* ]]; then\n        return 1\n    fi\n    case \"$command\" in\n        \"\" | \":\" | \"true\" | \"pwd\" | \"ls\" | ls\\ * | rg\\ * | grep\\ * | jq\\ * | test\\ * | git\\ status* | git\\ diff* | git\\ log* | git\\ show* | git\\ rev-parse* | git\\ ls-files* | git\\ grep* | gh\\ auth\\ status* | gh\\ api\\ user* | gh\\ pr\\ view* | gh\\ pr\\ checks* | gh\\ issue\\ view* | gh\\ run\\ view*)\n            return 0\n            ;;\n    esac\n    return 1\n}\n\nask_for_main_session_confirmation() {\n    local reason=\"This operation may modify files inside a git repository from the main session. Prefer delegating implementation to an agent team. Approve only if the main session should proceed directly.\"\n    jq -n --arg reason \"$reason\" '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":$reason}}'\n}\n\ncase \"$tool\" in\n    Edit | Write | MultiEdit)\n        if is_global_claude_settings_path \"$file_path\"; then\n            exit 0\n        fi\n        if is_inside_git_repo \"$file_path\"; then\n            ask_for_main_session_confirmation\n        fi\n        ;;\n    Bash)\n        if is_inside_git_repo \"\" && ! is_read_only_bash \"$command_text\"; then\n            ask_for_main_session_confirmation\n        fi\n        ;;\nesac",
+            "timeout": 5,
+            "shell": "bash"
+          }
+        ]
       }
     ],
     "PostToolUse": [

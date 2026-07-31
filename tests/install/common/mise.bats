@@ -5,6 +5,11 @@ readonly TMPL_SCRIPT_GLOB="./home/.chezmoiscripts/common/run_once_after_*-instal
 readonly RUN_AFTER_TEMPLATE="./home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 readonly MISE_CONFIG_SOURCE="./home/dot_mise/config.toml"
 readonly MISE_BASH_SOURCE="./home/dot_config/exact_shell/mise.bash"
+readonly MISE_ZSH_SOURCE="./home/dot_config/exact_shell/mise.zsh"
+readonly ZPROFILE_SOURCE="./home/dot_zprofile.tmpl"
+readonly SHELDON_COMMON_SOURCE="./home/dot_config/exact_sheldon/plugin_sources/common.toml"
+readonly SHELDON_CLIENT_SOURCE="./home/dot_config/exact_sheldon/plugin_sources/client/common.toml"
+readonly SHELDON_SERVER_SOURCE="./home/dot_config/exact_sheldon/plugin_sources/server.toml"
 
 function write_mise_config() {
     local version="$1"
@@ -67,7 +72,7 @@ case "\$1" in
         printf 'mise ${version}\\n'
         ;;
     activate)
-        if [ "\${2:-}" = "bash" ] && [ "\${3:-}" = "--shims" ]; then
+        if { [ "\${2:-}" = "bash" ] || [ "\${2:-}" = "zsh" ]; } && [ "\${3:-}" = "--shims" ]; then
             printf 'export PATH="%s:\$PATH"\\n' "\${HOME}/.local/share/mise/shims"
         else
             printf 'export PATH="%s:\$PATH"\\n' "\$(dirname "\${MISE_INSTALL_PATH}")"
@@ -113,7 +118,7 @@ case "$1" in
         printf 'mise 2026.6.13\n'
         ;;
     activate)
-        if [ "${2:-}" = "bash" ] && [ "${3:-}" = "--shims" ]; then
+        if { [ "${2:-}" = "bash" ] || [ "${2:-}" = "zsh" ]; } && [ "${3:-}" = "--shims" ]; then
             printf 'export PATH="%s:$PATH"\n' "${HOME}/.local/share/mise/shims"
         else
             printf 'export PATH="%s:$PATH"\n' "$(dirname "${MISE_INSTALL_PATH}")"
@@ -172,6 +177,11 @@ function run_mise_bash_startup() {
     run env -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 bash -c "$1"
 }
 
+function run_mise_zsh_startup() {
+    command -v zsh > /dev/null 2>&1 || skip "zsh is not installed"
+    run env -u ZDOTDIR -u ZSHENV zsh -f -c "$1"
+}
+
 @test "[common] mise config declares a parseable top-level min_version" {
     run get_mise_min_version_from_config "${MISE_CONFIG_SOURCE}"
     [ "${status}" -eq 0 ]
@@ -215,6 +225,119 @@ function run_mise_bash_startup() {
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "1" ]
     [ "${lines[1]}" = "1" ]
+}
+
+@test "[common] mise zsh startup exits cleanly when mise is absent" {
+    local expected_path="${PATH}"
+
+    run_mise_zsh_startup 'source "'"${MISE_ZSH_SOURCE}"'"; printf "%s\n" "${PATH}"'
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "${expected_path}" ]
+}
+
+@test "[common] mise zsh startup exposes mise and mise shims" {
+    write_mise_stub
+    write_chezmoi_shim
+
+    run_mise_zsh_startup 'source "'"${MISE_ZSH_SOURCE}"'"; command -v mise; command -v chezmoi'
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "${MISE_INSTALL_PATH}" ]
+    [ "${lines[1]}" = "${HOME}/.local/share/mise/shims/chezmoi" ]
+}
+
+@test "[common] mise zsh startup avoids duplicate PATH entries" {
+    write_mise_stub
+    write_chezmoi_shim
+
+    run_mise_zsh_startup '
+        count_path_entry() {
+            local entry="$1"
+
+            printf "%s" "${PATH}" | tr : "\n" | awk -v entry="${entry}" "\$0 == entry { count++ } END { print count + 0 }"
+        }
+
+        source "'"${MISE_ZSH_SOURCE}"'"
+        source "'"${MISE_ZSH_SOURCE}"'"
+        count_path_entry "${HOME}/.local/bin"
+        count_path_entry "${HOME}/.local/share/mise/shims"
+    '
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "1" ]
+    [ "${lines[1]}" = "1" ]
+}
+
+@test "[common] mise zsh startup does not register mise shell hooks" {
+    write_mise_stub
+    write_chezmoi_shim
+
+    run_mise_zsh_startup '
+        source "'"${MISE_ZSH_SOURCE}"'"
+        if (( ${+functions[_mise_hook]} )); then
+            print _mise_hook
+        fi
+        if (( ${precmd_functions[(Ie)_mise_hook]} )); then
+            print precmd
+        fi
+        if (( ${chpwd_functions[(Ie)_mise_hook]} )); then
+            print chpwd
+        fi
+    '
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "[common] mise zsh startup source uses shims-only activation" {
+    local content
+
+    content="$(< "${MISE_ZSH_SOURCE}")"
+    [[ "${content}" == *'activate zsh --shims'* ]]
+    [[ "${content}" != *'activate zsh)"'* ]]
+    [[ "${content}" != *'_mise_hook'* ]]
+    [[ "${content}" != *'add-zsh-hook'* ]]
+}
+
+@test "[common] common sheldon config does not activate full mise zsh" {
+    run grep -F 'mise activate zsh' "${SHELDON_COMMON_SOURCE}"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] client sheldon config keeps full mise zsh activation" {
+    run grep -F '[plugins.mise]' "${SHELDON_CLIENT_SOURCE}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'inline = '\''eval "$(~/.local/bin/mise activate zsh)"'\''' "${SHELDON_CLIENT_SOURCE}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] server sheldon config sources mise zsh shim helper" {
+    run grep -F '[plugins.mise]' "${SHELDON_SERVER_SOURCE}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F "local = '~/.config/shell'" "${SHELDON_SERVER_SOURCE}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F "use = ['mise.zsh']" "${SHELDON_SERVER_SOURCE}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F "apply = ['source']" "${SHELDON_SERVER_SOURCE}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'mise activate zsh' "${SHELDON_SERVER_SOURCE}"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] zprofile template keeps server shims and client full activation" {
+    run grep -F '{{- if eq .system "server" }}' "${ZPROFILE_SOURCE}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '.config/shell/mise.zsh' "${ZPROFILE_SOURCE}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'source "${_mise_zsh}"' "${ZPROFILE_SOURCE}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'eval "$(~/.local/bin/mise activate zsh)"' "${ZPROFILE_SOURCE}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] get_mise_min_version_from_config reads top-level min_version" {

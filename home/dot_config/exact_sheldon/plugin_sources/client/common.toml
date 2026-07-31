@@ -19,6 +19,13 @@ zsh-defer _client_path
 '''
 
 #
+# Mise for managing multiple versions of tools
+#
+
+[plugins.mise]
+inline = 'eval "$(~/.local/bin/mise activate zsh)"'
+
+#
 # Prompt for Client Machine
 #
 

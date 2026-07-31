@@ -20,6 +20,15 @@ zsh-defer _server_path
 '''
 
 #
+# Mise for managing multiple versions of tools
+#
+
+[plugins.mise]
+local = '~/.config/shell'
+use = ['mise.zsh']
+apply = ['source']
+
+#
 # Prompt for Server Machine
 #
 

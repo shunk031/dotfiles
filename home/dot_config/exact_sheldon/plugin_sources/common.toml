@@ -108,13 +108,6 @@ setopt INC_APPEND_HISTORY
 '''
 
 #
-# Mise for managing multiple versions of tools
-#
-
-[plugins.mise]
-inline = 'eval "$(~/.local/bin/mise activate zsh)"'
-
-#
 # Language-related plugins
 #
 

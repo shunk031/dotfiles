@@ -179,7 +179,7 @@ function run_mise_bash_startup() {
 
 function run_mise_zsh_startup() {
     command -v zsh > /dev/null 2>&1 || skip "zsh is not installed"
-    run env -u ZDOTDIR -u ZSHENV zsh -f -c "$1"
+    run env -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 -u ZDOTDIR -u ZSHENV zsh -f -c "$1"
 }
 
 @test "[common] mise config declares a parseable top-level min_version" {

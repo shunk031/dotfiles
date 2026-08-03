@@ -30,7 +30,7 @@ readonly GEMINI_SKILL_DIR_SYMLINK_TEMPLATE="./home/dot_gemini/config/symlink_ski
 readonly LINK_SHARED_SKILLS_SCRIPT="./home/.chezmoiscripts/common/run_after_90-link-shared-skills.sh.tmpl"
 readonly GITIGNORE_PATH="./.gitignore"
 
-@test "[common] codex guidance entrypoint reads shared guidance" {
+@test "[common] codex guidance entrypoint stays minimal and reads shared guidance" {
     [ -f "${SHARED_AGENTS_PATH}" ]
     [ -f "${CODEX_AGENTS_PATH}" ]
     [ ! -e "./home/dot_config/codex/AGENTS.codex-only.md" ]
@@ -40,8 +40,33 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F '`~/.agents/AGENTS.md` を最初に読み' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '`~/.agents/AGENTS-private.md`' "${CODEX_AGENTS_PATH}"
+    run grep -F '`~/.agents/AGENTS-private.md`' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F '`~/.agents/AGENTS-private.md`' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F '## Codex 固有の委譲' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'native subagents' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'gh-workflow-manager' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] shared guidance defines highest-priority implementation principles" {
+    run grep -F '## 最重要の実装原則' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'These principles take precedence over other implementation guidance in this file.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Do not preserve backward compatibility.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Choose the simplest implementation that fully meets the current requirements.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Prefer established, well-maintained libraries over custom implementations.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '後方互換性は気にしないでください' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
 }
 
 @test "[common] shared guidance requires concrete coding plans" {

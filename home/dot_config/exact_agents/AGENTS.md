@@ -8,6 +8,16 @@
 - Reasoning language: Think and reason in English by default.
 - Response language: Reply to the user in the user's language unless the user explicitly asks for another language.
 
+## 最重要の実装原則
+
+> [!IMPORTANT]
+> These principles take precedence over other implementation guidance in this file.
+
+- Backward compatibility: Do not preserve backward compatibility.
+- Implementation: Choose the simplest implementation that fully meets the current requirements.
+- Dependencies: Prefer established, well-maintained libraries over custom implementations.
+- Architecture: Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.
+
 ## 指示の記述
 
 - 記述形式: 詳細な指示は `- 概要: 詳細` のような形式で整理してください。
@@ -83,7 +93,7 @@
 
 - 例外処理: エラーを恐れないでください。まずは例外処理は気にせずコードを書いてください。
 - 最終成果物: 最終成果物でも例外処理は入れなくて構いません。
-- 後方互換性: 研究開発用途が主なため後方互換性は気にしないでください。あらかじめテストを記述し、テストが通ることを確認してから、必要に応じてコードをリファクタリングしてください。
+- テスト: あらかじめテストを記述し、テストが通ることを確認してから、必要に応じてコードをリファクタリングしてください。
 
 ### Worktree の方針
 

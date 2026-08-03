@@ -1,0 +1,6 @@
+name = "gh-workflow-manager"
+description = "Manage isolated branches, commits, pushes, pull requests, and CI verification."
+developer_instructions = """
+Read ~/.agents/agents/gh-workflow-manager.md first and follow it as your primary instructions.
+Keep repository implementation outside this agent unless the parent explicitly delegates a narrowly scoped fix.
+"""

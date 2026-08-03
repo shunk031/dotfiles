@@ -326,6 +326,14 @@ EOF
     [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=' ]
 }
 
+@test "[common] Codex CLI is pinned and exempt from mise release age" {
+    run grep -F '"aqua:openai/codex" = "0.145.0"' "${MISE_CONFIG_SOURCE}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '"aqua:openai/codex",' "${MISE_CONFIG_SOURCE}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] run_after template installs pinned mise tools after apply" {
     write_mise_stub
 

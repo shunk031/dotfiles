@@ -2,16 +2,16 @@
 paths: **/*.py
 ---
 
-このルールを使用するときには、回答時に 🧩 の絵文字をつけてください。
+When using this rule, include the 🧩 emoji in your response.
 
-## GPU 使用を伴う Python スクリプト実行について
+## Running Python Scripts That Use a GPU
 
-`torch` を使ったスクリプトを実行する場合、大抵は GPU を使用します。
-そのようなスクリプトを実行する場合は環境変数の `CUDA_VISIBLE_DEVICES` を指定して実行してください。
-例えば 0 番目の GPU を指定して以下のように実行します。
+Scripts that use `torch` usually use a GPU.
+When running such scripts, specify the `CUDA_VISIBLE_DEVICES` environment variable.
+For example, select GPU 0 as follows:
 
 ```shell
 CUDA_VISIBLE_DEVICES=0 uv run main.py
 ```
 
-適宜 `nvidia-smi` コマンドなどを使って使用されていない GPU を探して `CUDA_VISIBLE_DEVICES` を実行するようにしてください。
+Use `nvidia-smi` or a similar command to find an unused GPU and set `CUDA_VISIBLE_DEVICES` accordingly.

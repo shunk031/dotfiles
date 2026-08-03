@@ -2,24 +2,24 @@
 paths: **/*.py
 ---
 
-このルールを使用するときには、回答時に 🐍 の絵文字をつけてください。
+When using this rule, include the 🐍 emoji in your response.
 
-## `uv` の使用
+## Using `uv`
 
-- Python プロジェクトの場合は指定がない場合常に `uv` を使うようにしてください。
-- 何かコードを書いたときは常にテストを記述して意図した動作になっているか確認してください。
-- uv でスクリプトを実行するときは `uv run <script>` で実行できます。
+- For Python projects, always use `uv` unless instructed otherwise.
+- Whenever you write code, also write tests and verify that it behaves as intended.
+- Run scripts with `uv run <script>`.
 
-## `pyright-lsp` の使用
+## Using `pyright-lsp`
 
-- `pyright-lsp` がインストールされている場合は、コードの静的解析に使用してください。
-- もし `pyright-lsp` がインストールされていない場合は、インストールを促してください。
+- If `pyright-lsp` is installed, use it for static analysis.
+- If `pyright-lsp` is not installed, recommend installing it.
 
-## 探索的なデバッグ
+## Exploratory Debugging
 
-- `uv run python -c "..."` のように、`uv` を使って一時的にコードを実行することができます。
-- プロジェクトに依存しないライブラリを一時的にインストールして試す場合は `uv run --with <library> python -c "..."` のようにしてください。
+- Use `uv` to run temporary code, for example, `uv run python -c "..."`.
+- To temporarily install and try a library that is not a project dependency, use `uv run --with <library> python -c "..."`.
 
-## コマンドラインパーサー
+## Command-Line Parsers
 
-- `argparse` を使ってコマンドライン引数を解析をする場合、オプションは `--this-is-option` のように単語をハイフンでつなぐ形式にしてください。
+- When parsing command-line arguments with `argparse`, format options by joining words with hyphens, such as `--this-is-option`.

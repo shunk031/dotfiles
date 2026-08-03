@@ -1,43 +1,43 @@
 ---
 name: setup-agent-docs
-description: リポジトリを coding agent 対応にするときの agent ドキュメント配線パターン(AGENTS.md を source of truth にし、CLAUDE.md は symlink にする)。新しいリポジトリのエージェント対応、coding agent ready 化、AGENTS.md / CLAUDE.md の新規作成・変換・整理、repo-local skill の設置、「エージェント向けドキュメントを整備して」という依頼のときに必ず使う。CLAUDE.md だけ・AGENTS.md だけを作ろうとしている場合もこの skill で配線を確認する。
+description: Guidance-document wiring pattern for making a repository ready for coding agents: use AGENTS.md as the source of truth and make CLAUDE.md a symlink. Use this skill for new repository agent setup, making a repository coding-agent ready, creating, converting, or organizing AGENTS.md and CLAUDE.md, adding repo-local skills, or requests to prepare agent documentation. Also use it to verify the wiring when creating only CLAUDE.md or only AGENTS.md.
 ---
 
 # setup-agent-docs
 
-リポジトリに agent 向けドキュメントを配線するときの標準パターン。複数の coding agent が同じ実体を読み、重複や乖離が生まれないようにする。
+The standard pattern for wiring agent documentation in a repository. It ensures that multiple coding agents read the same source and prevents duplication and drift.
 
-## 配線ルール
+## Wiring Rules
 
-- AGENTS.md が source of truth: リポジトリ直下に `AGENTS.md` を置き、agent 向けの規約・手順はすべてここに書く。冒頭に読了マーカーを置く:
+- AGENTS.md as the source of truth: Place `AGENTS.md` at the repository root and write all agent conventions and procedures there. Put a read acknowledgement marker at the beginning:
 
   ```markdown
   > [!NOTE]
   > After reading this AGENTS.md, say: 🤖 I read the AGENTS.md for <owner>/<repo>.
   ```
 
-- リポジトリ固有の内容だけ書く: グローバル `~/.agents/AGENTS.md` に既にあるルール(uv 必須、worktree 方針、例外処理方針など)は再掲しない。再掲すると更新時に乖離する。
+- Write only repository-specific content: Do not repeat rules already in global `~/.agents/AGENTS.md`, such as mandatory uv usage, worktree policy, or error-handling policy. Repeating them causes drift when they are updated.
 
-- CLAUDE.md は AGENTS.md への相対 symlink にする: `@AGENTS.md` と書いた通常ファイルにはしない。
+- Make CLAUDE.md a relative symlink to AGENTS.md: Do not make it a regular file containing `@AGENTS.md`.
 
   ```shell
   ln -s AGENTS.md CLAUDE.md
-  git add CLAUDE.md   # mode 120000 で追跡されることを確認: git ls-files -s CLAUDE.md
+  git add CLAUDE.md   # Verify mode 120000 with: git ls-files -s CLAUDE.md
   ```
 
-  symlink にする理由: Claude Code・その他ツールが同一実体を読むため、import 記法の対応差やコピー乖離が発生しない。
+  Why use a symlink: Claude Code and other tools read the same source, preventing differences in import-syntax support and copied-content drift.
 
-- repo-local skill の配線: skill の source of truth は `.agents/skills/<name>/SKILL.md` に置き、`.claude/skills` は相対 symlink としてコミットする。
+- Wiring repo-local skills: Place each skill's source of truth at `.agents/skills/<name>/SKILL.md` and commit `.claude/skills` as a relative symlink.
 
   ```shell
   mkdir -p .agents/skills
   ln -s ../.agents/skills .claude/skills
   ```
 
-  Claude の skill 機構を持たない coding agent でも、SKILL.md はただの Markdown なので、AGENTS.md から `.agents/skills/<name>/SKILL.md` のパス参照で同じ手順を辿らせる。
+  Even coding agents without Claude's skill mechanism can follow the same procedure because SKILL.md is ordinary Markdown; reference `.agents/skills/<name>/SKILL.md` from AGENTS.md.
 
-- private 境界: 社内ネットワーク、起動プロファイル、proxy 事情などの private 情報はリポジトリに一切書かない。必要な箇所には「環境固有の設定は `~/.agents/AGENTS-private.md` の該当節を参照」というポインタだけを置く。グローバル AGENTS.md が AGENTS-private.md の読み込みを指示しているため、ポインタだけで agent は辿れる。
+- Private boundary: Never write private information, such as internal networks, launch profiles, or proxy details, in the repository. Where needed, add only a pointer such as “For environment-specific settings, refer to the relevant section of `~/.agents/AGENTS-private.md`.” Because the global AGENTS.md instructs agents to read AGENTS-private.md, the pointer is sufficient.
 
-## 参考実装
+## Reference Implementation
 
-https://github.com/haralab-uec/kitada-experiments — `AGENTS.md`、`CLAUDE.md`(symlink)、`.agents/skills/`、`.claude/skills`(symlink)の実例。
+https://github.com/haralab-uec/kitada-experiments — an example using `AGENTS.md`, `CLAUDE.md` (symlink), `.agents/skills/`, and `.claude/skills` (symlink).

@@ -7,7 +7,7 @@ description: Attach local files to a GitHub issue or pull request comment via Pl
 
 ## Read Acknowledgement
 
-- After reading this skill, say: `🐙 私は gh-comment-attach-files を読みました。`
+- After reading this skill, say: `🐙 I read gh-comment-attach-files.`
 
 ## When To Use
 

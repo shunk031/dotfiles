@@ -1,43 +1,43 @@
 ---
 name: cgd-dev-identity
-description: creative-graphic-design org のリポジトリ(design-generators など)で git commit、push、PR 作成・更新、issue / PR コメント、label / milestone、ユーザー指示による merge 実行などの GitHub write を行うときは、必ずこの skill に従って machine user creative-graphic-design-dev として実行する。「bot として push」「dev アカウントで」「creative-graphic-design-dev で」と言われたときはもちろん、org 配下リポジトリへの write 作業を始めるとき全般で、明示指定がなくても必ず使う。
+description: Use this skill for all GitHub write operations in creative-graphic-design organization repositories (such as design-generators), including git commits and pushes, PR creation and updates, issue and PR comments, labels, milestones, and user-requested merges. Perform them as the creative-graphic-design-dev machine user. Use it both when the user explicitly requests the bot or dev account and whenever beginning write work in an organization repository without an explicit request.
 ---
 
 # CGD Dev Identity
 
 ## Overview
 
-creative-graphic-design org のリポジトリに対する git / gh の write 操作は、個人アカウントではなく machine user `creative-graphic-design-dev`(user id 176740601)として実行する。PR が bot 名義になることで、人間のアカウントがその PR を正式にレビュー・承認できる。GitHub では自分の PR を自分では承認できないため、個人アカウント名義で PR を作るとレビューフローが成立しない。
+Perform git and gh write operations for creative-graphic-design organization repositories as the `creative-graphic-design-dev` machine user (user ID 176740601), not a personal account. A bot-authored PR lets a human account formally review and approve it. Because GitHub does not permit users to approve their own PRs, creating a PR with a personal account would prevent the review flow from working.
 
 ## Setup
 
-write 操作を始める前に、作業シェルと worktree で以下を確認する。失敗してから調べるのではなく、開始手順として実行する。
+Before starting write operations, perform the following checks in the working shell and worktree. Run them as a starting procedure rather than investigating only after a failure.
 
-1. gh / git credential を使う write 系コマンドには、per-command で bot トークンを渡す。トークンは全シェルに `CGD_DEV_GH_TOKEN` として配布済み(zshenv_private 管理):
+1. Pass the bot token to each write command that uses gh or git credentials. The token is distributed to all shells as `CGD_DEV_GH_TOKEN` (managed by zshenv_private):
 
    ```bash
    GH_TOKEN="$CGD_DEV_GH_TOKEN" gh pr create ...
    GH_TOKEN="$CGD_DEV_GH_TOKEN" git push
    ```
 
-   同じ shell が持続する手動作業では、以下を省略記法として使ってよい:
+   For manual work in a persistent shell, you may use the following shorthand:
 
    ```bash
    export GH_TOKEN="$CGD_DEV_GH_TOKEN"
    ```
 
-   Claude Code の shell tool のようにコマンドごとに新しい shell が立つ環境では `export` は次のコマンドへ持続しないため、per-command prefix を正とする。
+   In environments that start a new shell for each command, such as Claude Code's shell tool, `export` does not persist to the next command. Use the per-command prefix as the canonical approach.
 
-2. GitHub identity と org repository の push 権限を確認する。`gh api user` はログイン中のアカウント確認にしかならず、org リソースへのアクセス可否は検証できない:
+2. Verify the GitHub identity and push permission for the organization repository. `gh api user` only confirms the logged-in account and cannot verify access to organization resources:
 
    ```bash
    GH_TOKEN="$CGD_DEV_GH_TOKEN" gh api user --jq .login
    GH_TOKEN="$CGD_DEV_GH_TOKEN" gh api repos/creative-graphic-design/<repo> --jq .permissions.push
    ```
 
-   1 つ目のコマンドで `creative-graphic-design-dev`、2 つ目のコマンドで `true` が返らなければ write を始めない。
+   Do not start write operations unless the first command returns `creative-graphic-design-dev` and the second returns `true`.
 
-3. commit author は commit 実行時に per-command で bot にする:
+3. Set the commit author to the bot for each commit command:
 
    ```bash
    git -c user.name=creative-graphic-design-dev \
@@ -45,24 +45,24 @@ write 操作を始める前に、作業シェルと worktree で以下を確認�
        commit ...
    ```
 
-   linked worktree で `git config user.name/email` を使うと共有 `.git/config` に書き込まれ、main checkout や並行 worktree の author まで bot に変わるため使わない。
+   Do not use `git config user.name/email` in a linked worktree: it writes to the shared `.git/config` and changes the author for the main checkout and concurrent worktrees as well.
 
-4. push は HTTPS で行う(この環境の SSH は proxy を通らない)。explicit pushurl を設定する:
+4. Push over HTTPS because SSH does not use the proxy in this environment. Set an explicit push URL:
 
    ```bash
    git remote set-url --push origin https://github.com/creative-graphic-design/<repo>
    ```
 
-`GH_TOKEN` は同じコマンド環境の gh と git credential helper の両方に効く。credential helper は username `x-access-token` でトークンを返す。
+`GH_TOKEN` applies to both gh and the git credential helper in the same command environment. The credential helper returns the token with the username `x-access-token`.
 
 ## Scope
 
-- 対象は creative-graphic-design org のリポジトリのみ。他 org・個人リポジトリではこの skill を使わず、通常の認証のまま作業する。トークンは fine-grained PAT で org 内の許可リポジトリにしか効かないため、対象外リポジトリで `GH_TOKEN` を渡したままにすると認証エラーになる。
-- coding agent が行う org リポジトリへの write はすべて bot 名義にする。対象には commit、push、PR 作成・更新、PR への返信、issue コメント、label、milestone、およびユーザー指示による merge の実行を含む。
-- 人間(`shunk031`)に残るのは GitHub UI 上での PR approve と merge 判断のみ。bot で PR を approve しない。
+- This skill applies only to creative-graphic-design organization repositories. Do not use it for other organizations or personal repositories; use normal authentication there. The token is a fine-grained PAT that works only for authorized repositories in the organization, so passing `GH_TOKEN` in an out-of-scope repository causes an authentication error.
+- Attribute every coding-agent write to an organization repository to the bot. This includes commits, pushes, PR creation and updates, PR replies, issue comments, labels, milestones, and user-requested merges.
+- The human (`shunk031`) retains only PR approval in the GitHub UI and the decision to merge. Do not approve PRs as the bot.
 
 ## Troubleshooting
 
-- org リソースのエンドポイント(repos API や push)で 403 が返り、「organization forbids ... lifetime greater than 366 days」と表示される場合、org ポリシーによりトークンの有効期限が 1 年を超えている。`gh api user` はこの状態でも成功するため判定に使えない。トークンの expiration を 1 年以内に変更すれば同じ値のまま通る。
-- トークンが失効した場合は、creative-graphic-design-dev アカウントで fine-grained PAT(Contents / Pull requests / Issues / Workflows を Read and write、対象リポジトリ限定)を再発行し、zshenv_private の `CGD_DEV_GH_TOKEN` 行を更新する。
-- 新しいリポジトリを対象に加える場合は、PAT の Repository access にそのリポジトリを追加する必要がある。トークン再発行は不要で、設定変更のみでよい。
+- If an organization-resource endpoint (the repos API or a push) returns 403 with “organization forbids ... lifetime greater than 366 days,” organization policy requires the token lifetime to be no longer than one year. `gh api user` still succeeds in this state, so do not use it to diagnose the issue. Change the token expiration to within one year; the token value itself can remain the same.
+- If the token expires, reissue a fine-grained PAT as the creative-graphic-design-dev account with Contents, Pull requests, Issues, and Workflows set to Read and write and access limited to the target repositories. Then update the `CGD_DEV_GH_TOKEN` line in zshenv_private.
+- To add a repository to the scope, add it under the PAT's Repository access. Reissuing the token is unnecessary; changing its configuration is sufficient.

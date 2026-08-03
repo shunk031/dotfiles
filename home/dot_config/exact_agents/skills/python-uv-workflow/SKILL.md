@@ -11,7 +11,7 @@ Use this workflow to keep Python implementation and refactoring aligned with rep
 
 ## Read Acknowledgement
 
-- After reading this skill, say: `🐍 私は python-uv-workflow を読みました。`
+- After reading this skill, say: `🐍 I read python-uv-workflow.`
 
 ## Workflow
 

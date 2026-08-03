@@ -38,13 +38,13 @@ readonly GITIGNORE_PATH="./.gitignore"
 
     run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '`~/.agents/AGENTS.md` を最初に読み' "${CODEX_AGENTS_PATH}"
+    run grep -F 'Shared instructions: Read `~/.agents/AGENTS.md` first' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '`~/.agents/AGENTS-private.md`' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '`~/.agents/AGENTS-private.md`' "${CODEX_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F '## Codex 固有の委譲' "${CODEX_AGENTS_PATH}"
+    run grep -F '## Codex-Specific Delegation' "${CODEX_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
     run grep -F 'native subagents' "${CODEX_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
@@ -53,7 +53,7 @@ readonly GITIGNORE_PATH="./.gitignore"
 }
 
 @test "[common] shared guidance defines highest-priority implementation principles" {
-    run grep -F '## 最重要の実装原則' "${SHARED_AGENTS_PATH}"
+    run grep -F '## Most Important Implementation Principles' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'These principles take precedence over other implementation guidance in this file.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
@@ -65,58 +65,58 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F 'Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '後方互換性は気にしないでください' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not worry about backward compatibility.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
 }
 
 @test "[common] shared guidance requires concrete coding plans" {
-    run grep -F '## Plan の具体性' "${SHARED_AGENTS_PATH}"
+    run grep -F '## Plan Specificity' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '変更対象のディレクトリ・ファイルパス' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Directories and file paths to change' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '追加・編集・削除する関数、クラス、設定キー、CLI 引数、公開 API' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Functions, classes, configuration keys, CLI arguments, and public APIs to add, edit, or delete' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '各ファイルで何をどう変えるか' "${SHARED_AGENTS_PATH}"
+    run grep -F 'What to change in each file and how' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '確認する assertion の要点' "${SHARED_AGENTS_PATH}"
+    run grep -F 'the essential assertions to verify' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '関数シグネチャ案、疑似コード、または短いコードスニペットを必ず含めてください' "${SHARED_AGENTS_PATH}"
+    run grep -F 'always include a proposed function signature, pseudocode, or short code snippet' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '実装判断が増える plan では' "${SHARED_AGENTS_PATH}"
+    run grep -F 'For plans that introduce more implementation decisions' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`どのファイルのどのシンボルをどう変えるか` が伝わる粒度で書いてください' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Describe the work at a level that conveys which symbol in which file will change and how.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '未完成の plan を最終 plan として提示してはいけません' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not present an incomplete plan as the final plan.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '「Assumptions」または「前提」として明示し' "${SHARED_AGENTS_PATH}"
+    run grep -F 'state the assumptions under “Assumptions” or “Premises”' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
 @test "[common] shared guidance protects uncommitted diffs" {
-    run grep -F '## 未コミット差分の保護' "${SHARED_AGENTS_PATH}"
+    run grep -F '## Protecting Uncommitted Changes' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '自分が作ったと明確に証明できない差分を、明示的な許可なしに戻してはいけません' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not revert a change unless you can clearly prove that you made it and have explicit permission.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '差分を戻すのではなく、stage 対象を限定する、別 worktree を使う、またはユーザーへ確認してください' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Instead, limit what you stage, use another worktree, or ask the user.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
 @test "[common] shared guidance prevents gwq base-ref misuse" {
-    run grep -F 'base ref のつもりで `origin/main` などを渡してはいけません' "${SHARED_AGENTS_PATH}"
+    run grep -F 'do not pass `origin/main` or another base ref there' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'worktree へ移動してから `git merge --ff-only origin/main` を実行してください' "${SHARED_AGENTS_PATH}"
+    run grep -F 'move to the worktree, and then run `git merge --ff-only origin/main`' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -138,26 +138,26 @@ readonly GITIGNORE_PATH="./.gitignore"
 }
 
 @test "[common] shared guidance defines shared agent wrapper policy" {
-    run grep -F '## エージェント設定' "${SHARED_AGENTS_PATH}"
+    run grep -F '## Agent Configuration' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '複数ツールで使う subagent / custom agent の長い共通指示は `~/.agents/agents/<name>.md` を source of truth にしてください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Keep lengthy shared instructions for subagents or custom agents used by multiple tools in `~/.agents/agents/<name>.md` as the source of truth.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Claude Code 用の `~/.claude/agents/<name>.md` は YAML frontmatter を保持し、本文では `~/.agents/agents/<name>.md` を最初に読むよう明示してください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Preserve YAML frontmatter in `~/.claude/agents/<name>.md` for Claude Code and explicitly instruct it in the body to read `~/.agents/agents/<name>.md` first.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '同じ長文指示を wrapper にコピーしないでください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not copy the same lengthy instructions into wrappers.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Markdown を Python などでパースして TOML / Markdown を生成する仕組みは、明示的に必要になるまで追加しないでください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not add a mechanism that parses Markdown with Python or similar tooling to generate TOML or Markdown until it is explicitly needed.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
 @test "[common] shared guidance defines tool-neutral native delegation policy" {
-    run grep -F '## 実装タスクの委譲' "${SHARED_AGENTS_PATH}"
+    run grep -F '## Delegating Implementation Tasks' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '利用中の coding agent が native multi-agent 機能を提供し、タスクを独立した単位に分けられる場合' "${SHARED_AGENTS_PATH}"
+    run grep -F 'When the coding agent in use provides native multi-agent capabilities and the task can be divided into independent units' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Claude Code の agent teams や Codex の subagents など、各 tool の native 機能を使ってください。' "${SHARED_AGENTS_PATH}"
+    run grep -F "Use each tool's native capabilities, such as Claude Code agent teams or Codex subagents." "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'subagent が使うモデルや起動方法などの環境固有設定は、このファイルには書かず `~/.agents/AGENTS-private.md` または tool 固有 entrypoint を参照してください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not put environment-specific configuration, such as subagent models or launch methods, in this file.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -251,13 +251,13 @@ readonly GITIGNORE_PATH="./.gitignore"
 }
 
 @test "[common] shared guidance rejects inline multi-line GitHub bodies" {
-    run grep -F 'GitHub issue body / PR description / PR comment のような multi-line Markdown は、必ず一時 Markdown file を single-quoted heredoc で作り、`gh ... --body-file <file>` で投稿・更新してください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'For multi-line Markdown such as a GitHub issue body, PR description, or PR comment, always create a temporary Markdown file with a single-quoted heredoc and post or update it using `gh ... --body-file <file>`.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`gh ... --body "...\n..."` や shell-escaped multi-line body の直渡しは、literal `\n` が公開されるため使わないでください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not pass `gh ... --body "...\n..."` or a shell-escaped multi-line body directly; literal `\n` can be published.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'literal escaped newlines (`\n`)、local absolute paths such as `/Users/`、期待見出しの欠落を検出してから完了報告してください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'detect literal escaped newlines (`\n`), local absolute paths such as `/Users/`, and missing expected headings.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 

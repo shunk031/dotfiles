@@ -1,0 +1,5 @@
+- This directory is applied as `~/.codex`.
+- Chezmoi maps `~/.codex/AGENTS.md` to [home/dot_config/codex/AGENTS.md](../dot_config/codex/AGENTS.md).
+- Chezmoi maps `~/.codex/agents` to Codex custom-agent adapters in [home/dot_config/codex/agents/](../dot_config/codex/agents/), which reference shared instructions under `~/.agents/agents`.
+- Private dotfiles manage `~/.codex/config.toml` and private profiles separately.
+- Edit the canonical source, not this adapter directory.

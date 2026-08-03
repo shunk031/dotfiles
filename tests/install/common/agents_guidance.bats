@@ -2,6 +2,10 @@
 
 readonly SHARED_AGENTS_PATH="./home/dot_config/exact_agents/AGENTS.md"
 readonly SHARED_GH_AGENT_PATH="./home/dot_config/exact_agents/agents/gh-workflow-manager.md"
+readonly CODEX_AGENTS_PATH="./home/dot_config/codex/AGENTS.md"
+readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
+readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
+readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager.toml"
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
 readonly SKILL_CREATOR_SHARED_SKILL_PATH="./home/dot_config/exact_agents/skills/skill-creator"
 readonly SKILL_CREATOR_SYMLINK_TEMPLATE="./home/exact_dot_agents/skills/symlink_skill-creator.tmpl"
@@ -14,8 +18,10 @@ readonly CLAUDE_GH_AGENT_PATH="./home/dot_config/claude/agents/gh-workflow-manag
 readonly CHEZMOIIGNORE_PATH="./home/.chezmoitemplates/chezmoiignore.d/common"
 readonly AGENTS_README_PATH="./home/exact_dot_agents/README.md"
 readonly CLAUDE_README_PATH="./home/dot_claude/README.md"
+readonly CODEX_README_PATH="./home/dot_codex/README.md"
 readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/exact_agents/README.md"
 readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
+readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 readonly SHARED_SKILLS_SYMLINK_DIR="./home/exact_dot_agents/skills"
 readonly CLAUDE_SKILLS_KEEP_PATH="./home/dot_claude/skills/.keep"
 readonly CLAUDE_SKILL_DIR_SYMLINK_TEMPLATE="./home/dot_claude/symlink_skills.tmpl"
@@ -24,10 +30,18 @@ readonly GEMINI_SKILL_DIR_SYMLINK_TEMPLATE="./home/dot_gemini/config/symlink_ski
 readonly LINK_SHARED_SKILLS_SCRIPT="./home/.chezmoiscripts/common/run_after_90-link-shared-skills.sh.tmpl"
 readonly GITIGNORE_PATH="./.gitignore"
 
-@test "[common] codex guidance entrypoints are removed" {
+@test "[common] codex guidance entrypoint reads shared guidance" {
     [ -f "${SHARED_AGENTS_PATH}" ]
-    [ ! -e "./home/dot_config/codex" ]
-    [ ! -e "./home/dot_codex" ]
+    [ -f "${CODEX_AGENTS_PATH}" ]
+    [ ! -e "./home/dot_config/codex/AGENTS.codex-only.md" ]
+    [ ! -e "./home/dot_codex/symlink_AGENTS.codex-only.md.tmpl" ]
+
+    run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`~/.agents/AGENTS.md` を最初に読み' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`~/.agents/AGENTS-private.md`' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] shared guidance requires concrete coding plans" {
@@ -81,7 +95,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared and Claude entrypoints define acknowledgment note blocks" {
+@test "[common] shared, Claude, and Codex entrypoints define acknowledgment note blocks" {
     run grep -F '> [!NOTE]' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.agents/AGENTS.md.`' "${SHARED_AGENTS_PATH}"
@@ -90,6 +104,11 @@ readonly GITIGNORE_PATH="./.gitignore"
     run grep -F '> [!NOTE]' "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '> After reading this `CLAUDE.md`, say: `🤖 I read ~/.claude/CLAUDE.md.`' "${CLAUDE_MD_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F '> [!NOTE]' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -106,12 +125,14 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared guidance defines agent teams delegation policy" {
-    run grep -F '## 実装タスクの委譲 (agent teams)' "${SHARED_AGENTS_PATH}"
+@test "[common] shared guidance defines tool-neutral native delegation policy" {
+    run grep -F '## 実装タスクの委譲' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F -- '- 委譲方針: 実装タスクでは Claude Code の agent teams を使い、メインエージェントをオーケストレータ、チームメイトを実装者としてください。' "${SHARED_AGENTS_PATH}"
+    run grep -F '利用中の coding agent が native multi-agent 機能を提供し、タスクを独立した単位に分けられる場合' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'チームメイトが使うモデルや起動方法などの環境固有設定は、このファイルには書かず `~/.agents/AGENTS-private.md` を参照してください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Claude Code の agent teams や Codex の subagents など、各 tool の native 機能を使ってください。' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'subagent が使うモデルや起動方法などの環境固有設定は、このファイルには書かず `~/.agents/AGENTS-private.md` または tool 固有 entrypoint を参照してください。' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -122,13 +143,22 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     [ "$(< "${CLAUDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/CLAUDE.md" ]
     [ "$(< "${CLAUDE_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/agents" ]
+    [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.md" ]
+    [ "$(< "${CODEX_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/agents" ]
 }
 
 @test "[common] tool-specific agent wrappers point to shared agent instructions" {
     [ -f "${SHARED_GH_AGENT_PATH}" ]
     [ -f "${CLAUDE_GH_AGENT_PATH}" ]
+    [ -f "${CODEX_GH_AGENT_PATH}" ]
 
     run grep -F 'read ~/.agents/agents/gh-workflow-manager.md and follow it as your primary instructions.' "${CLAUDE_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Read ~/.agents/agents/gh-workflow-manager.md first and follow it as your primary instructions.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'name = "gh-workflow-manager"' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'developer_instructions = ' "${CODEX_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -209,8 +239,10 @@ readonly GITIGNORE_PATH="./.gitignore"
 @test "[common] layout readmes describe the adapter and canonical layout" {
     [ -f "${AGENTS_README_PATH}" ]
     [ -f "${CLAUDE_README_PATH}" ]
+    [ -f "${CODEX_README_PATH}" ]
     [ -f "${CANONICAL_AGENTS_README_PATH}" ]
     [ -f "${CANONICAL_CLAUDE_README_PATH}" ]
+    [ -f "${CANONICAL_CODEX_README_PATH}" ]
 
     run grep -F "~/.agents" "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -234,6 +266,15 @@ readonly GITIGNORE_PATH="./.gitignore"
     run grep -F "Edit the canonical source, not this adapter directory." "${CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
 
+    run grep -F "~/.codex/AGENTS.md" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "../dot_config/codex/AGENTS.md" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.codex/agents" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "Edit the canonical source, not this adapter directory." "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+
     run grep -F "~/.agents" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'The `exact_` segment in this path is a chezmoi source-state attribute' "${CANONICAL_AGENTS_README_PATH}"
@@ -254,7 +295,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F "~/.agents/agents" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "Claude Markdown wrappers explicitly tell the tool to read the same shared Markdown first" "${CANONICAL_AGENTS_README_PATH}"
+    run grep -F "Claude and Codex wrappers explicitly tell each tool to read the same shared Markdown first" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -273,6 +314,15 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
+
+    run grep -F "~/.codex/AGENTS.md" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "../../dot_codex/symlink_AGENTS.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.agents/agents" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "private dotfiles" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] layout docs and adapter-only config paths stay repo-only" {
@@ -282,8 +332,17 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -Fx ".claude/README.md" "${CHEZMOIIGNORE_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -Fx ".codex/README.md" "${CHEZMOIIGNORE_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -Fx ".config/agents" "${CHEZMOIIGNORE_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -Fx ".config/codex" "${CHEZMOIIGNORE_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] repository Claude entrypoint is an AGENTS.md symlink" {
+    [ -L "./CLAUDE.md" ]
+    [ "$(readlink ./CLAUDE.md)" = "AGENTS.md" ]
 }
 
 @test "[common] shared skills pool exposes repo-managed skills through per-skill symlink templates" {

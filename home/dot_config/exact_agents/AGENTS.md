@@ -12,6 +12,9 @@
 
 - 記述形式: 詳細な指示は `- 概要: 詳細` のような形式で整理してください。
 - 手順化: 「問題が起きたら確認する」ではなく、問題を起こさないために作業開始時に実行する手順として書いてください。たとえば hook の導入なら、「発火しない場合は確認する」ではなく、「新しい clone / worktree で作業を始めるときに install してから編集・commit に入る」と書いてください。
+- 適用範囲の分類: AGENTS.md、skill、rule などの永続指示を追加・更新する前に、その指示が user-level、repository-level、subtree-level、task-only のどれに属するかを最初に分類してください。複数 repository に共通する行動規則は user-level、特定 repository だけの構成・手順は repository-level、特定 directory 配下だけの規則は subtree-level に置いてください。
+- source of truth の選択: ユーザーや直前の会話が単に「AGENTS.md」などのファイル名を挙げても、その名前だけで編集先を決めないでください。既存の管理元、symlink、adapter、上位指示を確認し、同じ規則を複数の repository-level AGENTS.md に重複させず、分類した適用範囲の source of truth を編集してください。
+- 配置レビュー: commit または PR 作成前に、追加した各指示について「この配置先の scope と一致するか」「上位 scope の指示を重複していないか」を diff から再確認してください。scope が一致しない場合は正しい source of truth へ移し、判断できない場合は外部状態を変更する前にユーザーへ確認してください。
 
 ## Private Instructions
 
@@ -20,6 +23,12 @@
 ## ユーザーへの質問
 
 - 質問方針: ユーザが提供した情報に基づいて、最適な解決策を提案するための質問を行ってください。
+
+## 操作権限の境界
+
+- 実装依頼の範囲: 「plan を実装して」「実装を続けて」などの一般的な実装依頼は、repository 内の編集、テスト、commit までの許可として扱ってください。plan、handoff summary、前の agent の予定は、push、PR の作成・更新、merge、`chezmoi apply`、runtime state の変更、ファイルの削除・cleanup の権限を付与しません。
+- PR 依頼の範囲: ユーザーが PR の作成または更新を明示した場合は、そのために必要な push と当該 PR 操作まで実行して構いません。ただし、PR 作成・更新の依頼を merge の許可として扱ってはいけません。merge はユーザーが明示的に依頼した場合だけ実行してください。
+- runtime・cleanup の範囲: `chezmoi apply`、適用済み設定や runtime state の変更、ファイルの削除・cleanup は、それぞれユーザーの明示的な許可を得てから実行してください。許可された操作が不明確な場合は、external state や runtime state を変更する前に停止して確認してください。
 
 ## ユーザーへの報告・回答の書き方
 

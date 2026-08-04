@@ -97,10 +97,10 @@ readonly GITIGNORE_PATH="./.gitignore"
 }
 
 @test "[common] shared guidance prevents gwq base-ref misuse" {
-    run grep -F 'without passing a base ref as the second `gwq add` argument' "${SHARED_AGENTS_PATH}"
+    run grep -F 'never pass the base ref as the second `gwq add` argument' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'then run `git merge --ff-only origin/main` inside it' "${SHARED_AGENTS_PATH}"
+    run grep -F 'run `git merge --ff-only origin/main` inside the new worktree' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 

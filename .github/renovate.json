@@ -51,9 +51,18 @@
     },
     {
       "matchManagers": ["mise"],
-      "matchDepNames": ["/(claude-code|codex|herdr)$/"],
+      "matchDepNames": [
+        "herdr",
+        "aqua:anthropics/claude-code",
+        "aqua:openai/codex"
+      ],
       "groupName": "agent tooling",
       "minimumReleaseAge": "0 days"
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchDepNames": ["aqua:openai/codex"],
+      "extractVersion": "^rust-v?(?<version>.+)$"
     }
   ]
 }

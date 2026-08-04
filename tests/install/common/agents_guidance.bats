@@ -2,6 +2,10 @@
 
 readonly SHARED_AGENTS_PATH="./home/dot_config/exact_agents/AGENTS.md"
 readonly SHARED_GH_AGENT_PATH="./home/dot_config/exact_agents/agents/gh-workflow-manager.md"
+readonly CODEX_AGENTS_PATH="./home/dot_config/codex/AGENTS.md"
+readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
+readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
+readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager.toml"
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
 readonly SKILL_CREATOR_SHARED_SKILL_PATH="./home/dot_config/exact_agents/skills/skill-creator"
 readonly SKILL_CREATOR_SYMLINK_TEMPLATE="./home/exact_dot_agents/skills/symlink_skill-creator.tmpl"
@@ -14,71 +18,109 @@ readonly CLAUDE_GH_AGENT_PATH="./home/dot_config/claude/agents/gh-workflow-manag
 readonly CHEZMOIIGNORE_PATH="./home/.chezmoitemplates/chezmoiignore.d/common"
 readonly AGENTS_README_PATH="./home/exact_dot_agents/README.md"
 readonly CLAUDE_README_PATH="./home/dot_claude/README.md"
+readonly CODEX_README_PATH="./home/dot_codex/README.md"
 readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/exact_agents/README.md"
 readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
+readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 readonly SHARED_SKILLS_SYMLINK_DIR="./home/exact_dot_agents/skills"
 readonly CLAUDE_SKILLS_KEEP_PATH="./home/dot_claude/skills/.keep"
+readonly CLAUDE_SKILL_DIR_SYMLINK_TEMPLATE="./home/dot_claude/symlink_skills.tmpl"
+readonly GEMINI_SKILLS_SYMLINK_DIR="./home/dot_gemini/config/skills"
+readonly GEMINI_SKILL_DIR_SYMLINK_TEMPLATE="./home/dot_gemini/config/symlink_skills.tmpl"
 readonly LINK_SHARED_SKILLS_SCRIPT="./home/.chezmoiscripts/common/run_after_90-link-shared-skills.sh.tmpl"
 readonly GITIGNORE_PATH="./.gitignore"
 
-@test "[common] codex guidance entrypoints are removed" {
+@test "[common] codex guidance entrypoint stays minimal and reads shared guidance" {
     [ -f "${SHARED_AGENTS_PATH}" ]
-    [ ! -e "./home/dot_config/codex" ]
-    [ ! -e "./home/dot_codex" ]
+    [ -f "${CODEX_AGENTS_PATH}" ]
+    [ ! -e "./home/dot_config/codex/AGENTS.codex-only.md" ]
+    [ ! -e "./home/dot_codex/symlink_AGENTS.codex-only.md.tmpl" ]
+
+    run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Shared instructions: Read `~/.agents/AGENTS.md` first' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`~/.agents/AGENTS-private.md`' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '`~/.agents/AGENTS-private.md`' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F '## Codex-Specific Delegation' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'native subagents' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'gh-workflow-manager' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] shared guidance defines highest-priority implementation principles" {
+    run grep -F '## Most Important Implementation Principles' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'These principles take precedence over other implementation guidance in this file.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Do not preserve backward compatibility.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Choose the simplest implementation that fully meets the current requirements.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Prefer established, well-maintained libraries over custom implementations.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Do not worry about backward compatibility.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
 }
 
 @test "[common] shared guidance requires concrete coding plans" {
-    run grep -F '## Plan の具体性' "${SHARED_AGENTS_PATH}"
+    run grep -F '## Plan Specificity' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '変更対象のディレクトリ・ファイルパス' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Directories and file paths to change' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '追加・編集・削除する関数、クラス、設定キー、CLI 引数、公開 API' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Functions, classes, configuration keys, CLI arguments, and public APIs to add, edit, or delete' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '各ファイルで何をどう変えるか' "${SHARED_AGENTS_PATH}"
+    run grep -F 'What to change in each file and how' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '確認する assertion の要点' "${SHARED_AGENTS_PATH}"
+    run grep -F 'the essential assertions to verify' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '関数シグネチャ案、疑似コード、または短いコードスニペットを必ず含めてください' "${SHARED_AGENTS_PATH}"
+    run grep -F 'always include a proposed function signature, pseudocode, or short code snippet' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '実装判断が増える plan では' "${SHARED_AGENTS_PATH}"
+    run grep -F 'For plans that introduce more implementation decisions' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`どのファイルのどのシンボルをどう変えるか` が伝わる粒度で書いてください' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Describe the work at a level that conveys which symbol in which file will change and how.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '未完成の plan を最終 plan として提示してはいけません' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not present an incomplete plan as the final plan.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '「Assumptions」または「前提」として明示し' "${SHARED_AGENTS_PATH}"
+    run grep -F 'state the assumptions under “Assumptions” or “Premises”' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
 @test "[common] shared guidance protects uncommitted diffs" {
-    run grep -F '## 未コミット差分の保護' "${SHARED_AGENTS_PATH}"
+    run grep -F '## Protecting Uncommitted Changes' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '自分が作ったと明確に証明できない差分を、明示的な許可なしに戻してはいけません' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not revert a change unless you can clearly prove that you made it and have explicit permission.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '差分を戻すのではなく、stage 対象を限定する、別 worktree を使う、またはユーザーへ確認してください' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Instead, limit what you stage, use another worktree, or ask the user.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
 @test "[common] shared guidance prevents gwq base-ref misuse" {
-    run grep -F 'base ref のつもりで `origin/main` などを渡してはいけません' "${SHARED_AGENTS_PATH}"
+    run grep -F 'do not pass `origin/main` or another base ref there' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'worktree へ移動してから `git merge --ff-only origin/main` を実行してください' "${SHARED_AGENTS_PATH}"
+    run grep -F 'move to the worktree, and then run `git merge --ff-only origin/main`' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared and Claude entrypoints define acknowledgment note blocks" {
+@test "[common] shared, Claude, and Codex entrypoints define acknowledgment note blocks" {
     run grep -F '> [!NOTE]' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.agents/AGENTS.md.`' "${SHARED_AGENTS_PATH}"
@@ -88,27 +130,34 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F '> After reading this `CLAUDE.md`, say: `🤖 I read ~/.claude/CLAUDE.md.`' "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
+
+    run grep -F '> [!NOTE]' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] shared guidance defines shared agent wrapper policy" {
-    run grep -F '## エージェント設定' "${SHARED_AGENTS_PATH}"
+    run grep -F '## Agent Configuration' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '複数ツールで使う subagent / custom agent の長い共通指示は `~/.agents/agents/<name>.md` を source of truth にしてください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Keep lengthy shared instructions for subagents or custom agents used by multiple tools in `~/.agents/agents/<name>.md` as the source of truth.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Claude Code 用の `~/.claude/agents/<name>.md` は YAML frontmatter を保持し、本文では `~/.agents/agents/<name>.md` を最初に読むよう明示してください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Preserve YAML frontmatter in `~/.claude/agents/<name>.md` for Claude Code and explicitly instruct it in the body to read `~/.agents/agents/<name>.md` first.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '同じ長文指示を wrapper にコピーしないでください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not copy the same lengthy instructions into wrappers.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Markdown を Python などでパースして TOML / Markdown を生成する仕組みは、明示的に必要になるまで追加しないでください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not add a mechanism that parses Markdown with Python or similar tooling to generate TOML or Markdown until it is explicitly needed.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared guidance defines agent teams delegation policy" {
-    run grep -F '## 実装タスクの委譲 (agent teams)' "${SHARED_AGENTS_PATH}"
+@test "[common] shared guidance defines tool-neutral native delegation policy" {
+    run grep -F '## Delegating Implementation Tasks' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F -- '- 委譲方針: 実装タスクでは Claude Code の agent teams を使い、メインエージェントをオーケストレータ、チームメイトを実装者としてください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'When the coding agent in use provides native multi-agent capabilities and the task can be divided into independent units' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'チームメイトが使うモデルや起動方法などの環境固有設定は、このファイルには書かず `~/.agents/AGENTS-private.md` を参照してください。' "${SHARED_AGENTS_PATH}"
+    run grep -F "Use each tool's native capabilities, such as Claude Code agent teams or Codex subagents." "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Do not put environment-specific configuration, such as subagent models or launch methods, in this file.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -119,13 +168,22 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     [ "$(< "${CLAUDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/CLAUDE.md" ]
     [ "$(< "${CLAUDE_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/agents" ]
+    [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.md" ]
+    [ "$(< "${CODEX_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/agents" ]
 }
 
 @test "[common] tool-specific agent wrappers point to shared agent instructions" {
     [ -f "${SHARED_GH_AGENT_PATH}" ]
     [ -f "${CLAUDE_GH_AGENT_PATH}" ]
+    [ -f "${CODEX_GH_AGENT_PATH}" ]
 
     run grep -F 'read ~/.agents/agents/gh-workflow-manager.md and follow it as your primary instructions.' "${CLAUDE_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Read ~/.agents/agents/gh-workflow-manager.md first and follow it as your primary instructions.' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'name = "gh-workflow-manager"' "${CODEX_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'developer_instructions = ' "${CODEX_GH_AGENT_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -193,21 +251,23 @@ readonly GITIGNORE_PATH="./.gitignore"
 }
 
 @test "[common] shared guidance rejects inline multi-line GitHub bodies" {
-    run grep -F 'GitHub issue body / PR description / PR comment のような multi-line Markdown は、必ず一時 Markdown file を single-quoted heredoc で作り、`gh ... --body-file <file>` で投稿・更新してください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'For multi-line Markdown such as a GitHub issue body, PR description, or PR comment, always create a temporary Markdown file with a single-quoted heredoc and post or update it using `gh ... --body-file <file>`.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F '`gh ... --body "...\n..."` や shell-escaped multi-line body の直渡しは、literal `\n` が公開されるため使わないでください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not pass `gh ... --body "...\n..."` or a shell-escaped multi-line body directly; literal `\n` can be published.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'literal escaped newlines (`\n`)、local absolute paths such as `/Users/`、期待見出しの欠落を検出してから完了報告してください。' "${SHARED_AGENTS_PATH}"
+    run grep -F 'detect literal escaped newlines (`\n`), local absolute paths such as `/Users/`, and missing expected headings.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
 @test "[common] layout readmes describe the adapter and canonical layout" {
     [ -f "${AGENTS_README_PATH}" ]
     [ -f "${CLAUDE_README_PATH}" ]
+    [ -f "${CODEX_README_PATH}" ]
     [ -f "${CANONICAL_AGENTS_README_PATH}" ]
     [ -f "${CANONICAL_CLAUDE_README_PATH}" ]
+    [ -f "${CANONICAL_CODEX_README_PATH}" ]
 
     run grep -F "~/.agents" "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -231,6 +291,15 @@ readonly GITIGNORE_PATH="./.gitignore"
     run grep -F "Edit the canonical source, not this adapter directory." "${CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
 
+    run grep -F "~/.codex/AGENTS.md" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "../dot_config/codex/AGENTS.md" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.codex/agents" "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "Edit the canonical source, not this adapter directory." "${CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+
     run grep -F "~/.agents" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'The `exact_` segment in this path is a chezmoi source-state attribute' "${CANONICAL_AGENTS_README_PATH}"
@@ -251,7 +320,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F "~/.agents/agents" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "Claude Markdown wrappers explicitly tell the tool to read the same shared Markdown first" "${CANONICAL_AGENTS_README_PATH}"
+    run grep -F "Claude and Codex wrappers explicitly tell each tool to read the same shared Markdown first" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -270,6 +339,15 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F "keeps the home path stable" "${CANONICAL_CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
+
+    run grep -F "~/.codex/AGENTS.md" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "../../dot_codex/symlink_AGENTS.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "~/.agents/agents" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F "private dotfiles" "${CANONICAL_CODEX_README_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] layout docs and adapter-only config paths stay repo-only" {
@@ -279,18 +357,50 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -Fx ".claude/README.md" "${CHEZMOIIGNORE_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -Fx ".codex/README.md" "${CHEZMOIIGNORE_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -Fx ".config/agents" "${CHEZMOIIGNORE_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -Fx ".config/codex" "${CHEZMOIIGNORE_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] repository Claude entrypoint is an AGENTS.md symlink" {
+    [ -L "./CLAUDE.md" ]
+    [ "$(readlink ./CLAUDE.md)" = "AGENTS.md" ]
 }
 
 @test "[common] shared skills pool exposes repo-managed skills through per-skill symlink templates" {
     [ ! -e "./home/exact_dot_agents/symlink_skills.tmpl" ]
-    [ ! -e "./home/dot_claude/symlink_skills.tmpl" ]
+    [ ! -e "${CLAUDE_SKILL_DIR_SYMLINK_TEMPLATE}" ]
+    [ ! -e "${GEMINI_SKILL_DIR_SYMLINK_TEMPLATE}" ]
     [ -d "${SHARED_SKILLS_SYMLINK_DIR}" ]
 
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_humanizer-ja.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/humanizer-ja" ]
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/setup-agent-docs" ]
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shdoc-shell-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shdoc-shell-docs" ]
+}
+
+@test "[common] Gemini skills expose repo-managed skills through per-skill symlink templates" {
+    [ -d "${GEMINI_SKILLS_SYMLINK_DIR}" ]
+
+    local skills="ai-slop-checklist-ja cgd-dev-identity convert-to-transformers gh-comment-attach-files high-impact-journal-publishing humanizer-ja python-uv-workflow setup-agent-docs shdoc-shell-docs"
+    local skill
+    local template
+    local expected
+
+    for skill in ${skills}; do
+        template="${GEMINI_SKILLS_SYMLINK_DIR}/symlink_${skill}.tmpl"
+        expected="{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/${skill}"
+        [ -f "${template}" ]
+        [ "$(< "${template}")" = "${expected}" ]
+    done
+
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_agmsg.tmpl" ]
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_delegate-codex.tmpl" ]
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_herdr.tmpl" ]
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_skill-creator.tmpl" ]
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_worklog-manager.tmpl" ]
 }
 
 @test "[common] Claude skills directory is a real, installer-writable directory" {

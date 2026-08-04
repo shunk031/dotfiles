@@ -326,6 +326,16 @@ EOF
     [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=' ]
 }
 
+@test "[common] Codex CLI has a stable semver pin and is exempt from mise release age" {
+    local codex_version
+
+    codex_version="$(sed -nE 's/^[[:space:]]*"aqua:openai\/codex"[[:space:]]*=[[:space:]]*"([^"]+)"[[:space:]]*$/\1/p' "${MISE_CONFIG_SOURCE}")"
+    [[ "${codex_version}" =~ ^[0-9]+[.][0-9]+[.][0-9]+$ ]]
+
+    run grep -F '"aqua:openai/codex",' "${MISE_CONFIG_SOURCE}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] run_after template installs pinned mise tools after apply" {
     write_mise_stub
 

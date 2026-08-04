@@ -35,30 +35,34 @@
     },
     {
       "matchManagers": ["mise"],
-      "matchPackageNames": [
-        "npm:@anthropic-ai/claude-code"
-      ],
-      "groupName": "agent CLIs"
+      "groupName": "mise tools"
     },
     {
       "matchManagers": ["mise"],
-      "matchPackageNames": ["python"],
+      "matchDepNames": ["python"],
       "matchUpdateTypes": ["minor", "major"],
       "groupName": "Python runtime"
     },
     {
       "matchManagers": ["mise"],
-      "matchPackageNames": ["python"],
+      "matchDepNames": ["python"],
       "matchUpdateTypes": ["patch"],
       "enabled": false
     },
     {
       "matchManagers": ["mise"],
-      "groupName": "mise tools",
-      "matchPackageNames": [
-        "!python",
-        "!npm:@anthropic-ai/claude-code"
-      ]
+      "matchDepNames": [
+        "herdr",
+        "aqua:anthropics/claude-code",
+        "aqua:openai/codex"
+      ],
+      "groupName": "agent tooling",
+      "minimumReleaseAge": "0 days"
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchDepNames": ["aqua:openai/codex"],
+      "extractVersion": "^rust-v?(?<version>.+)$"
     }
   ]
 }

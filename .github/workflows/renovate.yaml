@@ -3,7 +3,7 @@ name: Renovate
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 18 * * 0" # At 18:00 on Sunday.
+    - cron: "0 18 * * *" # At 18:00 every day.
 
 permissions:
   contents: read
@@ -21,7 +21,7 @@ jobs:
           private-key: ${{ secrets.MY_SELF_HOSTED_RENOVATE_APP_PRIVATE_KEY }}
 
       - name: Run Renovate
-        uses: renovatebot/github-action@v46.1.19
+        uses: renovatebot/github-action@v46.1.20
         with:
           token: ${{ steps.app-token.outputs.token }}
         env:

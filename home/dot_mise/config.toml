@@ -1,4 +1,4 @@
-min_version = "2026.6.13"
+min_version = "2026.7.12"
 
 [tools]
 # Keep each group sorted by package name, ignoring backend prefixes and leading `@`.
@@ -14,17 +14,18 @@ rust = "1.97.1"
 bun = "1.3.14"
 eza = "0.23.5"
 gcloud = "575.0.0"
-herdr = "0.7.4"
+herdr = "0.7.5"
 sqlite = "3.53.3"
 
 # Aqua tools
 "aqua:FiloSottile/age" = "1.3.1"
-"aqua:google-antigravity/antigravity-cli" = "1.1.3"
-"aqua:aws/aws-cli" = "2.36.1"
-"aqua:bats-core/bats-core" = "1.13.0"
-"aqua:twpayne/chezmoi" = "2.71.0"
-"aqua:anthropics/claude-code" = "2.1.217"
-"aqua:dotenvx/dotenvx" = "2.14.0"
+"aqua:google-antigravity/antigravity-cli" = "1.1.6"
+"aqua:aws/aws-cli" = "2.36.7"
+"aqua:bats-core/bats-core" = "1.14.0"
+"aqua:twpayne/chezmoi" = "2.71.1"
+"aqua:anthropics/claude-code" = "2.1.218"
+"aqua:openai/codex" = "0.145.0"
+"aqua:dotenvx/dotenvx" = "2.17.3"
 "aqua:bootandy/dust" = "1.2.4"
 "aqua:sharkdp/fd" = "10.4.2"
 "aqua:cli/cli" = "2.96.0"
@@ -34,7 +35,7 @@ sqlite = "3.53.3"
 "aqua:BurntSushi/ripgrep" = "15.2.0"
 "aqua:koalaman/shellcheck" = "0.11.0"
 "aqua:mvdan/sh" = "3.13.1"
-"aqua:astral-sh/uv" = "0.11.29"
+"aqua:astral-sh/uv" = "0.11.32"
 "aqua:sxyazi/yazi" = "26.5.6"
 "aqua:mikefarah/yq" = "4.53.3"
 
@@ -43,14 +44,14 @@ sqlite = "3.53.3"
 
 # GitHub release tools
 "github:d-kuro/gwq" = "0.1.1"
-"github:router-for-me/CLIProxyAPI" = "7.2.94"
+"github:router-for-me/CLIProxyAPI" = "7.2.97"
 "github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }
 
 # npm tools
 "npm:bash-language-server" = "5.6.0"
 "npm:fast-cli" = "5.2.0"
 "npm:pyright" = "1.1.411"
-"npm:skills" = "1.5.19"
+"npm:skills" = "1.5.20"
 
 [settings]
 idiomatic_version_file_enable_tools = ["python"]
@@ -59,4 +60,5 @@ ruby.compile = false
 minimum_release_age_excludes = [
   "aqua:anthropics/claude-code",
   "aqua:google-antigravity/antigravity-cli",
+  "aqua:openai/codex",
 ]

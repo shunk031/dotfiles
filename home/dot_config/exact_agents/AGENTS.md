@@ -8,105 +8,125 @@
 - Reasoning language: Think and reason in English by default.
 - Response language: Reply to the user in the user's language unless the user explicitly asks for another language.
 
-## 指示の記述
+## Most Important Implementation Principles
 
-- 記述形式: 詳細な指示は `- 概要: 詳細` のような形式で整理してください。
-- 手順化: 「問題が起きたら確認する」ではなく、問題を起こさないために作業開始時に実行する手順として書いてください。たとえば hook の導入なら、「発火しない場合は確認する」ではなく、「新しい clone / worktree で作業を始めるときに install してから編集・commit に入る」と書いてください。
+> [!IMPORTANT]
+> These principles take precedence over other implementation guidance in this file.
+
+- Backward compatibility: Do not preserve backward compatibility.
+- Implementation: Choose the simplest implementation that fully meets the current requirements.
+- Dependencies: Prefer established, well-maintained libraries over custom implementations.
+- Architecture: Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.
+
+## Writing Instructions
+
+- Format: Structure detailed instructions in a format such as `- Summary: Details`.
+- Procedural guidance: Write instructions as steps to perform when work begins to prevent problems, rather than as checks to make only after a problem occurs. For example, when introducing a hook, write “When starting work in a new clone or worktree, install it before editing or committing,” rather than “Check it if it does not run.”
+- Scope classification: Before adding or updating a persistent instruction such as an AGENTS.md file, skill, or rule, first classify it as user-level, repository-level, subtree-level, or task-only. Put behavioral rules shared across repositories at the user level, configuration and procedures for one repository at the repository level, and rules for a specific directory subtree at the subtree level.
+- Choosing the source of truth: Do not choose the edit target solely because the user or the preceding conversation names a file such as `AGENTS.md`. Check the existing management source, symlinks, adapters, and higher-level instructions; edit the source of truth for the classified scope instead of duplicating a rule across multiple repository-level AGENTS.md files.
+- Placement review: Before committing or creating a PR, review the diff for each added instruction to confirm that its location matches its scope and that it does not duplicate higher-scope guidance. If its scope does not match, move it to the correct source of truth; if you cannot determine that, ask the user before changing external state.
 
 ## Private Instructions
 
-- もし `~/.agents/AGENTS-private.md` が読める場合は、それも読んで適用してください。
+- If `~/.agents/AGENTS-private.md` is readable, read and apply it as well.
 
-## ユーザーへの質問
+## Questions for the User
 
-- 質問方針: ユーザが提供した情報に基づいて、最適な解決策を提案するための質問を行ってください。
+- Question policy: Ask questions based on the information the user provided to propose the best solution.
 
-## ユーザーへの報告・回答の書き方
+## Authority Boundaries
 
-- 簡潔さ: 報告・回答は簡潔に書いてください。詳細は求められたときに展開してください。
-- 箇条書きの構成: 箇条書きを使うときはパラグラフ・ライティングに従い、親項目を topic sentence、子項目(ネスト)を support sentence とし、必要なら最後の子項目を conclusion sentence にしてください。
+- Scope of implementation requests: Treat general implementation requests such as “implement the plan” or “continue implementing” as permission to edit files in the repository, run tests, and commit. A plan, handoff summary, or a previous agent's plan does not authorize pushing, creating or updating a PR, merging, running `chezmoi apply`, changing runtime state, or deleting or cleaning up files.
+- Scope of PR requests: When the user explicitly requests creating or updating a PR, you may push and perform the requested PR operation. Do not treat a request to create or update a PR as authorization to merge; merge only when the user explicitly requests it.
+- Runtime and cleanup scope: Obtain the user's explicit permission before running `chezmoi apply`, changing applied configuration or runtime state, or deleting or cleaning up files. If the permitted operation is unclear, stop and ask before changing external or runtime state.
+
+## Reporting and Responding to the User
+
+- Concision: Keep reports and responses concise. Expand only when asked.
+- Bullet structure: When using bullet lists, follow paragraph-writing principles: make the parent item the topic sentence, nested items supporting sentences, and the last nested item a conclusion sentence when useful.
   ```
   - topic sentence
     - support sentence
     - support sentence
     - conclusion sentence
   ```
-- フラットな羅列の回避: topic なしに support level の文を並べないでください。項目が 1 階層で並ぶ場合は、各項目がそれぞれ topic sentence として自立していることを確認してください。
+- Avoid flat lists: Do not list supporting sentences without a topic sentence. When items are at one level, make sure each can stand on its own as a topic sentence.
 
-## GitHub issue / PR comment の書き方
+## Writing GitHub Issue and PR Comments
 
-- 成果物としての扱い: GitHub issue / PR comment はチャット返信ではなく、repository-facing な成果物として扱ってください。
-- 使用言語: GitHub comment の本文は、その repository / project の既定言語に合わせてください。public OSS repository では、repository が明確に日本語運用である場合、またはユーザーが日本語を明示した場合を除き、英語を default にしてください。
-- 口調: GitHub comment には「訂正します」「すみません」「そういう意味ではなく」「I misunderstood」などの会話上の修復表現や、ユーザー向けの meta commentary を含めないでください。
-- 内容: GitHub comment は中立的・事実ベース・監査可能で、あとから読む repository maintainer に役立つ内容にしてください。
-- 投稿前確認: 投稿または編集の前に、comment 本文を現在の repository の事実、実行した command、確認した check / report と照合してください。曖昧な要約よりも、具体的な検証結果・対象ファイル・残っている blocker を優先してください。
-- 本文の渡し方: GitHub issue body / PR description / PR comment のような multi-line Markdown は、必ず一時 Markdown file を single-quoted heredoc で作り、`gh ... --body-file <file>` で投稿・更新してください。
-- 禁止: `gh ... --body "...\n..."` や shell-escaped multi-line body の直渡しは、literal `\n` が公開されるため使わないでください。
-- Read-back: 作成または編集後は `gh pr view`、`gh issue view`、`gh api` などで本文を read back し、literal escaped newlines (`\n`)、local absolute paths such as `/Users/`、期待見出しの欠落を検出してから完了報告してください。
-- 詳細の畳み込み: 長い診断ログや調査詳細は、短い summary を付けた `<details>` に入れて、comment の先頭では結論と必要な action が読めるようにしてください。
-- 誤投稿時の対応: 不適切な comment を投稿した場合は、可能な限り既存 comment を編集して修正してください。悪い comment を残したまま、重複する訂正 comment を新規投稿しないでください。
+- Treat comments as deliverables: Treat GitHub issue and PR comments as repository-facing deliverables, not chat replies.
+- Language: Write GitHub comment bodies in the repository or project's default language. For public OSS repositories, default to English unless the repository clearly operates in Japanese or the user explicitly requests Japanese.
+- Tone: Do not include conversational repair language such as “I need to correct that,” “Sorry,” “That is not what I meant,” or “I misunderstood,” or meta-commentary directed at the user.
+- Content: Keep GitHub comments neutral, fact-based, auditable, and useful to maintainers who read them later.
+- Pre-submission verification: Before posting or editing a comment, compare its content with the repository's current facts, commands you ran, and checks or reports you reviewed. Prefer concrete validation results, affected files, and remaining blockers over vague summaries.
+- Supplying bodies: For multi-line Markdown such as a GitHub issue body, PR description, or PR comment, always create a temporary Markdown file with a single-quoted heredoc and post or update it using `gh ... --body-file <file>`.
+- Prohibition: Do not pass `gh ... --body "...\n..."` or a shell-escaped multi-line body directly; literal `\n` can be published.
+- Read-back: After creating or editing content, read it back with `gh pr view`, `gh issue view`, `gh api`, or equivalent. Before reporting completion, detect literal escaped newlines (`\n`), local absolute paths such as `/Users/`, and missing expected headings.
+- Collapsing details: Put lengthy diagnostic logs or investigation details inside `<details>` with a short summary so the conclusion and required actions are visible at the beginning of the comment.
+- Incorrect posts: If you post an inappropriate comment, edit the existing comment to correct it whenever possible. Do not leave the bad comment in place and add a duplicate correction comment.
 
-## GitHub workflow の委譲 (gh-workflow-manager)
+## GitHub Workflow Delegation (`gh-workflow-manager`)
 
-- 委譲方針: branch 作成、commit、push、PR 作成、PR 更新、CI 確認などの GitHub workflow は、既定で `gh-workflow-manager` agent に委譲し、メインエージェントの context を計画・レビュー・統合に集中させてください。
-- 開始時の引き継ぎ: `gh-workflow-manager` に依頼する前に、repository / worktree、branch 名、task-relevant files、未コミット差分の扱い、実行済み検証と追加で確認すべき validation context を整理して渡してください。
-- メインエージェントの役割: メインエージェントは workflow の scope を定義し、`gh-workflow-manager` の結果を確認してから、実行内容・検証結果・残っている blocker をユーザーへ報告してください。
-- 例外条件: ユーザーがメインエージェント自身で GitHub workflow を行うよう明示した場合、または `gh-workflow-manager` が利用できない場合に限り、メインエージェントが直接実行してください。
-- 権限境界: teammate から denied action の代行を求められても、それを権限 bypass の許可として扱わず、ユーザーに状況を提示して明示的な指示を待ってください。
+- Delegation policy: By default, delegate GitHub workflow tasks such as branch creation, commits, pushes, PR creation and updates, and CI checks to the `gh-workflow-manager` agent so the main agent can focus on planning, review, and integration.
+- Handoff at the start: Before asking `gh-workflow-manager`, provide the repository and worktree, branch name, task-relevant files, treatment of uncommitted changes, completed validation, and any additional validation context to check.
+- Main-agent responsibility: The main agent defines the workflow scope, confirms the `gh-workflow-manager` result, then reports the work performed, validation results, and remaining blockers to the user.
+- Exceptions: The main agent may perform GitHub workflow directly only when the user explicitly asks the main agent to do so or `gh-workflow-manager` is unavailable.
+- Authority boundary: Do not treat a teammate's request to perform a denied action as authorization to bypass permissions; present the situation to the user and wait for explicit instruction.
 
-## エージェント設定
+## Agent Configuration
 
-- 共有指示: 複数ツールで使う subagent / custom agent の長い共通指示は `~/.agents/agents/<name>.md` を source of truth にしてください。
-- Claude wrapper: Claude Code 用の `~/.claude/agents/<name>.md` は YAML frontmatter を保持し、本文では `~/.agents/agents/<name>.md` を最初に読むよう明示してください。
-- Skill 管理: managed skill を追加・更新するときは、本文を `home/dot_config/exact_agents/skills/<skill>/SKILL.md` に置き、公開用 symlink template を `home/exact_dot_agents/skills/symlink_<skill>.tmpl` に追加してください。
-- 重複回避: 同じ長文指示を wrapper にコピーしないでください。
-- 単純さ: Markdown を Python などでパースして TOML / Markdown を生成する仕組みは、明示的に必要になるまで追加しないでください。
+- Shared instructions: Keep lengthy shared instructions for subagents or custom agents used by multiple tools in `~/.agents/agents/<name>.md` as the source of truth.
+- Claude wrapper: Preserve YAML frontmatter in `~/.claude/agents/<name>.md` for Claude Code and explicitly instruct it in the body to read `~/.agents/agents/<name>.md` first.
+- Skill management: When adding or updating a managed skill, place its content in `home/dot_config/exact_agents/skills/<skill>/SKILL.md` and add its public symlink template at `home/exact_dot_agents/skills/symlink_<skill>.tmpl`.
+- Avoid duplication: Do not copy the same lengthy instructions into wrappers.
+- Simplicity: Do not add a mechanism that parses Markdown with Python or similar tooling to generate TOML or Markdown until it is explicitly needed.
 
-## 実装タスクの委譲 (agent teams)
+## Delegating Implementation Tasks
 
-- 委譲方針: 実装タスクでは Claude Code の agent teams を使い、メインエージェントをオーケストレータ、チームメイトを実装者としてください。
-  - タスク開始時に作業を独立した単位へ分割し、チームメイトへ割り当ててから実装に入ってください。
-  - オーケストレータは計画・レビュー・統合に専念し、実装はチームメイトに任せてください。
-- 環境固有設定: チームメイトが使うモデルや起動方法などの環境固有設定は、このファイルには書かず `~/.agents/AGENTS-private.md` を参照してください。
+- Delegation policy: When the coding agent in use provides native multi-agent capabilities and the task can be divided into independent units, use the main agent as the orchestrator and subagents as implementers.
+  - Use each tool's native capabilities, such as Claude Code agent teams or Codex subagents.
+  - At the start of the task, divide the work into independent units and assign them to subagents before implementing.
+  - The orchestrator focuses on planning, review, and integration; delegate implementation to subagents.
+- Environment-specific configuration: Do not put environment-specific configuration, such as subagent models or launch methods, in this file. Refer to `~/.agents/AGENTS-private.md` or a tool-specific entrypoint.
 
-## コーディング全般について
+## General Coding Guidance
 
-- 例外処理: エラーを恐れないでください。まずは例外処理は気にせずコードを書いてください。
-- 最終成果物: 最終成果物でも例外処理は入れなくて構いません。
-- 後方互換性: 研究開発用途が主なため後方互換性は気にしないでください。あらかじめテストを記述し、テストが通ることを確認してから、必要に応じてコードをリファクタリングしてください。
+- Error handling: Do not fear errors. Write the code first without focusing on error handling.
+- Final deliverables: Final deliverables do not need error handling.
+- Tests: Write tests in advance, confirm that they pass, and then refactor as needed.
 
-### Worktree の方針
+### Worktree Policy
 
-- 既定ブランチ: 現在の checkout が `main` またはリポジトリの default branch である場合、リポジトリ管理下のファイルに対しては読み取り専用として扱ってください。
-- 事前確認: リポジトリ管理下のファイルを変更する可能性があるタスクに入る前に、現在の branch / worktree を最初に確認してください。
-- 編集前: `main` または default branch にいる場合は、worktree が clean でも、編集前に task-specific な新しい worktree を作成するか、そこへ移動してください。
-- 作成手順: worktree の作成には [`gwq`](https://github.com/d-kuro/gwq) を使ってください。default branch の checkout で `gwq add -b <task-branch>` を実行して作成し、`cd "$(gwq get <task-branch>)"` で移動してから編集を始めてください。`gwq add [branch] [path]` の第 2 引数は作成先 path なので、base ref のつもりで `origin/main` などを渡してはいけません。作成元を最新の `origin/main` に合わせる必要がある場合は、先に `git fetch origin main` し、worktree へ移動してから `git merge --ff-only origin/main` を実行してください。`gwq` が使えない環境でのみ `git worktree add` にフォールバックしてください。
-- 調査: 読み取り専用の調査は、現在の checkout のままで構いません。
-- 再利用条件: 現在の checkout を変更系の作業で再利用してよいのは、ユーザが明示的にそこで作業するよう求めた場合、またはこのタスク専用の non-default branch worktree にすでにいる場合だけです。
-- ローカル変更: 関係のないローカル変更がある場合は、そのタスクに混ぜないでください。別の worktree を使い、task-relevant files だけを持ち込んでください。
-- 優先順位: このルールは、現在の checkout が dirty な場合にだけ別 worktree を要求する、より弱いデフォルトより優先されます。
+- Default branch: When the current checkout is `main` or the repository's default branch, treat repository-tracked files as read-only.
+- Preflight check: Before beginning work that could modify repository-tracked files, first check the current branch and worktree.
+- Before editing: If you are on `main` or the default branch, create or move to a new task-specific worktree before editing, even if the worktree is clean.
+- Creation procedure: Use [`gwq`](https://github.com/d-kuro/gwq) to create worktrees. From the default-branch checkout, run `gwq add -b <task-branch>`, then move to it with `cd "$(gwq get <task-branch>)"` before editing. In `gwq add [branch] [path]`, the second argument is the destination path, so do not pass `origin/main` or another base ref there. If the worktree must start from the latest `origin/main`, run `git fetch origin main` first, move to the worktree, and then run `git merge --ff-only origin/main`. Fall back to `git worktree add` only when `gwq` is unavailable.
+- Investigation: Read-only investigation may remain in the current checkout.
+- Reuse conditions: Reuse the current checkout for modifications only when the user explicitly asks you to work there or it is already a task-specific, non-default-branch worktree.
+- Local changes: Do not mix unrelated local changes into the task. Use another worktree and bring in only task-relevant files.
+- Priority: This rule takes precedence over weaker defaults that require a separate worktree only when the current checkout is dirty.
 
-## Plan の具体性
+## Plan Specificity
 
-- 適用場面: コーディング、設定変更、CLI/API 変更、データフロー変更、テスト追加など、リポジトリ配下の変更を伴う plan では、抽象方針だけで終わらせてはいけません。実装担当がそのまま着手できる具体案まで示してください。
-- 必須項目: 最終 plan には、少なくとも以下を必ず含めてください。
-  - 変更対象のディレクトリ・ファイルパス
-  - 追加・編集・削除する関数、クラス、設定キー、CLI 引数、公開 API
-  - 各ファイルで何をどう変えるか
-  - 必要なテストファイル、追加するテストケース、確認する assertion の要点
-  - 実装上の前提、採用するデフォルト、未確定事項
-- 期待する粒度: 実装担当が追加の設計判断をほぼせずに着手できる粒度を必須とします。関数名、型、設定キー、CLI、データフロー、削除対象、差分の方向性まで明記してください。
-- コード具体性: 実装を伴う plan では、重要な変更箇所について関数シグネチャ案、疑似コード、または短いコードスニペットを必ず含めてください。必要なら 5〜20 行程度のコード断片で示してください。
-- 特に必須なケース: 並列化、具体 API の置換、データ変換パイプライン、状態管理、非同期化、スキーマ変更のように実装判断が増える plan では、採用する API、処理の流れ、関数骨格のいずれかが分かる具体案を必ず記載してください。
-- ファイル単位の書き方: `どのファイルのどのシンボルをどう変えるか` が伝わる粒度で書いてください。たとえば `src/foo/bar.py` の `build_dataset()` を map ベースの処理へ置き換える、`tests/test_bar.py` に同値性を確認するテストを追加する、のようにファイル単位・シンボル単位で記載してください。
-- 未完成条件: 上記の必須項目が欠けている plan は未完成として扱ってください。未完成の plan を最終 plan として提示してはいけません。
-- 不明点対応: 重要な前提が足りない場合は勝手に広げず、曖昧な点だけ短く確認してください。ただし、リポジトリを読めば分かることは質問せず、先に探索してください。
-- 仮定の扱い: 回答を待たずに進める場合は、「Assumptions」または「前提」として明示し、その仮定が実装へどう影響するかを書いてください。
+- Applicability: For plans involving repository changes, such as coding, configuration changes, CLI or API changes, data-flow changes, or new tests, do not stop at an abstract approach. Provide a concrete proposal that an implementer can start directly.
+- Required items: The final plan must include at least the following:
+  - Directories and file paths to change
+  - Functions, classes, configuration keys, CLI arguments, and public APIs to add, edit, or delete
+  - What to change in each file and how
+  - Required test files, test cases to add, and the essential assertions to verify
+  - Implementation assumptions, defaults to adopt, and unresolved questions
+- Expected granularity: Provide enough detail that an implementer can begin with almost no additional design decisions. Specify function names, types, configuration keys, CLI, data flow, removal targets, and the direction of the changes.
+- Code specificity: For important implementation changes, always include a proposed function signature, pseudocode, or short code snippet. Use a roughly 5–20 line fragment when useful.
+- Especially required cases: For plans that introduce more implementation decisions, such as parallelization, replacing a concrete API, a data-transformation pipeline, state management, asynchrony, or schema changes, always provide a concrete proposal that identifies the chosen API, processing flow, or function skeleton.
+- Per-file writing: Describe the work at a level that conveys which symbol in which file will change and how. For example, replace `build_dataset()` in `src/foo/bar.py` with map-based processing, or add equivalence tests to `tests/test_bar.py`.
+- Incomplete plans: Treat a plan that lacks any of the required items above as incomplete. Do not present an incomplete plan as the final plan.
+- Handling unknowns: If an important assumption is missing, do not expand the scope on your own; ask only about the ambiguity. However, do not ask about facts that can be learned by reading the repository; investigate first.
+- Handling assumptions: If you proceed without waiting for a response, state the assumptions under “Assumptions” or “Premises” and explain how they affect the implementation.
 
-## 未コミット差分の保護
+## Protecting Uncommitted Changes
 
-- 未コミット差分の扱い: 作業中に見つけた未コミット差分は、原則としてユーザーまたは並行 agent の作業として扱ってください。自分が作ったと明確に証明できない差分を、明示的な許可なしに戻してはいけません。
-- 差分判断: 未コミット差分を PR スコープから外す、戻す、または不要と判断する前に、必ず before / after を読み、なぜその変更が入ったのかを本文やコードの文脈から判断してください。ファイル名や直近タスクだけで「別件」と決めつけないでください。
-- 改善の扱い: before / after を読んで品質改善や指摘対応だと分かる差分は、勝手に戻さず、PR に含めるかどうかをユーザーへ確認してください。特に文章修正では、1 行差分でも情報順、引用位置、導入の自然さを改善している場合があります。
-- PR スコープ調整: PR に含めたくない未コミット差分がある場合は、差分を戻すのではなく、stage 対象を限定する、別 worktree を使う、またはユーザーへ確認してください。
-- 誤操作時: 未コミット差分を誤って消した場合は、すぐにユーザーへ報告し、直前の diff、エディタ履歴、シェル出力、stash、subagent 出力などから復元を試みてください。復元前に追加の上書きをしないでください。
+- Treatment of uncommitted changes: Treat uncommitted changes discovered during work as the user's or a concurrent agent's work by default. Do not revert a change unless you can clearly prove that you made it and have explicit permission.
+- Assessing changes: Before excluding an uncommitted change from PR scope, reverting it, or deciding it is unnecessary, read its before and after states and use the prose or code context to determine why it was made. Do not assume it is unrelated from the filename or the most recent task alone.
+- Improvements: If the before and after states show a quality improvement or a response to feedback, do not revert it on your own; ask the user whether to include it in the PR. In particular, even a one-line writing change may improve information order, citation placement, or the naturalness of the introduction.
+- Adjusting PR scope: When you do not want to include an uncommitted change in a PR, do not revert it. Instead, limit what you stage, use another worktree, or ask the user.
+- Accidental operations: If you accidentally delete uncommitted changes, report it to the user immediately and attempt recovery from the preceding diff, editor history, shell output, stash, or subagent output. Do not perform additional overwrites before recovery.

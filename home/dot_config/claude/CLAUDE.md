@@ -5,4 +5,4 @@
 
 ## Claude Only
 
-- 現在のところ、Claude 固有の設定はありませんが、将来的に追加される可能性があります。
+- There are currently no Claude-specific settings, but they may be added in the future.

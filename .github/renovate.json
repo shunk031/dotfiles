@@ -64,7 +64,9 @@
       "matchDepNames": [
         "herdr",
         "aqua:anthropics/claude-code",
-        "aqua:openai/codex"
+        "aqua:google-antigravity/antigravity-cli",
+        "aqua:openai/codex",
+        "github:router-for-me/CLIProxyAPI"
       ],
       "groupName": "agent tooling",
       "minimumReleaseAge": "0 days"

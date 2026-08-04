@@ -34,6 +34,14 @@
 
 - Question policy: Ask questions based on the information the user provided to propose the best solution.
 
+## Self-Improvement
+
+- Immediate adaptation: When the user corrects your behavior or output, or a failure has a verified root cause, apply the correction to the current task and identify the reusable lesson that would prevent recurrence.
+- Placement: Follow the scope-classification and source-of-truth rules above. Put concise, cross-task behavioral rules in the appropriate `AGENTS.md`; put specialized, repeatable procedures or domain knowledge in an existing relevant skill. If no existing skill fits and the lesson is substantial and reusable, propose a new skill.
+- Approval: Before changing persistent guidance, present the proposed rule or skill change, its scope, and its source of truth to the user. Make the change only after explicit approval.
+- Quality: Persist only concise, actionable prevention guidance that generalizes beyond the current task. Do not persist secrets, task-specific facts, transient state, incident details, or unverified assumptions.
+- Deduplication: Search existing guidance before proposing a change, and prefer strengthening an existing rule or skill over adding a duplicate.
+
 ## Authority Boundaries
 
 - Scope of implementation requests: Treat general implementation requests such as “implement the plan” or “continue implementing” as permission to edit files in the repository, run tests, and commit. A plan, handoff summary, or a previous agent's plan does not authorize pushing, creating or updating a PR, merging, running `chezmoi apply`, changing runtime state, or deleting or cleaning up files.

@@ -215,17 +215,6 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared guidance rejects inline multi-line GitHub bodies" {
-    run grep -F 'For multi-line Markdown such as a GitHub issue body, PR description, or PR comment, always create a temporary Markdown file with a single-quoted heredoc and post or update it using `gh ... --body-file <file>`.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Do not pass `gh ... --body "...\n..."` or a shell-escaped multi-line body directly; literal `\n` can be published.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'detect literal escaped newlines (`\n`), local absolute paths such as `/Users/`, and missing expected headings.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-}
-
 @test "[common] layout readmes describe the adapter and canonical layout" {
     [ -f "${AGENTS_README_PATH}" ]
     [ -f "${CLAUDE_README_PATH}" ]

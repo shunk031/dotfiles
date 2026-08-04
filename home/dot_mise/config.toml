@@ -1,4 +1,4 @@
-min_version = "2026.7.12"
+min_version = "2026.7.15"
 
 [tools]
 # Keep each group sorted by package name, ignoring backend prefixes and leading `@`.

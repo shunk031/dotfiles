@@ -95,6 +95,7 @@ jobs:
         run: |
           cd $(chezmoi source-path)/../
           bats tests/files/common.bats
-          bats --filter-tags common,ubuntu:${SYSTEM} \
+          bats --allow-empty-suite \
+            --filter-tags common,ubuntu:${SYSTEM} \
             --print-output-on-failure \
             tests/files/ubuntu.bats

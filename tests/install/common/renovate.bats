@@ -3,7 +3,7 @@
 readonly RENOVATE_CONFIG_PATH="./.github/renovate.json"
 readonly MISE_CONFIG_PATH="./home/dot_mise/config.toml"
 
-@test "[common] Renovate groups agent tooling independently of mise backends" {
+@test "[common] Renovate tracks the configured agent dependencies" {
     run python3 - "${RENOVATE_CONFIG_PATH}" "${MISE_CONFIG_PATH}" << 'PYTHON'
 import json
 import re
@@ -15,7 +15,12 @@ renovate = json.loads(renovate_path.read_text(encoding="utf-8"))
 mise_text = mise_path.read_text(encoding="utf-8")
 renovate_text = json.dumps(renovate)
 
-logical_names = {"claude-code", "codex", "herdr"}
+expected_dep_names = [
+    "herdr",
+    "aqua:anthropics/claude-code",
+    "aqua:openai/codex",
+]
+logical_names = {name.split("/")[-1] for name in expected_dep_names}
 configured_dep_names = {
     match.group("name")
     for match in re.finditer(
@@ -38,28 +43,32 @@ mise_rule_index = next(
     for index, rule in enumerate(rules)
     if rule.get("groupName") == "mise tools"
 )
+codex_rule = next(
+    rule
+    for rule in rules
+    if rule.get("matchManagers") == ["mise"]
+    and rule.get("matchDepNames") == ["aqua:openai/codex"]
+    and "extractVersion" in rule
+)
 
-assert {name.split("/")[-1] for name in configured_dep_names} == logical_names
+assert configured_dep_names == set(expected_dep_names)
 assert configured_agents["claude-code"].startswith("aqua:")
 assert configured_agents["codex"].startswith("aqua:")
 assert agent_rule["matchManagers"] == ["mise"]
+assert agent_rule["matchDepNames"] == expected_dep_names
 assert agent_rule["minimumReleaseAge"] == "0 days"
 assert mise_rule_index < agent_rule_index
 
-patterns = agent_rule["matchDepNames"]
-assert patterns and all(pattern.startswith("/") and pattern.endswith("/") for pattern in patterns)
-assert all(
-    any(re.search(pattern[1:-1], dep_name) for pattern in patterns)
-    for dep_name in configured_dep_names
-)
-assert not any(
-    backend in pattern
-    for pattern in patterns
-    for backend in ("aqua:", "npm:", "github:", "ubi:")
-)
 assert "matchPackageNames" not in agent_rule
 assert "npm:@anthropic-ai/claude-code" not in renovate_text
 assert "npm:@openai/codex" not in renovate_text
+
+assert codex_rule["matchManagers"] == ["mise"]
+assert codex_rule["matchDepNames"] == ["aqua:openai/codex"]
+python_pattern = codex_rule["extractVersion"].replace("(?<version>", "(?P<version>")
+match = re.fullmatch(python_pattern, "rust-v0.146.0")
+assert match is not None
+assert match.group("version") == "0.146.0"
 PYTHON
 
     [ "${status}" -eq 0 ]

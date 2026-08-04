@@ -4,6 +4,12 @@ In chezmoi, `dot_` changes a target name to start with `.`, while `exact_` remov
 
 [AGENTS.md](AGENTS.md) is the shared guidance used directly by `~/.agents/AGENTS.md`, imported from `~/.claude/CLAUDE.md` with `@~/.agents/AGENTS.md`, and referenced from `~/.codex/AGENTS.md`. Shared long-form agent instructions live in [agents/](agents/) and are exposed as `~/.agents/agents`; Claude and Codex wrappers explicitly tell each tool to read the same shared Markdown first. Edit files here; the adapter keeps the home path stable.
 
+## Optional Private Guidance
+
+Private, environment-specific guidance is stored in the separate `dotfiles-private` checkout at `~/.local/share/chezmoi-private/.agents/AGENTS-private.md`. That file is outside the private repository's chezmoi source root (`home/`), so it is repository support content rather than an independently applied private source-state entry.
+
+This public repository owns the home-facing `~/.agents` exact directory. Its [home/exact_dot_agents/symlink_AGENTS-private.md.tmpl](../../exact_dot_agents/symlink_AGENTS-private.md.tmpl) adapter therefore exposes the private file as `~/.agents/AGENTS-private.md`. If the private checkout or file is absent, the link is not readable and [AGENTS.md](AGENTS.md) instructs agents to continue with only the public guidance. Edit private instructions in the private repository; edit the public adapter only when changing this wiring.
+
 ## Skill Pool and Subscription Policy
 
 `~/.agents/skills` is a real directory: the shared skills pool. Each repo-managed skill under `home/dot_config/exact_agents/skills/<name>/` is exposed there through its own `home/exact_dot_agents/skills/symlink_<name>.tmpl` adapter template, so adding a skill to the pool means adding one skill directory plus one shared-pool symlink template, not editing a `.gitignore` allowlist.

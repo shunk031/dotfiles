@@ -1,3 +1,5 @@
+# Minimum mise version compatible with this dotfiles configuration.
+# Raise this only when a configuration or tool change requires newer mise behavior.
 min_version = "2026.7.12"
 
 [tools]

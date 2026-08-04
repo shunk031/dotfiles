@@ -20,6 +20,15 @@
 
 - Hook installation: In every new clone or worktree, run `make setup` before editing or committing. Skill evaluation runs locally through prek; use `SKIP=agent-skill-eval` only when an emergency requires bypassing model evaluation, and never to bypass static validation.
 
+## mise Bootstrap Compatibility
+
+- Compatibility floor: Treat the top-level `min_version` in `home/dot_mise/config.toml` as the lowest mise version supported by the repository, not as the desired installed version. New machines install this exact version, while existing newer installations must not be downgraded.
+- Renovate ownership: Let Renovate manage versions under `[tools]`, but do not configure Renovate to raise `min_version` merely because a new mise release exists.
+- Atomic updates: Raise `min_version` only in the same pull request as a tool or configuration change that requires newer mise behavior. Record the requirement in the pull request description.
+- Failure handling: When a Renovate tool update fails with the compatibility-floor version, determine the minimum mise release that supports the update and change `min_version` in that Renovate pull request.
+- Fresh-install validation: Changes to `home/dot_mise/config.toml`, `install/common/mise.sh`, or the mise `run_once` and `run_after` scripts must run both Ubuntu and macOS setup workflows. These workflows must install the configured `min_version` on a clean runner and complete `mise install`.
+- Avoiding workarounds: Do not replace the compatibility floor with periodic bumps, an unpinned `latest` bootstrap, or automerge whose only purpose is hiding recurring mise update pull requests.
+
 ## Git / PR Workflow
 
 - Default branch read-only: When the current checkout is `main` or the repository default branch, treat repo-tracked files as read-only and create a task-specific worktree from the default branch before any edit, commit, or push work, even when the worktree is clean.

@@ -3,6 +3,9 @@
 readonly RENOVATE_CONFIG_PATH="./.github/renovate.json"
 readonly DEPENDABOT_CONFIG_PATH="./.github/dependabot.yaml"
 readonly MISE_CONFIG_PATH="./home/dot_mise/config.toml"
+readonly UBUNTU_WORKFLOW_PATH="./.github/workflows/ubuntu.yaml"
+readonly MACOS_WORKFLOW_PATH="./.github/workflows/macos.yaml"
+readonly AGENTS_PATH="./AGENTS.md"
 
 @test "[common] Renovate exclusively manages GitHub Actions updates" {
     run python3 - "${RENOVATE_CONFIG_PATH}" "${DEPENDABOT_CONFIG_PATH}" << 'PYTHON'
@@ -105,6 +108,69 @@ python_pattern = codex_rule["extractVersion"].replace("(?<version>", "(?P<versio
 match = re.fullmatch(python_pattern, "rust-v0.146.0")
 assert match is not None
 assert match.group("version") == "0.146.0"
+PYTHON
+
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] Renovate does not raise the minimum compatible mise version" {
+    run python3 - "${RENOVATE_CONFIG_PATH}" << 'PYTHON'
+import json
+import sys
+from pathlib import Path
+
+renovate = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+custom_managers = renovate.get("customManagers", [])
+package_rules = renovate["packageRules"]
+
+assert all("min_version" not in json.dumps(manager) for manager in custom_managers)
+assert not any(
+    rule.get("matchManagers") == ["custom.regex"]
+    and rule.get("matchPackageNames") == ["jdx/mise"]
+    for rule in package_rules
+)
+assert not any(rule.get("groupName") == "mise bootstrap" for rule in package_rules)
+PYTHON
+
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] mise changes trigger fresh-install workflows" {
+    run python3 - "${UBUNTU_WORKFLOW_PATH}" "${MACOS_WORKFLOW_PATH}" << 'PYTHON'
+import sys
+from pathlib import Path
+
+required_paths = [
+    "home/dot_mise/config.toml",
+    "install/common/mise.sh",
+    "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl",
+    "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl",
+]
+
+for workflow_path in map(Path, sys.argv[1:]):
+    workflow = workflow_path.read_text(encoding="utf-8")
+    for required_path in required_paths:
+        path_entry = f'      - "{required_path}"'
+        assert workflow.count(path_entry) == 2, (
+            f"{workflow_path}: expected push and pull_request entries for "
+            f"{required_path}"
+        )
+PYTHON
+
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] repository guidance defines the mise compatibility contract" {
+    run python3 - "${AGENTS_PATH}" << 'PYTHON'
+import sys
+from pathlib import Path
+
+agents = Path(sys.argv[1]).read_text(encoding="utf-8")
+
+assert "## mise Bootstrap Compatibility" in agents
+assert "not as the desired installed version" in agents
+assert "Raise `min_version` only in the same pull request" in agents
+assert "must run both Ubuntu and macOS setup workflows" in agents
 PYTHON
 
     [ "${status}" -eq 0 ]

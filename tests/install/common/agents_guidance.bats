@@ -7,6 +7,10 @@ readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
 readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
 readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager.toml"
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
+readonly MANAGE_AGENT_GUIDANCE_SKILL_PATH="./home/dot_config/exact_agents/skills/manage-agent-guidance"
+readonly STRUCTURED_WRITING_SKILL_PATH="./home/dot_config/exact_agents/skills/structured-writing"
+readonly SKILL_EVAL_SCRIPT="./scripts/agent_skill_eval.py"
+readonly PREK_CONFIG_PATH="./.pre-commit-config.yaml"
 readonly SKILL_CREATOR_SHARED_SKILL_PATH="./home/dot_config/exact_agents/skills/skill-creator"
 readonly SKILL_CREATOR_SYMLINK_TEMPLATE="./home/exact_dot_agents/skills/symlink_skill-creator.tmpl"
 readonly AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS.md.tmpl"
@@ -69,77 +73,24 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -ne 0 ]
 }
 
-@test "[common] shared guidance defines approved self-improvement workflow" {
+@test "[common] shared guidance keeps only cross-task invariants" {
+    run grep -F '## Work Safety' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Treat existing staged, unstaged, and untracked changes as user work.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '## Writing Instructions' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F '## Writing GitHub Issue and PR Comments' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
     run grep -F '## Self-Improvement' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'apply the correction to the current task and identify the reusable lesson that would prevent recurrence.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Put concise, cross-task behavioral rules in the appropriate `AGENTS.md`; put specialized, repeatable procedures or domain knowledge in an existing relevant skill.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'If no existing skill fits and the lesson is substantial and reusable, propose a new skill.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Make the change only after explicit approval.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Do not persist secrets, task-specific facts, transient state, incident details, or unverified assumptions.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'prefer strengthening an existing rule or skill over adding a duplicate.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-}
-
-@test "[common] shared guidance requires concrete coding plans" {
-    run grep -F '## Plan Specificity' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Directories and file paths to change' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Functions, classes, configuration keys, CLI arguments, and public APIs to add, edit, or delete' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'What to change in each file and how' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'the essential assertions to verify' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'always include a proposed function signature, pseudocode, or short code snippet' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'For plans that introduce more implementation decisions' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Describe the work at a level that conveys which symbol in which file will change and how.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Do not present an incomplete plan as the final plan.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'state the assumptions under “Assumptions” or “Premises”' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-}
-
-@test "[common] shared guidance protects uncommitted diffs" {
-    run grep -F '## Protecting Uncommitted Changes' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Do not revert a change unless you can clearly prove that you made it and have explicit permission.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run grep -F 'Instead, limit what you stage, use another worktree, or ask the user.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
+    [ "${status}" -ne 0 ]
 }
 
 @test "[common] shared guidance prevents gwq base-ref misuse" {
-    run grep -F 'do not pass `origin/main` or another base ref there' "${SHARED_AGENTS_PATH}"
+    run grep -F 'without passing a base ref as the second `gwq add` argument' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 
-    run grep -F 'move to the worktree, and then run `git merge --ff-only origin/main`' "${SHARED_AGENTS_PATH}"
+    run grep -F 'then run `git merge --ff-only origin/main` inside it' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -160,27 +111,18 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared guidance defines shared agent wrapper policy" {
-    run grep -F '## Agent Configuration' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Keep lengthy shared instructions for subagents or custom agents used by multiple tools in `~/.agents/agents/<name>.md` as the source of truth.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Preserve YAML frontmatter in `~/.claude/agents/<name>.md` for Claude Code and explicitly instruct it in the body to read `~/.agents/agents/<name>.md` first.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Do not copy the same lengthy instructions into wrappers.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Do not add a mechanism that parses Markdown with Python or similar tooling to generate TOML or Markdown until it is explicitly needed.' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-}
+@test "[common] specialized guidance lives in managed skills" {
+    [ -f "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md" ]
+    [ -f "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json" ]
+    [ -f "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md" ]
+    [ -f "${STRUCTURED_WRITING_SKILL_PATH}/evals/evals.json" ]
+    [ ! -e "./home/dot_config/exact_agents/skills/setup-agent-docs" ]
 
-@test "[common] shared guidance defines tool-neutral native delegation policy" {
-    run grep -F '## Delegating Implementation Tasks' "${SHARED_AGENTS_PATH}"
+    run grep -F 'name: manage-agent-guidance' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
-    run grep -F 'When the coding agent in use provides native multi-agent capabilities and the task can be divided into independent units' "${SHARED_AGENTS_PATH}"
+    run grep -F 'name: structured-writing' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
-    run grep -F "Use each tool's native capabilities, such as Claude Code agent teams or Codex subagents." "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Do not put environment-specific configuration, such as subagent models or launch methods, in this file.' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Do not require that form for every bullet.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
 }
 
@@ -400,14 +342,16 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ -d "${SHARED_SKILLS_SYMLINK_DIR}" ]
 
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_humanizer-ja.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/humanizer-ja" ]
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/setup-agent-docs" ]
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_manage-agent-guidance.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/manage-agent-guidance" ]
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_structured-writing.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/structured-writing" ]
+    [ ! -e "${SHARED_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl" ]
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shdoc-shell-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shdoc-shell-docs" ]
 }
 
 @test "[common] Gemini skills expose repo-managed skills through per-skill symlink templates" {
     [ -d "${GEMINI_SKILLS_SYMLINK_DIR}" ]
 
-    local skills="ai-slop-checklist-ja cgd-dev-identity convert-to-transformers gh-comment-attach-files high-impact-journal-publishing humanizer-ja python-uv-workflow setup-agent-docs shdoc-shell-docs"
+    local skills="ai-slop-checklist-ja cgd-dev-identity convert-to-transformers gh-comment-attach-files high-impact-journal-publishing humanizer-ja manage-agent-guidance python-uv-workflow shdoc-shell-docs structured-writing"
     local skill
     local template
     local expected
@@ -424,6 +368,21 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_herdr.tmpl" ]
     [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_skill-creator.tmpl" ]
     [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_worklog-manager.tmpl" ]
+    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl" ]
+}
+
+@test "[common] prek validates and evaluates only changed managed skills" {
+    [ -f "${PREK_CONFIG_PATH}" ]
+    [ -f "${SKILL_EVAL_SCRIPT}" ]
+
+    run grep -F 'id: agent-skill-validate' "${PREK_CONFIG_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'id: agent-skill-eval' "${PREK_CONFIG_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'pass_filenames: false' "${PREK_CONFIG_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '"aqua:j178/prek" = "0.4.11"' ./home/dot_mise/config.toml
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] Claude skills directory is a real, installer-writable directory" {

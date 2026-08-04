@@ -3,8 +3,8 @@
 # @file install/common/mise.sh
 # @brief Install and bootstrap `mise`.
 # @description
-#   Reads the required mise version from the mise config, installs or updates the
-#   standalone `mise` binary when needed, and runs `mise install`.
+#   Reads the minimum compatible mise version from the mise config, installs or
+#   updates the standalone `mise` binary when needed, and runs `mise install`.
 
 # set -Eeuo pipefail
 
@@ -53,7 +53,7 @@ function get_mise_min_version_from_config() {
 }
 
 #
-# @description Build the GitHub release tag for the configured mise version.
+# @description Build the GitHub release tag for the minimum compatible mise version.
 # @arg $1 path Path to the mise config file.
 # @stdout The mise GitHub release tag with a leading `v`.
 # @stderr An error when the configured version cannot be read.
@@ -90,7 +90,7 @@ function get_installed_mise_version() {
 }
 
 #
-# @description Test whether a mise version is at least a required version.
+# @description Test whether a mise version satisfies the minimum compatible version.
 # @arg $1 current Installed mise version without a leading `v`.
 # @arg $2 required Required mise version without a leading `v`.
 # @exitcode 0 When current is greater than or equal to required.
@@ -124,7 +124,7 @@ function is_mise_version_at_least() {
 }
 
 #
-# @description Install the configured standalone `mise` binary.
+# @description Install the minimum compatible standalone `mise` binary.
 #
 function install_mise() {
     # https://mise.run
@@ -148,7 +148,7 @@ function install_mise() {
 }
 
 #
-# @description Install mise when it is missing or older than the configured min_version.
+# @description Install mise when it is missing or below the compatibility floor.
 #
 function ensure_mise_min_version() {
     local required current

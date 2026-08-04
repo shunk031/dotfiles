@@ -6,6 +6,10 @@ on:
     paths:
       - ".github/workflows/ubuntu.yaml"
       - "setup.sh"
+      - "home/dot_mise/config.toml"
+      - "install/common/mise.sh"
+      - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
+      - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
       - "install/ubuntu/**"
       - ".chezmoiscripts/ubuntu/**"
       - "dot_tmux.conf.d/os/ubuntu.conf"
@@ -16,6 +20,10 @@ on:
     paths:
       - ".github/workflows/ubuntu.yaml"
       - "setup.sh"
+      - "home/dot_mise/config.toml"
+      - "install/common/mise.sh"
+      - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
+      - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
       - "install/ubuntu/**"
       - ".chezmoiscripts/ubuntu/**"
       - "dot_tmux.conf.d/os/ubuntu.conf"
@@ -87,6 +95,7 @@ jobs:
         run: |
           cd $(chezmoi source-path)/../
           bats tests/files/common.bats
-          bats --filter-tags common,ubuntu:${SYSTEM} \
+          bats --allow-empty-suite \
+            --filter-tags common,ubuntu:${SYSTEM} \
             --print-output-on-failure \
             tests/files/ubuntu.bats

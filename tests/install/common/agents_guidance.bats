@@ -69,6 +69,29 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -ne 0 ]
 }
 
+@test "[common] shared guidance defines approved self-improvement workflow" {
+    run grep -F '## Self-Improvement' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'apply the correction to the current task and identify the reusable lesson that would prevent recurrence.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Put concise, cross-task behavioral rules in the appropriate `AGENTS.md`; put specialized, repeatable procedures or domain knowledge in an existing relevant skill.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'If no existing skill fits and the lesson is substantial and reusable, propose a new skill.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Make the change only after explicit approval.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'Do not persist secrets, task-specific facts, transient state, incident details, or unverified assumptions.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'prefer strengthening an existing rule or skill over adding a duplicate.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] shared guidance requires concrete coding plans" {
     run grep -F '## Plan Specificity' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

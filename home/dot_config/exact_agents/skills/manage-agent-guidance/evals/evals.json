@@ -23,6 +23,17 @@
       ]
     },
     {
+      "id": "audit-instruction-migration",
+      "prompt": "Simplify a long AGENTS.md by moving its detailed rules into skills. Describe the migration procedure and the validation needed before deleting the original sections.",
+      "should_trigger": true,
+      "assertions": [
+        "The response inventories each atomic source rule and maps every rule to a destination or explicitly approved removal.",
+        "The response preserves disambiguating examples instead of assuming prose or model capability is enough.",
+        "The response requires a static migration contract in addition to behavioral model evals.",
+        "The response does not permit unmapped or unapproved deletions."
+      ]
+    },
+    {
       "id": "ordinary-code-change",
       "prompt": "Explain why binary search has logarithmic time complexity in one short paragraph.",
       "should_trigger": false,

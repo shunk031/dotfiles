@@ -402,6 +402,8 @@ def run_case(skill: Path, spec: RunSpec, timeout: int) -> RunResult:
                 shutil.copytree(skill, destination)
             trace = invoke_codex(repo, spec.case.prompt, timeout)
             parsed = parse_trace(trace, skill.name)
+            if not normalize_artifact(parsed.output):
+                raise TransientCodexError("Codex returned no deliverable")
             return RunResult(
                 case_id=spec.case.id,
                 trial=spec.trial,

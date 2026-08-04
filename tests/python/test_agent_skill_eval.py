@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "scripts/agent_skill_eval.py"
@@ -219,6 +220,43 @@ class AgentSkillEvalTest(unittest.TestCase):
 
         self.assertEqual(result, "ok")
         self.assertEqual(attempts, 2)
+
+    def test_run_case_retries_an_empty_codex_response(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        skill = write_skill(repo, "demo")
+        case = self.module.EvalCase(
+            id="negative",
+            prompt="Reply with a number.",
+            should_trigger=False,
+            assertions=("The answer is a number.",),
+        )
+        spec = self.module.RunSpec(case=case, trial=1, variant="candidate")
+        valid_trace = json.dumps(
+            {
+                "type": "item.completed",
+                "item": {"type": "agent_message", "text": "2"},
+            }
+        )
+
+        acknowledgment_only = json.dumps(
+            {
+                "type": "item.completed",
+                "item": {
+                    "type": "agent_message",
+                    "text": "🤖 I read ~/.agents/AGENTS.md.",
+                },
+            }
+        )
+        with mock.patch.object(
+            self.module,
+            "invoke_codex",
+            side_effect=[acknowledgment_only, valid_trace],
+        ) as invoke:
+            result = self.module.run_case(skill, spec, timeout=10)
+
+        self.assertEqual(result.output, "2")
+        self.assertEqual(invoke.call_count, 2)
 
     def test_blind_labels_are_deterministic_for_seed(self) -> None:
         first = self.module.blind_labels("case", 1)

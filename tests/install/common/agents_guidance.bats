@@ -9,6 +9,8 @@ readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
 readonly MANAGE_AGENT_GUIDANCE_SKILL_PATH="./home/dot_config/exact_agents/skills/manage-agent-guidance"
 readonly STRUCTURED_WRITING_SKILL_PATH="./home/dot_config/exact_agents/skills/structured-writing"
+readonly AGENT_GUIDANCE_REQUIREMENTS_PATH="./tests/fixtures/agent_guidance_requirements.json"
+readonly AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH="./tests/python/test_agent_guidance_requirements.py"
 readonly SKILL_EVAL_SCRIPT="./scripts/agent_skill_eval.py"
 readonly PREK_CONFIG_PATH="./.pre-commit-config.yaml"
 readonly SKILL_CREATOR_SHARED_SKILL_PATH="./home/dot_config/exact_agents/skills/skill-creator"
@@ -83,7 +85,15 @@ readonly GITIGNORE_PATH="./.gitignore"
     run grep -F '## Writing GitHub Issue and PR Comments' "${SHARED_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
     run grep -F '## Self-Improvement' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -ne 0 ]
+    [ "${status}" -eq 0 ]
+    run grep -F 'identify a reusable prevention that addresses the root cause' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Use `manage-agent-guidance`' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Use `structured-writing`' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Delegate GitHub issue, branch, commit, push, pull-request, and CI workflows to `gh-workflow-manager`' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] shared guidance prevents gwq base-ref misuse" {
@@ -122,7 +132,27 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F 'name: structured-writing' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
-    run grep -F 'Do not require that form for every bullet.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
+    run grep -F 'Treat it as an option, not a mandatory template.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'make the parent the topic sentence, nest supporting sentences, and use the last child as a conclusion when useful.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F -- '- topic sentence' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Do not leave supporting sentences in a flat list without a topic sentence.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Add or update a static migration contract that fails when a mapped requirement disappears from its destination.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Do not delete an unmapped or unapproved rule.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] instruction migrations have a static completeness contract" {
+    [ -f "${AGENT_GUIDANCE_REQUIREMENTS_PATH}" ]
+    [ -f "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}" ]
+
+    run grep -F '"source_path": "home/dot_config/exact_agents/AGENTS.md"' "${AGENT_GUIDANCE_REQUIREMENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'test_every_requirement_exists_at_its_mapped_destination' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
     [ "${status}" -eq 0 ]
 }
 

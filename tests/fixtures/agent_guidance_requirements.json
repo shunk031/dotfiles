@@ -1,0 +1,517 @@
+{
+  "version": 1,
+  "source_path": "home/dot_config/exact_agents/AGENTS.md",
+  "source_commit": "e69e348",
+  "requirements": [
+    {
+      "id": "reading-acknowledgment",
+      "source_line": 4,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["After reading this `AGENTS.md`, say: `🤖 I read ~/.agents/AGENTS.md.`"]
+    },
+    {
+      "id": "language-reasoning",
+      "source_line": 8,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Think and reason in English by default."]
+    },
+    {
+      "id": "language-response",
+      "source_line": 9,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Reply in the user's language unless the user requests another language."]
+    },
+    {
+      "id": "principles-precedence",
+      "source_line": 14,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["These principles take precedence over other implementation guidance in this file."]
+    },
+    {
+      "id": "principle-backward-compatibility",
+      "source_line": 16,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Do not preserve backward compatibility."]
+    },
+    {
+      "id": "principle-simplicity",
+      "source_line": 17,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Choose the simplest implementation that fully meets the current requirements."]
+    },
+    {
+      "id": "principle-dependencies",
+      "source_line": 18,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Prefer established, well-maintained libraries over custom implementations."]
+    },
+    {
+      "id": "principle-architecture",
+      "source_line": 19,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Make architectural decisions for the long term."]
+    },
+    {
+      "id": "writing-format",
+      "source_line": 23,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["Use `Label: Details` when it improves scanning.", "not a mandatory template"]
+    },
+    {
+      "id": "writing-procedural-guidance",
+      "source_line": 24,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["Write procedures as steps to perform when work begins", "install the hook before editing or committing"]
+    },
+    {
+      "id": "guidance-scope-classification",
+      "source_line": 25,
+      "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
+      "contains": ["Scope: identify whether the behavior is user-level, repository-level, subtree-level, task-only, custom-agent, or skill guidance."]
+    },
+    {
+      "id": "guidance-source-of-truth",
+      "source_line": 26,
+      "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
+      "contains": ["Source of truth: inspect higher-level instructions, managed sources, symlinks, imports, wrappers, and adapters."]
+    },
+    {
+      "id": "guidance-placement-review",
+      "source_line": 27,
+      "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
+      "contains": ["Review the final diff for scope mismatch, duplication, secrets, transient facts, and adapter drift."]
+    },
+    {
+      "id": "private-guidance",
+      "source_line": 31,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Read and apply `~/.agents/AGENTS-private.md` when it is readable."]
+    },
+    {
+      "id": "question-policy",
+      "source_line": 35,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Ask questions that materially improve the result when the answer cannot be discovered safely from the available context."]
+    },
+    {
+      "id": "self-improvement-immediate-adaptation",
+      "source_line": 39,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["After a user correction or verified failure, fix the current task and identify a reusable prevention that addresses the root cause."]
+    },
+    {
+      "id": "self-improvement-placement",
+      "source_line": 40,
+      "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
+      "contains": ["Put concise cross-task invariants in the applicable `AGENTS.md`.", "Create a new skill only when no existing skill fits"]
+    },
+    {
+      "id": "self-improvement-approval",
+      "source_line": 41,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["present the proposed change, and obtain approval"]
+    },
+    {
+      "id": "self-improvement-quality",
+      "source_line": 42,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Persist only concise, actionable guidance that generalizes beyond the incident.", "Do not persist secrets, task-specific facts, transient state, incident narratives, or unverified assumptions."]
+    },
+    {
+      "id": "self-improvement-deduplication",
+      "source_line": 43,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["search existing guidance for duplication"]
+    },
+    {
+      "id": "authority-implementation",
+      "source_line": 47,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Treat implementation requests as permission to edit repository files, run tests, and commit.", "They do not authorize pushing"]
+    },
+    {
+      "id": "authority-pull-request",
+      "source_line": 48,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Treat an explicit pull-request request as permission to push and create or update that pull request, but never as merge permission."]
+    },
+    {
+      "id": "authority-runtime-cleanup",
+      "source_line": 49,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Obtain explicit permission before merging, applying configuration, changing runtime state, deleting, or cleaning up files.", "Stop and ask when the permitted operation is unclear."]
+    },
+    {
+      "id": "reporting-concision",
+      "source_line": 53,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Keep reports and responses concise. Expand only when asked."]
+    },
+    {
+      "id": "reporting-bullet-structure",
+      "source_line": 54,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["make the parent the topic sentence", "use the last child as a conclusion when useful"]
+    },
+    {
+      "id": "reporting-bullet-example",
+      "source_line": 56,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["- topic sentence"]
+    },
+    {
+      "id": "reporting-bullet-example-support-1",
+      "source_line": 57,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["- support sentence"]
+    },
+    {
+      "id": "reporting-bullet-example-support-2",
+      "source_line": 58,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["- support sentence"]
+    },
+    {
+      "id": "reporting-bullet-example-conclusion",
+      "source_line": 59,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["- conclusion sentence"]
+    },
+    {
+      "id": "reporting-avoid-flat-lists",
+      "source_line": 61,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["Do not leave supporting sentences in a flat list without a topic sentence.", "each item can stand on its own as a topic sentence"]
+    },
+    {
+      "id": "github-comments-deliverable",
+      "source_line": 65,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["Repository-facing writing", "useful without the surrounding chat"]
+    },
+    {
+      "id": "github-comments-language",
+      "source_line": 66,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["Write issue and pull-request content in the repository's working language."]
+    },
+    {
+      "id": "github-comments-tone",
+      "source_line": 67,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["Do not include apologies, conversational repair language, or user-directed meta-commentary."]
+    },
+    {
+      "id": "github-comments-content",
+      "source_line": 68,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["Keep content neutral, factual, auditable"]
+    },
+    {
+      "id": "github-comments-verification",
+      "source_line": 69,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["Verify claims against the current repository, commands, diffs, checks, and reports before publishing."]
+    },
+    {
+      "id": "github-comments-body-file",
+      "source_line": 70,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["single-quoted heredoc", "--body-file"]
+    },
+    {
+      "id": "github-comments-no-inline-newlines",
+      "source_line": 71,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["Do not pass multi-line Markdown through `--body \"...\\n...\"`"]
+    },
+    {
+      "id": "github-comments-read-back",
+      "source_line": 72,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["read it back", "local absolute paths"]
+    },
+    {
+      "id": "github-comments-details",
+      "source_line": 73,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["Put long diagnostics inside `<details>`"]
+    },
+    {
+      "id": "github-comments-correction",
+      "source_line": 74,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["Correct an inappropriate published comment by editing it whenever possible"]
+    },
+    {
+      "id": "github-delegation-policy",
+      "source_line": 78,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Delegate GitHub issue, branch, commit, push, pull-request, and CI workflows to `gh-workflow-manager` by default."]
+    },
+    {
+      "id": "github-delegation-handoff",
+      "source_line": 79,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Provide repository/worktree context, task-relevant files, uncommitted-change handling, and completed validation"]
+    },
+    {
+      "id": "github-delegation-main-responsibility",
+      "source_line": 80,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["the main agent reviews the result and reports remaining blockers"]
+    },
+    {
+      "id": "github-delegation-exception",
+      "source_line": 81,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Work directly only when the user explicitly requests it or the dedicated agent is unavailable."]
+    },
+    {
+      "id": "github-delegation-authority",
+      "source_line": 82,
+      "path": "home/dot_config/exact_agents/agents/gh-workflow-manager.md",
+      "contains": ["Do not make product/code decisions for the parent."]
+    },
+    {
+      "id": "agent-config-shared-source",
+      "source_line": 86,
+      "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
+      "contains": ["Keep lengthy shared custom-agent instructions in `~/.agents/agents/<name>.md`."]
+    },
+    {
+      "id": "agent-config-claude-wrapper",
+      "source_line": 87,
+      "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
+      "contains": ["Preserve tool-specific metadata in thin Claude or Codex wrappers"]
+    },
+    {
+      "id": "agent-config-managed-skill",
+      "source_line": 88,
+      "path": "AGENTS.md",
+      "contains": ["repo-managed skills live in `home/dot_config/exact_agents/skills/<name>/`", "home/exact_dot_agents/skills/symlink_<name>.tmpl"]
+    },
+    {
+      "id": "agent-config-no-duplication",
+      "source_line": 89,
+      "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
+      "contains": ["Keep each durable instruction in one source of truth and expose it through thin adapters."]
+    },
+    {
+      "id": "agent-config-no-parser",
+      "source_line": 90,
+      "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
+      "contains": ["Do not introduce a Markdown parser or generator"]
+    },
+    {
+      "id": "implementation-delegation",
+      "source_line": 94,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Use native subagents for independent implementation units at the start of a task", "main agent responsible for planning, review, and integration"]
+    },
+    {
+      "id": "implementation-delegation-native-tools",
+      "source_line": 95,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Use native subagents"]
+    },
+    {
+      "id": "implementation-delegation-start",
+      "source_line": 96,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["independent implementation units at the start of a task"]
+    },
+    {
+      "id": "implementation-delegation-orchestrator",
+      "source_line": 97,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["main agent responsible for planning, review, and integration"]
+    },
+    {
+      "id": "implementation-delegation-environment",
+      "source_line": 98,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Keep model and launch configuration private or tool-specific."]
+    },
+    {
+      "id": "coding-error-handling",
+      "source_line": 102,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Do not overdesign error handling before implementing core behavior"]
+    },
+    {
+      "id": "coding-final-deliverables",
+      "source_line": 103,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["do not add error handling to final throwaway deliverables"]
+    },
+    {
+      "id": "coding-tests",
+      "source_line": 104,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Write tests before behavior-changing implementation, verify them, and then refactor."]
+    },
+    {
+      "id": "worktree-default-branch",
+      "source_line": 108,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Treat the default branch as read-only"]
+    },
+    {
+      "id": "worktree-preflight",
+      "source_line": 109,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Before modifying tracked files, inspect the branch and worktree."]
+    },
+    {
+      "id": "worktree-before-editing",
+      "source_line": 110,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["create a task-specific worktree even when it is clean"]
+    },
+    {
+      "id": "worktree-creation",
+      "source_line": 111,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Create worktrees with `gwq add -b <task-branch>`", "Fall back to `git worktree add` only when `gwq` is unavailable."]
+    },
+    {
+      "id": "worktree-investigation",
+      "source_line": 112,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Read-only investigation may remain in the current checkout."]
+    },
+    {
+      "id": "worktree-reuse",
+      "source_line": 113,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Reuse a checkout for edits only when the user explicitly requests it or it is already a task-specific non-default worktree."]
+    },
+    {
+      "id": "worktree-local-changes",
+      "source_line": 114,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Treat existing staged, unstaged, and untracked changes as user work."]
+    },
+    {
+      "id": "worktree-priority",
+      "source_line": 115,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Treat the default branch as read-only"]
+    },
+    {
+      "id": "plan-applicability",
+      "source_line": 119,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["Make implementation plans decision-complete"]
+    },
+    {
+      "id": "plan-required-items",
+      "source_line": 120,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["Make implementation plans decision-complete", "assumptions, defaults, and unresolved questions"]
+    },
+    {
+      "id": "plan-required-paths",
+      "source_line": 121,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["directories and file paths"]
+    },
+    {
+      "id": "plan-required-interfaces",
+      "source_line": 122,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["functions, classes, types, configuration keys, CLI arguments, and public APIs to add, edit, or delete"]
+    },
+    {
+      "id": "plan-required-file-changes",
+      "source_line": 123,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["per-file behavior"]
+    },
+    {
+      "id": "plan-required-tests",
+      "source_line": 124,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["test files, cases, and essential assertions"]
+    },
+    {
+      "id": "plan-required-assumptions",
+      "source_line": 125,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["assumptions, defaults, and unresolved questions"]
+    },
+    {
+      "id": "plan-expected-granularity",
+      "source_line": 126,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["implementation can start without another design pass"]
+    },
+    {
+      "id": "plan-code-specificity",
+      "source_line": 127,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["function signature, pseudocode, or a roughly 5–20 line code fragment"]
+    },
+    {
+      "id": "plan-complex-decisions",
+      "source_line": 128,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["data flow, state, asynchrony, migration, or parallelization decisions"]
+    },
+    {
+      "id": "plan-per-file-writing",
+      "source_line": 129,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["describe each file or subsystem precisely enough"]
+    },
+    {
+      "id": "plan-incomplete",
+      "source_line": 130,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["Do not present an incomplete plan as final"]
+    },
+    {
+      "id": "plan-unknowns",
+      "source_line": 131,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["Resolve discoverable repository facts before planning.", "Ask only for product intent or decisions that cannot be derived safely."]
+    },
+    {
+      "id": "plan-assumptions",
+      "source_line": 132,
+      "path": "home/dot_config/exact_agents/skills/structured-writing/SKILL.md",
+      "contains": ["under `Assumptions` or `Premises`", "explain their implementation effect"]
+    },
+    {
+      "id": "uncommitted-treatment",
+      "source_line": 136,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Never revert without proof and permission"]
+    },
+    {
+      "id": "uncommitted-assessment",
+      "source_line": 137,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["compare its before and after states and read its prose or code context", "do not infer relevance from the filename or latest task alone"]
+    },
+    {
+      "id": "uncommitted-improvements",
+      "source_line": 138,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["Preserve improvements even when they are small", "one-line writing changes that improve information order, citations, or naturalness"]
+    },
+    {
+      "id": "uncommitted-narrow-staging",
+      "source_line": 139,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["isolate task changes with another worktree or narrow staging"]
+    },
+    {
+      "id": "uncommitted-recovery",
+      "source_line": 140,
+      "path": "home/dot_config/exact_agents/AGENTS.md",
+      "contains": ["report it immediately", "preceding diff, editor history, shell output, stash, or subagent output", "before any further overwrite"]
+    }
+  ]
+}

@@ -24,6 +24,17 @@
       ]
     },
     {
+      "id": "decision-complete-plan",
+      "prompt": "Create an implementation plan for replacing a synchronous file-processing loop with two-worker parallel processing. The implementation will be handed to another engineer.",
+      "should_trigger": true,
+      "assertions": [
+        "The plan identifies affected paths or clearly states which repository facts must be inspected to identify them.",
+        "The plan specifies the concurrency interface, data flow, failure behavior, tests, and assumptions.",
+        "The plan includes pseudocode, a function signature, or a short code fragment for the important parallelization change.",
+        "The plan is concrete enough to implement without another design decision."
+      ]
+    },
+    {
       "id": "machine-readable-output",
       "prompt": "Return only this JSON object with keys in the same order: {\"status\":\"ok\",\"count\":2}",
       "should_trigger": false,

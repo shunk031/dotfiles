@@ -29,6 +29,16 @@
   ],
   "packageRules": [
     {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "major"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch"],
+      "enabled": false
+    },
+    {
       "matchManagers": ["custom.regex"],
       "matchPackageNames": ["jdx/mise"],
       "groupName": "mise bootstrap"
@@ -54,7 +64,9 @@
       "matchDepNames": [
         "herdr",
         "aqua:anthropics/claude-code",
-        "aqua:openai/codex"
+        "aqua:google-antigravity/antigravity-cli",
+        "aqua:openai/codex",
+        "github:router-for-me/CLIProxyAPI"
       ],
       "groupName": "agent tooling",
       "minimumReleaseAge": "0 days"

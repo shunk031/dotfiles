@@ -1,7 +1,39 @@
 #!/usr/bin/env bats
 
 readonly RENOVATE_CONFIG_PATH="./.github/renovate.json"
+readonly DEPENDABOT_CONFIG_PATH="./.github/dependabot.yaml"
 readonly MISE_CONFIG_PATH="./home/dot_mise/config.toml"
+
+@test "[common] Renovate exclusively manages GitHub Actions updates" {
+    run python3 - "${RENOVATE_CONFIG_PATH}" "${DEPENDABOT_CONFIG_PATH}" << 'PYTHON'
+import json
+import sys
+from pathlib import Path
+
+renovate_path, dependabot_path = map(Path, sys.argv[1:])
+renovate = json.loads(renovate_path.read_text(encoding="utf-8"))
+
+rules = renovate["packageRules"]
+group_rule = next(
+    rule
+    for rule in rules
+    if rule.get("groupName") == "GitHub Actions"
+)
+patch_rule = next(
+    rule
+    for rule in rules
+    if rule.get("matchManagers") == ["github-actions"]
+    and rule.get("matchUpdateTypes") == ["patch"]
+)
+
+assert not dependabot_path.exists()
+assert group_rule["matchManagers"] == ["github-actions"]
+assert group_rule["matchUpdateTypes"] == ["minor", "major"]
+assert patch_rule["enabled"] is False
+PYTHON
+
+    [ "${status}" -eq 0 ]
+}
 
 @test "[common] Renovate tracks the configured agent dependencies" {
     run python3 - "${RENOVATE_CONFIG_PATH}" "${MISE_CONFIG_PATH}" << 'PYTHON'
@@ -18,7 +50,9 @@ renovate_text = json.dumps(renovate)
 expected_dep_names = [
     "herdr",
     "aqua:anthropics/claude-code",
+    "aqua:google-antigravity/antigravity-cli",
     "aqua:openai/codex",
+    "github:router-for-me/CLIProxyAPI",
 ]
 logical_names = {name.split("/")[-1] for name in expected_dep_names}
 configured_dep_names = {
@@ -53,7 +87,9 @@ codex_rule = next(
 
 assert configured_dep_names == set(expected_dep_names)
 assert configured_agents["claude-code"].startswith("aqua:")
+assert configured_agents["antigravity-cli"].startswith("aqua:")
 assert configured_agents["codex"].startswith("aqua:")
+assert configured_agents["CLIProxyAPI"].startswith("github:")
 assert agent_rule["matchManagers"] == ["mise"]
 assert agent_rule["matchDepNames"] == expected_dep_names
 assert agent_rule["minimumReleaseAge"] == "0 days"

@@ -1,7 +1,14 @@
 #!/usr/bin/env zsh
 
-readonly ZSHENV_PRIVATE="${HOME}/.zshenv_private"
+_zshenv_private="${HOME}/.zshenv_private"
+_zshenv_mise="${HOME}/.config/shell/mise.zsh"
 
-if [ -f "${ZSHENV_PRIVATE}" ]; then
-    source "${ZSHENV_PRIVATE}"
+if [ -f "${_zshenv_private}" ]; then
+    source "${_zshenv_private}"
 fi
+
+if [ -f "${_zshenv_mise}" ]; then
+    source "${_zshenv_mise}"
+fi
+
+unset _zshenv_mise _zshenv_private

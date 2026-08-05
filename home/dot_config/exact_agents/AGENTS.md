@@ -31,7 +31,7 @@
 ## Self-Improvement
 
 - After a user correction or verified failure, fix the current task and identify a reusable prevention that addresses the root cause.
-- Before changing persistent guidance, classify its scope and source of truth, search existing guidance for duplication, present the proposed change, and obtain approval.
+- Before persisting that prevention, use `manage-agent-guidance` to place it without duplication, present the proposed change, and obtain approval.
 - Persist only concise, actionable guidance that generalizes beyond the incident. Do not persist secrets, task-specific facts, transient state, incident narratives, or unverified assumptions.
 
 ## Work Safety

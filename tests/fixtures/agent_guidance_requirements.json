@@ -67,13 +67,13 @@
       "id": "guidance-scope-classification",
       "source_line": 25,
       "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
-      "contains": ["Scope: identify whether the behavior is user-level, repository-level, subtree-level, task-only, custom-agent, or skill guidance."]
+      "contains": ["Classify each rule as user-level, repository-level, subtree-level, task-only, custom-agent, or skill guidance."]
     },
     {
       "id": "guidance-source-of-truth",
       "source_line": 26,
       "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
-      "contains": ["Source of truth: inspect higher-level instructions, managed sources, symlinks, imports, wrappers, and adapters."]
+      "contains": ["Locate the source of truth by inspecting higher-level instructions, managed sources, symlinks, imports, wrappers, and adapters."]
     },
     {
       "id": "guidance-placement-review",
@@ -103,7 +103,7 @@
       "id": "self-improvement-placement",
       "source_line": 40,
       "path": "home/dot_config/exact_agents/skills/manage-agent-guidance/SKILL.md",
-      "contains": ["Put concise cross-task invariants in the applicable `AGENTS.md`.", "Create a new skill only when no existing skill fits"]
+      "contains": ["Put concise cross-task invariants in the applicable `AGENTS.md`", "Create a skill only when no existing owner fits"]
     },
     {
       "id": "self-improvement-approval",
@@ -121,7 +121,7 @@
       "id": "self-improvement-deduplication",
       "source_line": 43,
       "path": "home/dot_config/exact_agents/AGENTS.md",
-      "contains": ["search existing guidance for duplication"]
+      "contains": ["use `manage-agent-guidance` to place it without duplication"]
     },
     {
       "id": "authority-implementation",

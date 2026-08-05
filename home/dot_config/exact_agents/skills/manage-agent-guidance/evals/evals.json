@@ -28,9 +28,32 @@
       "should_trigger": true,
       "assertions": [
         "The response inventories each atomic source rule and maps every rule to a destination or explicitly approved removal.",
+        "The response reverse-audits the destinations for duplicate rules and assigns each rule one authoritative owner unless a thin adapter is intentional.",
         "The response preserves disambiguating examples instead of assuming prose or model capability is enough.",
         "The response requires a static migration contract in addition to behavioral model evals.",
         "The response does not permit unmapped or unapproved deletions."
+      ]
+    },
+    {
+      "id": "reverse-audit-duplicate-owners",
+      "prompt": "Audit this guidance layout after a migration. The user-level AGENTS.md says to confirm the exact target before destructive operations. A repository AGENTS.md says to verify deletion targets before removing files and also documents the repository test command. A cleanup skill says to double-check paths before destructive cleanup. Choose the authoritative owner for each rule and state what to keep or remove.",
+      "should_trigger": true,
+      "assertions": [
+        "The response recognizes the three destructive-operation rules as semantic duplicates even though their wording differs.",
+        "The response keeps the shared destructive-operation rule in the user-level AGENTS.md as its single authoritative owner.",
+        "The response removes the redundant destructive-operation copies from the repository AGENTS.md and cleanup skill.",
+        "The response preserves the repository-specific test command in the repository AGENTS.md."
+      ]
+    },
+    {
+      "id": "preserve-thin-guidance-adapters",
+      "prompt": "Review a user-level guidance setup where ~/.agents/AGENTS.md is the full shared source, ~/.codex/AGENTS.md only instructs Codex to read that source, and ~/.claude/CLAUDE.md only imports it. Decide whether the two tool entrypoints are forbidden duplicates and propose the durable layout.",
+      "should_trigger": true,
+      "assertions": [
+        "The response keeps ~/.agents/AGENTS.md as the single content source of truth.",
+        "The response treats the Codex instruction and Claude import as intentional thin adapters rather than duplicated guidance content.",
+        "The response does not copy the full shared rules into either tool entrypoint.",
+        "The response keeps tool-specific metadata or entrypoint syntax in the thin adapters when needed."
       ]
     },
     {

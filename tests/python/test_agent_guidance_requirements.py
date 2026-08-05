@@ -62,6 +62,22 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
                 for expected in item["contains"]:
                     self.assertIn(expected, text)
 
+    def test_always_on_sections_are_not_duplicated_in_managed_skills(self) -> None:
+        agents_path = REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md"
+        skill_root = REPO_ROOT / "home/dot_config/exact_agents/skills"
+        always_on_sections = {
+            line for line in agents_path.read_text(encoding="utf-8").splitlines()
+            if line.startswith("## ")
+        }
+        duplicates = {
+            (skill.relative_to(REPO_ROOT).as_posix(), line)
+            for skill in skill_root.glob("*/SKILL.md")
+            for line in skill.read_text(encoding="utf-8").splitlines()
+            if line in always_on_sections
+        }
+
+        self.assertEqual(duplicates, set())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -140,7 +140,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F 'Do not leave supporting sentences in a flat list without a topic sentence.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
-    run grep -F 'Add or update a static migration contract that fails when a mapped requirement disappears from its destination.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    run grep -F 'Add or update a static migration contract that fails when a mapped requirement disappears or a known duplicate remains outside its authoritative owner.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
     run grep -F 'Do not delete an unmapped or unapproved rule.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]

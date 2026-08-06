@@ -1,0 +1,7 @@
+{{- if eq .system "server" }}
+_mise_zsh="${HOME%/}/.config/shell/mise.zsh"
+[ -r "${_mise_zsh}" ] && source "${_mise_zsh}"
+unset _mise_zsh
+{{- else }}
+eval "$(~/.local/bin/mise activate zsh)"
+{{- end }}

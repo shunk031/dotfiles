@@ -16,7 +16,7 @@ function _server_path() {
         ${HOME}/.local/bin/server(N-/)
     )
 }
-zsh-defer _server_path
+_server_path
 '''
 
 #

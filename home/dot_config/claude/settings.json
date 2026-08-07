@@ -9,7 +9,6 @@
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3"
   },
   "plansDirectory": "./.agents/worklog/claude",
-  "skipDangerousModePermissionPrompt": true,
   "permissions": {
     "deny": [
       "Bash(sudo:*)",

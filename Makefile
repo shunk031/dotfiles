@@ -4,6 +4,19 @@ DOCKER_NUM_CPU=4
 DOKCER_RAM_GB=4
 
 #
+# Development
+#
+
+.PHONY: setup
+setup:
+	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise install
+	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise exec -- prek install
+
+.PHONY: eval-skills
+eval-skills:
+	uv run --no-project python scripts/agent_skill_eval.py eval --all --trials 3 --jobs 2 --timeout 180
+
+#
 # Docker
 #
 

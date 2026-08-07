@@ -16,6 +16,10 @@
 
 - Comment language: When adding or updating comments for shell scripts or shell-based executables, always write them in English using shdoc-compatible format.
 
+## Development Setup
+
+- Hook installation: In every new clone or worktree, run `make setup` before editing or committing. Skill evaluation runs locally through prek; use `SKIP=agent-skill-eval` only when an emergency requires bypassing model evaluation, and never to bypass static validation.
+
 ## mise Bootstrap Compatibility
 
 - Compatibility floor: Treat the top-level `min_version` in `home/dot_mise/config.toml` as the lowest mise version supported by the repository, not as the desired installed version. New machines install this exact version, while existing newer installations must not be downgraded.
@@ -39,4 +43,5 @@
 ## Test Policy
 
 - Local bats: Do not run `bats` tests locally.
+- Skill evaluation: Do not run real Codex skill evaluation in CI. CI may test the evaluation runner with a fake `codex` executable.
 - CI validation: When you need to validate `bats` results, push to GitHub, let GitHub Actions CI run, and check the results there.

@@ -178,6 +178,14 @@ function run_mise_bash_startup() {
     [[ "${output}" =~ ^[0-9]+[.][0-9]+[.][0-9]+$ ]]
 }
 
+@test "[common] mise version supports declarative system bootstrap" {
+    local min_version
+
+    min_version="$(get_mise_min_version_from_config "${MISE_CONFIG_SOURCE}")"
+    run is_mise_version_at_least "${min_version}" "2026.8.2"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] mise bash startup exits cleanly when mise is absent" {
     local expected_path="${PATH}"
 

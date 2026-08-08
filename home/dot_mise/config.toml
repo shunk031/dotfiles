@@ -1,6 +1,7 @@
 # Minimum mise version compatible with this dotfiles configuration.
 # Raise this only when a configuration or tool change requires newer mise behavior.
-min_version = "2026.7.12"
+# Declarative system bootstrap requires mise 2026.8.2 or newer.
+min_version = "2026.8.2"
 
 [tools]
 # Keep each group sorted by package name, ignoring backend prefixes and leading `@`.

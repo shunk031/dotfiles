@@ -79,7 +79,7 @@ jobs:
       - uses: jdx/mise-action@v4.2.3
         with:
           install: true
-          cache: false
+          cache: true
 
       # - name: Install latest bats-core
       #   run: |

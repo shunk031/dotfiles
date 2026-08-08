@@ -62,6 +62,16 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
                 for expected in item["contains"]:
                     self.assertIn(expected, text)
 
+    def test_third_party_implementation_researches_before_coding(self) -> None:
+        agents_path = REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md"
+        text = agents_path.read_text(encoding="utf-8")
+        web_search = text.index("first search the web")
+        github_search = text.index("then search GitHub")
+        implementation = text.index("Only after reviewing both, design and write the code")
+
+        self.assertLess(web_search, github_search)
+        self.assertLess(github_search, implementation)
+
     def test_always_on_sections_are_not_duplicated_in_managed_skills(self) -> None:
         agents_path = REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md"
         skill_root = REPO_ROOT / "home/dot_config/exact_agents/skills"

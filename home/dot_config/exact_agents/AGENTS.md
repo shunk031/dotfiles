@@ -47,6 +47,7 @@
 
 - Keep reports and responses concise. Expand only when asked.
 - Ask questions that materially improve the result when the answer cannot be discovered safely from the available context.
+- Before implementing non-trivial work involving third-party tools, first search the web for current specifications, recommended approaches, and relevant context, then search GitHub for representative implementations and operational patterns. Only after reviewing both, design and write the code based on that evidence rather than memory or local inspection alone.
 - Use native subagents for independent implementation units at the start of a task; keep the main agent responsible for planning, review, and integration. Keep model and launch configuration private or tool-specific.
 - Do not overdesign error handling before implementing core behavior, and do not add error handling to final throwaway deliverables.
 - Write tests before behavior-changing implementation, verify them, and then refactor.

@@ -5,6 +5,10 @@ readonly TMPL_SCRIPT_GLOB="./home/.chezmoiscripts/common/run_once_after_*-instal
 readonly RUN_AFTER_TEMPLATE="./home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 readonly MISE_CONFIG_SOURCE="./home/dot_mise/config.toml"
 readonly MISE_BASH_SOURCE="./home/dot_config/exact_shell/mise.bash"
+readonly MISE_SETUP_WORKFLOWS=(
+    "./.github/workflows/ubuntu.yaml"
+    "./.github/workflows/macos.yaml"
+)
 
 function write_mise_config() {
     local version="$1"
@@ -184,6 +188,18 @@ function run_mise_bash_startup() {
     min_version="$(get_mise_min_version_from_config "${MISE_CONFIG_SOURCE}")"
     run is_mise_version_at_least "${min_version}" "2026.8.2"
     [ "${status}" -eq 0 ]
+}
+
+@test "[common] setup workflows reuse the chezmoi-bootstrapped mise" {
+    local workflow
+
+    for workflow in "${MISE_SETUP_WORKFLOWS[@]}"; do
+        run grep -F 'source "${HOME}/.config/shell/mise.bash"' "${workflow}"
+        [ "${status}" -eq 0 ]
+
+        run grep -F 'jdx/mise-action' "${workflow}"
+        [ "${status}" -ne 0 ]
+    done
 }
 
 @test "[common] mise bash startup exits cleanly when mise is absent" {

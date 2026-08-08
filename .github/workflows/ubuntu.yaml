@@ -78,6 +78,7 @@ jobs:
 
       - uses: jdx/mise-action@v4.2.3
         with:
+          version: "2026.8.2"
           install: true
           cache: true
 

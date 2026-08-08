@@ -100,11 +100,8 @@ jobs:
           alert-comment-cc-users: "@shunk031"
           benchmark-data-dir-path: "."
 
-      - uses: jdx/mise-action@v4.2.3
-        with:
-          version: "2026.8.2"
-          install: true
-          cache: true
+      - name: Add mise tools to PATH
+        run: echo "${HOME}/.local/share/mise/shims" >> "${GITHUB_PATH}"
 
       - name: Test file existence
         run: |

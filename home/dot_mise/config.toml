@@ -22,12 +22,12 @@ sqlite = "3.53.3"
 
 # Aqua tools
 "aqua:FiloSottile/age" = "1.3.1"
-"aqua:google-antigravity/antigravity-cli" = "1.1.10"
+"aqua:google-antigravity/antigravity-cli" = "1.1.11"
 "aqua:aws/aws-cli" = "2.36.7"
 "aqua:bats-core/bats-core" = "1.14.0"
 "aqua:twpayne/chezmoi" = "2.71.1"
-"aqua:anthropics/claude-code" = "2.1.221"
-"aqua:openai/codex" = "0.146.0"
+"aqua:anthropics/claude-code" = "2.1.226"
+"aqua:openai/codex" = "0.147.0"
 "aqua:dotenvx/dotenvx" = "2.17.3"
 "aqua:bootandy/dust" = "1.2.4"
 "aqua:sharkdp/fd" = "10.4.2"
@@ -48,7 +48,7 @@ sqlite = "3.53.3"
 
 # GitHub release tools
 "github:d-kuro/gwq" = "0.1.1"
-"github:router-for-me/CLIProxyAPI" = "7.2.116"
+"github:router-for-me/CLIProxyAPI" = "7.2.124"
 "github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }
 
 # npm tools

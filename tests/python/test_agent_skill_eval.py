@@ -69,6 +69,15 @@ def write_skill(repo: Path, name: str, *, with_evals: bool = True) -> Path:
     return skill
 
 
+def write_guidance(repo: Path) -> Path:
+    guidance = repo / "home/dot_config/exact_agents/AGENTS.md"
+    guidance.parent.mkdir(parents=True)
+    guidance.write_text(
+        "# AGENTS.md\n\nResearch before implementation.\n", encoding="utf-8"
+    )
+    return guidance
+
+
 class AgentSkillEvalTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -117,6 +126,59 @@ class AgentSkillEvalTest(unittest.TestCase):
         run_git(repo, "add", "-u")
 
         self.assertEqual(self.module.discover_changed_skills(repo, staged=True), [])
+
+    def test_discover_changed_targets_includes_staged_user_guidance(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        guidance = write_guidance(repo)
+        write_skill(repo, "research-before-implementation")
+        run_git(repo, "add", ".")
+        run_git(repo, "commit", "-qm", "initial")
+        guidance.write_text(
+            guidance.read_text(encoding="utf-8") + "Search GitHub too.\n",
+            encoding="utf-8",
+        )
+        run_git(repo, "add", ".")
+
+        targets = self.module.discover_changed_targets(repo, staged=True)
+
+        self.assertEqual(
+            [target.name for target in targets], ["research-before-implementation"]
+        )
+        self.assertEqual(targets[0].kind, "skill")
+
+    def test_discover_all_targets_includes_evaluable_skills(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        write_skill(repo, "evaluable")
+
+        targets = self.module.discover_all_targets(repo)
+
+        self.assertEqual(
+            [(target.kind, target.name) for target in targets],
+            [("skill", "evaluable")],
+        )
+
+    def test_prek_hooks_trigger_for_guidance_and_skills(self) -> None:
+        config = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
+
+        expected = "files: ^home/dot_config/exact_agents/(AGENTS\\.md|skills/)"
+        self.assertEqual(config.count(expected), 2)
+
+    def test_validate_skill_accepts_required_action_sequence(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        skill = write_skill(repo, "research")
+        eval_path = skill / "evals/evals.json"
+        data = json.loads(eval_path.read_text(encoding="utf-8"))
+        data["evals"][0]["required_actions"] = [
+            "web_search",
+            "github_search",
+            "file_change",
+        ]
+        eval_path.write_text(json.dumps(data), encoding="utf-8")
+
+        self.assertEqual(self.module.validate_skill(skill), [])
 
     def test_validate_skill_requires_eval_file(self) -> None:
         tempdir, repo = self.make_repo()
@@ -176,6 +238,222 @@ class AgentSkillEvalTest(unittest.TestCase):
 
         self.assertTrue(parsed.skill_read)
         self.assertEqual(parsed.output, "final answer")
+
+    def test_parse_trace_records_research_before_file_change(self) -> None:
+        trace = "\n".join(
+            [
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {"type": "web_search", "query": "current mise docs"},
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {
+                            "type": "web_search",
+                            "query": "site:github.com mise macOS defaults",
+                        },
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {"type": "file_change", "changes": []},
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {"type": "agent_message", "text": "implemented"},
+                    }
+                ),
+            ]
+        )
+
+        parsed = self.module.parse_trace(trace, "demo")
+
+        self.assertEqual(parsed.actions, ("web_search", "github_search", "file_change"))
+        self.assertTrue(
+            self.module.contains_ordered_actions(
+                parsed.actions, ("web_search", "github_search", "file_change")
+            )
+        )
+
+    def test_parse_trace_recognizes_gh_code_search_as_github_research(self) -> None:
+        trace = json.dumps(
+            {
+                "type": "item.completed",
+                "item": {
+                    "type": "command_execution",
+                    "command": "gh search code 'defaults repo:mise-plugins/mise'",
+                },
+            }
+        )
+
+        parsed = self.module.parse_trace(trace, "demo")
+
+        self.assertEqual(parsed.actions, ("github_search",))
+
+    def test_web_search_override_enables_the_selected_custom_provider(self) -> None:
+        with mock.patch.object(
+            self.module,
+            "configured_model_provider",
+            return_value="custom-provider",
+        ):
+            override = self.module.web_search_provider_override()
+
+        self.assertEqual(
+            override,
+            "model_providers.custom-provider.supports_standalone_web_search=true",
+        )
+
+    def test_invoke_places_global_search_config_before_exec(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="", stderr=""
+        )
+        with (
+            mock.patch.object(
+                self.module,
+                "web_search_provider_override",
+                return_value="model_providers.custom.supports_standalone_web_search=true",
+            ),
+            mock.patch.object(
+                self.module,
+                "disabled_skill_override",
+                return_value='skills.config=[{path="/tmp/demo",enabled=false}]',
+            ),
+            mock.patch.object(
+                self.module.subprocess, "run", return_value=completed
+            ) as run,
+        ):
+            self.module.invoke_codex(Path("/tmp"), "prompt", 10, search=True)
+
+        command = run.call_args.args[0]
+        exec_index = command.index("exec")
+        self.assertLess(command.index("--search"), exec_index)
+        self.assertTrue(
+            all(
+                index < exec_index
+                for index, value in enumerate(command)
+                if value == "-c"
+            )
+        )
+
+    def test_required_actions_rejects_implementation_before_research(self) -> None:
+        case = self.module.EvalCase(
+            id="research",
+            prompt="Implement an example.",
+            should_trigger=True,
+            assertions=("The example works.",),
+            required_actions=("web_search", "github_search", "file_change"),
+        )
+        result = self.module.RunResult(
+            case_id="research",
+            trial=1,
+            variant="candidate",
+            output="implemented",
+            skill_read=False,
+            actions=("file_change", "web_search", "github_search"),
+        )
+
+        self.assertFalse(self.module.required_actions_pass([case], [result]))
+        self.assertEqual(
+            self.module.required_action_failures([case], [result]),
+            [
+                (
+                    "research trial 1: required actions "
+                    "('web_search', 'github_search', 'file_change'), observed "
+                    "('file_change', 'web_search', 'github_search'); "
+                    "output='implemented'"
+                )
+            ],
+        )
+
+    def test_run_research_skill_enables_search_and_workspace_writes(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        skill = write_skill(repo, "research")
+        target = self.module.EvalTarget(
+            name=skill.name,
+            kind="skill",
+            path=skill,
+            eval_path=skill / "evals/evals.json",
+        )
+        case = self.module.EvalCase(
+            id="research",
+            prompt="Implement an example.",
+            should_trigger=True,
+            assertions=("The example works.",),
+            required_actions=("web_search", "github_search", "file_change"),
+        )
+        spec = self.module.RunSpec(case=case, trial=1, variant="candidate")
+
+        def fake_invoke(
+            run_repo,
+            prompt,
+            timeout,
+            schema=None,
+            *,
+            sandbox="read-only",
+            search=False,
+            codex_home=None,
+        ):
+            self.assertTrue((run_repo / ".agents/skills/research/SKILL.md").is_file())
+            self.assertEqual(sandbox, "workspace-write")
+            self.assertTrue(search)
+            self.assertIsNotNone(codex_home)
+            return "\n".join(
+                [
+                    json.dumps(
+                        {"item": {"type": "web_search", "query": "current docs"}}
+                    ),
+                    json.dumps(
+                        {
+                            "item": {
+                                "type": "web_search",
+                                "query": "site:github.com example",
+                            }
+                        }
+                    ),
+                    json.dumps({"item": {"type": "file_change"}}),
+                    json.dumps(
+                        {"item": {"type": "agent_message", "text": "implemented"}}
+                    ),
+                ]
+            )
+
+        with mock.patch.object(self.module, "invoke_codex", side_effect=fake_invoke):
+            result = self.module.run_target_case(target, spec, timeout=10)
+
+        self.assertEqual(result.actions, ("web_search", "github_search", "file_change"))
+
+    def test_run_research_skill_baseline_has_no_candidate_skill(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        skill = write_skill(repo, "research")
+        target = self.module.EvalTarget(
+            name=skill.name,
+            kind="skill",
+            path=skill,
+            eval_path=skill / "evals/evals.json",
+        )
+        case = self.module.EvalCase(
+            id="research",
+            prompt="Implement an example.",
+            should_trigger=True,
+            assertions=("The example works.",),
+        )
+        spec = self.module.RunSpec(case=case, trial=1, variant="baseline")
+
+        def fake_invoke(run_repo, *args, **kwargs):
+            self.assertFalse((run_repo / ".agents/skills/research").exists())
+            self.assertEqual(kwargs["sandbox"], "workspace-write")
+            return json.dumps({"item": {"type": "agent_message", "text": "baseline"}})
+
+        with mock.patch.object(self.module, "invoke_codex", side_effect=fake_invoke):
+            self.module.run_target_case(target, spec, timeout=10)
 
     def test_cache_key_changes_with_trials_and_skill_content(self) -> None:
         tempdir, repo = self.make_repo()

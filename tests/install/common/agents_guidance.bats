@@ -362,6 +362,7 @@ readonly GITIGNORE_PATH="./.gitignore"
 
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_humanizer-ja.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/humanizer-ja" ]
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_manage-agent-guidance.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/manage-agent-guidance" ]
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_research-before-implementation.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/research-before-implementation" ]
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_structured-writing.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/structured-writing" ]
     [ ! -e "${SHARED_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl" ]
     [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shdoc-shell-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shdoc-shell-docs" ]
@@ -370,7 +371,7 @@ readonly GITIGNORE_PATH="./.gitignore"
 @test "[common] Gemini skills expose repo-managed skills through per-skill symlink templates" {
     [ -d "${GEMINI_SKILLS_SYMLINK_DIR}" ]
 
-    local skills="ai-slop-checklist-ja cgd-dev-identity convert-to-transformers gh-comment-attach-files high-impact-journal-publishing humanizer-ja manage-agent-guidance python-uv-workflow shdoc-shell-docs structured-writing"
+    local skills="ai-slop-checklist-ja cgd-dev-identity convert-to-transformers gh-comment-attach-files high-impact-journal-publishing humanizer-ja manage-agent-guidance python-uv-workflow research-before-implementation shdoc-shell-docs structured-writing"
     local skill
     local template
     local expected
@@ -390,7 +391,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl" ]
 }
 
-@test "[common] prek validates and evaluates only changed managed skills" {
+@test "[common] prek validates and evaluates changed managed skills and guidance" {
     [ -f "${PREK_CONFIG_PATH}" ]
     [ -f "${SKILL_EVAL_SCRIPT}" ]
 

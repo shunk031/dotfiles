@@ -5,7 +5,6 @@ import subprocess
 import unittest
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTRACT_PATH = REPO_ROOT / "tests/fixtures/agent_guidance_requirements.json"
 EXTRA_DIRECTIVE_LINES = {4, 14}
@@ -62,11 +61,37 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
                 for expected in item["contains"]:
                     self.assertIn(expected, text)
 
+    def test_third_party_research_has_one_routing_rule_and_skill_owner(self) -> None:
+        agents_path = REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md"
+        skill_path = (
+            REPO_ROOT
+            / "home/dot_config/exact_agents/skills/research-before-implementation/SKILL.md"
+        )
+        agents = agents_path.read_text(encoding="utf-8")
+        skill = skill_path.read_text(encoding="utf-8")
+        web_search = skill.index(
+            "Call the agent's native web search tool (`web_search` in Codex)"
+        )
+        github_search = skill.index(
+            "call the native web search tool again with results restricted to `github.com`"
+        )
+        implementation = skill.index("Implement and verify")
+
+        self.assertEqual(agents.count("`research-before-implementation`"), 1)
+        self.assertLess(web_search, github_search)
+        self.assertLess(github_search, implementation)
+        self.assertIn("Do not edit files until both tool calls are complete", skill)
+        self.assertIn(
+            "In the final response, name and link the web sources and GitHub examples consulted",
+            skill,
+        )
+
     def test_always_on_sections_are_not_duplicated_in_managed_skills(self) -> None:
         agents_path = REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md"
         skill_root = REPO_ROOT / "home/dot_config/exact_agents/skills"
         always_on_sections = {
-            line for line in agents_path.read_text(encoding="utf-8").splitlines()
+            line
+            for line in agents_path.read_text(encoding="utf-8").splitlines()
             if line.startswith("## ")
         }
         duplicates = {

@@ -65,7 +65,7 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         agents_path = REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md"
         skill_path = (
             REPO_ROOT
-            / "home/dot_config/exact_agents/skills/research-before-implementation/SKILL.md"
+            / "home/dot_config/exact_agents/skills/shunk031-research-before-implementation/SKILL.md"
         )
         agents = agents_path.read_text(encoding="utf-8")
         skill = skill_path.read_text(encoding="utf-8")
@@ -77,7 +77,7 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         )
         implementation = skill.index("Implement and verify")
 
-        self.assertEqual(agents.count("`research-before-implementation`"), 1)
+        self.assertEqual(agents.count("`shunk031-research-before-implementation`"), 1)
         self.assertLess(web_search, github_search)
         self.assertLess(github_search, implementation)
         self.assertIn("Do not edit files until both tool calls are complete", skill)

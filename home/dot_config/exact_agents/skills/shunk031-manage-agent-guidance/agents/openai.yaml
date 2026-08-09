@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage Agent Guidance"
+  short_description: "Organize agent guidance sources, scopes, and adapters"
+  default_prompt: "Use $shunk031-manage-agent-guidance to organize this repository agent guidance without duplication."

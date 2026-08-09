@@ -1,0 +1,4 @@
+interface:
+  display_name: "Structured Writing"
+  short_description: "Structure detailed instructions, plans, and reports clearly"
+  default_prompt: "Use $shunk031-structured-writing to organize this detailed guidance into a clear hierarchy."

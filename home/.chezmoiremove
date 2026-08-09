@@ -1,3 +1,6 @@
+# Remove skill symlinks that predate the shunk031- namespace migration.
+# Keep these entries for machines that apply after the migration.
+
 .agents/skills/ai-slop-checklist-ja
 .agents/skills/cgd-dev-identity
 .agents/skills/convert-to-transformers

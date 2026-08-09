@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate and evaluate changed agent skills with isolated Codex runs."""
+"""Validate and evaluate agent skills and guidance with isolated Codex runs."""
 
 from __future__ import annotations
 
@@ -22,6 +22,8 @@ from typing import TypeVar
 import tomllib
 
 SKILLS_ROOT = Path("home/dot_config/exact_agents/skills")
+GUIDANCE_PATH = Path("home/dot_config/exact_agents/AGENTS.md")
+GUIDANCE_EVAL_SKILLS = ("research-before-implementation",)
 TRANSIENT_PATTERN = re.compile(
     r"(?:429|too many requests|timed? ?out|timeout|connection|network|tls|"
     r"status\s*5\d\d|http\s*5\d\d)",
@@ -43,12 +45,22 @@ class EvalCase:
     prompt: str
     should_trigger: bool
     assertions: tuple[str, ...]
+    required_actions: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
 class ParsedTrace:
     output: str
     skill_read: bool
+    actions: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class EvalTarget:
+    name: str
+    kind: str
+    path: Path
+    eval_path: Path
 
 
 @dataclass(frozen=True)
@@ -65,6 +77,7 @@ class RunResult:
     variant: str
     output: str
     skill_read: bool
+    actions: tuple[str, ...] = ()
 
 
 class CodexError(RuntimeError):
@@ -155,6 +168,29 @@ def discover_changed_skills(repo: Path, staged: bool) -> list[Path]:
     return sorted(skill_paths, key=lambda path: path.name)
 
 
+def discover_changed_targets(repo: Path, staged: bool) -> list[EvalTarget]:
+    skill_paths = {path.name: path for path in discover_changed_skills(repo, staged)}
+    args = ["diff"]
+    if staged:
+        args.append("--cached")
+    args.extend(["--name-only", "--diff-filter=ACMR"])
+    changed_paths = set(run_git(repo, *args).splitlines())
+    if GUIDANCE_PATH.as_posix() in changed_paths:
+        for name in GUIDANCE_EVAL_SKILLS:
+            skill = repo / SKILLS_ROOT / name
+            if skill.is_dir():
+                skill_paths[name] = skill
+    return [
+        EvalTarget(
+            name=name,
+            kind="skill",
+            path=path,
+            eval_path=path / "evals/evals.json",
+        )
+        for name, path in sorted(skill_paths.items())
+    ]
+
+
 def discover_all_skills(repo: Path) -> list[Path]:
     root = repo / SKILLS_ROOT
     if not root.is_dir():
@@ -167,6 +203,18 @@ def discover_all_skills(repo: Path) -> list[Path]:
         ),
         key=lambda path: path.name,
     )
+
+
+def discover_all_targets(repo: Path) -> list[EvalTarget]:
+    return [
+        EvalTarget(
+            name=path.name,
+            kind="skill",
+            path=path,
+            eval_path=path / "evals/evals.json",
+        )
+        for path in discover_all_skills(repo)
+    ]
 
 
 def parse_frontmatter(path: Path) -> dict[str, str]:
@@ -189,59 +237,55 @@ def parse_frontmatter(path: Path) -> dict[str, str]:
 
 
 def load_cases(skill: Path) -> list[EvalCase]:
-    data = json.loads((skill / "evals/evals.json").read_text(encoding="utf-8"))
+    return load_cases_file(skill / "evals/evals.json")
+
+
+def load_cases_file(path: Path) -> list[EvalCase]:
+    data = json.loads(path.read_text(encoding="utf-8"))
     return [
         EvalCase(
             id=item["id"],
             prompt=item["prompt"],
             should_trigger=item["should_trigger"],
             assertions=tuple(item["assertions"]),
+            required_actions=tuple(item.get("required_actions", ())),
         )
         for item in data["evals"]
     ]
 
 
-def validate_skill(skill: Path) -> list[str]:
+def validate_eval_file(
+    eval_file: Path, owner_key: str, owner_name: str, *, allow_actions: bool
+) -> list[str]:
     errors: list[str] = []
-    skill_file = skill / "SKILL.md"
-    eval_file = skill / "evals/evals.json"
-    if not skill_file.is_file():
-        return [f"{skill}: missing SKILL.md"]
-    try:
-        frontmatter = parse_frontmatter(skill_file)
-        if set(frontmatter) != {"name", "description"}:
-            errors.append("SKILL.md frontmatter must contain only name and description")
-        if frontmatter.get("name") != skill.name:
-            errors.append(f"SKILL.md name must be {skill.name!r}")
-        if not frontmatter.get("description"):
-            errors.append("SKILL.md description must not be empty")
-    except (OSError, ValueError) as error:
-        errors.append(str(error))
+    display_name = "evals/evals.json" if owner_key == "skill" else eval_file.name
     if not eval_file.is_file():
-        errors.append("missing evals/evals.json")
-        return errors
+        return [f"missing {display_name}"]
     try:
         data = json.loads(eval_file.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as error:
-        errors.append(f"invalid evals/evals.json: {error}")
-        return errors
+        return [f"invalid {display_name}: {error}"]
     if not isinstance(data, dict):
-        return errors + ["evals/evals.json must contain an object"]
+        return [f"{display_name} must contain an object"]
     if data.get("version") != 1:
         errors.append("eval version must be 1")
-    if data.get("skill") != skill.name:
-        errors.append(f"eval skill must be {skill.name!r}")
+    if data.get(owner_key) != owner_name:
+        errors.append(f"eval {owner_key} must be {owner_name!r}")
     evals = data.get("evals")
     if not isinstance(evals, list):
         return errors + ["evals must be an array"]
     identifiers: set[str] = set()
     trigger_values: set[bool] = set()
+    base_fields = {"id", "prompt", "should_trigger", "assertions"}
     for index, item in enumerate(evals):
         location = f"evals[{index}]"
         if not isinstance(item, dict):
             errors.append(f"{location} must be an object")
             continue
-        if set(item) != {"id", "prompt", "should_trigger", "assertions"}:
+        allowed_fields = base_fields | (
+            {"required_actions"} if allow_actions else set()
+        )
+        if not base_fields <= set(item) or not set(item) <= allowed_fields:
             errors.append(f"{location} has unsupported or missing fields")
         identifier = item.get("id")
         if not isinstance(identifier, str) or not identifier:
@@ -266,6 +310,12 @@ def validate_skill(skill: Path) -> list[str]:
             )
         ):
             errors.append(f"{location}.assertions must contain non-empty strings")
+        actions = item.get("required_actions", [])
+        if not isinstance(actions, list) or not all(
+            action in {"web_search", "github_search", "file_change"}
+            for action in actions
+        ):
+            errors.append(f"{location}.required_actions contains unsupported actions")
     if True not in trigger_values:
         errors.append("at least one positive eval is required")
     if False not in trigger_values:
@@ -273,9 +323,36 @@ def validate_skill(skill: Path) -> list[str]:
     return errors
 
 
+def validate_skill(skill: Path) -> list[str]:
+    errors: list[str] = []
+    skill_file = skill / "SKILL.md"
+    eval_file = skill / "evals/evals.json"
+    if not skill_file.is_file():
+        return [f"{skill}: missing SKILL.md"]
+    try:
+        frontmatter = parse_frontmatter(skill_file)
+        if set(frontmatter) != {"name", "description"}:
+            errors.append("SKILL.md frontmatter must contain only name and description")
+        if frontmatter.get("name") != skill.name:
+            errors.append(f"SKILL.md name must be {skill.name!r}")
+        if not frontmatter.get("description"):
+            errors.append("SKILL.md description must not be empty")
+    except (OSError, ValueError) as error:
+        errors.append(str(error))
+    errors.extend(
+        validate_eval_file(eval_file, "skill", skill.name, allow_actions=True)
+    )
+    return errors
+
+
+def validate_target(target: EvalTarget) -> list[str]:
+    return validate_skill(target.path)
+
+
 def parse_trace(trace: str, skill_name: str) -> ParsedTrace:
     messages: list[str] = []
     skill_read = False
+    actions: list[str] = []
     marker = f"/skills/{skill_name}/SKILL.md"
     relative_marker = f"skills/{skill_name}/SKILL.md"
     for line in trace.splitlines():
@@ -289,11 +366,51 @@ def parse_trace(trace: str, skill_name: str) -> ParsedTrace:
         item_type = item.get("type")
         if item_type == "agent_message" and isinstance(item.get("text"), str):
             messages.append(item["text"])
+        if item_type == "web_search":
+            query = str(item.get("query", ""))
+            actions.append(
+                "github_search" if "github" in query.lower() else "web_search"
+            )
+        if item_type == "file_change":
+            actions.append("file_change")
         if item_type == "command_execution":
             command = str(item.get("command", ""))
             if marker in command or relative_marker in command:
                 skill_read = True
-    return ParsedTrace(output=messages[-1] if messages else "", skill_read=skill_read)
+            if re.search(r"\bgh\s+search\s+(?:code|repos?|commits?)\b", command):
+                actions.append("github_search")
+    return ParsedTrace(
+        output=messages[-1] if messages else "",
+        skill_read=skill_read,
+        actions=tuple(actions),
+    )
+
+
+def contains_ordered_actions(
+    actions: tuple[str, ...], required: tuple[str, ...]
+) -> bool:
+    remaining = iter(actions)
+    return all(any(action == expected for action in remaining) for expected in required)
+
+
+def required_actions_pass(cases: list[EvalCase], results: list[RunResult]) -> bool:
+    return not required_action_failures(cases, results)
+
+
+def required_action_failures(
+    cases: list[EvalCase], results: list[RunResult]
+) -> list[str]:
+    cases_by_id = {case.id: case for case in cases}
+    return [
+        f"{result.case_id} trial {result.trial}: required actions "
+        f"{cases_by_id[result.case_id].required_actions}, observed {result.actions}; "
+        f"output={normalize_artifact(result.output)!r}"
+        for result in results
+        if result.variant == "candidate"
+        and not contains_ordered_actions(
+            result.actions, cases_by_id[result.case_id].required_actions
+        )
+    ]
 
 
 def retry_transient(operation: Callable[[], T], retries: int = 1) -> T:
@@ -333,6 +450,34 @@ def codex_executable() -> str:
     return os.environ.get("AGENT_SKILL_EVAL_CODEX", "codex")
 
 
+def configured_model_provider() -> str | None:
+    config_path = Path.home() / ".codex/config.toml"
+    try:
+        config = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError):
+        return None
+    provider = config.get("model_provider")
+    providers = config.get("model_providers")
+    if (
+        not isinstance(provider, str)
+        or not provider
+        or not isinstance(providers, dict)
+        or not isinstance(providers.get(provider), dict)
+    ):
+        return None
+    return provider
+
+
+def web_search_provider_override() -> str | None:
+    provider = configured_model_provider()
+    if provider is None:
+        return None
+    key = (
+        provider if re.fullmatch(r"[A-Za-z0-9_-]+", provider) else json.dumps(provider)
+    )
+    return f"model_providers.{key}.supports_standalone_web_search=true"
+
+
 def disabled_skill_override() -> str | None:
     paths: set[Path] = set()
     home = Path.home()
@@ -349,25 +494,42 @@ def disabled_skill_override() -> str | None:
 
 
 def invoke_codex(
-    repo: Path, prompt: str, timeout: int, schema: Path | None = None
+    repo: Path,
+    prompt: str,
+    timeout: int,
+    schema: Path | None = None,
+    *,
+    sandbox: str = "read-only",
+    search: bool = False,
+    codex_home: Path | None = None,
 ) -> str:
-    command = [
-        codex_executable(),
-        "exec",
-        "--ephemeral",
-        "--json",
-        "--sandbox",
-        "read-only",
-        "--cd",
-        str(repo),
-    ]
+    command = [codex_executable()]
+    if search:
+        command.append("--search")
+        provider_override = web_search_provider_override()
+        if provider_override:
+            command.extend(["-c", provider_override])
     override = disabled_skill_override()
     if override:
         command.extend(["-c", override])
+    command.extend(
+        [
+            "exec",
+            "--ephemeral",
+            "--json",
+            "--sandbox",
+            sandbox,
+            "--cd",
+            str(repo),
+        ]
+    )
     if schema is not None:
         command.extend(["--output-schema", str(schema)])
     command.append("-")
     try:
+        environment = os.environ.copy()
+        if codex_home is not None:
+            environment["CODEX_HOME"] = str(codex_home)
         completed = subprocess.run(
             command,
             input=prompt,
@@ -375,6 +537,7 @@ def invoke_codex(
             capture_output=True,
             timeout=timeout,
             check=False,
+            env=environment,
         )
     except subprocess.TimeoutExpired as error:
         raise TransientCodexError(f"Codex timed out after {timeout}s") from error
@@ -391,17 +554,36 @@ def initialize_temp_repo(path: Path) -> None:
     subprocess.run(["git", "init", "-q", str(path)], check=True, capture_output=True)
 
 
-def run_case(skill: Path, spec: RunSpec, timeout: int) -> RunResult:
+def initialize_codex_home(path: Path) -> None:
+    path.mkdir()
+    source = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
+    for name in ("config.toml", "auth.json"):
+        candidate = source / name
+        if candidate.exists():
+            (path / name).symlink_to(candidate)
+
+
+def run_target_case(target: EvalTarget, spec: RunSpec, timeout: int) -> RunResult:
     def operation() -> RunResult:
         with tempfile.TemporaryDirectory(prefix="agent-skill-eval-") as tempdir:
-            repo = Path(tempdir)
+            root = Path(tempdir)
+            repo = root / "repo"
             initialize_temp_repo(repo)
+            codex_home = root / "codex-home"
+            initialize_codex_home(codex_home)
             if spec.variant == "candidate":
-                destination = repo / ".agents/skills" / skill.name
+                destination = repo / ".agents/skills" / target.name
                 destination.parent.mkdir(parents=True)
-                shutil.copytree(skill, destination)
-            trace = invoke_codex(repo, spec.case.prompt, timeout)
-            parsed = parse_trace(trace, skill.name)
+                shutil.copytree(target.path, destination)
+            trace = invoke_codex(
+                repo,
+                spec.case.prompt,
+                timeout,
+                sandbox="workspace-write",
+                search=bool(spec.case.required_actions),
+                codex_home=codex_home,
+            )
+            parsed = parse_trace(trace, target.name)
             if not normalize_artifact(parsed.output):
                 raise TransientCodexError("Codex returned no deliverable")
             return RunResult(
@@ -410,9 +592,20 @@ def run_case(skill: Path, spec: RunSpec, timeout: int) -> RunResult:
                 variant=spec.variant,
                 output=parsed.output,
                 skill_read=parsed.skill_read,
+                actions=parsed.actions,
             )
 
     return retry_transient(operation, retries=1)
+
+
+def run_case(skill: Path, spec: RunSpec, timeout: int) -> RunResult:
+    target = EvalTarget(
+        name=skill.name,
+        kind="skill",
+        path=skill,
+        eval_path=skill / "evals/evals.json",
+    )
+    return run_target_case(target, spec, timeout)
 
 
 def judge_schema() -> dict[str, object]:
@@ -540,24 +733,43 @@ def codex_identity() -> str:
 
 
 def cache_key(skill: Path, config: EvalConfig, codex_identity: str) -> str:
+    return target_cache_key(
+        EvalTarget(
+            name=skill.name,
+            kind="skill",
+            path=skill,
+            eval_path=skill / "evals/evals.json",
+        ),
+        config,
+        codex_identity,
+    )
+
+
+def target_cache_key(
+    target: EvalTarget, config: EvalConfig, codex_identity: str
+) -> str:
     digest = hashlib.sha256()
     digest.update(json.dumps(asdict(config), sort_keys=True).encode())
     digest.update(codex_identity.encode())
     digest.update(Path(__file__).read_bytes())
-    for path in sorted(skill.rglob("*")):
+    digest.update(target.kind.encode())
+    paths = [target.path] if target.path.is_file() else sorted(target.path.rglob("*"))
+    for path in paths:
         if path.is_file():
-            digest.update(path.relative_to(skill).as_posix().encode())
+            digest.update(path.as_posix().encode())
             digest.update(path.read_bytes())
+    if target.eval_path.is_file() and target.eval_path != target.path:
+        digest.update(target.eval_path.read_bytes())
     return digest.hexdigest()
 
 
-def evaluate_skill(skill: Path, config: EvalConfig, cache: ResultCache) -> bool:
+def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) -> bool:
     identity = codex_identity()
-    key = cache_key(skill, config, identity)
+    key = target_cache_key(target, config, identity)
     if cache.load(key) is not None:
-        print(f"{skill.name}: passed (cached)")
+        print(f"{target.name}: passed (cached)")
         return True
-    cases = load_cases(skill)
+    cases = load_cases_file(target.eval_path)
     specs: list[RunSpec] = []
     for trial in range(1, config.trials + 1):
         for case in cases:
@@ -567,7 +779,7 @@ def evaluate_skill(skill: Path, config: EvalConfig, cache: ResultCache) -> bool:
     results: list[RunResult] = []
     with ThreadPoolExecutor(max_workers=config.jobs) as executor:
         futures = {
-            executor.submit(run_case, skill, spec, config.timeout): spec
+            executor.submit(run_target_case, target, spec, config.timeout): spec
             for spec in specs
         }
         for future in as_completed(futures):
@@ -578,6 +790,8 @@ def evaluate_skill(skill: Path, config: EvalConfig, cache: ResultCache) -> bool:
         or result.skill_read == cases_by_id[result.case_id].should_trigger
         for result in results
     )
+    action_failures = required_action_failures(cases, results)
+    actions_ok = not action_failures
     judged, mappings = judge_results(cases, results, config.timeout)
     expected = {
         (case.id, trial) for case in cases for trial in range(1, config.trials + 1)
@@ -586,7 +800,7 @@ def evaluate_skill(skill: Path, config: EvalConfig, cache: ResultCache) -> bool:
     candidate_assertions_ok = True
     candidate_wins = 0
     baseline_wins = 0
-    failure_details: list[str] = []
+    failure_details = action_failures.copy()
     for entry in judged:
         if not isinstance(entry, dict):
             candidate_assertions_ok = False
@@ -634,16 +848,17 @@ def evaluate_skill(skill: Path, config: EvalConfig, cache: ResultCache) -> bool:
     passed = (
         seen == expected
         and trigger_ok
+        and actions_ok
         and candidate_assertions_ok
         and comparison_passes(candidate_wins, baseline_wins)
     )
     if passed:
-        cache.store(key, {"passed": True, "skill": skill.name})
-        print(f"{skill.name}: passed")
+        cache.store(key, {"passed": True, "target": target.name, "kind": target.kind})
+        print(f"{target.name}: passed")
         return True
     print(
-        f"{skill.name}: failed "
-        f"(coverage={seen == expected}, triggers={trigger_ok}, "
+        f"{target.name}: failed "
+        f"(coverage={seen == expected}, triggers={trigger_ok}, actions={actions_ok}, "
         f"candidate_assertions={candidate_assertions_ok}, "
         f"candidate_wins={candidate_wins}, baseline_wins={baseline_wins})",
         file=sys.stderr,
@@ -651,6 +866,19 @@ def evaluate_skill(skill: Path, config: EvalConfig, cache: ResultCache) -> bool:
     for detail in failure_details:
         print(f"  - {detail}", file=sys.stderr)
     return False
+
+
+def evaluate_skill(skill: Path, config: EvalConfig, cache: ResultCache) -> bool:
+    return evaluate_target(
+        EvalTarget(
+            name=skill.name,
+            kind="skill",
+            path=skill,
+            eval_path=skill / "evals/evals.json",
+        ),
+        config,
+        cache,
+    )
 
 
 def cache_for_repo(repo: Path) -> ResultCache:
@@ -666,6 +894,14 @@ def selected_skills(repo: Path, staged: bool, all_skills: bool) -> list[Path]:
         discover_all_skills(repo)
         if all_skills
         else discover_changed_skills(repo, staged)
+    )
+
+
+def selected_targets(repo: Path, staged: bool, all_targets: bool) -> list[EvalTarget]:
+    return (
+        discover_all_targets(repo)
+        if all_targets
+        else discover_changed_targets(repo, staged)
     )
 
 
@@ -687,15 +923,15 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     repo = find_repo_root()
-    skills = selected_skills(repo, args.staged, args.all_skills)
-    if not skills:
-        print("No matching skills changed.")
+    targets = selected_targets(repo, args.staged, args.all_skills)
+    if not targets:
+        print("No matching evaluation targets changed.")
         return 0
     invalid = False
-    for skill in skills:
-        errors = validate_skill(skill)
+    for target in targets:
+        errors = validate_target(target)
         for error in errors:
-            print(f"{skill.name}: {error}", file=sys.stderr)
+            print(f"{target.name}: {error}", file=sys.stderr)
         invalid = invalid or bool(errors)
     if invalid or args.command == "validate":
         return 1 if invalid else 0
@@ -706,8 +942,8 @@ def main(argv: list[str] | None = None) -> int:
     cache = cache_for_repo(repo)
     try:
         passed = True
-        for skill in skills:
-            passed = evaluate_skill(skill, config, cache) and passed
+        for target in targets:
+            passed = evaluate_target(target, config, cache) and passed
     except CodexError as error:
         print(f"Codex evaluation failed: {error}", file=sys.stderr)
         return 1

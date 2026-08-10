@@ -35,6 +35,17 @@
       ]
     },
     {
+      "id": "concise-reporting",
+      "prompt": "Write a completion report for the maintainer using only these supplied facts: the small repository change updated `src/cli.py` to reject malformed configuration; `uv run pytest tests/test_cli.py` passed all 18 tests; and `git diff --check` passed. Include the result and the essential validation without inventing additional changes or checks.",
+      "should_trigger": true,
+      "assertions": [
+        "The response keeps the report focused and concise.",
+        "The response includes the outcome and essential validation without expanding into unnecessary process detail.",
+        "The response expands only when asked.",
+        "The response treats concise reporting as a structural priority rather than creating a separate reporting template."
+      ]
+    },
+    {
       "id": "machine-readable-output",
       "prompt": "Return only this JSON object with keys in the same order: {\"status\":\"ok\",\"count\":2}",
       "should_trigger": false,

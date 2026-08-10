@@ -527,7 +527,7 @@ def invoke_codex(
         command.extend(["--output-schema", str(schema)])
     command.append("-")
     try:
-        environment = os.environ.copy()
+        environment = git_environment_without_local_variables()
         if codex_home is not None:
             environment["CODEX_HOME"] = str(codex_home)
         completed = subprocess.run(
@@ -550,8 +550,26 @@ def invoke_codex(
     return completed.stdout
 
 
+def git_environment_without_local_variables() -> dict[str, str]:
+    local_env_vars = subprocess.run(
+        ["git", "rev-parse", "--local-env-vars"],
+        check=True,
+        text=True,
+        capture_output=True,
+    ).stdout.split()
+    environment = os.environ.copy()
+    for name in local_env_vars:
+        environment.pop(name, None)
+    return environment
+
+
 def initialize_temp_repo(path: Path) -> None:
-    subprocess.run(["git", "init", "-q", str(path)], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "init", "-q", str(path)],
+        check=True,
+        capture_output=True,
+        env=git_environment_without_local_variables(),
+    )
 
 
 def initialize_codex_home(path: Path) -> None:

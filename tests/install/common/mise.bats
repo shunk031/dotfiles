@@ -190,6 +190,21 @@ function run_mise_bash_startup() {
     [ "${status}" -eq 0 ]
 }
 
+@test "[common] mise config pins fnox for command-backed authentication" {
+    run python3 - "${MISE_CONFIG_SOURCE}" << 'PYTHON'
+import sys
+import tomllib
+from pathlib import Path
+
+config = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+
+assert config["min_version"] == "2026.8.2"
+assert config["tools"]["fnox"] == "1.32.0"
+PYTHON
+
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] setup workflows reuse the chezmoi-bootstrapped mise" {
     local workflow
 

@@ -13,31 +13,33 @@ Perform git and gh write operations for creative-graphic-design organization rep
 
 Before starting write operations, perform the following checks in the working shell and worktree. Run them as a starting procedure rather than investigating only after a failure.
 
-1. Pass the bot token to each write command that uses gh or git credentials. The token is distributed to all shells as `CGD_DEV_GH_TOKEN` (managed by zshenv_private):
+1. Ensure that GitHub CLI has the bot account in its system credential store. On a new machine, run the interactive setup command once and authenticate in the browser as `creative-graphic-design-dev`:
 
    ```bash
-   GH_TOKEN="$CGD_DEV_GH_TOKEN" gh pr create ...
-   GH_TOKEN="$CGD_DEV_GH_TOKEN" git push
+   setup-gh-cgd
    ```
 
-   For manual work in a persistent shell, you may use the following shorthand:
+   Do not use `gh auth switch` during agent work. It changes the active account for the whole host and can race with concurrent sessions.
+
+2. Retrieve the stored bot token by account name and pass it only to each write command that uses gh or git credentials:
 
    ```bash
-   export GH_TOKEN="$CGD_DEV_GH_TOKEN"
+   GH_TOKEN="$(gh auth token --hostname github.com --user creative-graphic-design-dev)" gh pr create ...
+   GH_TOKEN="$(gh auth token --hostname github.com --user creative-graphic-design-dev)" git push
    ```
 
-   In environments that start a new shell for each command, such as Claude Code's shell tool, `export` does not persist to the next command. Use the per-command prefix as the canonical approach.
+   Do not export the token into a persistent shell and do not print it. The per-command prefix keeps account selection explicit and avoids changing GitHub CLI's global active account.
 
-2. Verify the GitHub identity and push permission for the organization repository. `gh api user` only confirms the logged-in account and cannot verify access to organization resources:
+3. Verify the GitHub identity and push permission for the organization repository. `gh api user` only confirms the logged-in account and cannot verify access to organization resources:
 
    ```bash
-   GH_TOKEN="$CGD_DEV_GH_TOKEN" gh api user --jq .login
-   GH_TOKEN="$CGD_DEV_GH_TOKEN" gh api repos/creative-graphic-design/<repo> --jq .permissions.push
+   GH_TOKEN="$(gh auth token --hostname github.com --user creative-graphic-design-dev)" gh api user --jq .login
+   GH_TOKEN="$(gh auth token --hostname github.com --user creative-graphic-design-dev)" gh api repos/creative-graphic-design/<repo> --jq .permissions.push
    ```
 
    Do not start write operations unless the first command returns `creative-graphic-design-dev` and the second returns `true`.
 
-3. Set the commit author to the bot for each commit command:
+4. Set the commit author to the bot for each commit command:
 
    ```bash
    git -c user.name=creative-graphic-design-dev \
@@ -47,7 +49,7 @@ Before starting write operations, perform the following checks in the working sh
 
    Do not use `git config user.name/email` in a linked worktree: it writes to the shared `.git/config` and changes the author for the main checkout and concurrent worktrees as well.
 
-4. Push over HTTPS because SSH does not use the proxy in this environment. Set an explicit push URL:
+5. Push over HTTPS because SSH does not use the proxy in this environment. Set an explicit push URL:
 
    ```bash
    git remote set-url --push origin https://github.com/creative-graphic-design/<repo>
@@ -57,12 +59,11 @@ Before starting write operations, perform the following checks in the working sh
 
 ## Scope
 
-- This skill applies only to creative-graphic-design organization repositories. Do not use it for other organizations or personal repositories; use normal authentication there. The token is a fine-grained PAT that works only for authorized repositories in the organization, so passing `GH_TOKEN` in an out-of-scope repository causes an authentication error.
+- This skill applies only to creative-graphic-design organization repositories. Do not use the stored bot credential for other organizations or personal repositories; use normal authentication there.
 - Attribute every coding-agent write to an organization repository to the bot. This includes commits, pushes, PR creation and updates, PR replies, issue comments, labels, milestones, and user-requested merges.
 - The human (`shunk031`) retains only PR approval in the GitHub UI and the decision to merge. Do not approve PRs as the bot.
 
 ## Troubleshooting
 
-- If an organization-resource endpoint (the repos API or a push) returns 403 with “organization forbids ... lifetime greater than 366 days,” organization policy requires the token lifetime to be no longer than one year. `gh api user` still succeeds in this state, so do not use it to diagnose the issue. Change the token expiration to within one year; the token value itself can remain the same.
-- If the token expires, reissue a fine-grained PAT as the creative-graphic-design-dev account with Contents, Pull requests, Issues, and Workflows set to Read and write and access limited to the target repositories. Then update the `CGD_DEV_GH_TOKEN` line in zshenv_private.
-- To add a repository to the scope, add it under the PAT's Repository access. Reissuing the token is unnecessary; changing its configuration is sufficient.
+- If `gh auth token --user creative-graphic-design-dev` fails or the stored credential is rejected, remove that account with `gh auth logout --hostname github.com --user creative-graphic-design-dev`, then rerun `setup-gh-cgd`. This changes local authentication state and must be done interactively by the user.
+- If the identity check succeeds but repository permission is `false`, grant `creative-graphic-design-dev` access to the target repository before retrying. Reauthentication is unnecessary when only repository membership changes.

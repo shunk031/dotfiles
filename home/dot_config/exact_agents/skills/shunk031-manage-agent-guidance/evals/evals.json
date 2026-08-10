@@ -57,6 +57,18 @@
       ]
     },
     {
+      "id": "audit-mixed-guidance-consumers",
+      "prompt": "This is a self-contained hypothetical dotfiles repository; use only the supplied facts. The exact safety rule `Fetch without writing FETCH_HEAD before creating a task worktree.` appears in three canonical files: the repository root `AGENTS.md`, `home/shared/AGENTS.md`, and `home/shared/agents/gh-workflow-manager.md`. Applying the dotfiles renders `home/shared/AGENTS.md` to `~/.agents/AGENTS.md` and the custom-agent file to `~/.agents/agents/gh-workflow-manager.md`. External clones read only the repository root and never receive these rendered user files. The owner's ordinary development sessions read both the repository root and rendered `~/.agents/AGENTS.md`. The gh-workflow-manager always reads rendered `~/.agents/AGENTS.md` before its custom-agent file. No wrapper copies the rule, and these are the complete consumer paths. Audit the apparent duplication and recommend what to keep, remove, or replace with a thin reference.",
+      "should_trigger": true,
+      "assertions": [
+        "The response maps each canonical source to its rendered path and actual readers, including which readers co-load higher-scope guidance.",
+        "The response keeps the repository-root rule for standalone external clones and the rendered user-level rule for cross-repository development, recognizing their intentional overlap for different consumer sets.",
+        "The response removes the custom-agent copy or replaces it with a minimal reference because gh-workflow-manager always co-loads the user-level owner.",
+        "The response does not classify all three copies as either required or redundant merely because their wording matches or their scope labels differ.",
+        "The response makes a separate ownership decision for each consumer path before recommending edits."
+      ]
+    },
+    {
       "id": "approved-removal-and-root-skill-ownership",
       "prompt": "In this hypothetical migration, a user explicitly approved exactly two removals of subjective error-handling guidance: source ID `hypothetical-coding-error-handling-1` with exact source text `- Error handling: Do not fear errors. Write the code first without focusing on error handling.`, and source ID `hypothetical-coding-final-deliverables-1` with exact source text `- Final deliverables: Final deliverables do not need error handling.` The supplied non-empty rationale for each removal is that the rule is subjective and redundant with the simplicity principle; no other removal is approved. The persistence-quality and skill-evaluation procedures are preserved and moved out of always-on `AGENTS.md`, not removed. The repository also has a README that owns skill-pool wiring and a gh-workflow-manager that owns exact gwq mechanics. Describe the migration and its review gates.",
       "should_trigger": true,

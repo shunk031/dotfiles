@@ -12,13 +12,14 @@ Keep each durable instruction in one source of truth and expose it through thin 
 1. Read all applicable guidance before proposing a change.
 2. Classify each rule as user-level, repository-level, subtree-level, task-only, custom-agent, or skill guidance. Treat a filename named in the request as a hypothesis, not as the confirmed target. Put behavioral rules shared across repositories at the user level, configuration and procedures for one repository at the repository level, and rules for a specific directory subtree at the subtree level.
 3. Locate the source of truth by inspecting higher-level instructions, managed sources, symlinks, imports, wrappers, and adapters. Edit that source for the classified scope instead of duplicating a rule across repository-level AGENTS.md files.
-4. Search current guidance and skills for an existing owner. Strengthen that owner instead of adding a duplicate.
-5. Before drafting or editing, report the evidence for scope, source of truth, and existing ownership. Name the inspected files, adapters, and matching owner rule; if none exists, state where you searched.
-6. Follow the scope-classification and source-of-truth rules above. Put concise cross-task invariants in the applicable `AGENTS.md` and specialized repeatable procedures in an existing relevant skill. Create a skill only when no existing owner fits and the procedure is substantial and reusable.
-7. Before committing or creating a PR, review the diff for each added instruction to confirm that its location matches its scope and that it does not duplicate higher-scope guidance; move it to the correct source of truth when the scope does not match, or ask before changing external state when it is unclear.
-8. Review the final diff for scope mismatch, duplication, secrets, transient facts, and adapter drift.
+4. Build a consumer map for every candidate overlap: record each canonical source, rendered path, actual reader, co-loaded higher-scope guidance, and standalone portability requirement. Matching wording does not prove redundant ownership, and different scope labels do not prove independent consumption. Decide separately for each consumer path instead of keeping or removing every copy as a group.
+5. Search current guidance and skills for an existing owner. Strengthen that owner instead of adding a duplicate.
+6. Before drafting or editing, report the evidence for scope, source of truth, existing ownership, and the consumer map. Name the inspected files, adapters, actual readers, and matching owner rule; if any are unknown, state what remains unverified.
+7. Follow the scope-classification and source-of-truth rules above. Put concise cross-task invariants in the applicable `AGENTS.md` and specialized repeatable procedures in an existing relevant skill. Create a skill only when no existing owner fits and the procedure is substantial and reusable.
+8. Before committing or creating a PR, review the diff for each added instruction to confirm that its location matches its scope and that it does not duplicate higher-scope guidance; move it to the correct source of truth when the scope does not match, or ask before changing external state when it is unclear.
+9. Review the final diff for scope mismatch, duplication, secrets, transient facts, and adapter drift.
 
-Do not draft or edit until steps 2–5 are complete. When evidence is unavailable, report the missing sources and propose the investigation instead of defaulting to the named file.
+Do not draft or edit until steps 2–6 are complete. When evidence is unavailable, report the missing sources and propose the investigation instead of defaulting to the named file.
 
 ## Persistence Quality
 

@@ -218,6 +218,10 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F 'When enforcement fully owns behavior, propose removal with concrete evidence and obtain approval rather than mapping it into `AGENTS.md` or a new skill.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
+    run grep -F 'Build a consumer map for every candidate overlap' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F '"id": "audit-mixed-guidance-consumers"' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json"
+    [ "${status}" -eq 0 ]
     run grep -F '"id": "remove-machine-enforced-incident-guidance"' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json"
     [ "${status}" -eq 0 ]
     run grep -F 'hypothetical-incident-policy-1' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json"

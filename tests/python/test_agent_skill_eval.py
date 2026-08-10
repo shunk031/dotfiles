@@ -517,6 +517,216 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             )
         )
 
+    def test_invoke_adds_model_and_reasoning_effort_to_exec(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="", stderr=""
+        )
+        with mock.patch.object(
+            self.module.subprocess, "run", return_value=completed
+        ) as run:
+            self.module.invoke_codex(
+                Path("/tmp"),
+                "prompt",
+                10,
+                model="gpt-5.6-luna",
+                reasoning_effort="xhigh",
+            )
+
+        command = run.call_args.args[0]
+        exec_index = command.index("exec")
+        self.assertEqual(
+            command[exec_index + 1 : exec_index + 5],
+            ["--model", "gpt-5.6-luna", "-c", 'model_reasoning_effort="xhigh"'],
+        )
+
+    def test_target_variants_receive_target_model_settings(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        skill = write_skill(repo, "research")
+        target = self.module.EvalTarget(
+            name=skill.name,
+            kind="skill",
+            path=skill,
+            eval_path=skill / "evals/evals.json",
+        )
+        seen: list[dict[str, object]] = []
+
+        def fake_invoke(run_repo, prompt, timeout, **kwargs):
+            seen.append(kwargs)
+            return json.dumps(
+                {"item": {"type": "agent_message", "text": "answer"}}
+            )
+
+        with mock.patch.object(self.module, "invoke_codex", side_effect=fake_invoke):
+            for variant in ("candidate", "baseline"):
+                self.module.run_target_case(
+                    target,
+                    self.module.RunSpec(
+                        case=self.module.EvalCase(
+                            id="research",
+                            prompt="Answer.",
+                            should_trigger=True,
+                            assertions=("The answer is useful.",),
+                        ),
+                        trial=1,
+                        variant=variant,
+                    ),
+                    timeout=10,
+                    model="gpt-5.6-luna",
+                    reasoning_effort="xhigh",
+                )
+
+        self.assertEqual(
+            seen,
+            [
+                {
+                    "sandbox": "workspace-write",
+                    "search": False,
+                    "codex_home": mock.ANY,
+                    "model": "gpt-5.6-luna",
+                    "reasoning_effort": "xhigh",
+                },
+                {
+                    "sandbox": "workspace-write",
+                    "search": False,
+                    "codex_home": mock.ANY,
+                    "model": "gpt-5.6-luna",
+                    "reasoning_effort": "xhigh",
+                },
+            ],
+        )
+
+    def test_judge_receives_only_judge_model_settings(self) -> None:
+        case = self.module.EvalCase(
+            id="negative",
+            prompt="Reply.",
+            should_trigger=False,
+            assertions=("The answer is useful.",),
+        )
+        result = self.module.RunResult(
+            case_id=case.id,
+            trial=1,
+            variant="candidate",
+            output="answer",
+            skill_read=False,
+        )
+        judge_output = json.dumps(
+            {
+                "cases": [
+                    {
+                        "id": case.id,
+                        "trial": 1,
+                        "A_assertions_pass": None,
+                        "B_assertions_pass": None,
+                        "only_assertions_pass": True,
+                        "preferred": "only",
+                        "reason": "fixture",
+                    }
+                ]
+            }
+        )
+        trace = json.dumps(
+            {
+                "item": {
+                    "type": "agent_message",
+                    "text": judge_output,
+                }
+            }
+        )
+        with mock.patch.object(
+            self.module, "invoke_codex", return_value=trace
+        ) as invoke:
+            self.module.judge_results(
+                [case],
+                [result],
+                timeout=10,
+                model="gpt-5.6-sol",
+                reasoning_effort="medium",
+            )
+
+        self.assertEqual(
+            invoke.call_args.kwargs["model"],
+            "gpt-5.6-sol",
+        )
+        self.assertEqual(invoke.call_args.kwargs["reasoning_effort"], "medium")
+
+    def test_main_propagates_model_settings_into_eval_config(self) -> None:
+        target = self.module.EvalTarget(
+            name="demo",
+            kind="skill",
+            path=Path("/tmp/demo"),
+            eval_path=Path("/tmp/demo/evals/evals.json"),
+        )
+        with (
+            mock.patch.object(self.module, "find_repo_root", return_value=Path("/tmp")),
+            mock.patch.object(
+                self.module, "selected_targets", return_value=[target]
+            ),
+            mock.patch.object(self.module, "validate_target", return_value=[]),
+            mock.patch.object(
+                self.module, "cache_for_repo", return_value=mock.sentinel.cache
+            ),
+            mock.patch.object(
+                self.module, "evaluate_target", return_value=True
+            ) as evaluate,
+        ):
+            status = self.module.main(
+                [
+                    "eval",
+                    "--all",
+                    "--model",
+                    "gpt-5.6-test-target",
+                    "--reasoning-effort",
+                    "low",
+                    "--judge-model",
+                    "gpt-5.6-test-judge",
+                    "--judge-reasoning-effort",
+                    "high",
+                ]
+            )
+
+        self.assertEqual(status, 0)
+        config = evaluate.call_args.args[1]
+        self.assertEqual(config.model, "gpt-5.6-test-target")
+        self.assertEqual(config.reasoning_effort, "low")
+        self.assertEqual(config.judge_model, "gpt-5.6-test-judge")
+        self.assertEqual(config.judge_reasoning_effort, "high")
+
+    def test_main_uses_required_model_defaults_without_flags(self) -> None:
+        defaults = self.module.EvalConfig()
+        self.assertEqual(defaults.model, "gpt-5.6-luna")
+        self.assertEqual(defaults.reasoning_effort, "xhigh")
+        self.assertEqual(defaults.judge_model, "gpt-5.6-sol")
+        self.assertEqual(defaults.judge_reasoning_effort, "medium")
+
+        target = self.module.EvalTarget(
+            name="demo",
+            kind="skill",
+            path=Path("/tmp/demo"),
+            eval_path=Path("/tmp/demo/evals/evals.json"),
+        )
+        with (
+            mock.patch.object(self.module, "find_repo_root", return_value=Path("/tmp")),
+            mock.patch.object(
+                self.module, "selected_targets", return_value=[target]
+            ),
+            mock.patch.object(self.module, "validate_target", return_value=[]),
+            mock.patch.object(
+                self.module, "cache_for_repo", return_value=mock.sentinel.cache
+            ),
+            mock.patch.object(
+                self.module, "evaluate_target", return_value=True
+            ) as evaluate,
+        ):
+            status = self.module.main(["eval", "--all"])
+
+        self.assertEqual(status, 0)
+        config = evaluate.call_args.args[1]
+        self.assertEqual(config.model, "gpt-5.6-luna")
+        self.assertEqual(config.reasoning_effort, "xhigh")
+        self.assertEqual(config.judge_model, "gpt-5.6-sol")
+        self.assertEqual(config.judge_reasoning_effort, "medium")
+
     def test_required_actions_rejects_implementation_before_research(self) -> None:
         case = self.module.EvalCase(
             id="research",
@@ -648,6 +858,77 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
 
         self.assertNotEqual(first, second)
         self.assertNotEqual(first, third)
+
+        configured = self.module.cache_key(
+            skill,
+            self.module.EvalConfig(
+                trials=1,
+                jobs=2,
+                timeout=180,
+                model="gpt-5.6-luna",
+                reasoning_effort="xhigh",
+                judge_model="gpt-5.6-sol",
+                judge_reasoning_effort="medium",
+            ),
+            codex_identity="codex 1",
+        )
+        different_model = self.module.cache_key(
+            skill,
+            self.module.EvalConfig(
+                trials=1,
+                jobs=2,
+                timeout=180,
+                model="gpt-5.6-sol",
+                reasoning_effort="xhigh",
+                judge_model="gpt-5.6-sol",
+                judge_reasoning_effort="medium",
+            ),
+            codex_identity="codex 1",
+        )
+        different_effort = self.module.cache_key(
+            skill,
+            self.module.EvalConfig(
+                trials=1,
+                jobs=2,
+                timeout=180,
+                model="gpt-5.6-luna",
+                reasoning_effort="high",
+                judge_model="gpt-5.6-sol",
+                judge_reasoning_effort="medium",
+            ),
+            codex_identity="codex 1",
+        )
+        self.assertNotEqual(configured, different_model)
+        self.assertNotEqual(configured, different_effort)
+
+        different_judge_model = self.module.cache_key(
+            skill,
+            self.module.EvalConfig(
+                trials=1,
+                jobs=2,
+                timeout=180,
+                model="gpt-5.6-luna",
+                reasoning_effort="xhigh",
+                judge_model="gpt-5.6-luna",
+                judge_reasoning_effort="medium",
+            ),
+            codex_identity="codex 1",
+        )
+        different_judge_effort = self.module.cache_key(
+            skill,
+            self.module.EvalConfig(
+                trials=1,
+                jobs=2,
+                timeout=180,
+                model="gpt-5.6-luna",
+                reasoning_effort="xhigh",
+                judge_model="gpt-5.6-sol",
+                judge_reasoning_effort="high",
+            ),
+            codex_identity="codex 1",
+        )
+        self.assertNotEqual(configured, different_judge_model)
+        self.assertNotEqual(configured, different_judge_effort)
 
     def test_success_cache_round_trip_and_failures_are_not_cached(self) -> None:
         tempdir, repo = self.make_repo()

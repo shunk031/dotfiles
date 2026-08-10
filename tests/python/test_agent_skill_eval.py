@@ -406,6 +406,69 @@ class AgentSkillEvalTest(unittest.TestCase):
 
         self.assertEqual(parsed.actions, ("github_search",))
 
+    def test_temp_repo_and_codex_clear_git_local_environment(self) -> None:
+        tempdir, outer_repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        foreign_repo = outer_repo / "foreign-repo"
+        environment_dump = outer_repo / "codex-environment.json"
+        fake_codex = outer_repo / "fake-codex"
+        fake_codex.write_text(
+            f"""#!{sys.executable}
+import json
+import os
+from pathlib import Path
+
+local_names = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE")
+observed = {{name: os.environ.get(name) for name in local_names}}
+observed["GIT_CONFIG_GLOBAL"] = os.environ.get("GIT_CONFIG_GLOBAL")
+observed["AUTH_TOKEN"] = os.environ.get("AUTH_TOKEN")
+observed["PATH"] = os.environ.get("PATH")
+Path(os.environ["ENVIRONMENT_DUMP"]).write_text(
+    json.dumps(observed), encoding="utf-8"
+)
+print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", "text": "ok"}}}}))
+""",
+            encoding="utf-8",
+        )
+        fake_codex.chmod(0o755)
+
+        original_cwd = Path.cwd()
+        self.addCleanup(lambda: os.chdir(original_cwd))
+        os.chdir(outer_repo)
+        with mock.patch.dict(
+            os.environ,
+            {
+                "GIT_DIR": str(outer_repo / ".git"),
+                "GIT_WORK_TREE": str(outer_repo),
+                "GIT_INDEX_FILE": str(outer_repo / ".git/index"),
+                "GIT_CONFIG_GLOBAL": str(outer_repo / "global.gitconfig"),
+                "AUTH_TOKEN": "secret",
+                "PATH": "/usr/bin:/bin",
+                "AGENT_SKILL_EVAL_CODEX": str(fake_codex),
+                "ENVIRONMENT_DUMP": str(environment_dump),
+            },
+            clear=False,
+        ):
+            self.module.initialize_temp_repo(foreign_repo)
+            trace = self.module.invoke_codex(foreign_repo, "prompt", timeout=10)
+
+        os.chdir(original_cwd)
+        self.assertIn("item.completed", trace)
+        self.assertTrue((foreign_repo / ".git").is_dir())
+        self.assertEqual(
+            Path(run_git(foreign_repo, "rev-parse", "--show-toplevel")).resolve(),
+            foreign_repo.resolve(),
+        )
+        observed = json.loads(environment_dump.read_text(encoding="utf-8"))
+        self.assertIsNone(observed["GIT_DIR"])
+        self.assertIsNone(observed["GIT_WORK_TREE"])
+        self.assertIsNone(observed["GIT_INDEX_FILE"])
+        self.assertEqual(
+            observed["GIT_CONFIG_GLOBAL"], str(outer_repo / "global.gitconfig")
+        )
+        self.assertEqual(observed["AUTH_TOKEN"], "secret")
+        self.assertEqual(observed["PATH"], "/usr/bin:/bin")
+
     def test_web_search_override_enables_the_selected_custom_provider(self) -> None:
         with mock.patch.object(
             self.module,

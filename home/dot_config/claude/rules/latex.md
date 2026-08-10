@@ -13,4 +13,4 @@ When using this rule, include the 📓 emoji in your response.
 
 ## Additional Skill
 
-- When submitting to a conference or journal, consult the `high-impact-journal-publishing` skill as needed.
+- When submitting to a conference or journal, consult the `shunk031-high-impact-journal-publishing` skill as needed.

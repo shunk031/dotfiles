@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Before Implementation"
+  short_description: "Research current docs and GitHub before coding"
+  default_prompt: "Use $shunk031-research-before-implementation to research current sources before implementing this third-party integration."

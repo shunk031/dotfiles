@@ -31,7 +31,7 @@
 ## Self-Improvement
 
 - After a user correction or verified failure, fix the current task and identify a reusable prevention that addresses the root cause.
-- Before persisting that prevention, use `manage-agent-guidance` to place it without duplication, present the proposed change, and obtain approval.
+- Before persisting that prevention, use the `shunk031-manage-agent-guidance` skill to place it without duplication, present the proposed change, and obtain approval.
 - Persist only concise, actionable guidance that generalizes beyond the incident. Do not persist secrets, task-specific facts, transient state, incident narratives, or unverified assumptions.
 
 ## Work Safety
@@ -47,13 +47,13 @@
 
 - Keep reports and responses concise. Expand only when asked.
 - Ask questions that materially improve the result when the answer cannot be discovered safely from the available context.
-- Use `research-before-implementation` before designing or editing non-trivial work involving third-party tools.
+- Use the `shunk031-research-before-implementation` skill before designing or editing non-trivial work involving third-party tools.
 - Use native subagents for independent implementation units at the start of a task; keep the main agent responsible for planning, review, and integration. Keep model and launch configuration private or tool-specific.
 - Do not overdesign error handling before implementing core behavior, and do not add error handling to final throwaway deliverables.
 - Write tests before behavior-changing implementation, verify them, and then refactor.
 
 ## Specialized Workflows
 
-- Use `manage-agent-guidance` when adding, moving, or deleting persistent instructions, agent wrappers, or skills.
-- Use `structured-writing` for detailed instructions, plans, reports, documentation, and non-trivial bullet structure.
+- Use the `shunk031-manage-agent-guidance` skill when adding, moving, or deleting persistent instructions, agent wrappers, or skills.
+- Use the `shunk031-structured-writing` skill for detailed instructions, plans, reports, documentation, and non-trivial bullet structure.
 - Delegate GitHub issue, branch, commit, push, pull-request, and CI workflows to `gh-workflow-manager` by default. Provide repository/worktree context, task-relevant files, uncommitted-change handling, and completed validation; the main agent reviews the result and reports remaining blockers. Work directly only when the user explicitly requests it or the dedicated agent is unavailable.

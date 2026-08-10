@@ -190,6 +190,20 @@ function run_mise_bash_startup() {
     [ "${status}" -eq 0 ]
 }
 
+@test "[common] mise config pins fnox for command-backed authentication" {
+    run get_mise_min_version_from_config "${MISE_CONFIG_SOURCE}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "2026.8.2" ]
+
+    run awk '
+        /^\[tools\]$/ { in_tools = 1; next }
+        /^\[/ { in_tools = 0 }
+        in_tools && $0 == "fnox = \"1.32.0\"" { found = 1 }
+        END { exit !found }
+    ' "${MISE_CONFIG_SOURCE}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] setup workflows reuse the chezmoi-bootstrapped mise" {
     local workflow
 

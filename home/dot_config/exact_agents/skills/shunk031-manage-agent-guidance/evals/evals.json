@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "skill": "shunk031-manage-agent-guidance",
+  "evals": [
+    {
+      "id": "deduplicate-repository-guidance",
+      "prompt": "Review this proposed repository setup: CLAUDE.md copies the root AGENTS.md, while the same worktree and testing rules are copied into every project. Propose a durable layout for the guidance and explain what should be the source of truth.",
+      "should_trigger": true,
+      "assertions": [
+        "The response recommends one source of truth instead of copied AGENTS.md and CLAUDE.md content.",
+        "The response separates user-level rules from repository-specific rules.",
+        "The response recommends a relative CLAUDE.md symlink when appropriate."
+      ]
+    },
+    {
+      "id": "place-reusable-correction",
+      "prompt": "A coding agent repeatedly publishes pull-request bodies with literal escaped newlines. I think the prevention rule belongs in this repository's AGENTS.md. Assess that placement and propose the next action.",
+      "should_trigger": true,
+      "assertions": [
+        "The response does not blindly duplicate the requested rule in the repository AGENTS.md.",
+        "The response bases its target decision on scope and source-of-truth evidence rather than the filename in the request.",
+        "When the response finds an existing user-level owner, it treats that as a reason not to add a repository rule."
+      ]
+    },
+    {
+      "id": "audit-instruction-migration",
+      "prompt": "Simplify a long AGENTS.md by moving its detailed rules into skills. Describe the migration procedure and the validation needed before deleting the original sections.",
+      "should_trigger": true,
+      "assertions": [
+        "The response inventories each atomic source rule and maps every rule to a destination or explicitly approved removal.",
+        "The response reverse-audits the destinations for duplicate rules and assigns each rule one authoritative owner unless a thin adapter is intentional.",
+        "The response preserves disambiguating examples instead of assuming prose or model capability is enough.",
+        "The response requires a static migration contract in addition to behavioral model evals.",
+        "The response does not permit unmapped or unapproved deletions."
+      ]
+    },
+    {
+      "id": "reverse-audit-duplicate-owners",
+      "prompt": "Audit this guidance layout after a migration. The user-level AGENTS.md says to confirm the exact target before destructive operations. A repository AGENTS.md says to verify deletion targets before removing files and also documents the repository test command. A cleanup skill says to double-check paths before destructive cleanup. Choose the authoritative owner for each rule and state what to keep or remove.",
+      "should_trigger": true,
+      "assertions": [
+        "The response recognizes the three destructive-operation rules as semantic duplicates even though their wording differs.",
+        "The response keeps the shared destructive-operation rule in the user-level AGENTS.md as its single authoritative owner.",
+        "The response removes the redundant destructive-operation copies from the repository AGENTS.md and cleanup skill.",
+        "The response preserves the repository-specific test command in the repository AGENTS.md."
+      ]
+    },
+    {
+      "id": "preserve-thin-guidance-adapters",
+      "prompt": "Review a user-level guidance setup where ~/.agents/AGENTS.md is the full shared source, ~/.codex/AGENTS.md only instructs Codex to read that source, and ~/.claude/CLAUDE.md only imports it. Decide whether the two tool entrypoints are forbidden duplicates and propose the durable layout.",
+      "should_trigger": true,
+      "assertions": [
+        "The response keeps ~/.agents/AGENTS.md as the single content source of truth.",
+        "The response treats the Codex instruction and Claude import as intentional thin adapters rather than duplicated guidance content.",
+        "The response does not copy the full shared rules into either tool entrypoint.",
+        "The response keeps tool-specific metadata or entrypoint syntax in the thin adapters when needed."
+      ]
+    },
+    {
+      "id": "ordinary-code-change",
+      "prompt": "Explain why binary search has logarithmic time complexity in one short paragraph.",
+      "should_trigger": false,
+      "assertions": [
+        "The response accurately explains logarithmic time complexity.",
+        "The response stays focused on binary search rather than agent documentation."
+      ]
+    }
+  ]
+}

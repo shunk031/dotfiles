@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # for mise shims
 # shellcheck source=dot_config/exact_shell/mise.bash
 if [ -f "${HOME%/}/.config/shell/mise.bash" ]; then

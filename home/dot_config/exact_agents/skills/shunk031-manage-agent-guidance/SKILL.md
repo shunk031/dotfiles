@@ -27,6 +27,8 @@ Do not draft or edit until steps 2–5 are complete. When evidence is unavailabl
 
 ## Instruction Migrations
 
+Before assigning a destination, inspect code, adjacent configuration comments, tests, CI, schemas, and automation for an existing machine-enforced owner. Keep prose only when human or agent judgment remains and omission would materially change behavior. Treat incidents as reasons to improve enforcement, not permanent prose. When enforcement fully owns behavior, propose removal with concrete evidence and obtain approval rather than mapping it into `AGENTS.md` or a new skill.
+
 1. Inventory every atomic rule in the source before deleting or compressing any section.
 2. Record one destination for every rule: always-on guidance, an existing skill, a custom agent, repository guidance, or an explicitly approved removal.
 3. Build a reverse index from each normalized rule to every destination and related guidance file, not only from the source to its proposed destination. Assign each rule exactly one authoritative owner, remove redundant copies, and record only intentional thin adapters as exceptions.

@@ -144,18 +144,20 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -ne 0 ]
     run grep -F 'run `make setup` before editing or committing' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F 'mise compatibility changes: When a tool or configuration change requires newer mise behavior, determine the minimum mise release that supports the change, raise `min_version` in the same pull request, and record the requirement in the pull request description.' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
     run grep -F 'use the `shunk031-shdoc-shell-docs` skill for detailed conventions' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'Never run `bats` locally' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'use GitHub Actions only when the push/CI workflow is separately authorized' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F '## mise Bootstrap Compatibility' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
     run grep -F 'SKIP=agent-skill-eval' "${ROOT_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
     run grep -F 'real Codex skill evaluation' "${ROOT_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F 'min_version' "${ROOT_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
 }
 
 @test "[common] shared, Claude, and Codex entrypoints define acknowledgment note blocks" {
@@ -207,6 +209,18 @@ readonly GITIGNORE_PATH="./.gitignore"
     run grep -F 'For this public dotfiles repository, run real model evaluation locally, not in CI.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
     run grep -F 'For this public dotfiles repository, CI may test the evaluation runner only with a fake `codex` executable.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Before assigning a destination, inspect code, adjacent configuration comments, tests, CI, schemas, and automation for an existing machine-enforced owner.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Keep prose only when human or agent judgment remains and omission would materially change behavior.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Treat incidents as reasons to improve enforcement, not permanent prose.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'When enforcement fully owns behavior, propose removal with concrete evidence and obtain approval rather than mapping it into `AGENTS.md` or a new skill.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F '"id": "remove-machine-enforced-incident-guidance"' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json"
+    [ "${status}" -eq 0 ]
+    run grep -F 'hypothetical-incident-policy-1' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json"
     [ "${status}" -eq 0 ]
     run grep -F 'Add or update a static migration contract that fails when a mapped requirement disappears or a known duplicate remains outside its authoritative owner.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]

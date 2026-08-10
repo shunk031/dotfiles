@@ -462,9 +462,41 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
             {
                 "coding-error-handling",
                 "coding-final-deliverables",
+                "root-mise-compatibility-floor",
+                "root-mise-existing-version-no-downgrade",
+                "root-mise-fresh-install",
+                "root-mise-fresh-install-complete",
+                "root-mise-fresh-install-floor",
+                "root-mise-fresh-machine-version",
+                "root-mise-renovate",
+                "root-mise-renovate-no-floor-bump",
+                "root-mise-workarounds",
                 "uncommitted-improvements",
             },
         )
+
+    def test_mise_removals_have_evidence_based_rationales(self) -> None:
+        expected_evidence = {
+            "root-mise-compatibility-floor": "comments next to `min_version` in `home/dot_mise/config.toml`",
+            "root-mise-existing-version-no-downgrade": "`install/common/mise.sh` and its mise Bats tests",
+            "root-mise-fresh-machine-version": "comments next to `min_version` in `home/dot_mise/config.toml`",
+            "root-mise-renovate": "Renovate configuration and regression tests",
+            "root-mise-renovate-no-floor-bump": "Renovate configuration and regression tests",
+            "root-mise-fresh-install": "Ubuntu and macOS workflow path triggers",
+            "root-mise-fresh-install-complete": "`install/common/mise.sh` and its mise Bats tests",
+            "root-mise-fresh-install-floor": "`install/common/mise.sh` and its mise Bats tests",
+            "root-mise-workarounds": "negative incident alternatives are semantically redundant",
+        }
+        removed = {
+            item["id"]: item["rationale"]
+            for item in self.requirements
+            if item["disposition"] == "removed"
+            and item["id"].startswith("root-mise-")
+        }
+        self.assertEqual(set(removed), set(expected_evidence))
+        for requirement_id, evidence in expected_evidence.items():
+            with self.subTest(requirement=requirement_id):
+                self.assertIn(evidence.casefold(), removed[requirement_id].casefold())
 
     def test_mapped_requirements_exist_at_their_single_destination(self) -> None:
         for item in self.requirements:

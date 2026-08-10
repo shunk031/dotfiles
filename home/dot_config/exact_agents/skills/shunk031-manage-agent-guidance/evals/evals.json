@@ -58,7 +58,7 @@
     },
     {
       "id": "approved-removal-and-root-skill-ownership",
-      "prompt": "A user explicitly approved removing subjective error-handling guidance and moving persistence-quality and skill-evaluation procedures out of always-on AGENTS.md. The repository also has a README that owns skill-pool wiring and a gh-workflow-manager that owns exact gwq mechanics. Describe the migration and its review gates.",
+      "prompt": "In this hypothetical migration, a user explicitly approved exactly two removals of subjective error-handling guidance: source ID `hypothetical-coding-error-handling-1` with exact source text `- Error handling: Do not fear errors. Write the code first without focusing on error handling.`, and source ID `hypothetical-coding-final-deliverables-1` with exact source text `- Final deliverables: Final deliverables do not need error handling.` The supplied non-empty rationale for each removal is that the rule is subjective and redundant with the simplicity principle; no other removal is approved. The persistence-quality and skill-evaluation procedures are preserved and moved out of always-on `AGENTS.md`, not removed. The repository also has a README that owns skill-pool wiring and a gh-workflow-manager that owns exact gwq mechanics. Describe the migration and its review gates.",
       "should_trigger": true,
       "assertions": [
         "The response distinguishes duplicate removal from rule removal and maps preserved rules to their existing owners.",
@@ -79,6 +79,18 @@
         "The response outputs a thin-adapter exception containing the exact fictional path `.tool/AGENTS.md`, the exact minimal text or syntax `Read policy/AGENTS.md before acting.`, the fictional authoritative owner/destination `policy/AGENTS.md`, and why the adapter is necessary.",
         "The response represents the mapped, removed, and adapter records as entries in a static migration contract rather than describing only generic requirements.",
         "The response explicitly reverse-audits all four named fictional paths—`policy/source.md`, `policy/AGENTS.md`, `.agent/skills/worktree-safety/SKILL.md`, and `.tool/AGENTS.md`—and confirms that only the recorded thin-adapter exception remains outside its authoritative owner."
+      ]
+    },
+    {
+      "id": "remove-machine-enforced-incident-guidance",
+      "prompt": "This is a fully self-contained hypothetical repository; all facts and ownership evidence are supplied below, so do not infer any current-repository facts. The repository's `AGENTS.md` contains an Incident Policy requirement with source ID `hypothetical-incident-policy-1` and exact source text `Bootstrap uses the configured runtime floor and preserves newer installations.` The adjacent comments in `config/runtime.toml` document the setting and its ownership but do not enforce behavior. Enforcement is supplied by the executable `scripts/bootstrap.sh` (which reads the configured floor, rejects unsupported versions, and preserves newer installations), `tests/bootstrap.bats` (which checks rejection and preservation of newer installations), the schema `schemas/runtime.json`, and `.github/workflows/bootstrap.yml` (which runs those checks on relevant changes). The supplied evidence is complete: the incident prose adds no human or agent judgment, and omission would not change behavior. The user asks whether to move the Incident Policy into a new skill, but has not yet approved deletion. Audit necessity before assigning a destination, preserve the machine-enforced owners, recommend the smallest durable action, and provide the proposed static migration record and approval gate.",
+      "should_trigger": true,
+      "assertions": [
+        "The response audits code, adjacent configuration comments, tests, CI, schemas, and automation for an existing machine-enforced owner before choosing a destination.",
+        "The response recommends removing the duplicated AGENTS.md Incident Policy rather than moving it into a new skill because the supplied enforcement fully owns the behavior.",
+        "The response preserves the supplied configuration, executable, tests, schema, and CI enforcement rather than replacing it with prose.",
+        "The response requires explicit user approval and outputs an evidence-backed removal record containing source ID `hypothetical-incident-policy-1` and its exact source text.",
+        "The response keeps prose only when remaining human or agent judgment would make omission materially change behavior."
       ]
     },
     {

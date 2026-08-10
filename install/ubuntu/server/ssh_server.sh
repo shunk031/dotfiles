@@ -28,7 +28,7 @@ function install_openssh_server() {
 }
 
 #
-# @description Merge proxy and CLIProxyAPI variables into `AcceptEnv` in `sshd_config`.
+# @description Merge proxy variables into `AcceptEnv` in `sshd_config`.
 #
 function configure_accept_env() {
     local merged value
@@ -41,8 +41,6 @@ function configure_accept_env() {
         http_proxy
         https_proxy
         no_proxy
-        CLI_PROXY_API_CALLBACK_PORT
-        CLI_PROXY_API_PROXY_URL
     )
     values=()
 

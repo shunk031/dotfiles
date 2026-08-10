@@ -49,7 +49,6 @@ sqlite = "3.53.3"
 
 # GitHub release tools
 "github:d-kuro/gwq" = "0.1.1"
-"github:router-for-me/CLIProxyAPI" = "7.2.116"
 "github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }
 
 # npm tools

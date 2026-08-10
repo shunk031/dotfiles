@@ -25,6 +25,10 @@ import tomllib
 SKILLS_ROOT = Path("home/dot_config/exact_agents/skills")
 GUIDANCE_PATH = Path("home/dot_config/exact_agents/AGENTS.md")
 GUIDANCE_EVAL_SKILLS = ("shunk031-research-before-implementation",)
+DEFAULT_TARGET_MODEL = "gpt-5.6-luna"
+DEFAULT_TARGET_REASONING_EFFORT = "xhigh"
+DEFAULT_JUDGE_MODEL = "gpt-5.6-sol"
+DEFAULT_JUDGE_REASONING_EFFORT = "medium"
 TRANSIENT_PATTERN = re.compile(
     r"(?:429|too many requests|timed? ?out|timeout|connection|network|tls|"
     r"status\s*5\d\d|http\s*5\d\d)",
@@ -38,6 +42,10 @@ class EvalConfig:
     trials: int = 1
     jobs: int = 2
     timeout: int = 180
+    model: str = DEFAULT_TARGET_MODEL
+    reasoning_effort: str = DEFAULT_TARGET_REASONING_EFFORT
+    judge_model: str = DEFAULT_JUDGE_MODEL
+    judge_reasoning_effort: str = DEFAULT_JUDGE_REASONING_EFFORT
 
 
 @dataclass(frozen=True)
@@ -615,6 +623,8 @@ def invoke_codex(
     sandbox: str = "read-only",
     search: bool = False,
     codex_home: Path | None = None,
+    model: str | None = None,
+    reasoning_effort: str | None = None,
 ) -> str:
     command = [codex_executable(), "--disable", "plugins"]
     if search:
@@ -628,6 +638,7 @@ def invoke_codex(
     command.extend(
         [
             "exec",
+            *codex_model_arguments(model, reasoning_effort),
             "--ephemeral",
             "--json",
             "--sandbox",
@@ -663,6 +674,28 @@ def invoke_codex(
     return completed.stdout
 
 
+def codex_model_arguments(
+    model: str | None, reasoning_effort: str | None
+) -> list[str]:
+    arguments: list[str] = []
+    if model is not None:
+        arguments.extend(["--model", model])
+    if reasoning_effort is not None:
+        arguments.extend(["-c", f'model_reasoning_effort="{reasoning_effort}"'])
+    return arguments
+
+
+def codex_settings_kwargs(
+    model: str | None, reasoning_effort: str | None
+) -> dict[str, str]:
+    settings: dict[str, str] = {}
+    if model is not None:
+        settings["model"] = model
+    if reasoning_effort is not None:
+        settings["reasoning_effort"] = reasoning_effort
+    return settings
+
+
 def git_environment_without_local_variables() -> dict[str, str]:
     local_env_vars = subprocess.run(
         ["git", "rev-parse", "--local-env-vars"],
@@ -694,7 +727,14 @@ def initialize_codex_home(path: Path) -> None:
             (path / name).symlink_to(candidate)
 
 
-def run_target_case(target: EvalTarget, spec: RunSpec, timeout: int) -> RunResult:
+def run_target_case(
+    target: EvalTarget,
+    spec: RunSpec,
+    timeout: int,
+    *,
+    model: str | None = None,
+    reasoning_effort: str | None = None,
+) -> RunResult:
     def operation() -> RunResult:
         with tempfile.TemporaryDirectory(prefix="agent-skill-eval-") as tempdir:
             root = Path(tempdir)
@@ -713,6 +753,7 @@ def run_target_case(target: EvalTarget, spec: RunSpec, timeout: int) -> RunResul
                 sandbox="workspace-write",
                 search=bool(spec.case.required_actions),
                 codex_home=codex_home,
+                **codex_settings_kwargs(model, reasoning_effort),
             )
             parsed = parse_trace(trace, target.name)
             if not normalize_artifact(parsed.output):
@@ -729,14 +770,27 @@ def run_target_case(target: EvalTarget, spec: RunSpec, timeout: int) -> RunResul
     return retry_transient(operation, retries=1)
 
 
-def run_case(skill: Path, spec: RunSpec, timeout: int) -> RunResult:
+def run_case(
+    skill: Path,
+    spec: RunSpec,
+    timeout: int,
+    *,
+    model: str | None = None,
+    reasoning_effort: str | None = None,
+) -> RunResult:
     target = EvalTarget(
         name=skill.name,
         kind="skill",
         path=skill,
         eval_path=skill / "evals/evals.json",
     )
-    return run_target_case(target, spec, timeout)
+    return run_target_case(
+        target,
+        spec,
+        timeout,
+        model=model,
+        reasoning_effort=reasoning_effort,
+    )
 
 
 def judge_schema() -> dict[str, object]:
@@ -813,7 +867,12 @@ def build_judge_payload(
 
 
 def judge_results(
-    cases: list[EvalCase], results: list[RunResult], timeout: int
+    cases: list[EvalCase],
+    results: list[RunResult],
+    timeout: int,
+    *,
+    model: str | None = None,
+    reasoning_effort: str | None = None,
 ) -> tuple[list[dict[str, object]], dict[tuple[str, int], dict[str, str]]]:
     payload, mappings = build_judge_payload(cases, results)
     prompt = (
@@ -832,7 +891,13 @@ def judge_results(
         schema.write_text(json.dumps(judge_schema()), encoding="utf-8")
 
         def operation() -> str:
-            return invoke_codex(repo, prompt, timeout, schema)
+            return invoke_codex(
+                repo,
+                prompt,
+                timeout,
+                schema,
+                **codex_settings_kwargs(model, reasoning_effort),
+            )
 
         trace = retry_transient(operation, retries=1)
     parsed = parse_trace(trace, "__judge_has_no_skill__")
@@ -910,7 +975,14 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
     results: list[RunResult] = []
     with ThreadPoolExecutor(max_workers=config.jobs) as executor:
         futures = {
-            executor.submit(run_target_case, target, spec, config.timeout): spec
+            executor.submit(
+                run_target_case,
+                target,
+                spec,
+                config.timeout,
+                model=config.model,
+                reasoning_effort=config.reasoning_effort,
+            ): spec
             for spec in specs
         }
         for future in as_completed(futures):
@@ -923,7 +995,13 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
     )
     action_failures = required_action_failures(cases, results)
     actions_ok = not action_failures
-    judged, mappings = judge_results(cases, results, config.timeout)
+    judged, mappings = judge_results(
+        cases,
+        results,
+        config.timeout,
+        model=config.judge_model,
+        reasoning_effort=config.judge_reasoning_effort,
+    )
     expected = {
         (case.id, trial) for case in cases for trial in range(1, config.trials + 1)
     }
@@ -1048,6 +1126,14 @@ def build_parser() -> argparse.ArgumentParser:
             command.add_argument("--trials", type=int, default=1)
             command.add_argument("--jobs", type=int, default=2)
             command.add_argument("--timeout", type=int, default=180)
+            command.add_argument("--model", default=DEFAULT_TARGET_MODEL)
+            command.add_argument(
+                "--reasoning-effort", default=DEFAULT_TARGET_REASONING_EFFORT
+            )
+            command.add_argument("--judge-model", default=DEFAULT_JUDGE_MODEL)
+            command.add_argument(
+                "--judge-reasoning-effort", default=DEFAULT_JUDGE_REASONING_EFFORT
+            )
     return parser
 
 
@@ -1070,7 +1156,15 @@ def main(argv: list[str] | None = None) -> int:
     if not targets:
         print("No behavioral evaluation targets changed.")
         return 0
-    config = EvalConfig(trials=args.trials, jobs=args.jobs, timeout=args.timeout)
+    config = EvalConfig(
+        trials=args.trials,
+        jobs=args.jobs,
+        timeout=args.timeout,
+        model=args.model,
+        reasoning_effort=args.reasoning_effort,
+        judge_model=args.judge_model,
+        judge_reasoning_effort=args.judge_reasoning_effort,
+    )
     if config.trials < 1 or config.jobs < 1 or config.timeout < 1:
         print("trials, jobs, and timeout must be positive", file=sys.stderr)
         return 2

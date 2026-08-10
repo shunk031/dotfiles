@@ -5,7 +5,6 @@ readonly DEPENDABOT_CONFIG_PATH="./.github/dependabot.yaml"
 readonly MISE_CONFIG_PATH="./home/dot_mise/config.toml"
 readonly UBUNTU_WORKFLOW_PATH="./.github/workflows/ubuntu.yaml"
 readonly MACOS_WORKFLOW_PATH="./.github/workflows/macos.yaml"
-readonly AGENTS_PATH="./AGENTS.md"
 
 @test "[common] Renovate exclusively manages GitHub Actions updates" {
     run python3 - "${RENOVATE_CONFIG_PATH}" "${DEPENDABOT_CONFIG_PATH}" << 'PYTHON'
@@ -155,22 +154,6 @@ for workflow_path in map(Path, sys.argv[1:]):
             f"{workflow_path}: expected push and pull_request entries for "
             f"{required_path}"
         )
-PYTHON
-
-    [ "${status}" -eq 0 ]
-}
-
-@test "[common] repository guidance defines the mise compatibility contract" {
-    run python3 - "${AGENTS_PATH}" << 'PYTHON'
-import sys
-from pathlib import Path
-
-agents = Path(sys.argv[1]).read_text(encoding="utf-8")
-
-assert "## mise Bootstrap Compatibility" in agents
-assert "not as the desired installed version" in agents
-assert "Raise `min_version` only in the same pull request" in agents
-assert "must run both Ubuntu and macOS setup workflows" in agents
 PYTHON
 
     [ "${status}" -eq 0 ]

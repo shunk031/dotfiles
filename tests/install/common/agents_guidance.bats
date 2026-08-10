@@ -144,7 +144,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -ne 0 ]
     run grep -F 'run `make setup` before editing or committing' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'use `shunk031-shdoc-shell-docs` for detailed conventions' "${ROOT_AGENTS_PATH}"
+    run grep -F 'use the `shunk031-shdoc-shell-docs` skill for detailed conventions' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'Never run `bats` locally' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

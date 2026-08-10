@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """Validate and evaluate agent skills and guidance with isolated Codex runs."""
 
 from __future__ import annotations

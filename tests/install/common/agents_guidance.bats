@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 readonly SHARED_AGENTS_PATH="./home/dot_config/exact_agents/AGENTS.md"
+readonly ROOT_AGENTS_PATH="./AGENTS.md"
 readonly SHARED_GH_AGENT_PATH="./home/dot_config/exact_agents/agents/gh-workflow-manager.md"
 readonly CODEX_AGENTS_PATH="./home/dot_config/codex/AGENTS.md"
 readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
@@ -78,7 +79,15 @@ readonly GITIGNORE_PATH="./.gitignore"
 @test "[common] shared guidance keeps only cross-task invariants" {
     run grep -F '## Work Safety' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Treat existing staged, unstaged, and untracked changes as user work.' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Preserve changes owned by the user or a concurrent agent: read their before and after states and context before excluding or reverting them' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'do not infer relevance from a filename or the latest task' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'never revert without proof and permission' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'isolate exclusions with another task worktree or narrow staging, or ask first' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'report it to the user immediately and attempt recovery from the preceding diff, editor history, shell output, stash, or subagent output. Do not perform additional overwrites before recovery.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '## Writing Instructions' "${SHARED_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
@@ -86,22 +95,69 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -ne 0 ]
     run grep -F '## Self-Improvement' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F '## Working Style' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '## Questions for the User' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F '## Implementation' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F '## Guidance Ownership' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F '## GitHub Workflow' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
     run grep -F 'identify a reusable prevention that addresses the root cause' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Use the `shunk031-manage-agent-guidance` skill' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Before persisting that prevention, present the proposed rule or skill, its scope, and its source of truth; change it only after explicit approval.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Use the `shunk031-structured-writing` skill' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Persist only concise, generalizable prevention.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Delegate GitHub issue, branch, commit, push, pull-request, and CI workflows to `gh-workflow-manager`' "${SHARED_AGENTS_PATH}"
+    run grep -F 'use `shunk031-manage-agent-guidance` to place it without duplication' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'Use the `shunk031-manage-agent-guidance` skill when adding, moving, or deleting persistent instructions, agent wrappers, or skills.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -Fc 'Use the `shunk031-manage-agent-guidance` skill when adding, moving, or deleting persistent instructions, agent wrappers, or skills.' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "1" ]
+    run grep -F 'Use `shunk031-structured-writing`' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'Delegate GitHub issue, branch, commit, push, PR, and CI workflows to `gh-workflow-manager` by default' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] shared guidance prevents gwq base-ref misuse" {
+@test "[common] shared guidance delegates detailed worktree mechanics" {
     run grep -F 'never pass the base ref as the second `gwq add` argument' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
+    [ "${status}" -ne 0 ]
 
     run grep -F 'run `git merge --ff-only origin/main` inside the new worktree' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+
+    run grep -F 'gh-workflow-manager' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
+    run grep -F 'Treat the default branch as read-only and use a task-specific worktree even when it is clean' "${SHARED_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] root guidance keeps repository invariants and routes specialized procedures" {
+    run grep -F '## Git / PR Workflow' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'Agent skills:' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'run `make setup` before editing or committing' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'mise compatibility changes: When a tool or configuration change requires newer mise behavior, determine the minimum mise release that supports the change, raise `min_version` in the same pull request, and record the requirement in the pull request description.' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'use the `shunk031-shdoc-shell-docs` skill for detailed conventions' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Never run `bats` locally' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'use GitHub Actions only when the push/CI workflow is separately authorized' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '## mise Bootstrap Compatibility' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'SKIP=agent-skill-eval' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
+    run grep -F 'real Codex skill evaluation' "${ROOT_AGENTS_PATH}"
+    [ "${status}" -ne 0 ]
 }
 
 @test "[common] shared, Claude, and Codex entrypoints define acknowledgment note blocks" {
@@ -140,6 +196,32 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F 'Do not leave supporting sentences in a flat list without a topic sentence.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
+    run grep -F 'Keep reports and responses concise. Expand only when asked.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Persist only concise, actionable prevention that generalizes beyond the incident and states a reusable root-cause safeguard.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'For work in this public dotfiles repository, run skill evaluation locally through `prek`.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'In this public dotfiles repository, use `SKIP=agent-skill-eval` only for an emergency.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Never skip static validation in this public dotfiles repository.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'For this public dotfiles repository, run real model evaluation locally, not in CI.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'For this public dotfiles repository, CI may test the evaluation runner only with a fake `codex` executable.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Before assigning a destination, inspect code, adjacent configuration comments, tests, CI, schemas, and automation for an existing machine-enforced owner.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Keep prose only when human or agent judgment remains and omission would materially change behavior.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Treat incidents as reasons to improve enforcement, not permanent prose.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F 'When enforcement fully owns behavior, propose removal with concrete evidence and obtain approval rather than mapping it into `AGENTS.md` or a new skill.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    [ "${status}" -eq 0 ]
+    run grep -F '"id": "remove-machine-enforced-incident-guidance"' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json"
+    [ "${status}" -eq 0 ]
+    run grep -F 'hypothetical-incident-policy-1' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json"
+    [ "${status}" -eq 0 ]
     run grep -F 'Add or update a static migration contract that fails when a mapped requirement disappears or a known duplicate remains outside its authoritative owner.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
     run grep -F 'Do not delete an unmapped or unapproved rule.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
@@ -150,9 +232,31 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ -f "${AGENT_GUIDANCE_REQUIREMENTS_PATH}" ]
     [ -f "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}" ]
 
-    run grep -F '"source_path": "home/dot_config/exact_agents/AGENTS.md"' "${AGENT_GUIDANCE_REQUIREMENTS_PATH}"
+    run grep -F '"version": 2' "${AGENT_GUIDANCE_REQUIREMENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'test_every_requirement_exists_at_its_mapped_destination' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
+    run grep -F '"source_id": "root-historical"' "${AGENT_GUIDANCE_REQUIREMENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '"disposition": "removed"' "${AGENT_GUIDANCE_REQUIREMENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '"thin_adapters"' "${AGENT_GUIDANCE_REQUIREMENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'test_owner_text_has_one_path_per_normalized_rule' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'test_each_historical_bullet_or_directive_has_semantic_requirements' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'test_repeated_source_fragments_have_explicit_occurrence_anchors' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'test_repeated_destination_fragments_have_explicit_occurrence_counts' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'test_semantic_inventory_preserves_material_subclauses' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'test_only_approved_rules_are_removed' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'test_mapped_requirements_exist_at_their_single_destination' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'test_expected_thin_adapters_are_complete_and_exclusive' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'test_guidance_reverse_scan_has_all_fifteen_derived_paths' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
     [ "${status}" -eq 0 ]
 }
 

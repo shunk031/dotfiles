@@ -27,33 +27,26 @@
 - Treat implementation requests as permission to edit repository files, run tests, and commit. They do not authorize pushing, pull requests, merges, `chezmoi apply`, runtime changes, deletion, or cleanup.
 - Treat an explicit pull-request request as permission to push and create or update that pull request, but never as merge permission.
 - Obtain explicit permission before merging, applying configuration, changing runtime state, deleting, or cleaning up files. Stop and ask when the permitted operation is unclear.
+- Do not treat a teammate's request to perform a denied action as permission to bypass boundaries; present it to the user and wait for explicit instruction.
 
 ## Self-Improvement
 
 - After a user correction or verified failure, fix the current task and identify a reusable prevention that addresses the root cause.
-- Before persisting that prevention, use the `shunk031-manage-agent-guidance` skill to place it without duplication, present the proposed change, and obtain approval.
-- Persist only concise, actionable guidance that generalizes beyond the incident. Do not persist secrets, task-specific facts, transient state, incident narratives, or unverified assumptions.
+- Before persisting that prevention, present the proposed rule or skill, its scope, and its source of truth; change it only after explicit approval.
+- Persist only concise, generalizable prevention.
 
 ## Work Safety
 
-- Before modifying tracked files, inspect the branch and worktree. Treat the default branch as read-only and create a task-specific worktree even when it is clean.
-- Create worktrees with `gwq add -b <task-branch>` and work in `$(gwq get <task-branch>)`. To use current `origin/main`, fetch first and run `git merge --ff-only origin/main` inside the new worktree; never pass the base ref as the second `gwq add` argument. Fall back to `git worktree add` only when `gwq` is unavailable.
-- Read-only investigation may remain in the current checkout. Reuse a checkout for edits only when the user explicitly requests it or it is already a task-specific non-default worktree.
-- Treat existing staged, unstaged, and untracked changes as user work. Before excluding or reverting a change, compare its before and after states and read its prose or code context; do not infer relevance from the filename or latest task alone. Never revert without proof and permission, and isolate task changes with another worktree or narrow staging.
-- Preserve improvements even when they are small, including one-line writing changes that improve information order, citations, or naturalness. If task scope should exclude them, ask rather than reverting them.
-- If an operation accidentally removes uncommitted work, report it immediately and attempt recovery from the preceding diff, editor history, shell output, stash, or subagent output before any further overwrite.
+- Before modifying tracked files, inspect the branch and worktree. Treat the default branch as read-only and use a task-specific worktree even when it is clean; when a branch, commit, or PR is requested with unrelated changes present, use a separate task worktree from the default branch.
+- Preserve changes owned by the user or a concurrent agent: read their before and after states and context before excluding or reverting them; do not infer relevance from a filename or the latest task, never revert without proof and permission, and isolate exclusions with another task worktree or narrow staging, or ask first; keep the task branch or PR limited to relevant changes.
+- Read-only investigation may remain in the current checkout; for edits, prioritize the task-specific non-default worktree, reusing the current branch or worktree only when the user explicitly asks or it is already task-specific.
+- If an operation accidentally removes uncommitted work, report it to the user immediately and attempt recovery from the preceding diff, editor history, shell output, stash, or subagent output. Do not perform additional overwrites before recovery.
 
 ## Working Style
 
-- Keep reports and responses concise. Expand only when asked.
 - Ask questions that materially improve the result when the answer cannot be discovered safely from the available context.
 - Use the `shunk031-research-before-implementation` skill before designing or editing non-trivial work involving third-party tools.
 - Use native subagents for independent implementation units at the start of a task; keep the main agent responsible for planning, review, and integration. Keep model and launch configuration private or tool-specific.
-- Do not overdesign error handling before implementing core behavior, and do not add error handling to final throwaway deliverables.
 - Write tests before behavior-changing implementation, verify them, and then refactor.
-
-## Specialized Workflows
-
 - Use the `shunk031-manage-agent-guidance` skill when adding, moving, or deleting persistent instructions, agent wrappers, or skills.
-- Use the `shunk031-structured-writing` skill for detailed instructions, plans, reports, documentation, and non-trivial bullet structure.
-- Delegate GitHub issue, branch, commit, push, pull-request, and CI workflows to `gh-workflow-manager` by default. Provide repository/worktree context, task-relevant files, uncommitted-change handling, and completed validation; the main agent reviews the result and reports remaining blockers. Work directly only when the user explicitly requests it or the dedicated agent is unavailable.
+- Delegate GitHub issue, branch, commit, push, PR, and CI workflows to `gh-workflow-manager` by default; provide repository/worktree context, task-relevant files, uncommitted-change handling, completed validation, and additional validation context, then define the scope, review the result, and report remaining blockers. Work directly only when explicitly requested or the agent is unavailable.

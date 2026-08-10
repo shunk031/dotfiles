@@ -1,0 +1,2 @@
+# Remove the retired zshenv loader for private environment variables.
+.zshenv

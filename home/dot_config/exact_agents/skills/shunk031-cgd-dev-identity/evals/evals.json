@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skill": "shunk031-cgd-dev-identity",
+  "evals": [
+    {
+      "id": "write-cgd-pull-request",
+      "prompt": "Give the exact safe command sequence an agent should follow to commit an existing documentation change in creative-graphic-design/design-generators, push it, and create a pull request as the required machine user. Include the preflight checks and attribution rules.",
+      "should_trigger": true,
+      "assertions": [
+        "The response retrieves the creative-graphic-design-dev credential with gh auth token --user and passes it through GH_TOKEN only to the relevant gh or git command.",
+        "The response verifies both the creative-graphic-design-dev login and push permission for the target repository before writing.",
+        "The commit uses the creative-graphic-design-dev name and machine-user noreply email without changing shared git config.",
+        "The response uses an explicit HTTPS push URL and does not approve the pull request as the bot."
+      ]
+    },
+    {
+      "id": "bootstrap-cgd-authentication",
+      "prompt": "The creative-graphic-design-dev account is not configured on this new Mac. Prepare the supported authentication path before doing CGD repository work.",
+      "should_trigger": true,
+      "assertions": [
+        "The response runs or instructs the user to run setup-gh-cgd and authenticate as creative-graphic-design-dev.",
+        "The response does not request, print, persistently export, or store a PAT in dotfiles.",
+        "The response does not use gh auth switch as the runtime account-selection mechanism."
+      ]
+    },
+    {
+      "id": "personal-repository-write",
+      "prompt": "Commit and push a documentation fix to my personal GitHub repository outside creative-graphic-design.",
+      "should_trigger": false,
+      "assertions": [
+        "The response does not use the creative-graphic-design-dev credential or commit identity."
+      ]
+    }
+  ]
+}

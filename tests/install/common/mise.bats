@@ -191,17 +191,16 @@ function run_mise_bash_startup() {
 }
 
 @test "[common] mise config pins fnox for command-backed authentication" {
-    run python3 - "${MISE_CONFIG_SOURCE}" << 'PYTHON'
-import sys
-import tomllib
-from pathlib import Path
+    run get_mise_min_version_from_config "${MISE_CONFIG_SOURCE}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "2026.8.2" ]
 
-config = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-
-assert config["min_version"] == "2026.8.2"
-assert config["tools"]["fnox"] == "1.32.0"
-PYTHON
-
+    run awk '
+        /^\[tools\]$/ { in_tools = 1; next }
+        /^\[/ { in_tools = 0 }
+        in_tools && $0 == "fnox = \"1.32.0\"" { found = 1 }
+        END { exit !found }
+    ' "${MISE_CONFIG_SOURCE}"
     [ "${status}" -eq 0 ]
 }
 

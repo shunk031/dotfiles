@@ -88,9 +88,9 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F 'identify a reusable prevention that addresses the root cause' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Use `shunk031-manage-agent-guidance`' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Use the `shunk031-manage-agent-guidance` skill' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'Use `shunk031-structured-writing`' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Use the `shunk031-structured-writing` skill' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'Delegate GitHub issue, branch, commit, push, pull-request, and CI workflows to `gh-workflow-manager`' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

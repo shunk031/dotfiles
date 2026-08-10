@@ -121,7 +121,7 @@
       "id": "self-improvement-deduplication",
       "source_line": 43,
       "path": "home/dot_config/exact_agents/AGENTS.md",
-      "contains": ["use `shunk031-manage-agent-guidance` to place it without duplication"]
+      "contains": ["use the `shunk031-manage-agent-guidance` skill to place it without duplication"]
     },
     {
       "id": "authority-implementation",

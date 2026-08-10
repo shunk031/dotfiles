@@ -78,6 +78,7 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         implementation = skill.index("Implement and verify")
 
         self.assertEqual(agents.count("`shunk031-research-before-implementation`"), 1)
+        self.assertIn("Use the `shunk031-research-before-implementation` skill", agents)
         self.assertLess(web_search, github_search)
         self.assertLess(github_search, implementation)
         self.assertIn("Do not edit files until both tool calls are complete", skill)

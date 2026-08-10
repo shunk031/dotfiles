@@ -137,6 +137,11 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
 }
 
+@test "[common] workflow manager avoids shared FETCH_HEAD writes" {
+    run grep -F '`git fetch --no-write-fetch-head origin main`' "${SHARED_GH_AGENT_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] root guidance keeps repository invariants and routes specialized procedures" {
     run grep -F '## Git / PR Workflow' "${ROOT_AGENTS_PATH}"
     [ "${status}" -ne 0 ]

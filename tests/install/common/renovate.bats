@@ -51,6 +51,7 @@ mise_text = mise_path.read_text(encoding="utf-8")
 renovate_text = json.dumps(renovate)
 
 expected_dep_names = [
+    "fnox",
     "herdr",
     "aqua:anthropics/claude-code",
     "aqua:google-antigravity/antigravity-cli",
@@ -89,6 +90,7 @@ codex_rule = next(
 )
 
 assert configured_dep_names == set(expected_dep_names)
+assert configured_agents["fnox"] == "fnox"
 assert configured_agents["claude-code"].startswith("aqua:")
 assert configured_agents["antigravity-cli"].startswith("aqua:")
 assert configured_agents["codex"].startswith("aqua:")

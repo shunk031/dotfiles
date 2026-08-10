@@ -56,7 +56,7 @@ function setup() {
     : > "${SERVICE_CALLS_PATH}"
 }
 
-@test "[ubuntu-common] configure_accept_env adds CLIProxyAPI variables" {
+@test "[ubuntu-common] configure_accept_env adds proxy variables" {
     cat > "${SSHD_CONFIG_PATH}" << 'EOF'
 Port 22
 AcceptEnv LANG LC_*
@@ -67,14 +67,18 @@ EOF
 
     run grep '^AcceptEnv ' "${SSHD_CONFIG_PATH}"
     [ "${status}" -eq 0 ]
-    [[ "${output}" == *"CLI_PROXY_API_CALLBACK_PORT"* ]]
-    [[ "${output}" == *"CLI_PROXY_API_PROXY_URL"* ]]
+    [[ "${output}" == *"HTTP_PROXY"* ]]
+    [[ "${output}" == *"HTTPS_PROXY"* ]]
+    [[ "${output}" == *"NO_PROXY"* ]]
+    [[ "${output}" == *"http_proxy"* ]]
+    [[ "${output}" == *"https_proxy"* ]]
+    [[ "${output}" == *"no_proxy"* ]]
 }
 
 @test "[ubuntu-common] configure_accept_env preserves existing env vars and deduplicates" {
     cat > "${SSHD_CONFIG_PATH}" << 'EOF'
 AcceptEnv LANG HTTP_PROXY
-AcceptEnv CLI_PROXY_API_PROXY_URL NO_PROXY
+AcceptEnv NO_PROXY
 EOF
 
     run_ssh_server_function configure_accept_env
@@ -90,8 +94,6 @@ EOF
             if (counts["LANG"] != 1) exit 2
             if (counts["HTTP_PROXY"] != 1) exit 3
             if (counts["NO_PROXY"] != 1) exit 4
-            if (counts["CLI_PROXY_API_PROXY_URL"] != 1) exit 5
-            if (counts["CLI_PROXY_API_CALLBACK_PORT"] != 1) exit 6
         }
     ' "${SSHD_CONFIG_PATH}"
     [ "${status}" -eq 0 ]

@@ -55,7 +55,6 @@ expected_dep_names = [
     "aqua:anthropics/claude-code",
     "aqua:google-antigravity/antigravity-cli",
     "aqua:openai/codex",
-    "github:router-for-me/CLIProxyAPI",
 ]
 logical_names = {name.split("/")[-1] for name in expected_dep_names}
 configured_dep_names = {
@@ -93,7 +92,6 @@ assert configured_agents["fnox"] == "fnox"
 assert configured_agents["claude-code"].startswith("aqua:")
 assert configured_agents["antigravity-cli"].startswith("aqua:")
 assert configured_agents["codex"].startswith("aqua:")
-assert configured_agents["CLIProxyAPI"].startswith("github:")
 assert agent_rule["matchManagers"] == ["mise"]
 assert agent_rule["matchDepNames"] == expected_dep_names
 assert agent_rule["minimumReleaseAge"] == "0 days"

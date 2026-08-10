@@ -127,11 +127,120 @@ class AgentSkillEvalTest(unittest.TestCase):
 
         self.assertEqual(self.module.discover_changed_skills(repo, staged=True), [])
 
+    def test_staged_namespace_only_rename_is_not_a_behavioral_target(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        old_name = "workflow"
+        new_name = "shunk031-workflow"
+        skill = write_skill(repo, old_name)
+        run_git(repo, "add", ".")
+        run_git(repo, "commit", "-qm", "initial")
+
+        renamed = skill.with_name(new_name)
+        skill.rename(renamed)
+        for path in renamed.rglob("*"):
+            if path.is_file():
+                path.write_text(
+                    path.read_text(encoding="utf-8").replace(old_name, new_name),
+                    encoding="utf-8",
+                )
+        run_git(repo, "add", "-A")
+
+        targets = self.module.discover_changed_targets(repo, staged=True)
+
+        self.assertEqual(
+            [(target.kind, target.name) for target in targets],
+            [("namespace-rename", new_name)],
+        )
+        self.assertEqual(self.module.validate_target(targets[0]), [])
+
+    def test_namespace_rename_with_behavior_change_remains_evaluable(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        old_name = "workflow"
+        new_name = "shunk031-workflow"
+        skill = write_skill(repo, old_name)
+        run_git(repo, "add", ".")
+        run_git(repo, "commit", "-qm", "initial")
+
+        renamed = skill.with_name(new_name)
+        skill.rename(renamed)
+        for path in renamed.rglob("*"):
+            if path.is_file():
+                path.write_text(
+                    path.read_text(encoding="utf-8").replace(old_name, new_name),
+                    encoding="utf-8",
+                )
+        skill_file = renamed / "SKILL.md"
+        skill_file.write_text(
+            skill_file.read_text(encoding="utf-8") + "\nChanged behavior.\n",
+            encoding="utf-8",
+        )
+        run_git(repo, "add", "-A")
+
+        targets = self.module.discover_changed_targets(repo, staged=True)
+
+        self.assertEqual(
+            [(target.kind, target.name) for target in targets], [("skill", new_name)]
+        )
+
+    def test_namespace_rename_allows_legacy_skill_without_evals(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        old_name = "legacy"
+        new_name = "shunk031-legacy"
+        skill = write_skill(repo, old_name, with_evals=False)
+        run_git(repo, "add", ".")
+        run_git(repo, "commit", "-qm", "initial")
+
+        renamed = skill.with_name(new_name)
+        skill.rename(renamed)
+        skill_file = renamed / "SKILL.md"
+        skill_file.write_text(
+            skill_file.read_text(encoding="utf-8").replace(old_name, new_name),
+            encoding="utf-8",
+        )
+        run_git(repo, "add", "-A")
+
+        targets = self.module.discover_changed_targets(repo, staged=True)
+
+        self.assertEqual(targets[0].kind, "namespace-rename")
+        self.assertEqual(self.module.validate_target(targets[0]), [])
+
+    def test_namespace_only_guidance_update_does_not_promote_rename(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        old_name = "research-before-implementation"
+        new_name = "shunk031-research-before-implementation"
+        guidance = write_guidance(repo)
+        guidance.write_text(f"Use `{old_name}`.\n", encoding="utf-8")
+        skill = write_skill(repo, old_name)
+        run_git(repo, "add", ".")
+        run_git(repo, "commit", "-qm", "initial")
+
+        renamed = skill.with_name(new_name)
+        skill.rename(renamed)
+        for path in renamed.rglob("*"):
+            if path.is_file():
+                path.write_text(
+                    path.read_text(encoding="utf-8").replace(old_name, new_name),
+                    encoding="utf-8",
+                )
+        guidance.write_text(f"Use `{new_name}`.\n", encoding="utf-8")
+        run_git(repo, "add", "-A")
+
+        targets = self.module.discover_changed_targets(repo, staged=True)
+
+        self.assertEqual(
+            [(target.kind, target.name) for target in targets],
+            [("namespace-rename", new_name)],
+        )
+
     def test_discover_changed_targets_includes_staged_user_guidance(self) -> None:
         tempdir, repo = self.make_repo()
         self.addCleanup(tempdir.cleanup)
         guidance = write_guidance(repo)
-        write_skill(repo, "research-before-implementation")
+        write_skill(repo, "shunk031-research-before-implementation")
         run_git(repo, "add", ".")
         run_git(repo, "commit", "-qm", "initial")
         guidance.write_text(
@@ -143,7 +252,8 @@ class AgentSkillEvalTest(unittest.TestCase):
         targets = self.module.discover_changed_targets(repo, staged=True)
 
         self.assertEqual(
-            [target.name for target in targets], ["research-before-implementation"]
+            [target.name for target in targets],
+            ["shunk031-research-before-implementation"],
         )
         self.assertEqual(targets[0].kind, "skill")
 
@@ -296,51 +406,6 @@ class AgentSkillEvalTest(unittest.TestCase):
 
         self.assertEqual(parsed.actions, ("github_search",))
 
-    def test_web_search_override_enables_the_selected_custom_provider(self) -> None:
-        with mock.patch.object(
-            self.module,
-            "configured_model_provider",
-            return_value="custom-provider",
-        ):
-            override = self.module.web_search_provider_override()
-
-        self.assertEqual(
-            override,
-            "model_providers.custom-provider.supports_standalone_web_search=true",
-        )
-
-    def test_invoke_places_global_search_config_before_exec(self) -> None:
-        completed = subprocess.CompletedProcess(
-            args=[], returncode=0, stdout="", stderr=""
-        )
-        with (
-            mock.patch.object(
-                self.module,
-                "web_search_provider_override",
-                return_value="model_providers.custom.supports_standalone_web_search=true",
-            ),
-            mock.patch.object(
-                self.module,
-                "disabled_skill_override",
-                return_value='skills.config=[{path="/tmp/demo",enabled=false}]',
-            ),
-            mock.patch.object(
-                self.module.subprocess, "run", return_value=completed
-            ) as run,
-        ):
-            self.module.invoke_codex(Path("/tmp"), "prompt", 10, search=True)
-
-        command = run.call_args.args[0]
-        exec_index = command.index("exec")
-        self.assertLess(command.index("--search"), exec_index)
-        self.assertTrue(
-            all(
-                index < exec_index
-                for index, value in enumerate(command)
-                if value == "-c"
-            )
-        )
-
     def test_temp_repo_and_codex_clear_git_local_environment(self) -> None:
         tempdir, outer_repo = self.make_repo()
         self.addCleanup(tempdir.cleanup)
@@ -403,6 +468,54 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         )
         self.assertEqual(observed["AUTH_TOKEN"], "secret")
         self.assertEqual(observed["PATH"], "/usr/bin:/bin")
+
+    def test_web_search_override_enables_the_selected_custom_provider(self) -> None:
+        with mock.patch.object(
+            self.module,
+            "configured_model_provider",
+            return_value="custom-provider",
+        ):
+            override = self.module.web_search_provider_override()
+
+        self.assertEqual(
+            override,
+            "model_providers.custom-provider.supports_standalone_web_search=true",
+        )
+
+    def test_invoke_places_global_search_config_before_exec(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="", stderr=""
+        )
+        with (
+            mock.patch.object(
+                self.module,
+                "web_search_provider_override",
+                return_value="model_providers.custom.supports_standalone_web_search=true",
+            ),
+            mock.patch.object(
+                self.module,
+                "disabled_skill_override",
+                return_value='skills.config=[{path="/tmp/demo",enabled=false}]',
+            ),
+            mock.patch.object(
+                self.module.subprocess, "run", return_value=completed
+            ) as run,
+        ):
+            self.module.invoke_codex(Path("/tmp"), "prompt", 10, search=True)
+
+        command = run.call_args.args[0]
+        exec_index = command.index("exec")
+        self.assertLess(command.index("--search"), exec_index)
+        disable_index = command.index("--disable")
+        self.assertEqual(command[disable_index + 1], "plugins")
+        self.assertLess(disable_index, exec_index)
+        self.assertTrue(
+            all(
+                index < exec_index
+                for index, value in enumerate(command)
+                if value == "-c"
+            )
+        )
 
     def test_required_actions_rejects_implementation_before_research(self) -> None:
         case = self.module.EvalCase(

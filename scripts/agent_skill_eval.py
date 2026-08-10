@@ -23,7 +23,7 @@ import tomllib
 
 SKILLS_ROOT = Path("home/dot_config/exact_agents/skills")
 GUIDANCE_PATH = Path("home/dot_config/exact_agents/AGENTS.md")
-GUIDANCE_EVAL_SKILLS = ("research-before-implementation",)
+GUIDANCE_EVAL_SKILLS = ("shunk031-research-before-implementation",)
 TRANSIENT_PATTERN = re.compile(
     r"(?:429|too many requests|timed? ?out|timeout|connection|network|tls|"
     r"status\s*5\d\d|http\s*5\d\d)",
@@ -133,6 +133,107 @@ def run_git(repo: Path, *args: str) -> str:
     return completed.stdout.strip()
 
 
+def git_blob(repo: Path, revision: str, path: Path) -> bytes:
+    return subprocess.run(
+        ["git", "show", f"{revision}:{path.as_posix()}"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+    ).stdout
+
+
+def frontmatter_name(contents: bytes) -> str | None:
+    match = re.search(rb"(?m)^name:\s*[\"']?([^\"'\r\n]+)", contents)
+    return match.group(1).decode().strip() if match else None
+
+
+def staged_namespace_skill_renames(repo: Path) -> dict[str, str]:
+    changed = run_git(
+        repo,
+        "diff",
+        "--cached",
+        "--find-renames",
+        "--name-status",
+        "--diff-filter=ACDMR",
+    )
+    prefix = SKILLS_ROOT.as_posix() + "/"
+    new_names: set[str] = set()
+    old_names: set[str] = set()
+    for line in changed.splitlines():
+        fields = line.split("\t")
+        status = fields[0]
+        if status.startswith("R") and len(fields) == 3:
+            source, destination = fields[1:]
+            if source.startswith(prefix):
+                old_names.add(Path(source).parts[len(SKILLS_ROOT.parts)])
+            if destination.startswith(prefix):
+                new_names.add(Path(destination).parts[len(SKILLS_ROOT.parts)])
+            continue
+        relative = fields[-1]
+        if not relative.startswith(prefix):
+            continue
+        name = Path(relative).parts[len(SKILLS_ROOT.parts)]
+        if status == "D":
+            old_names.add(name)
+        else:
+            new_names.add(name)
+
+    namespace_renames: dict[str, str] = {}
+    for new_name in new_names:
+        new_root = SKILLS_ROOT / new_name
+        new_files = {
+            Path(path).relative_to(new_root)
+            for path in run_git(repo, "ls-files", "--", str(new_root)).splitlines()
+        }
+        for old_dir_name in old_names - {new_name}:
+            old_root = SKILLS_ROOT / old_dir_name
+            old_skill = git_blob(repo, "HEAD", old_root / "SKILL.md")
+            old_skill_name = frontmatter_name(old_skill)
+            if old_skill_name is None:
+                continue
+            old_files = {
+                Path(path).relative_to(old_root)
+                for path in run_git(
+                    repo,
+                    "ls-tree",
+                    "-r",
+                    "--name-only",
+                    "HEAD",
+                    "--",
+                    str(old_root),
+                ).splitlines()
+            }
+            if old_files != new_files:
+                continue
+            for relative in old_files:
+                old_contents = git_blob(repo, "HEAD", old_root / relative)
+                new_contents = git_blob(repo, "", new_root / relative)
+                normalized = new_contents.replace(
+                    new_name.encode(), old_skill_name.encode()
+                )
+                if normalized != old_contents:
+                    break
+            else:
+                namespace_renames[new_name] = old_skill_name
+                break
+    return namespace_renames
+
+
+def staged_file_changes_only_namespaces(
+    repo: Path, path: Path, namespace_renames: dict[str, str]
+) -> bool:
+    if not namespace_renames:
+        return False
+    try:
+        old_contents = git_blob(repo, "HEAD", path)
+        new_contents = git_blob(repo, "", path)
+    except subprocess.CalledProcessError:
+        return False
+    for new_name, old_name in namespace_renames.items():
+        new_contents = new_contents.replace(new_name.encode(), old_name.encode())
+    return new_contents == old_contents
+
+
 def find_repo_root(start: Path | None = None) -> Path:
     root = subprocess.run(
         ["git", "rev-parse", "--show-toplevel"],
@@ -170,20 +271,30 @@ def discover_changed_skills(repo: Path, staged: bool) -> list[Path]:
 
 def discover_changed_targets(repo: Path, staged: bool) -> list[EvalTarget]:
     skill_paths = {path.name: path for path in discover_changed_skills(repo, staged)}
+    namespace_renames = staged_namespace_skill_renames(repo) if staged else {}
+    target_kinds = {
+        name: "namespace-rename" if name in namespace_renames else "skill"
+        for name in skill_paths
+    }
     args = ["diff"]
     if staged:
         args.append("--cached")
     args.extend(["--name-only", "--diff-filter=ACMR"])
     changed_paths = set(run_git(repo, *args).splitlines())
-    if GUIDANCE_PATH.as_posix() in changed_paths:
+    guidance_changed = GUIDANCE_PATH.as_posix() in changed_paths
+    namespace_only_guidance = staged and staged_file_changes_only_namespaces(
+        repo, GUIDANCE_PATH, namespace_renames
+    )
+    if guidance_changed and not namespace_only_guidance:
         for name in GUIDANCE_EVAL_SKILLS:
             skill = repo / SKILLS_ROOT / name
             if skill.is_dir():
                 skill_paths[name] = skill
+                target_kinds[name] = "skill"
     return [
         EvalTarget(
             name=name,
-            kind="skill",
+            kind=target_kinds[name],
             path=path,
             eval_path=path / "evals/evals.json",
         )
@@ -323,7 +434,7 @@ def validate_eval_file(
     return errors
 
 
-def validate_skill(skill: Path) -> list[str]:
+def validate_skill(skill: Path, *, require_evals: bool = True) -> list[str]:
     errors: list[str] = []
     skill_file = skill / "SKILL.md"
     eval_file = skill / "evals/evals.json"
@@ -339,14 +450,15 @@ def validate_skill(skill: Path) -> list[str]:
             errors.append("SKILL.md description must not be empty")
     except (OSError, ValueError) as error:
         errors.append(str(error))
-    errors.extend(
-        validate_eval_file(eval_file, "skill", skill.name, allow_actions=True)
-    )
+    if require_evals or eval_file.is_file():
+        errors.extend(
+            validate_eval_file(eval_file, "skill", skill.name, allow_actions=True)
+        )
     return errors
 
 
 def validate_target(target: EvalTarget) -> list[str]:
-    return validate_skill(target.path)
+    return validate_skill(target.path, require_evals=target.kind != "namespace-rename")
 
 
 def parse_trace(trace: str, skill_name: str) -> ParsedTrace:
@@ -503,7 +615,7 @@ def invoke_codex(
     search: bool = False,
     codex_home: Path | None = None,
 ) -> str:
-    command = [codex_executable()]
+    command = [codex_executable(), "--disable", "plugins"]
     if search:
         command.append("--search")
         provider_override = web_search_provider_override()
@@ -953,6 +1065,10 @@ def main(argv: list[str] | None = None) -> int:
         invalid = invalid or bool(errors)
     if invalid or args.command == "validate":
         return 1 if invalid else 0
+    targets = [target for target in targets if target.kind != "namespace-rename"]
+    if not targets:
+        print("No behavioral evaluation targets changed.")
+        return 0
     config = EvalConfig(trials=args.trials, jobs=args.jobs, timeout=args.timeout)
     if config.trials < 1 or config.jobs < 1 or config.timeout < 1:
         print("trials, jobs, and timeout must be positive", file=sys.stderr)

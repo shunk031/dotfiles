@@ -8,8 +8,8 @@ readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
 readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
 readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager.toml"
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
-readonly MANAGE_AGENT_GUIDANCE_SKILL_PATH="./home/dot_config/exact_agents/skills/manage-agent-guidance"
-readonly STRUCTURED_WRITING_SKILL_PATH="./home/dot_config/exact_agents/skills/structured-writing"
+readonly MANAGE_AGENT_GUIDANCE_SKILL_PATH="./home/dot_config/exact_agents/skills/shunk031-manage-agent-guidance"
+readonly STRUCTURED_WRITING_SKILL_PATH="./home/dot_config/exact_agents/skills/shunk031-structured-writing"
 readonly AGENT_GUIDANCE_REQUIREMENTS_PATH="./tests/fixtures/agent_guidance_requirements.json"
 readonly AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH="./tests/python/test_agent_guidance_requirements.py"
 readonly SKILL_EVAL_SCRIPT="./scripts/agent_skill_eval.py"
@@ -111,14 +111,14 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F 'Persist only concise, generalizable prevention.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'use `manage-agent-guidance` to place it without duplication' "${SHARED_AGENTS_PATH}"
+    run grep -F 'use `shunk031-manage-agent-guidance` to place it without duplication' "${SHARED_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F 'Use `manage-agent-guidance` when adding, moving, or deleting persistent instructions, agent wrappers, or skills.' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Use the `shunk031-manage-agent-guidance` skill when adding, moving, or deleting persistent instructions, agent wrappers, or skills.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -Fc 'Use `manage-agent-guidance` when adding, moving, or deleting persistent instructions, agent wrappers, or skills.' "${SHARED_AGENTS_PATH}"
+    run grep -Fc 'Use the `shunk031-manage-agent-guidance` skill when adding, moving, or deleting persistent instructions, agent wrappers, or skills.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     [ "${output}" = "1" ]
-    run grep -F 'Use `structured-writing`' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Use `shunk031-structured-writing`' "${SHARED_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
     run grep -F 'Delegate GitHub issue, branch, commit, push, PR, and CI workflows to `gh-workflow-manager` by default' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
@@ -144,7 +144,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -ne 0 ]
     run grep -F 'run `make setup` before editing or committing' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'use `shdoc-shell-docs` for detailed conventions' "${ROOT_AGENTS_PATH}"
+    run grep -F 'use `shunk031-shdoc-shell-docs` for detailed conventions' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'Never run `bats` locally' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
@@ -182,9 +182,9 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ -f "${STRUCTURED_WRITING_SKILL_PATH}/evals/evals.json" ]
     [ ! -e "./home/dot_config/exact_agents/skills/setup-agent-docs" ]
 
-    run grep -F 'name: manage-agent-guidance' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    run grep -F 'name: shunk031-manage-agent-guidance' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
-    run grep -F 'name: structured-writing' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
+    run grep -F 'name: shunk031-structured-writing' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
     run grep -F 'Treat it as an option, not a mandatory template.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
@@ -450,18 +450,18 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ ! -e "${GEMINI_SKILL_DIR_SYMLINK_TEMPLATE}" ]
     [ -d "${SHARED_SKILLS_SYMLINK_DIR}" ]
 
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_humanizer-ja.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/humanizer-ja" ]
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_manage-agent-guidance.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/manage-agent-guidance" ]
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_research-before-implementation.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/research-before-implementation" ]
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_structured-writing.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/structured-writing" ]
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shunk031-humanizer-ja.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shunk031-humanizer-ja" ]
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shunk031-manage-agent-guidance.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shunk031-manage-agent-guidance" ]
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shunk031-research-before-implementation.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shunk031-research-before-implementation" ]
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shunk031-structured-writing.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shunk031-structured-writing" ]
     [ ! -e "${SHARED_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl" ]
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shdoc-shell-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shdoc-shell-docs" ]
+    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shunk031-shdoc-shell-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shunk031-shdoc-shell-docs" ]
 }
 
 @test "[common] Gemini skills expose repo-managed skills through per-skill symlink templates" {
     [ -d "${GEMINI_SKILLS_SYMLINK_DIR}" ]
 
-    local skills="ai-slop-checklist-ja cgd-dev-identity convert-to-transformers gh-comment-attach-files high-impact-journal-publishing humanizer-ja manage-agent-guidance python-uv-workflow research-before-implementation shdoc-shell-docs structured-writing"
+    local skills="shunk031-ai-slop-checklist-ja shunk031-cgd-dev-identity shunk031-transformers-convert shunk031-gh-comment-attach-files shunk031-high-impact-journal-publishing shunk031-humanizer-ja shunk031-manage-agent-guidance shunk031-python-uv-workflow shunk031-research-before-implementation shunk031-shdoc-shell-docs shunk031-structured-writing"
     local skill
     local template
     local expected

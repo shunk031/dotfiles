@@ -45,8 +45,8 @@
 ## Working Style
 
 - Ask questions that materially improve the result when the answer cannot be discovered safely from the available context.
-- Before designing or editing non-trivial work involving third-party tools, use `research-before-implementation`.
+- Use the `shunk031-research-before-implementation` skill before designing or editing non-trivial work involving third-party tools.
 - Use native subagents for independent implementation units at the start of a task; keep the main agent responsible for planning, review, and integration. Keep model and launch configuration private or tool-specific.
 - Write tests before behavior-changing implementation, verify them, and then refactor.
-- Use `manage-agent-guidance` when adding, moving, or deleting persistent instructions, agent wrappers, or skills.
+- Use the `shunk031-manage-agent-guidance` skill when adding, moving, or deleting persistent instructions, agent wrappers, or skills.
 - Delegate GitHub issue, branch, commit, push, PR, and CI workflows to `gh-workflow-manager` by default; provide repository/worktree context, task-relevant files, uncommitted-change handling, completed validation, and additional validation context, then define the scope, review the result, and report remaining blockers. Work directly only when explicitly requested or the agent is unavailable.

@@ -13,7 +13,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = (
     REPO_ROOT
-    / "home/dot_config/exact_agents/skills/gh-comment-attach-files/scripts/attach_comment_files.py"
+    / "home/dot_config/exact_agents/skills/shunk031-gh-comment-attach-files/scripts/attach_comment_files.py"
 )
 
 

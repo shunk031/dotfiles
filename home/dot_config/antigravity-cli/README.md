@@ -1,4 +1,7 @@
 - This directory is the canonical source for `antigravity-cli` configurations (mapped into `~/.gemini/`).
+- Its settings source is exposed to both `~/.gemini/settings.json` (Gemini CLI) and `~/.gemini/antigravity-cli/settings.json` (Antigravity).
+- [RTK.md](RTK.md) contains the RTK awareness instructions exposed to Gemini CLI and Antigravity.
+- [hooks/rtk-hook-gemini.sh](hooks/rtk-hook-gemini.sh) is the source-managed Gemini shell hook.
 - [home/dot_gemini/](../../dot_gemini/) is only the adapter layer that exposes this source in the applied home layout.
 - The design keeps edits in one git-friendly place while preserving the familiar home path.
 - Edit files here; the adapter keeps the home path stable.

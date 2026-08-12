@@ -49,4 +49,5 @@
 - Use native subagents for independent implementation units at the start of a task; keep the main agent responsible for planning, review, and integration. Keep model and launch configuration private or tool-specific.
 - Write tests before behavior-changing implementation, verify them, and then refactor.
 - Use the `shunk031-manage-agent-guidance` skill when adding, moving, or deleting persistent instructions, agent wrappers, or skills.
+- When using Herdr, follow the `shunk031-herdr-tab-status` skill to keep the current tab name aligned with the work's progress status.
 - Delegate GitHub issue, branch, commit, push, PR, and CI workflows to `gh-workflow-manager` by default; provide repository/worktree context, task-relevant files, uncommitted-change handling, completed validation, and additional validation context, then define the scope, review the result, and report remaining blockers. Work directly only when explicitly requested or the agent is unavailable.

@@ -981,6 +981,8 @@ def judge_results(
     with tempfile.TemporaryDirectory(prefix="agent-guidance-judge-") as tempdir:
         repo = Path(tempdir)
         initialize_temp_repo(repo)
+        codex_home = repo / "codex-home"
+        initialize_codex_home(codex_home)
         schema = repo / "judge-schema.json"
         schema.write_text(json.dumps(judge_schema()), encoding="utf-8")
 
@@ -990,6 +992,7 @@ def judge_results(
                 prompt,
                 timeout,
                 schema,
+                codex_home=codex_home,
                 **codex_settings_kwargs(model, reasoning_effort),
             )
 

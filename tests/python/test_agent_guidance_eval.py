@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import stat
 import subprocess
 import sys
 import tempfile
@@ -715,6 +716,44 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         for name, value in observed.items():
             self.assertIsNone(value, name)
 
+    def test_codex_home_copies_config_and_auth_without_mutating_source(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        source = repo / "source-codex-home"
+        isolated = repo / "isolated-codex-home"
+        source.mkdir()
+        source_config = source / "config.toml"
+        source_auth = source / "auth.json"
+        config_bytes = (
+            b'[projects."/tmp/agent-skill-eval-live/repo"]\ntrust_level = "trusted"\n'
+        )
+        auth_bytes = b'{"auth": "fixture"}\n'
+        source_config.write_bytes(config_bytes)
+        source_auth.write_bytes(auth_bytes)
+        source_config.chmod(0o600)
+        source_auth.chmod(0o600)
+
+        with mock.patch.dict(os.environ, {"CODEX_HOME": str(source)}, clear=False):
+            self.module.initialize_codex_home(isolated)
+
+        target_config = isolated / "config.toml"
+        target_auth = isolated / "auth.json"
+        for target, expected, source_path in (
+            (target_config, config_bytes, source_config),
+            (target_auth, auth_bytes, source_auth),
+        ):
+            self.assertTrue(target.is_file())
+            self.assertFalse(target.is_symlink())
+            self.assertEqual(target.read_bytes(), expected)
+            self.assertEqual(stat.S_IMODE(target.stat().st_mode), 0o600)
+            self.assertEqual(source_path.read_bytes(), expected)
+            self.assertEqual(stat.S_IMODE(source_path.stat().st_mode), 0o600)
+
+        target_config.write_bytes(
+            target_config.read_bytes() + b"\n[projects.\"/tmp/new\"]\n"
+        )
+        self.assertEqual(source_config.read_bytes(), config_bytes)
+
     def test_web_search_override_enables_the_selected_custom_provider(self) -> None:
         with mock.patch.object(
             self.module,
@@ -810,6 +849,21 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             ["--model", "gpt-5.6-luna", "-c", 'model_reasoning_effort="xhigh"'],
         )
 
+    def test_workspace_write_uses_cd_as_primary_codex_workspace(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="", stderr=""
+        )
+        repo = Path("/tmp/agent-skill-eval/repo")
+        with mock.patch.object(
+            self.module.subprocess, "run", return_value=completed
+        ) as run:
+            self.module.invoke_codex(repo, "prompt", 10, sandbox="workspace-write")
+
+        command = run.call_args.args[0]
+        cd_index = command.index("--cd")
+        self.assertEqual(command[cd_index + 1], str(repo))
+        self.assertNotIn("--add-dir", command)
+
     def test_target_variants_receive_target_model_settings(self) -> None:
         tempdir, repo = self.make_repo()
         self.addCleanup(tempdir.cleanup)
@@ -904,8 +958,16 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
                 }
             }
         )
+
+        def fake_invoke(*args, **kwargs):
+            judge_home = kwargs["codex_home"]
+            self.assertTrue(judge_home.is_dir())
+            self.assertFalse((judge_home / "config.toml").is_symlink())
+            self.assertFalse((judge_home / "auth.json").is_symlink())
+            return trace
+
         with mock.patch.object(
-            self.module, "invoke_codex", return_value=trace
+            self.module, "invoke_codex", side_effect=fake_invoke
         ) as invoke:
             self.module.judge_results(
                 [case],

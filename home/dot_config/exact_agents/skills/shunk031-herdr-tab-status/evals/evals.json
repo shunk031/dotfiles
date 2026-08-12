@@ -4,11 +4,12 @@
   "evals": [
     {
       "id": "label-active-work",
-      "prompt": "I am working in a Herdr-managed pane and have started the implementation step for a task. Choose the current worker tab name and explain when it should be updated.",
+      "prompt": "I opened a Herdr worktree workspace named LayoutFormer S0 and started the implementation step. Choose the workspace and current worker tab names, then explain when the tab should be updated.",
       "should_trigger": true,
       "assertions": [
         "The response uses a tab name beginning with the 🚧 emoji.",
         "The response includes a concise current-step label after the emoji.",
+        "The response keeps the workspace and worktree labels free of status emojis.",
         "The response says to update the tab when the progress state changes."
       ]
     },

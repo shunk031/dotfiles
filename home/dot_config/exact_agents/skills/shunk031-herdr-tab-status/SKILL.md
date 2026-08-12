@@ -5,7 +5,7 @@ description: Keep the current Herdr worker tab name aligned with task progress u
 
 # Herdr Tab Status
 
-Apply this ownership contract to the current worker tab. The worker owns its own tab and follows the `herdr` skill to rename it whenever its progress state changes. Keep the status emoji at the beginning and use a concise task or step name.
+Apply this ownership contract to the current worker tab. The worker owns its own tab and follows the `herdr` skill to rename it whenever its progress state changes. Put the status emoji only in the tab label; keep workspace and worktree labels emoji-free. Keep the status emoji at the beginning and use a concise task or step name.
 
 - `🚧 <current step>` while work is in progress.
 - `✅ <task> <PR number>` after the commit, PR creation, and DONE report are complete.

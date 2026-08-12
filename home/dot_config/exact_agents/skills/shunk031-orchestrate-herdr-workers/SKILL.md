@@ -40,7 +40,7 @@ An orchestrator delegates independent tasks to worker agents, one git worktree t
 
 ## Work as a worker
 
-6. Own your tab label with `herdr tab rename "$HERDR_TAB_ID" <label>`: "🚧 <current step>" while working, "✅ <task> <PR number if any>" when done, "⛔ <task>" when stuck.
+6. Keep your tab label as the `shunk031-herdr-tab-status` skill prescribes, with `herdr tab rename "$HERDR_TAB_ID" <label>`: "🚧 <current step>" while working, "✅ <task> <PR number if any>" when done, "⛔ <task>" when stuck.
 
 7. Commit in your worktree; push the branch and open a pull request only if your dispatch says so. Then build the report in a variable and send `herdr agent prompt <orch-name> "$report"`, where the report reads `DONE <worker-name>: <one-line summary> <PR URL if any>`. If you cannot proceed, send `BLOCKED <worker-name>: <question>` the same way and wait for a reply.
 

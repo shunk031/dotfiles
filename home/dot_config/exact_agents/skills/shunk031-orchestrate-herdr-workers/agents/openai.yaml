@@ -1,0 +1,4 @@
+interface:
+  display_name: "Orchestrate Herdr Workers"
+  short_description: "Fan out coding tasks to Codex workers in Herdr worktree tabs"
+  default_prompt: "Use this to orchestrate parallel coding tasks across Herdr worker agents in git worktrees with emoji status tabs and report-back prompts."

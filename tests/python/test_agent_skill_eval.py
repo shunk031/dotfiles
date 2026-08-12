@@ -469,6 +469,47 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         self.assertEqual(observed["AUTH_TOKEN"], "secret")
         self.assertEqual(observed["PATH"], "/usr/bin:/bin")
 
+    def test_codex_environment_drops_herdr_context(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        environment_dump = repo / "codex-environment.json"
+        fake_codex = repo / "fake-codex"
+        fake_codex.write_text(
+            f"""#!{sys.executable}
+import json
+import os
+from pathlib import Path
+
+herdr_names = ("HERDR_ENV", "HERDR_WORKSPACE_ID", "HERDR_TAB_ID", "HERDR_PANE_ID")
+observed = {{name: os.environ.get(name) for name in herdr_names}}
+Path(os.environ["ENVIRONMENT_DUMP"]).write_text(
+    json.dumps(observed), encoding="utf-8"
+)
+print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", "text": "ok"}}}}))
+""",
+            encoding="utf-8",
+        )
+        fake_codex.chmod(0o755)
+
+        with mock.patch.dict(
+            os.environ,
+            {
+                "HERDR_ENV": "1",
+                "HERDR_WORKSPACE_ID": "w1",
+                "HERDR_TAB_ID": "w1:t1",
+                "HERDR_PANE_ID": "w1:p1",
+                "AGENT_SKILL_EVAL_CODEX": str(fake_codex),
+                "ENVIRONMENT_DUMP": str(environment_dump),
+            },
+            clear=False,
+        ):
+            trace = self.module.invoke_codex(repo, "prompt", timeout=10)
+
+        self.assertIn("item.completed", trace)
+        observed = json.loads(environment_dump.read_text(encoding="utf-8"))
+        for name, value in observed.items():
+            self.assertIsNone(value, name)
+
     def test_web_search_override_enables_the_selected_custom_provider(self) -> None:
         with mock.patch.object(
             self.module,
@@ -481,6 +522,31 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             override,
             "model_providers.custom-provider.supports_standalone_web_search=true",
         )
+
+    def test_sandbox_override_replaces_requested_sandbox(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="", stderr=""
+        )
+        with (
+            mock.patch.object(
+                self.module,
+                "disabled_skill_override",
+                return_value="",
+            ),
+            mock.patch.dict(
+                os.environ,
+                {"AGENT_SKILL_EVAL_SANDBOX": "danger-full-access"},
+                clear=False,
+            ),
+            mock.patch.object(
+                self.module.subprocess, "run", return_value=completed
+            ) as run,
+        ):
+            self.module.invoke_codex(Path("/tmp"), "prompt", 10, sandbox="read-only")
+
+        command = run.call_args.args[0]
+        sandbox_index = command.index("--sandbox")
+        self.assertEqual(command[sandbox_index + 1], "danger-full-access")
 
     def test_invoke_places_global_search_config_before_exec(self) -> None:
         completed = subprocess.CompletedProcess(

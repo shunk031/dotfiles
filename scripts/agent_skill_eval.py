@@ -626,6 +626,10 @@ def invoke_codex(
     model: str | None = None,
     reasoning_effort: str | None = None,
 ) -> str:
+    # Hosts without unprivileged user namespaces cannot run Codex's bwrap
+    # sandbox at all; AGENT_SKILL_EVAL_SANDBOX lets such hosts pick the
+    # sandbox mode explicitly (for example danger-full-access).
+    sandbox = os.environ.get("AGENT_SKILL_EVAL_SANDBOX", sandbox)
     command = [codex_executable(), "--disable", "plugins"]
     if search:
         command.append("--search")
@@ -652,6 +656,10 @@ def invoke_codex(
     command.append("-")
     try:
         environment = git_environment_without_local_variables()
+        # Drop Herdr caller context so evaluated agents cannot control the
+        # caller's live Herdr session through the herdr CLI.
+        for name in [key for key in environment if key.startswith("HERDR_")]:
+            del environment[name]
         if codex_home is not None:
             environment["CODEX_HOME"] = str(codex_home)
         completed = subprocess.run(

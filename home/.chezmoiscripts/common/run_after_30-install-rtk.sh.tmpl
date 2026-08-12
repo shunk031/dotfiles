@@ -6,5 +6,7 @@
 #   RTK owns its generated awareness documents and hooks; this script only
 #   invokes the official initialization commands after `chezmoi apply`.
 
-export DOTFILES_CHEZMOI_SOURCE_DIR="{{ .chezmoi.sourceDir }}"
-{{ include "../install/common/rtk.sh" }}
+# shellcheck source=/dev/null
+source "{{ .chezmoi.sourceDir }}/../install/common/rtk.sh"
+
+main

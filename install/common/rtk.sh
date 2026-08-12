@@ -13,7 +13,12 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly MISE_BIN="${HOME}/.local/bin/mise"
-RTK_SOURCE_DIR="${DOTFILES_CHEZMOI_SOURCE_DIR:-}"
+
+if [ -z "${RTK_SOURCE_DIR:-}" ]; then
+    RTK_SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    readonly RTK_SCRIPT_DIR
+    RTK_SOURCE_DIR="$(cd -- "${RTK_SCRIPT_DIR}/../../home" && pwd)"
+fi
 
 #
 # @description Activate `mise` so the configured RTK binary is on `PATH`.
@@ -68,7 +73,6 @@ function remove_legacy_rtk_symlinks() {
 #
 function initialize_rtk() {
     rtk init -g --auto-patch
-    rtk init -g --codex
     rtk init -g --gemini --auto-patch
 }
 

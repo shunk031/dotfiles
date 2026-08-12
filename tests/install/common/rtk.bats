@@ -20,7 +20,14 @@ function setup() {
 
     run cat "${calls_path}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'init -g --auto-patch\ninit -g --codex\ninit -g --gemini --auto-patch' ]
+    [ "${output}" = $'init -g --auto-patch\ninit -g --gemini --auto-patch' ]
+}
+
+@test "[common] standalone script resolves the source root" {
+    local expected_source_dir
+    expected_source_dir="$(cd "$(dirname "${SCRIPT_PATH}")/../../home" && pwd)"
+
+    [ "${RTK_SOURCE_DIR}" = "${expected_source_dir}" ]
 }
 
 @test "[common] legacy RTK symlinks are removed only when source-owned" {
@@ -50,9 +57,9 @@ function setup() {
     [ ! -L "${HOME}/.gemini/hooks/rtk-hook-gemini.sh" ]
 }
 
-@test "[common] run-after template wires the chezmoi source directory" {
-    run grep -F 'DOTFILES_CHEZMOI_SOURCE_DIR="{{ .chezmoi.sourceDir }}"' "${TEMPLATE_PATH}"
+@test "[common] run-after template invokes the standalone installer" {
+    run grep -F 'source "{{ .chezmoi.sourceDir }}/../install/common/rtk.sh"' "${TEMPLATE_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F '{{ include "../install/common/rtk.sh" }}' "${TEMPLATE_PATH}"
+    run grep -Fx 'main' "${TEMPLATE_PATH}"
     [ "${status}" -eq 0 ]
 }

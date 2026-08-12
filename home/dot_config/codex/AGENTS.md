@@ -5,5 +5,3 @@
 
 - Shared instructions: Read `~/.agents/AGENTS.md` first, then apply it together with this Codex-specific entrypoint.
 - Commit attribution: When creating or amending a commit, end the commit message with `Co-authored-by: Codex <noreply@openai.com>` exactly once. Preserve existing trailers and keep one blank line before the trailer block.
-
-@/Users/s.kitada/.codex/RTK.md

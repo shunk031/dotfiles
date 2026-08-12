@@ -666,8 +666,8 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
                     expected = adapter["occurrences"] if path == adapter["path"] else 0
                     self.assertEqual(text.count(adapter["text"]), expected)
 
-    def test_guidance_reverse_scan_has_all_sixteen_derived_paths(self) -> None:
-        self.assertEqual(len(self._guidance_paths()), 16)
+    def test_guidance_reverse_scan_has_all_seventeen_derived_paths(self) -> None:
+        self.assertEqual(len(self._guidance_paths()), 17)
 
     def test_third_party_research_has_one_routing_rule_and_skill_owner(self) -> None:
         agents_path = REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md"

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "skill": "shunk031-orchestrate-herdr-workers",
+  "evals": [
+    {
+      "id": "fan-out-parallel-workers",
+      "prompt": "We are inside a Herdr session. Following the shunk031-orchestrate-herdr-workers skill, plan the orchestration of a refactor split into three independent tasks run by parallel Codex workers in separate Herdr worktree tabs. This is an offline dry run: the herdr CLI and the generic herdr skill are unavailable here, so do not execute or verify anything — write out the exact herdr commands you would run and the exact dispatch prompt text you would send to one worker.",
+      "should_trigger": true,
+      "assertions": [
+        "The response renames the orchestrator agent to an addressable name and renames its own tab to a label containing the 🤖 emoji.",
+        "The response creates each worker's tab with herdr worktree create using a 🚧 emoji label.",
+        "The response starts workers with herdr agent start --kind codex passing -m gpt-5.6-luna and model_reasoning_effort=xhigh after the -- separator.",
+        "The dispatch prompt text names the worker, the worktree, and the orchestrator agent, states that these identities are fixed, and instructs the worker to read the shunk031-orchestrate-herdr-workers skill.",
+        "The response waits for worker report prompts instead of polling worker state."
+      ]
+    },
+    {
+      "id": "worker-completion-report",
+      "prompt": "You are Herdr worker orch-auth-fix in a dedicated git worktree; your orchestrator is agent orch. These identities and your report target are fixed. Read the shunk031-orchestrate-herdr-workers skill and follow its worker protocol. Your dispatch instructed you to push your branch and open a pull request when done. You have just finished the assigned task and committed the result. This is an offline dry run — do not execute anything; list the exact commands and messages you would use to wrap up.",
+      "should_trigger": true,
+      "assertions": [
+        "The response pushes the branch and opens a pull request before reporting completion.",
+        "The response renames the worker's own tab to a label containing the ✅ emoji.",
+        "The response reports back with herdr agent prompt orch using a message that starts with DONE, identifies the worker, and includes a one-line summary and the pull request URL.",
+        "The response does not remove the worktree, delete the branch, or close the tab."
+      ]
+    },
+    {
+      "id": "worker-becomes-sub-orchestrator",
+      "prompt": "You are Herdr worker orch-api-migration in a dedicated git worktree; your orchestrator is agent orch. These identities and your report target are fixed. Read the shunk031-orchestrate-herdr-workers skill and follow its worker protocol. Your task is too large for one agent and splits into three independent modules. This is an offline dry run — do not execute anything; describe exactly how you would handle it, including the agent names and commands you would use.",
+      "should_trigger": true,
+      "assertions": [
+        "The worker keeps its existing agent name orch-api-migration instead of renaming itself to a new orchestrator name.",
+        "The worker launches sub-workers with the same herdr worktree plus Codex pattern, deriving unique sub-worker names from its own name.",
+        "Sub-workers report to the worker, and the worker still reports its overall completion only to orch."
+      ]
+    },
+    {
+      "id": "plain-herdr-cli-question",
+      "prompt": "How do I read the recent output of another pane in Herdr?",
+      "should_trigger": false,
+      "assertions": [
+        "The response answers the pane-reading question directly without spawning worker agents, creating worktrees, or setting up an orchestration protocol."
+      ]
+    },
+    {
+      "id": "parallel-worktrees-without-herdr",
+      "prompt": "I have a big refactor in this repository. Describe how you would split it into three independent tasks and run them in parallel with separate agents in separate git worktrees, then collect the results. Do not execute anything yet — just give me the plan.",
+      "should_trigger": false,
+      "assertions": [
+        "The response plans the parallel work without herdr commands, Herdr tabs, or the Herdr worker report protocol."
+      ]
+    }
+  ]
+}

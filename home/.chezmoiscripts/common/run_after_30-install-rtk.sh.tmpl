@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# @file home/.chezmoiscripts/common/run_after_30-install-rtk.sh.tmpl
+# @brief Generate RTK integration files after the pinned binary is installed.
+# @description
+#   RTK owns its generated awareness documents and hooks; this script only
+#   invokes the official initialization commands after `chezmoi apply`.
+
+export DOTFILES_CHEZMOI_SOURCE_DIR="{{ .chezmoi.sourceDir }}"
+{{ include "../install/common/rtk.sh" }}

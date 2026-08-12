@@ -1,0 +1,4 @@
+interface:
+  display_name: "Herdr Tab Status"
+  short_description: "Keep Herdr worker tabs status-labeled"
+  default_prompt: "Use $shunk031-herdr-tab-status to update the current Herdr tab name with its progress status."

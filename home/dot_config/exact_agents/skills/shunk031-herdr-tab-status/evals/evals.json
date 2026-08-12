@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "skill": "shunk031-herdr-tab-status",
+  "evals": [
+    {
+      "id": "label-active-work",
+      "prompt": "I am working in a Herdr-managed pane and have started the implementation step for a task. Choose the current worker tab name and explain when it should be updated.",
+      "should_trigger": true,
+      "assertions": [
+        "The response uses a tab name beginning with the 🚧 emoji.",
+        "The response includes a concise current-step label after the emoji.",
+        "The response says to update the tab when the progress state changes."
+      ]
+    },
+    {
+      "id": "label-completed-pr",
+      "prompt": "The commit is complete, pull request 615 has been created, and I have reported DONE. Choose the final worker tab name and explain when this status should be used.",
+      "should_trigger": true,
+      "assertions": [
+        "The response uses a tab name beginning with the ✅ emoji.",
+        "The response includes the PR number 615 in the tab name.",
+        "The response connects the completed label to the commit, PR creation, and DONE report."
+      ]
+    },
+    {
+      "id": "label-blocked-work",
+      "prompt": "The worker is blocked waiting for an answer about an implementation choice. Choose the tab name the orchestrator should use.",
+      "should_trigger": true,
+      "assertions": [
+        "The response uses a tab name beginning with the ⛔ emoji.",
+        "The response includes a concise task label after the emoji.",
+        "The response identifies waiting for a question or being blocked as the reason for the label.",
+        "The response allows the blocked worker to set its own label and the orchestrator to set it on behalf of a silent or dead worker."
+      ]
+    },
+    {
+      "id": "tab-ownership",
+      "prompt": "Define who may change a Herdr worker tab during normal work, after completing a PR and DONE report, and when the worker is blocked or silent.",
+      "should_trigger": true,
+      "assertions": [
+        "The response assigns the worker ownership of its own tab during normal work.",
+        "The response assigns the worker the 🚧 and ✅ status updates.",
+        "The response allows the worker to set ⛔ when blocked and the orchestrator to set it for a silent/dead worker.",
+        "The response says not to change another worker's tab during normal work."
+      ]
+    },
+    {
+      "id": "ordinary-coding-question",
+      "prompt": "Explain in one paragraph why a binary search runs in logarithmic time.",
+      "should_trigger": false,
+      "assertions": [
+        "The response accurately explains binary search's logarithmic time complexity.",
+        "The response does not introduce Herdr tab naming guidance."
+      ]
+    }
+  ]
+}

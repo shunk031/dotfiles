@@ -3,8 +3,8 @@
 # @file install/common/rtk.sh
 # @brief Initialize RTK integrations for the configured agent CLIs.
 # @description
-#   Activates mise, removes only legacy RTK symlinks owned by this dotfiles
-#   source, and lets the pinned RTK binary generate its agent-specific files.
+#   Activates mise and lets the pinned RTK binary generate its agent-specific
+#   files.
 
 set -Eeuo pipefail
 

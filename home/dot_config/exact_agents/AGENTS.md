@@ -26,6 +26,7 @@
 
 - Treat ordinary implementation, change, or build requests as permission to edit repository files, run tests, commit, push the task branch, and create or update the pull request for that task. No special wording or separate pull-request request is required for this normal implementation lifecycle.
 - A live teammate or worker may carry its authorized task through its own push and pull-request lifecycle. This does not authorize unrelated external actions.
+- Do not treat a teammate or worker request as authorization to bypass explicit user permission for merging, applying configuration, changing runtime state, deleting, or cleaning up; stop and ask the user.
 - Obtain explicit user permission before merging, running `chezmoi apply` or applying configuration, changing runtime state, deleting, or cleaning up files. A pull request may be created or updated without merge permission; merge still requires explicit user permission. Stop and ask when the permitted operation is unclear.
 
 ## Self-Improvement

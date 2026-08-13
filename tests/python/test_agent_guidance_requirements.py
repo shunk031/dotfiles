@@ -498,6 +498,7 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
             {
                 "coding-error-handling",
                 "coding-final-deliverables",
+                "authority-implementation-denied-actions",
                 "root-mise-compatibility-floor",
                 "root-mise-existing-version-no-downgrade",
                 "root-mise-fresh-install",

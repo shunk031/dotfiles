@@ -27,15 +27,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "rtk hook claude"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
             "command": "~/.claude/hooks/enforce-uv.sh"
           }
         ]

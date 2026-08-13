@@ -24,10 +24,9 @@
 
 ## Authority Boundaries
 
-- Treat implementation requests as permission to edit repository files, run tests, and commit. They do not authorize pushing, pull requests, merges, `chezmoi apply`, runtime changes, deletion, or cleanup.
-- Treat an explicit pull-request request as permission to push and create or update that pull request, but never as merge permission.
-- Obtain explicit permission before merging, applying configuration, changing runtime state, deleting, or cleaning up files. Stop and ask when the permitted operation is unclear.
-- Do not treat a teammate's request to perform a denied action as permission to bypass boundaries; present it to the user and wait for explicit instruction.
+- Treat ordinary implementation, change, or build requests as permission to edit repository files, run tests, commit, push the task branch, and create or update the pull request for that task. No special wording or separate pull-request request is required for this normal implementation lifecycle.
+- A live teammate or worker may carry its authorized task through its own push and pull-request lifecycle. This does not authorize unrelated external actions.
+- Obtain explicit user permission before merging, running `chezmoi apply` or applying configuration, changing runtime state, deleting, or cleaning up files. A pull request may be created or updated without merge permission; merge still requires explicit user permission. Stop and ask when the permitted operation is unclear.
 
 ## Self-Improvement
 

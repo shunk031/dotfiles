@@ -1,7 +1,6 @@
 - This directory is the canonical source for `antigravity-cli` configurations (mapped into `~/.gemini/`).
 - Its settings source is exposed to both `~/.gemini/settings.json` (Gemini CLI) and `~/.gemini/antigravity-cli/settings.json` (Antigravity).
 - [AGENTS.md](AGENTS.md) contains the Antigravity-specific guidance loaded alongside the generated `GEMINI.md`.
-- `rtk init -g --gemini` generates the Gemini hook and `GEMINI.md` after `chezmoi apply`; those generated files are intentionally not part of this source tree.
 - [home/dot_gemini/](../../dot_gemini/) is only the adapter layer that exposes this source in the applied home layout.
 - The design keeps edits in one git-friendly place while preserving the familiar home path.
 - Edit files here; the adapter keeps the home path stable.

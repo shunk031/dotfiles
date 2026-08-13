@@ -104,7 +104,7 @@ function expected_up_to_date_public_calls() {
     cat << 'EOF'
 public:git -- rev-parse --abbrev-ref HEAD
 public:git -- status --porcelain
-public:git -- fetch --prune origin
+public:git -- fetch --no-write-fetch-head --prune origin
 public:git -- rev-parse HEAD
 public:git -- rev-parse origin/main
 public:git -- merge-base HEAD origin/main
@@ -135,13 +135,20 @@ EOF
     [ "$(grep -c '^public:' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
 }
 
+@test "[common] fetches do not write shared FETCH_HEAD state" {
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(grep -c 'git -- fetch --no-write-fetch-head --prune origin' "${CHEZMOI_CALLS_PATH}")" -eq 2 ]
+    [ "$(grep -c 'git -- fetch --prune origin' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
+}
+
 @test "[common] dirty source stops before fetch and apply" {
     export PUBLIC_STATUS=" M home/dot_zshrc"
 
     run bash "${SCRIPT_PATH}" public
     [ "${status}" -eq 1 ]
     [[ "${output}" == *"has uncommitted changes"* ]]
-    [ "$(grep -c 'fetch --prune origin' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
+    [ "$(grep -c 'fetch --no-write-fetch-head --prune origin' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
     [ "$(grep -c 'apply --verbose' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
 }
 
@@ -151,7 +158,7 @@ EOF
     run bash "${SCRIPT_PATH}" public
     [ "${status}" -eq 1 ]
     [[ "${output}" == *"expected main"* ]]
-    [ "$(grep -c 'fetch --prune origin' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
+    [ "$(grep -c 'fetch --no-write-fetch-head --prune origin' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
     [ "$(grep -c 'apply --verbose' "${CHEZMOI_CALLS_PATH}")" -eq 0 ]
 }
 

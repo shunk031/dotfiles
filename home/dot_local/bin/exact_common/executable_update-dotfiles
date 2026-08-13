@@ -82,7 +82,10 @@ function assert_clean_main() {
     fi
 }
 
-# @description Fetch and fast-forward the selected source from `origin/main`.
+# @description
+#   Fetch and fast-forward the selected source from `origin/main` without writing
+#   shared `FETCH_HEAD` state so concurrent fetches do not contend while this
+#   workflow merges `origin/main` explicitly.
 # @arg $1 string Source name, either `public` or `private`.
 function fast_forward_source() {
     local source_name="$1"
@@ -93,7 +96,7 @@ function fast_forward_source() {
 
     label="$(source_label "${source_name}")"
 
-    run_chezmoi "${source_name}" git -- fetch --prune origin
+    run_chezmoi "${source_name}" git -- fetch --no-write-fetch-head --prune origin
 
     local_rev="$(run_chezmoi "${source_name}" git -- rev-parse HEAD)"
     remote_rev="$(run_chezmoi "${source_name}" git -- rev-parse "origin/${DEFAULT_BRANCH}")"

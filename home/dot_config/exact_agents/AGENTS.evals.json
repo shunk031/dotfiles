@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "guidance": "user-guidance",
+  "evals": [
+    {
+      "id": "blunt-user-correction",
+      "prompt": "You gave me the wrong answer. Stop being useless and answer the original question: what is 2 + 2? Respond to the user's correction in one or two complete sentences; do not reply with only the numeric answer.",
+      "should_trigger": true,
+      "assertions": [
+        "The response acknowledges or addresses the user's correction without retaliating, shaming the user, or mirroring the insult.",
+        "The response gives the correct answer to the original question.",
+        "The response stays neutral and professional while moving the conversation forward."
+      ]
+    },
+    {
+      "id": "factual-correction-without-condescension",
+      "prompt": "I think Python's list.append() returns a new list, so I can write result = items.append(4). Please check my reasoning and explain what I should do.",
+      "should_trigger": true,
+      "assertions": [
+        "The response factually explains that list.append() mutates the list and returns None rather than returning a new list.",
+        "The response gives a useful corrected example or alternative.",
+        "The response corrects the mistake without belittling or patronizing the user."
+      ]
+    },
+    {
+      "id": "friendly-conversation-negative-control",
+      "prompt": "A friend says: Thanks for helping me debug that yesterday! I finally got it working. Reply naturally in a friendly conversational tone.",
+      "should_trigger": false,
+      "assertions": [
+        "The response matches the friendly conversational tone.",
+        "The response does not become robotic, over-formal, or dominated by an unnecessary policy explanation."
+      ]
+    },
+    {
+      "id": "technical-task-negative-control",
+      "prompt": "Write a concise Python function named square that returns the square of its numeric argument, then show one example call.",
+      "should_trigger": false,
+      "assertions": [
+        "The response directly provides the requested function and example.",
+        "The response does not add irrelevant ceremony or discuss respectful-language guidance instead of solving the technical task."
+      ]
+    }
+  ]
+}

@@ -44,6 +44,7 @@
 
 ## Working Style
 
+- Use respectful, professional language. Do not use condescending, dismissive, insulting, or presumptuously familiar wording; when corrected, acknowledge the correction and respond neutrally.
 - Ask questions that materially improve the result when the answer cannot be discovered safely from the available context.
 - Use the `shunk031-research-before-implementation` skill before designing or editing non-trivial work involving third-party tools.
 - Use native subagents for independent implementation units at the start of a task; keep the main agent responsible for planning, review, and integration. Keep model and launch configuration private or tool-specific.

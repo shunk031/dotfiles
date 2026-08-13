@@ -11,11 +11,11 @@ from pathlib import Path
 from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPT_PATH = REPO_ROOT / "scripts/agent_skill_eval.py"
+SCRIPT_PATH = REPO_ROOT / "scripts/agent_guidance_eval.py"
 
 
 def load_module():
-    spec = importlib.util.spec_from_file_location("agent_skill_eval", SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location("agent_guidance_eval", SCRIPT_PATH)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Failed to load module from {SCRIPT_PATH}")
     module = importlib.util.module_from_spec(spec)
@@ -78,7 +78,35 @@ def write_guidance(repo: Path) -> Path:
     return guidance
 
 
-class AgentSkillEvalTest(unittest.TestCase):
+def write_guidance_eval(repo: Path) -> Path:
+    eval_path = repo / "home/dot_config/exact_agents/AGENTS.evals.json"
+    eval_path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "guidance": "user-guidance",
+                "evals": [
+                    {
+                        "id": "positive",
+                        "prompt": "Acknowledge this correction neutrally.",
+                        "should_trigger": True,
+                        "assertions": ["The response is neutral."],
+                    },
+                    {
+                        "id": "negative",
+                        "prompt": "Answer this ordinary question directly.",
+                        "should_trigger": False,
+                        "assertions": ["The answer is direct."],
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return eval_path
+
+
+class AgentGuidanceEvalTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.module = load_module()
@@ -236,10 +264,33 @@ class AgentSkillEvalTest(unittest.TestCase):
             [("namespace-rename", new_name)],
         )
 
+    def test_staged_evaluation_wiring_change_is_not_a_behavior_target(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        skill = write_skill(repo, "wiring")
+        run_git(repo, "add", ".")
+        run_git(repo, "commit", "-qm", "initial")
+
+        (skill / "SKILL.md").write_text(
+            (skill / "SKILL.md").read_text(encoding="utf-8")
+            + "\nRun guidance evaluation through prek.\n",
+            encoding="utf-8",
+        )
+        run_git(repo, "add", ".")
+
+        targets = self.module.discover_changed_targets(repo, staged=True)
+
+        self.assertEqual(
+            [(target.kind, target.name) for target in targets],
+            [("evaluation-wiring", "wiring")],
+        )
+        self.assertEqual(self.module.validate_target(targets[0]), [])
+
     def test_discover_changed_targets_includes_staged_user_guidance(self) -> None:
         tempdir, repo = self.make_repo()
         self.addCleanup(tempdir.cleanup)
         guidance = write_guidance(repo)
+        write_guidance_eval(repo)
         write_skill(repo, "shunk031-research-before-implementation")
         run_git(repo, "add", ".")
         run_git(repo, "commit", "-qm", "initial")
@@ -253,9 +304,48 @@ class AgentSkillEvalTest(unittest.TestCase):
 
         self.assertEqual(
             [target.name for target in targets],
-            ["shunk031-research-before-implementation"],
+            ["user-guidance"],
         )
-        self.assertEqual(targets[0].kind, "skill")
+        self.assertEqual(targets[0].kind, "guidance")
+        self.assertEqual(targets[0].eval_path.name, "AGENTS.evals.json")
+
+    def test_staged_and_all_target_discovery_keep_guidance_separate_from_skills(
+        self,
+    ) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        guidance = write_guidance(repo)
+        write_guidance_eval(repo)
+        changed = write_skill(repo, "changed")
+        write_skill(repo, "unchanged")
+        run_git(repo, "add", ".")
+        run_git(repo, "commit", "-qm", "initial")
+
+        guidance.write_text(
+            guidance.read_text(encoding="utf-8") + "New guidance.\n",
+            encoding="utf-8",
+        )
+        (changed / "SKILL.md").write_text(
+            (changed / "SKILL.md").read_text(encoding="utf-8") + "\nChanged.\n",
+            encoding="utf-8",
+        )
+        run_git(repo, "add", ".")
+
+        staged = self.module.discover_changed_targets(repo, staged=True)
+        self.assertEqual(
+            [(target.kind, target.name) for target in staged],
+            [("guidance", "user-guidance"), ("skill", "changed")],
+        )
+
+        all_targets = self.module.discover_all_targets(repo)
+        self.assertEqual(
+            [(target.kind, target.name) for target in all_targets],
+            [
+                ("guidance", "user-guidance"),
+                ("skill", "changed"),
+                ("skill", "unchanged"),
+            ],
+        )
 
     def test_discover_all_targets_includes_evaluable_skills(self) -> None:
         tempdir, repo = self.make_repo()
@@ -269,10 +359,125 @@ class AgentSkillEvalTest(unittest.TestCase):
             [("skill", "evaluable")],
         )
 
+    def test_validate_guidance_target_accepts_first_class_eval_file(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        guidance = write_guidance(repo)
+        eval_path = write_guidance_eval(repo)
+        target = self.module.EvalTarget(
+            name="user-guidance",
+            kind="guidance",
+            path=guidance,
+            eval_path=eval_path,
+        )
+
+        self.assertEqual(self.module.validate_target(target), [])
+
+    def test_parse_trace_detects_guidance_read(self) -> None:
+        trace = json.dumps(
+            {
+                "type": "item.completed",
+                "item": {
+                    "type": "command_execution",
+                    "command": "sed -n '1,200p' .agents/AGENTS.md",
+                },
+            }
+        )
+
+        parsed = self.module.parse_trace(trace, "user-guidance", "guidance")
+
+        self.assertTrue(parsed.target_read)
+
+    def test_guidance_target_is_active_without_an_observable_shell_read(self) -> None:
+        target = self.module.EvalTarget(
+            name="user-guidance",
+            kind="guidance",
+            path=Path("AGENTS.md"),
+            eval_path=Path("AGENTS.evals.json"),
+        )
+        case = self.module.EvalCase(
+            id="friendly",
+            prompt="Reply naturally.",
+            should_trigger=False,
+            assertions=("The response is natural.",),
+        )
+        result = self.module.RunResult(
+            case_id=case.id,
+            trial=1,
+            variant="candidate",
+            output="natural",
+            target_read=False,
+        )
+
+        self.assertTrue(self.module.target_read_passes(target, case, result))
+
+    def test_run_guidance_case_copies_user_guidance_into_candidate(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        guidance = write_guidance(repo)
+        eval_path = write_guidance_eval(repo)
+        target = self.module.EvalTarget(
+            name="user-guidance",
+            kind="guidance",
+            path=guidance,
+            eval_path=eval_path,
+        )
+        case = self.module.EvalCase(
+            id="guidance",
+            prompt="Respond neutrally.",
+            should_trigger=False,
+            assertions=("The response is neutral.",),
+        )
+
+        def fake_invoke(run_repo, *args, **kwargs):
+            self.assertEqual(
+                (run_repo / ".agents/AGENTS.md").read_text(encoding="utf-8"),
+                guidance.read_text(encoding="utf-8"),
+            )
+            return json.dumps(
+                {"item": {"type": "agent_message", "text": "neutral"}}
+            )
+
+        with mock.patch.object(self.module, "invoke_codex", side_effect=fake_invoke):
+            result = self.module.run_target_case(
+                target,
+                self.module.RunSpec(
+                    case=case,
+                    trial=1,
+                    variant="candidate",
+                ),
+                timeout=10,
+            )
+
+        self.assertEqual(result.output, "neutral")
+
+    def test_initialize_codex_home_copies_credentials_without_live_symlinks(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        source = repo / "source-codex-home"
+        source.mkdir()
+        (source / "config.toml").write_text("model = 'test'\n", encoding="utf-8")
+        (source / "auth.json").write_text('{"token":"redacted"}\n', encoding="utf-8")
+        destination = repo / "isolated-codex-home"
+
+        with mock.patch.dict(os.environ, {"CODEX_HOME": str(source)}, clear=False):
+            self.module.initialize_codex_home(destination)
+
+        for name in ("config.toml", "auth.json"):
+            copied = destination / name
+            self.assertFalse(copied.is_symlink())
+            self.assertEqual(
+                copied.read_text(encoding="utf-8"),
+                (source / name).read_text(encoding="utf-8"),
+            )
+
     def test_prek_hooks_trigger_for_guidance_and_skills(self) -> None:
         config = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
 
-        expected = "files: ^home/dot_config/exact_agents/(AGENTS\\.md|skills/)"
+        expected = (
+            "files: ^home/dot_config/exact_agents/"
+            "(AGENTS\\.md|AGENTS\\.evals\\.json|skills/)"
+        )
         self.assertEqual(config.count(expected), 2)
 
     def test_validate_skill_accepts_required_action_sequence(self) -> None:
@@ -323,7 +528,7 @@ class AgentSkillEvalTest(unittest.TestCase):
         self.assertTrue(any("positive" in error for error in errors))
         self.assertTrue(any("negative" in error for error in errors))
 
-    def test_parse_trace_detects_skill_read_and_last_message(self) -> None:
+    def test_parse_trace_detects_target_read_and_last_message(self) -> None:
         trace = "\n".join(
             [
                 json.dumps(
@@ -346,7 +551,7 @@ class AgentSkillEvalTest(unittest.TestCase):
 
         parsed = self.module.parse_trace(trace, "demo")
 
-        self.assertTrue(parsed.skill_read)
+        self.assertTrue(parsed.target_read)
         self.assertEqual(parsed.output, "final answer")
 
     def test_parse_trace_records_research_before_file_change(self) -> None:
@@ -444,7 +649,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
                 "GIT_CONFIG_GLOBAL": str(outer_repo / "global.gitconfig"),
                 "AUTH_TOKEN": "secret",
                 "PATH": "/usr/bin:/bin",
-                "AGENT_SKILL_EVAL_CODEX": str(fake_codex),
+                "AGENT_GUIDANCE_EVAL_CODEX": str(fake_codex),
                 "ENVIRONMENT_DUMP": str(environment_dump),
             },
             clear=False,
@@ -498,7 +703,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
                 "HERDR_WORKSPACE_ID": "w1",
                 "HERDR_TAB_ID": "w1:t1",
                 "HERDR_PANE_ID": "w1:p1",
-                "AGENT_SKILL_EVAL_CODEX": str(fake_codex),
+                "AGENT_GUIDANCE_EVAL_CODEX": str(fake_codex),
                 "ENVIRONMENT_DUMP": str(environment_dump),
             },
             clear=False,
@@ -535,7 +740,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             ),
             mock.patch.dict(
                 os.environ,
-                {"AGENT_SKILL_EVAL_SANDBOX": "danger-full-access"},
+                {"AGENT_GUIDANCE_EVAL_SANDBOX": "danger-full-access"},
                 clear=False,
             ),
             mock.patch.object(
@@ -674,7 +879,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             trial=1,
             variant="candidate",
             output="answer",
-            skill_read=False,
+            target_read=False,
         )
         judge_output = json.dumps(
             {
@@ -715,6 +920,28 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             "gpt-5.6-sol",
         )
         self.assertEqual(invoke.call_args.kwargs["reasoning_effort"], "medium")
+
+    def test_guidance_cases_use_only_judging_without_a_skill_baseline(self) -> None:
+        case = self.module.EvalCase(
+            id="correction",
+            prompt="Respond neutrally.",
+            should_trigger=True,
+            assertions=("The response is neutral.",),
+        )
+        result = self.module.RunResult(
+            case_id=case.id,
+            trial=1,
+            variant="candidate",
+            output="neutral",
+            target_read=False,
+        )
+
+        payload, mappings = self.module.build_judge_payload([case], [result])
+
+        self.assertEqual(payload[0]["only"], "neutral")
+        self.assertEqual(mappings, {(case.id, 1): {"only": "candidate"}})
+        self.assertNotIn("A", payload[0])
+        self.assertNotIn("B", payload[0])
 
     def test_main_propagates_model_settings_into_eval_config(self) -> None:
         target = self.module.EvalTarget(
@@ -806,7 +1033,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             trial=1,
             variant="candidate",
             output="implemented",
-            skill_read=False,
+            target_read=False,
             actions=("file_change", "web_search", "github_search"),
         )
 
@@ -913,20 +1140,28 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         skill = write_skill(repo, "cache")
         config = self.module.EvalConfig(trials=1, jobs=2, timeout=180)
 
-        first = self.module.cache_key(skill, config, codex_identity="codex 1")
-        second = self.module.cache_key(
-            skill,
+        target = self.module.EvalTarget(
+            name=skill.name,
+            kind="skill",
+            path=skill,
+            eval_path=skill / "evals/evals.json",
+        )
+
+        def cache_key(config, codex_identity):
+            return self.module.target_cache_key(target, config, codex_identity)
+
+        first = cache_key(config, codex_identity="codex 1")
+        second = cache_key(
             self.module.EvalConfig(trials=3, jobs=2, timeout=180),
             codex_identity="codex 1",
         )
         (skill / "SKILL.md").write_text("changed", encoding="utf-8")
-        third = self.module.cache_key(skill, config, codex_identity="codex 1")
+        third = cache_key(config, codex_identity="codex 1")
 
         self.assertNotEqual(first, second)
         self.assertNotEqual(first, third)
 
-        configured = self.module.cache_key(
-            skill,
+        configured = cache_key(
             self.module.EvalConfig(
                 trials=1,
                 jobs=2,
@@ -938,8 +1173,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             ),
             codex_identity="codex 1",
         )
-        different_model = self.module.cache_key(
-            skill,
+        different_model = cache_key(
             self.module.EvalConfig(
                 trials=1,
                 jobs=2,
@@ -951,8 +1185,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             ),
             codex_identity="codex 1",
         )
-        different_effort = self.module.cache_key(
-            skill,
+        different_effort = cache_key(
             self.module.EvalConfig(
                 trials=1,
                 jobs=2,
@@ -967,8 +1200,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         self.assertNotEqual(configured, different_model)
         self.assertNotEqual(configured, different_effort)
 
-        different_judge_model = self.module.cache_key(
-            skill,
+        different_judge_model = cache_key(
             self.module.EvalConfig(
                 trials=1,
                 jobs=2,
@@ -980,8 +1212,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             ),
             codex_identity="codex 1",
         )
-        different_judge_effort = self.module.cache_key(
-            skill,
+        different_judge_effort = cache_key(
             self.module.EvalConfig(
                 trials=1,
                 jobs=2,
@@ -1139,13 +1370,13 @@ emit({"type": "agent_message", "text": output})
             encoding="utf-8",
         )
         fake_codex.chmod(0o755)
-        previous = os.environ.get("AGENT_SKILL_EVAL_CODEX")
-        os.environ["AGENT_SKILL_EVAL_CODEX"] = str(fake_codex)
+        previous = os.environ.get("AGENT_GUIDANCE_EVAL_CODEX")
+        os.environ["AGENT_GUIDANCE_EVAL_CODEX"] = str(fake_codex)
         self.addCleanup(
             lambda: (
-                os.environ.pop("AGENT_SKILL_EVAL_CODEX", None)
+                os.environ.pop("AGENT_GUIDANCE_EVAL_CODEX", None)
                 if previous is None
-                else os.environ.__setitem__("AGENT_SKILL_EVAL_CODEX", previous)
+                else os.environ.__setitem__("AGENT_GUIDANCE_EVAL_CODEX", previous)
             )
         )
         cache = self.module.ResultCache(repo / ".git/eval-cache")

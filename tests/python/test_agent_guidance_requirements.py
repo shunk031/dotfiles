@@ -225,6 +225,42 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         for source in self.sources:
             self.assertNotIn("line_requirement_counts", source)
 
+    def test_guidance_evaluation_wiring_has_one_truthful_consumer_map(self) -> None:
+        wiring = self.contract["evaluation_wiring"]
+        self.assertEqual(wiring["runner"], "scripts/agent_guidance_eval.py")
+        self.assertEqual(
+            wiring["guidance_source"], "home/dot_config/exact_agents/AGENTS.md"
+        )
+        self.assertEqual(
+            wiring["guidance_eval"], "home/dot_config/exact_agents/AGENTS.evals.json"
+        )
+        self.assertEqual(wiring["cache"], "agent-guidance-eval-cache/v1")
+        self.assertEqual(wiring["validate_hook"], "agent-guidance-validate")
+        self.assertEqual(wiring["eval_hook"], "agent-guidance-eval")
+        self.assertEqual(wiring["skip_variable"], "SKIP=agent-guidance-eval")
+        self.assertEqual(
+            {
+                item["path"] for item in wiring["wiring_only_paths"]
+            },
+            {
+                "home/dot_config/exact_agents/skills/shunk031-manage-agent-guidance/SKILL.md",
+                "home/dot_config/exact_agents/skills/shunk031-structured-writing/evals/evals.json",
+            },
+        )
+        self.assertTrue(
+            all(item["reason"].strip() for item in wiring["wiring_only_paths"])
+        )
+
+        prek = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
+        makefile = (REPO_ROOT / "Makefile").read_text(encoding="utf-8")
+        workflow = (REPO_ROOT / ".github/workflows/test.yaml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(wiring["runner"], prek)
+        self.assertIn(wiring["runner"], makefile)
+        self.assertIn(wiring["runner"].replace(".", "\\."), workflow)
+        self.assertNotIn("agent_skill_eval", prek + makefile + workflow)
+
     def test_each_historical_bullet_or_directive_has_semantic_requirements(
         self,
     ) -> None:

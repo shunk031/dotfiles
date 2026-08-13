@@ -12,9 +12,9 @@ setup:
 	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise install
 	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise exec -- prek install
 
-.PHONY: eval-skills
-eval-skills:
-	uv run --no-project python scripts/agent_skill_eval.py eval --all --trials 3 --jobs 2 --timeout 180
+.PHONY: eval-guidance
+eval-guidance:
+	uv run --no-project python scripts/agent_guidance_eval.py eval --all --trials 3 --jobs 2 --timeout 180
 
 #
 # Docker

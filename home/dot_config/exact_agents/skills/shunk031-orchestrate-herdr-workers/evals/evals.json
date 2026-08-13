@@ -10,7 +10,7 @@
         "The response renames the orchestrator agent to an addressable name and renames its own tab to a label containing the 🤖 emoji.",
         "The response creates each worker's tab with herdr worktree create using a 🚧 emoji label.",
         "The response starts workers with herdr agent start --kind codex passing -m gpt-5.6-luna and model_reasoning_effort=xhigh after the -- separator.",
-        "The dispatch prompt text names the worker, the worktree, and the orchestrator agent, states that these identities are fixed, and instructs the worker to read the shunk031-orchestrate-herdr-workers skill.",
+        "The dispatch prompt text names the worker, the worktree, and the orchestrator agent, states that these identities are fixed, and explicitly tells the worker to read and follow the `shunk031-orchestrate-herdr-workers` skill before starting the task.",
         "The response waits for worker report prompts instead of polling worker state."
       ]
     },

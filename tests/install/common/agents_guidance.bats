@@ -12,7 +12,7 @@ readonly MANAGE_AGENT_GUIDANCE_SKILL_PATH="./home/dot_config/exact_agents/skills
 readonly STRUCTURED_WRITING_SKILL_PATH="./home/dot_config/exact_agents/skills/shunk031-structured-writing"
 readonly AGENT_GUIDANCE_REQUIREMENTS_PATH="./tests/fixtures/agent_guidance_requirements.json"
 readonly AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH="./tests/python/test_agent_guidance_requirements.py"
-readonly SKILL_EVAL_SCRIPT="./scripts/agent_skill_eval.py"
+readonly GUIDANCE_EVAL_SCRIPT="./scripts/agent_guidance_eval.py"
 readonly PREK_CONFIG_PATH="./.pre-commit-config.yaml"
 readonly SKILL_CREATOR_SHARED_SKILL_PATH="./home/dot_config/exact_agents/skills/skill-creator"
 readonly SKILL_CREATOR_SYMLINK_TEMPLATE="./home/exact_dot_agents/skills/symlink_skill-creator.tmpl"
@@ -159,9 +159,9 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F '## mise Bootstrap Compatibility' "${ROOT_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F 'SKIP=agent-skill-eval' "${ROOT_AGENTS_PATH}"
+    run grep -F 'SKIP=agent-guidance-eval' "${ROOT_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F 'real Codex skill evaluation' "${ROOT_AGENTS_PATH}"
+    run grep -F 'real model evaluation' "${ROOT_AGENTS_PATH}"
     [ "${status}" -ne 0 ]
 }
 
@@ -205,9 +205,9 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F 'Persist only concise, actionable prevention that generalizes beyond the incident and states a reusable root-cause safeguard.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
-    run grep -F 'For work in this public dotfiles repository, run skill evaluation locally through `prek`.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    run grep -F 'For work in this public dotfiles repository, run guidance evaluation locally through `prek`.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
-    run grep -F 'In this public dotfiles repository, use `SKIP=agent-skill-eval` only for an emergency.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    run grep -F 'In this public dotfiles repository, use `SKIP=agent-guidance-eval` only for an emergency.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
     run grep -F 'Never skip static validation in this public dotfiles repository.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
     [ "${status}" -eq 0 ]
@@ -506,11 +506,11 @@ readonly GITIGNORE_PATH="./.gitignore"
 
 @test "[common] prek validates and evaluates changed managed skills and guidance" {
     [ -f "${PREK_CONFIG_PATH}" ]
-    [ -f "${SKILL_EVAL_SCRIPT}" ]
+    [ -f "${GUIDANCE_EVAL_SCRIPT}" ]
 
-    run grep -F 'id: agent-skill-validate' "${PREK_CONFIG_PATH}"
+    run grep -F 'id: agent-guidance-validate' "${PREK_CONFIG_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'id: agent-skill-eval' "${PREK_CONFIG_PATH}"
+    run grep -F 'id: agent-guidance-eval' "${PREK_CONFIG_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'pass_filenames: false' "${PREK_CONFIG_PATH}"
     [ "${status}" -eq 0 ]

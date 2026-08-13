@@ -45,8 +45,8 @@ Before assigning a destination, inspect code, adjacent configuration comments, t
 
 ## Repository Validation
 
-- For work in this public dotfiles repository, run skill evaluation locally through `prek`.
-- In this public dotfiles repository, use `SKIP=agent-skill-eval` only for an emergency.
+- For work in this public dotfiles repository, run guidance evaluation locally through `prek`.
+- In this public dotfiles repository, use `SKIP=agent-guidance-eval` only for an emergency.
 - Never skip static validation in this public dotfiles repository.
 - For this public dotfiles repository, run real model evaluation locally, not in CI.
 - For this public dotfiles repository, CI may test the evaluation runner only with a fake `codex` executable.

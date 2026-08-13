@@ -2,6 +2,7 @@
 
 readonly SCRIPT_PATH="./install/common/rtk.sh"
 readonly TEMPLATE_PATH="./home/.chezmoiscripts/common/run_after_30-install-rtk.sh.tmpl"
+readonly TEMPLATE_PATH="./home/.chezmoiscripts/common/run_after_30-install-rtk.sh.tmpl"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"

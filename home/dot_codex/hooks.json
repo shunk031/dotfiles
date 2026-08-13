@@ -1,0 +1,17 @@
+{
+  "description": "Public Codex lifecycle hooks.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.codex/hooks/rtk-rewrite.sh",
+            "statusMessage": "Rewriting Bash command with RTK"
+          }
+        ]
+      }
+    ]
+  }
+}

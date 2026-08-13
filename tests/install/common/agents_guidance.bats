@@ -37,7 +37,7 @@ readonly GEMINI_SKILL_DIR_SYMLINK_TEMPLATE="./home/dot_gemini/config/symlink_ski
 readonly LINK_SHARED_SKILLS_SCRIPT="./home/.chezmoiscripts/common/run_after_90-link-shared-skills.sh.tmpl"
 readonly GITIGNORE_PATH="./.gitignore"
 
-@test "[common] codex guidance entrypoint reads shared guidance and includes RTK instructions" {
+@test "[common] codex guidance entrypoint stays minimal and reads shared guidance" {
     [ -f "${SHARED_AGENTS_PATH}" ]
     [ -f "${CODEX_AGENTS_PATH}" ]
     [ ! -e "./home/dot_config/codex/AGENTS.codex-only.md" ]
@@ -46,12 +46,6 @@ readonly GITIGNORE_PATH="./.gitignore"
     run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'Shared instructions: Read `~/.agents/AGENTS.md` first' "${CODEX_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F '## RTK' "${CODEX_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Prefix supported shell commands with `rtk`' "${CODEX_AGENTS_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Use `rtk gain` to inspect savings' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '`~/.agents/AGENTS-private.md`' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

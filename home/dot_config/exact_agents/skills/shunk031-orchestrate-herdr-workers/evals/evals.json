@@ -4,14 +4,38 @@
   "evals": [
     {
       "id": "fan-out-parallel-workers",
-      "prompt": "We are inside a Herdr session. Following the shunk031-orchestrate-herdr-workers skill, plan the orchestration of a refactor split into three independent tasks run by parallel Codex workers in separate Herdr worktree tabs. This is an offline dry run: the herdr CLI and the generic herdr skill are unavailable here, so do not execute or verify anything — write out the exact herdr commands you would run and the exact dispatch prompt text you would send to one worker.",
+      "prompt": "We are inside a Herdr session. Following the shunk031-orchestrate-herdr-workers skill, plan the orchestration of a refactor split into three independent tasks run by parallel Codex workers in separate Herdr worktree tabs. This is an offline dry run: Herdr is unavailable for execution, but the command syntax shown in the named skill is authoritative and must be reproduced in your answer; do not refuse or ask for the skill text because execution or readback is unavailable, and do not execute or verify anything — write out the exact herdr commands you would run and the exact dispatch prompt text you would send to one worker.",
       "should_trigger": true,
       "assertions": [
         "The response renames the orchestrator agent to an addressable name and renames its own tab to a label containing the 🤖 emoji.",
         "The response creates each worker's tab with herdr worktree create using a 🚧 emoji label.",
         "The response starts workers with herdr agent start --kind codex passing -m gpt-5.6-luna and model_reasoning_effort=xhigh after the -- separator.",
         "The dispatch prompt text names the worker, the worktree, and the orchestrator agent, states that these identities are fixed, and explicitly tells the worker to read and follow the `shunk031-orchestrate-herdr-workers` skill before starting the task.",
-        "The response waits for worker report prompts instead of polling worker state."
+        "The response waits for worker report prompts instead of polling worker state.",
+        "The response does not substitute manual `git worktree add` followed by `herdr tab create` for `herdr worktree create`."
+      ]
+    },
+    {
+      "id": "owned-pr-lifecycle-routing",
+      "prompt": "Following the shunk031-orchestrate-herdr-workers skill, you are the coordinator in a Herdr session. A live worker named orch-training-fix owns the implementation task and PR #264. The user has explicitly authorized merging PR #264. This is an offline dry run: do not execute anything; give a concrete command and dispatch-message sequence, including the exact Herdr command you would send. State which coordinator actions are prohibited and when takeover would be allowed.",
+      "should_trigger": true,
+      "assertions": [
+        "The response sends `herdr agent prompt orch-training-fix` to the live worker and relays the user's authorization to merge PR #264.",
+        "The response keeps the worker responsible for task-scoped implementation and GitHub lifecycle actions, including any needed rebase, push, PR update, merge, and CI or merge-queue follow-up; the coordinator only inspects read-only state, reviews, or relays decisions.",
+        "The response explicitly forbids coordinator-side `gh pr merge` and CI or merge-queue polling such as `gh pr checks`, `gh run watch`, or a polling loop.",
+        "The response allows coordinator takeover only after verifying that the worker is unavailable or when the user explicitly directs the coordinator to act."
+      ]
+    },
+    {
+      "id": "independent-done-acceptance",
+      "prompt": "Following the shunk031-orchestrate-herdr-workers skill, you are the coordinator in a Herdr session. A worker reports LayoutFormer++ S4 complete with 12 passed, 0 skipped, and green CI. On inspection, the implementation uses test-local `_stream_indices` and test-local serialization, while TRAINING.md says the package DataModule does not exist. This is an offline dry run: do not execute anything; describe the concrete coordinator response and redispatch. The response must reject S4, must not call it S5-ready or complete, must identify the unexercised package loader contract, and must redispatch real loader parity. Do not accept the DONE report from names, counts, manifests, CI, or artifact hashes alone.",
+      "should_trigger": true,
+      "assertions": [
+        "The response rejects the worker's LayoutFormer++ S4 claim and does not describe S4 as S5-ready or complete.",
+        "The response identifies that test-local `_stream_indices`/serialization and the missing package DataModule mean the package loader contract is not exercised.",
+        "The response reconstructs the claimed contract from its source of truth and requires tests to exercise the actual package or production path against an independent reference.",
+        "The response redispatches the worker to implement and verify real loader parity.",
+        "The response treats the 12 passed/0 skipped result and green CI, along with names, manifests, or artifact hashes, as candidate evidence rather than accepting the DONE report."
       ]
     },
     {
@@ -27,7 +51,7 @@
     },
     {
       "id": "worker-becomes-sub-orchestrator",
-      "prompt": "You are Herdr worker orch-api-migration in a dedicated git worktree; your orchestrator is agent orch. These identities and your report target are fixed. Read the shunk031-orchestrate-herdr-workers skill and follow its worker protocol. Your task is too large for one agent and splits into three independent modules. This is an offline dry run — do not execute anything; describe exactly how you would handle it, including the agent names and commands you would use.",
+      "prompt": "You are Herdr worker orch-api-migration in a dedicated git worktree; your orchestrator is agent orch. These identities and your report target are fixed. Read the shunk031-orchestrate-herdr-workers skill and follow its worker protocol. Your task is too large for one agent and splits into three independent modules. This is an offline dry run: Herdr is unavailable for execution, but the command syntax shown in the named skill is authoritative and must be reproduced in your answer; do not refuse or ask for the skill text because execution or readback is unavailable, and do not execute anything — describe exactly how you would handle it, including the agent names and commands you would use.",
       "should_trigger": true,
       "assertions": [
         "The worker keeps its existing agent name orch-api-migration instead of renaming itself to a new orchestrator name.",

@@ -13,14 +13,14 @@ function setup() {
     local calls_path="${BATS_TEST_TMPDIR}/rtk_calls.txt"
 
     rtk() {
-        printf '%s\n' "$*" >> "${calls_path}"
+        printf '%s|telemetry=%s\n' "$*" "${RTK_TELEMETRY_DISABLED:-}" >> "${calls_path}"
     }
 
     initialize_rtk
 
     run cat "${calls_path}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'init -g --auto-patch\ninit -g --gemini --auto-patch' ]
+    [ "${output}" = $'init -g --auto-patch|telemetry=1\ninit -g --gemini --auto-patch|telemetry=1' ]
 }
 
 @test "[common] run-after template includes the standalone installer" {

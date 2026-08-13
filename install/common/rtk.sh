@@ -24,12 +24,12 @@ function activate_mise() {
 }
 
 #
-# @description Generate the supported global RTK integrations.
+# @description Generate the supported global RTK integrations with telemetry disabled.
 # @see https://www.rtk-ai.app/docs/getting-started/quick-start/
 #
 function initialize_rtk() {
-    rtk init -g --auto-patch
-    rtk init -g --gemini --auto-patch
+    RTK_TELEMETRY_DISABLED=1 rtk init -g --auto-patch
+    RTK_TELEMETRY_DISABLED=1 rtk init -g --gemini --auto-patch
 }
 
 #

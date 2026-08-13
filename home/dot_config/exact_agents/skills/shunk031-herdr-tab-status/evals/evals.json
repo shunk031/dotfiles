@@ -26,19 +26,19 @@
     },
     {
       "id": "label-user-action-required",
-      "prompt": "The worker created pull request 615 and reported DONE, but the user still needs to review and merge it. Review and merge are still pending, so ✅ is not allowed. Output the literal tab name `⛔ review and merge PR 615` first, then explain that the worker cannot progress or close until the user acts and that the worker owns it while live, while the orchestrator may set it only for a silent or dead worker.",
+      "prompt": "The worker published pull request 615 and reported DONE, but the PR is still OPEN: the user still needs to review and merge it, and the worker's worktree and tab intentionally remain alive through the PR lifecycle. Review and merge are still pending, so ✅ is not allowed. Output the literal tab name `⛔ review and merge PR 615` first, then explain that publishing a PR and reporting DONE do not complete the worker while this user-only action remains; the blocked label stays until the action resolves, and ✅ is allowed only after no action remains. Explicitly state that the worker owns its live tab label, while the orchestrator may set it only for a silent or dead worker; orchestration separately owns PR-lifetime retention and cleanup.",
       "should_trigger": true,
       "assertions": [
         "The response uses a tab name beginning with the ⛔ emoji.",
         "The response includes a concise task label after the emoji.",
         "The response identifies review or merge as the required user action.",
-        "The response says the pending review or merge prevents the worker from progressing or closing, distinguishing it from active work and completion.",
+        "The response says an OPEN PR and DONE report do not complete the worker while pending review or merge prevents it from progressing or closing, and that ✅ is allowed only after the action resolves.",
         "The response allows the worker to set its own label and the orchestrator to set it on behalf of a silent or dead worker."
       ]
     },
     {
       "id": "label-blocked-work",
-      "prompt": "You are Herdr worker orch-render in a dedicated git worktree; your orchestrator is agent orch. An external dependency is unavailable, so the task cannot progress. This is an offline dry run — do not execute anything. Read the shunk031-herdr-tab-status skill and list the exact commands you would use to rename your own current tab before reporting BLOCKED to orch. The worker was stopped or superseded and is awaiting handoff or cleanup; do not mark the task complete.",
+      "prompt": "You are Herdr worker orch-render in a dedicated git worktree; your orchestrator is agent orch. An external dependency is unavailable, so the task cannot progress or close. This is an offline dry run — do not execute anything. Read the shunk031-herdr-tab-status skill, explain that reason, and list the exact commands you would use to rename your own current tab before reporting BLOCKED to orch. The worker was stopped or superseded and is awaiting handoff or cleanup; do not mark the task complete.",
       "should_trigger": true,
       "assertions": [
         "The response renames the worker's own current tab with herdr tab rename \"$HERDR_TAB_ID\" and a label beginning with the ⛔ emoji.",
@@ -57,6 +57,16 @@
         "The response assigns the worker the 🚧 status while working and ✅ only when no user action remains.",
         "The response allows the worker to set ⛔ when user action is required or work cannot progress or close, and the orchestrator to set it for a silent/dead worker.",
         "The response says not to change another worker's tab during normal work."
+      ]
+    },
+    {
+      "id": "orchestrator-status-precedence",
+      "prompt": "You are the Herdr orchestrator routing work to several worker agents. A developer reminds you to use shunk031-herdr-tab-status while routing the work. You are coordinating, not doing a worker task yourself. Output the exact current tab label `🤖 Orchestrator` first. Then name each of `🚧`, `✅`, and `⛔` as worker-tab statuses and explain which guidance owns the orchestrator label; preserve it rather than applying a worker status.",
+      "should_trigger": true,
+      "assertions": [
+        "The response keeps or sets the current orchestrator tab label to 🤖 Orchestrator.",
+        "The response says 🚧, ✅, and ⛔ are worker-tab statuses and do not replace the orchestrator label.",
+        "The response does not use 🚧, ✅, or ⛔ as the current orchestrator tab status."
       ]
     },
     {

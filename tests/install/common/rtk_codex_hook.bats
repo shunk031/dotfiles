@@ -26,7 +26,7 @@ readonly SCRIPT_PATH="./home/dot_codex/hooks/rtk-rewrite.sh"
 @test "[common] Codex RTK hook rewrites supported Bash commands" {
     local bin_path="${BATS_TEST_TMPDIR}/bin"
     mkdir -p "${bin_path}"
-    cat > "${bin_path}/rtk" <<'EOF'
+    cat > "${bin_path}/rtk" << 'EOF'
 #!/usr/bin/env bash
 
 if [ "$1" = "rewrite" ] && [ "$2" = "git status" ]; then
@@ -38,7 +38,7 @@ exit 1
 EOF
     chmod +x "${bin_path}/rtk"
 
-    run env PATH="${bin_path}:${PATH}" HOME="${BATS_TEST_TMPDIR}/home" bash "${SCRIPT_PATH}" <<'EOF'
+    run env PATH="${bin_path}:${PATH}" HOME="${BATS_TEST_TMPDIR}/home" bash "${SCRIPT_PATH}" << 'EOF'
 {"tool_name":"Bash","tool_input":{"command":"git status"}}
 EOF
     [ "${status}" -eq 0 ]
@@ -49,19 +49,19 @@ EOF
 @test "[common] Codex RTK hook ignores unsupported commands and tools" {
     local bin_path="${BATS_TEST_TMPDIR}/bin"
     mkdir -p "${bin_path}"
-    cat > "${bin_path}/rtk" <<'EOF'
+    cat > "${bin_path}/rtk" << 'EOF'
 #!/usr/bin/env bash
 exit 1
 EOF
     chmod +x "${bin_path}/rtk"
 
-    run env PATH="${bin_path}:${PATH}" HOME="${BATS_TEST_TMPDIR}/home" bash "${SCRIPT_PATH}" <<'EOF'
+    run env PATH="${bin_path}:${PATH}" HOME="${BATS_TEST_TMPDIR}/home" bash "${SCRIPT_PATH}" << 'EOF'
 {"tool_name":"Bash","tool_input":{"command":"echo hello"}}
 EOF
     [ "${status}" -eq 0 ]
     [ -z "${output}" ]
 
-    run env PATH="${bin_path}:${PATH}" HOME="${BATS_TEST_TMPDIR}/home" bash "${SCRIPT_PATH}" <<'EOF'
+    run env PATH="${bin_path}:${PATH}" HOME="${BATS_TEST_TMPDIR}/home" bash "${SCRIPT_PATH}" << 'EOF'
 {"tool_name":"Read","tool_input":{"command":"git status"}}
 EOF
     [ "${status}" -eq 0 ]

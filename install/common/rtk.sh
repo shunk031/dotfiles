@@ -4,7 +4,8 @@
 # @brief Initialize RTK integrations for the configured agent CLIs.
 # @description
 #   Activates mise and lets the pinned RTK binary generate its agent-specific
-#   files.
+#   files. Codex uses the managed `AGENTS.md` guidance instead of a generated
+#   `@RTK.md` reference or a programmatic hook.
 
 set -Eeuo pipefail
 

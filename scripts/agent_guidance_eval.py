@@ -708,15 +708,57 @@ def aggregate_case_assertions(
     )
 
 
+def case_triggers_pass(
+    trial_passes: list[bool], *, should_trigger: bool, strict_all_trials: bool
+) -> bool:
+    """Aggregate one case's per-trial trigger results.
+
+    The asymmetry is deliberate and fails closed. A positive case that misses
+    the target on a minority of trials is usually sampling noise, so it is
+    aggregated by per-case majority like assertions. A negative control that
+    fires even once has demonstrated a real over-trigger, so it stays strict
+    and no majority can excuse it.
+    """
+    if not trial_passes:
+        return False
+    if should_trigger and not strict_all_trials:
+        return sum(trial_passes) >= len(trial_passes) // 2 + 1
+    return all(trial_passes)
+
+
+def aggregate_case_triggers(
+    cases: list[EvalCase],
+    trial_passes: dict[tuple[str, int], bool],
+    *,
+    trials: int,
+    strict_all_trials: bool,
+) -> bool:
+    if trials < 1:
+        return False
+    return all(
+        case_triggers_pass(
+            [trial_passes.get((case.id, trial), False) for trial in range(1, trials + 1)],
+            should_trigger=case.should_trigger,
+            strict_all_trials=strict_all_trials,
+        )
+        for case in cases
+    )
+
+
 def acceptance_policy(*, strict_all_trials: bool) -> str:
     assertions = (
         "all trials per case"
         if strict_all_trials
         else "a majority of trials per case"
     )
+    triggers = (
+        "all trials per case"
+        if strict_all_trials
+        else "a majority of trials for positive cases and all trials for negative controls"
+    )
     return (
-        f"assertions require {assertions}; all cases and coverage must pass; "
-        "candidate_wins >= baseline_wins"
+        f"assertions require {assertions}; triggers require {triggers}; "
+        "all cases and coverage must pass; candidate_wins >= baseline_wins"
     )
 
 
@@ -1214,7 +1256,12 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
         for result in results
         if result.variant == "candidate"
     }
-    trigger_ok = all(trigger_passes.values())
+    trigger_ok = aggregate_case_triggers(
+        cases,
+        trigger_passes,
+        trials=config.trials,
+        strict_all_trials=config.strict_all_trials,
+    )
     action_failures = required_action_failures(cases, results)
     actions_ok = not action_failures
     action_failure_keys = {
@@ -1308,6 +1355,22 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
             failure_details.append(
                 f"{case.id}: assertion passes {sum(statuses)}/{len(statuses)}; "
                 f"policy requires {acceptance_policy(strict_all_trials=config.strict_all_trials)}"
+            )
+    for case in cases:
+        statuses = [
+            trigger_passes.get((case.id, trial), False)
+            for trial in range(1, config.trials + 1)
+        ]
+        if not case_triggers_pass(
+            statuses,
+            should_trigger=case.should_trigger,
+            strict_all_trials=config.strict_all_trials,
+        ):
+            scope = "positive case" if case.should_trigger else "negative control"
+            failure_details.append(
+                f"{case.id}: trigger passes {sum(statuses)}/{len(statuses)} "
+                f"({scope}); policy requires "
+                f"{acceptance_policy(strict_all_trials=config.strict_all_trials)}"
             )
     comparison_ok = (
         target.kind == "guidance"

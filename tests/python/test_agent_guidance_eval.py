@@ -1467,6 +1467,75 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             self.module.case_assertions_pass([True, True, False], strict_all_trials=True)
         )
 
+    def test_positive_case_triggers_tolerate_a_minority_miss(self) -> None:
+        case = self.module.EvalCase(
+            id="positive",
+            prompt="Reply.",
+            should_trigger=True,
+            assertions=("The answer is useful.",),
+        )
+        majority = {(case.id, 1): True, (case.id, 2): True, (case.id, 3): False}
+        minority = {(case.id, 1): True, (case.id, 2): False, (case.id, 3): False}
+
+        self.assertTrue(
+            self.module.aggregate_case_triggers(
+                [case], majority, trials=3, strict_all_trials=False
+            )
+        )
+        self.assertFalse(
+            self.module.aggregate_case_triggers(
+                [case], minority, trials=3, strict_all_trials=False
+            )
+        )
+
+    def test_negative_control_triggers_stay_strict_under_majority_policy(self) -> None:
+        control = self.module.EvalCase(
+            id="negative",
+            prompt="Reply.",
+            should_trigger=False,
+            assertions=("The answer is useful.",),
+        )
+        fired_once = {(control.id, 1): False, (control.id, 2): True, (control.id, 3): True}
+
+        self.assertFalse(
+            self.module.aggregate_case_triggers(
+                [control], fired_once, trials=3, strict_all_trials=False
+            )
+        )
+        self.assertTrue(
+            self.module.aggregate_case_triggers(
+                [control],
+                {(control.id, trial): True for trial in range(1, 4)},
+                trials=3,
+                strict_all_trials=False,
+            )
+        )
+
+    def test_strict_all_trials_restores_all_trials_trigger_behaviour(self) -> None:
+        case = self.module.EvalCase(
+            id="positive",
+            prompt="Reply.",
+            should_trigger=True,
+            assertions=("The answer is useful.",),
+        )
+        majority = {(case.id, 1): True, (case.id, 2): True, (case.id, 3): False}
+
+        self.assertFalse(
+            self.module.aggregate_case_triggers(
+                [case], majority, trials=3, strict_all_trials=True
+            )
+        )
+        self.assertTrue(
+            self.module.case_triggers_pass(
+                [True, True, False], should_trigger=True, strict_all_trials=False
+            )
+        )
+        self.assertFalse(
+            self.module.case_triggers_pass(
+                [True, True, False], should_trigger=False, strict_all_trials=False
+            )
+        )
+
     def test_comparison_requires_no_regression(self) -> None:
         self.assertTrue(self.module.comparison_passes(1, 1))
         self.assertTrue(self.module.comparison_passes(2, 0))

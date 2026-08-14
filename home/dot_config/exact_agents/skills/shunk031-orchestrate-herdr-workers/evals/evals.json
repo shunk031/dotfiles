@@ -4,20 +4,20 @@
   "evals": [
     {
       "id": "fan-out-parallel-workers",
-      "prompt": "We are inside a Herdr session. Following the shunk031-orchestrate-herdr-workers skill, plan the orchestration of a refactor split into three independent tasks run by parallel Codex workers in separate Herdr worktree tabs. This is an offline dry run: Herdr is unavailable for execution, but the command syntax shown in the named skill is authoritative and must be reproduced in your answer; do not refuse or ask for the skill text because execution or readback is unavailable, and do not execute or verify anything — write out the exact herdr commands you would run and the exact dispatch prompt text you would send to one worker.",
+      "prompt": "We are inside a Herdr session. In an offline dry run, plan three independent tasks for parallel Codex workers in separate Herdr worktree tabs. Show the 🤖 orchestrator setup and exact commands. Give each task a separate quoted task_prompt with distinct worker and task/report identities; do not reuse prompts, and do not execute anything.",
       "should_trigger": true,
       "assertions": [
         "The response renames the orchestrator agent to an addressable name and renames its own tab to a label containing the 🤖 emoji.",
         "The response creates each worker's tab with herdr worktree create using a 🚧 emoji label.",
         "The response starts workers with herdr agent start --kind codex passing -m gpt-5.6-luna and model_reasoning_effort=xhigh after the -- separator.",
-        "The dispatch prompt text names the worker, the worktree, and the orchestrator agent, states that these identities are fixed, and explicitly tells the worker to read and follow the `shunk031-orchestrate-herdr-workers` skill before starting the task.",
-        "The response waits for worker report prompts instead of polling worker state.",
+        "Each worker gets a separately built dispatch prompt with its own fixed identity and task/report target, explicitly telling it to read and follow the `shunk031-orchestrate-herdr-workers` skill before starting; no prompt is reused.",
+        "The response keeps normal completion report-driven without polling worker reports.",
         "The response does not substitute manual `git worktree add` followed by `herdr tab create` for `herdr worktree create`."
       ]
     },
     {
       "id": "owned-pr-lifecycle-routing",
-      "prompt": "Following the shunk031-orchestrate-herdr-workers skill, you are the coordinator in a Herdr session. A live worker named orch-training-fix owns the implementation task and PR #264. The user has explicitly authorized merging PR #264. This is an offline dry run: do not execute anything; give a concrete command and dispatch-message sequence, including the exact Herdr command you would send. State which coordinator actions are prohibited and when takeover would be allowed.",
+      "prompt": "Read the shunk031-orchestrate-herdr-workers skill before answering. Following the shunk031-orchestrate-herdr-workers skill, you are the coordinator in a Herdr session. A live worker named orch-training-fix owns the implementation task and PR #264. The user has explicitly authorized merging PR #264. This is an offline dry run: do not execute anything; give a concrete command and dispatch-message sequence, including the exact `herdr agent prompt orch-training-fix` command that relays the user's merge authorization and tells the live worker to perform the merge. State the complete worker-owned lifecycle for rebase, push, PR update, merge, CI or merge-queue follow-up; explicitly prohibit coordinator-side `gh pr merge`, name the prohibited coordinator-side CI checks and polling, and say takeover is allowed after worker unavailability or explicit user direction.",
       "should_trigger": true,
       "assertions": [
         "The response sends `herdr agent prompt orch-training-fix` to the live worker and relays the user's authorization to merge PR #264.",
@@ -28,7 +28,7 @@
     },
     {
       "id": "independent-done-acceptance",
-      "prompt": "Following the shunk031-orchestrate-herdr-workers skill, you are the coordinator in a Herdr session. A worker reports LayoutFormer++ S4 complete with 12 passed, 0 skipped, and green CI. On inspection, the implementation uses test-local `_stream_indices` and test-local serialization, while TRAINING.md says the package DataModule does not exist. This is an offline dry run: do not execute anything; describe the concrete coordinator response and redispatch. The response must reject S4, must not call it S5-ready or complete, must identify the unexercised package loader contract, and must redispatch real loader parity. Do not accept the DONE report from names, counts, manifests, CI, or artifact hashes alone.",
+      "prompt": "Following the shunk031-orchestrate-herdr-workers skill, you are the coordinator in a Herdr session. A worker reports LayoutFormer++ S4 complete with 12 passed, 0 skipped, and green CI. On inspection, the implementation uses test-local `_stream_indices` and test-local serialization, while TRAINING.md says the package DataModule does not exist. This is an offline dry run: do not execute anything; describe the concrete coordinator response and redispatch. The response must reject S4, must not call it S5-ready or complete, must identify the unexercised package loader contract, and must redispatch real loader parity. Explicitly state that worker names, pass counts, CI, manifests, and artifact hashes are candidate evidence only, not acceptance, and compare the real package loader against an independently reconstructed reference rather than another test-local helper; do not accept the DONE report from them alone.",
       "should_trigger": true,
       "assertions": [
         "The response rejects the worker's LayoutFormer++ S4 claim and does not describe S4 as S5-ready or complete.",
@@ -40,23 +40,51 @@
     },
     {
       "id": "worker-completion-report",
-      "prompt": "You are Herdr worker orch-auth-fix in a dedicated git worktree; your orchestrator is agent orch. These identities and your report target are fixed. Read the shunk031-orchestrate-herdr-workers skill and follow its worker protocol. Your dispatch instructed you to push your branch and open a pull request when done. You have just finished the assigned task and committed the result. This is an offline dry run — do not execute anything; list the exact commands and messages you would use to wrap up.",
+      "prompt": "You are Herdr worker orch-auth-fix in a dedicated git worktree; your orchestrator is agent orch. These identities and your report target are fixed. Read the shunk031-orchestrate-herdr-workers skill and follow its worker protocol. Your dispatch instructed you to push your branch and open a pull request when done. You have just finished the assigned task and committed the result. This is an offline dry run — do not execute anything; list only the exact commands and messages needed to push, open the PR, keep the tab at the canonical `⛔ review and merge PR 264` handoff label, and send the DONE report.",
       "should_trigger": true,
       "assertions": [
         "The response pushes the branch and opens a pull request before reporting completion.",
-        "The response renames the worker's own tab to a label containing the ✅ emoji.",
+        "The response keeps an open PR at the canonical ⛔ review and merge PR 264 handoff label rather than marking it ✅ before user action is complete.",
         "The response reports back with herdr agent prompt orch using a message that starts with DONE, identifies the worker, and includes a one-line summary and the pull request URL.",
         "The response does not remove the worktree, delete the branch, or close the tab."
       ]
     },
     {
       "id": "worker-becomes-sub-orchestrator",
-      "prompt": "You are Herdr worker orch-api-migration in a dedicated git worktree; your orchestrator is agent orch. These identities and your report target are fixed. Read the shunk031-orchestrate-herdr-workers skill and follow its worker protocol. Your task is too large for one agent and splits into three independent modules. This is an offline dry run: Herdr is unavailable for execution, but the command syntax shown in the named skill is authoritative and must be reproduced in your answer; do not refuse or ask for the skill text because execution or readback is unavailable, and do not execute anything — describe exactly how you would handle it, including the agent names and commands you would use.",
+      "prompt": "You are Herdr worker orch-api-migration in a dedicated git worktree; your orchestrator is agent orch. These identities and your report target are fixed. Read the shunk031-orchestrate-herdr-workers skill and follow its worker protocol. Your task is too large for one agent and splits into three independent modules. This is an offline dry run; do not execute anything, and describe how you would handle it, including the agent names and commands you would use.",
       "should_trigger": true,
       "assertions": [
         "The worker keeps its existing agent name orch-api-migration instead of renaming itself to a new orchestrator name.",
         "The worker launches sub-workers with the same herdr worktree plus Codex pattern, deriving unique sub-worker names from its own name.",
         "Sub-workers report to the worker, and the worker still reports its overall completion only to orch."
+      ]
+    },
+    {
+      "id": "status-reconciliation-before-waiting",
+      "prompt": "You are the orchestrator agent orch264 in a Herdr session. A bounded reconciliation is already complete: Herdr state and the readable transcript confirm that the worker is still working; its worktree has staged, unpushed changes; PR/CI is green only for the old head. This is an offline dry run; state whether any prompt or acknowledgement is sent and what is awaited next.",
+      "should_trigger": true,
+      "assertions": [
+        "The response sends no prompt or acknowledgement, awaits the next DONE or BLOCKED report, and remains report-driven without polling."
+      ]
+    },
+    {
+      "id": "observer-scope-stale-moving-lifecycle",
+      "prompt": "You are the orchestrator agent orch264 in a Herdr session. The user explicitly requests active observation. In an offline dry run, show the exact existing observer-script command you plan to use for these known direct children without executing it: worker orch264-pr266-review on pane w1P:p1 and tab w1P:t1, and worker orch264-pr-authority on pane w1S:p1 and tab w1S:t1. State whether the observer may mutate worker state and how completion is awaited. The ownership boundary excludes agentless shell tabs w18:t6 and w19:t1, nested workers, and other orchestrators.",
+      "should_trigger": true,
+      "assertions": [
+        "The response gives an opt-in invocation of the existing observer with both exact identities `orch264-pr266-review|w1P:p1|w1P:t1` and `orch264-pr-authority|w1S:p1|w1S:t1`, excluding agentless tabs, nested workers, and other orchestrators.",
+        "The response keeps the observer advisory and read-only.",
+        "The response forbids worker-state or tab mutation and worker-report polling, leaving completion report-driven."
+      ]
+    },
+    {
+      "id": "independent-review-reject-owner-redispatch",
+      "prompt": "You are orchestrator agent orch264 in a Herdr session. An independent review worker named orch264-pr627-review reports `REJECT PR #627 at cc5a008abc33ef68d07b30ee57c11ed93a3571c3`; the supplied live implementation/PR owner is orch264-adopt-report. This is an offline dry run; without executing commands, state the observable coordination outcomes: how the consolidated findings are stored in a shell variable and the quoted Herdr command passes that variable as one argument to the supplied live owner, what exact head/status is recorded while re-review is pending, who receives the owner's corrected head for re-review, and whether or when user merge handoff is permitted.",
+      "should_trigger": true,
+      "assertions": [
+        "The response treats REJECT as nonterminal, stores the consolidated findings in a shell variable, and routes them to supplied live owner orch264-adopt-report with `herdr agent prompt orch264-adopt-report`, passing that variable as one quoted argument without shell expansion.",
+        "The response records rejected head `cc5a008abc33ef68d07b30ee57c11ed93a3571c3` as re-review pending and says that, after orch264-adopt-report publishes a corrected head, that exact head is routed to the same reviewer orch264-pr627-review.",
+        "The response blocks user merge handoff until that reviewer reports ACCEPT and does not merge the PR."
       ]
     },
     {

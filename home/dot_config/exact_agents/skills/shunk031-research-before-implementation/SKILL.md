@@ -7,10 +7,10 @@ description: Research current official web documentation and representative GitH
 
 Treat research as a gate, not a recommendation. Before any design decision or file edit, complete these tool stages in order:
 
-1. Call the host-provided native web-search capability for current official sources. Use the capability actually exposed by the current agent host; do not assume a particular tool name or namespace. Inspect documentation, specifications, release notes, and recommended approaches from at least one relevant non-GitHub domain.
-2. Only after those results return, call the same native web-search capability again with results restricted to `github.com`. Inspect representative implementation code or configuration and operational patterns, not only repository descriptions.
+1. Use an available web-research capability for current official sources. Rely on the capability the current agent host actually exposes; do not assume a particular tool name or namespace. Inspect documentation, specifications, release notes, and recommended approaches from at least one relevant non-GitHub domain.
+2. Only after those results return, use a GitHub search or inspect `github.com` sources. Inspect representative implementation code or configuration and operational patterns, not only repository descriptions.
 3. Compare the documented behavior with the GitHub examples. Resolve version, platform, and maintenance differences before choosing the design.
 4. Implement and verify the change based on that evidence.
-5. In the final response, name and link the web sources and GitHub examples consulted and state how they affected the implementation.
+5. In the final response, name and link the web sources and GitHub examples consulted and state how they affected the implementation. The final response must list at least one official non-GitHub URL and one representative GitHub URL, and explain how each source affected the implementation. The GitHub URL must point directly to implementation code or configuration, not only a README, release, or marketplace page.
 
-Do not edit files until both tool calls are complete. Do not substitute memory or local repository inspection for either external research stage. If a required source cannot be accessed, report the limitation before implementation instead of silently skipping the stage.
+Do not edit files until both tool calls are complete. Do not substitute memory or local repository inspection for either external research stage. If either stage fails, returns no usable sources, or cannot be accessed, stop before designing or editing; report the limitation instead of continuing with an implementation.

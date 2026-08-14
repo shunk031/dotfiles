@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import stat
 import subprocess
 import sys
 import tempfile
@@ -474,11 +475,32 @@ class AgentGuidanceEvalTest(unittest.TestCase):
     def test_prek_hooks_trigger_for_guidance_and_skills(self) -> None:
         config = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
 
-        expected = (
+        validate_files = (
             "files: ^home/dot_config/exact_agents/"
             "(AGENTS\\.md|AGENTS\\.evals\\.json|skills/)"
         )
-        self.assertEqual(config.count(expected), 2)
+        eval_files = (
+            "files: ^home/dot_config/exact_agents/"
+            "(AGENTS\\.md|AGENTS\\.evals\\.json|"
+            "skills/[^/]+/(SKILL\\.md|evals/evals\\.json))$"
+        )
+        self.assertEqual(config.count(validate_files), 1)
+        self.assertEqual(config.count(eval_files), 1)
+        self.assertEqual(
+            config.count(
+                "entry: uv run --python 3.14.6 --no-project python "
+                "scripts/agent_guidance_eval.py"
+            ),
+            2,
+        )
+
+        validate_start = config.index("id: agent-guidance-validate")
+        eval_start = config.index("id: agent-guidance-eval")
+        self.assertLess(
+            config.index(validate_files, validate_start),
+            eval_start,
+        )
+        self.assertGreater(config.index(eval_files, eval_start), eval_start)
 
     def test_validate_skill_accepts_required_action_sequence(self) -> None:
         tempdir, repo = self.make_repo()
@@ -595,6 +617,40 @@ class AgentGuidanceEvalTest(unittest.TestCase):
                 parsed.actions, ("web_search", "github_search", "file_change")
             )
         )
+
+    def test_parse_trace_records_shell_research_before_file_change(self) -> None:
+        trace = "\n".join(
+            [
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {
+                            "type": "command_execution",
+                            "command": "curl -fsSL https://developers.openai.com/codex/codex-manual.md",
+                        },
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {
+                            "type": "command_execution",
+                            "command": "curl -fsSL https://raw.githubusercontent.com/openai/codex/main/codex-rs/core/src/web_search.rs",
+                        },
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {"type": "file_change", "changes": []},
+                    }
+                ),
+            ]
+        )
+
+        parsed = self.module.parse_trace(trace, "demo")
+
+        self.assertEqual(parsed.actions, ("web_search", "github_search", "file_change"))
 
     def test_parse_trace_recognizes_gh_code_search_as_github_research(self) -> None:
         trace = json.dumps(
@@ -715,18 +771,43 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         for name, value in observed.items():
             self.assertIsNone(value, name)
 
-    def test_web_search_override_enables_the_selected_custom_provider(self) -> None:
-        with mock.patch.object(
-            self.module,
-            "configured_model_provider",
-            return_value="custom-provider",
-        ):
-            override = self.module.web_search_provider_override()
-
-        self.assertEqual(
-            override,
-            "model_providers.custom-provider.supports_standalone_web_search=true",
+    def test_codex_home_copies_config_and_auth_without_mutating_source(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        source = repo / "source-codex-home"
+        isolated = repo / "isolated-codex-home"
+        source.mkdir()
+        source_config = source / "config.toml"
+        source_auth = source / "auth.json"
+        config_bytes = (
+            b'[projects."/tmp/agent-skill-eval-live/repo"]\ntrust_level = "trusted"\n'
         )
+        auth_bytes = b'{"auth": "fixture"}\n'
+        source_config.write_bytes(config_bytes)
+        source_auth.write_bytes(auth_bytes)
+        source_config.chmod(0o600)
+        source_auth.chmod(0o600)
+
+        with mock.patch.dict(os.environ, {"CODEX_HOME": str(source)}, clear=False):
+            self.module.initialize_codex_home(isolated)
+
+        target_config = isolated / "config.toml"
+        target_auth = isolated / "auth.json"
+        for target, expected, source_path in (
+            (target_config, config_bytes, source_config),
+            (target_auth, auth_bytes, source_auth),
+        ):
+            self.assertTrue(target.is_file())
+            self.assertFalse(target.is_symlink())
+            self.assertEqual(target.read_bytes(), expected)
+            self.assertEqual(stat.S_IMODE(target.stat().st_mode), 0o600)
+            self.assertEqual(source_path.read_bytes(), expected)
+            self.assertEqual(stat.S_IMODE(source_path.stat().st_mode), 0o600)
+
+        target_config.write_bytes(
+            target_config.read_bytes() + b"\n[projects.\"/tmp/new\"]\n"
+        )
+        self.assertEqual(source_config.read_bytes(), config_bytes)
 
     def test_sandbox_override_replaces_requested_sandbox(self) -> None:
         completed = subprocess.CompletedProcess(
@@ -753,20 +834,15 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         sandbox_index = command.index("--sandbox")
         self.assertEqual(command[sandbox_index + 1], "danger-full-access")
 
-    def test_invoke_places_global_search_config_before_exec(self) -> None:
+    def test_invoke_disables_native_search_for_research(self) -> None:
         completed = subprocess.CompletedProcess(
             args=[], returncode=0, stdout="", stderr=""
         )
         with (
             mock.patch.object(
                 self.module,
-                "web_search_provider_override",
-                return_value="model_providers.custom.supports_standalone_web_search=true",
-            ),
-            mock.patch.object(
-                self.module,
                 "disabled_skill_override",
-                return_value='skills.config=[{path="/tmp/demo",enabled=false}]',
+                return_value="",
             ),
             mock.patch.object(
                 self.module.subprocess, "run", return_value=completed
@@ -776,17 +852,39 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
 
         command = run.call_args.args[0]
         exec_index = command.index("exec")
-        self.assertLess(command.index("--search"), exec_index)
-        disable_index = command.index("--disable")
-        self.assertEqual(command[disable_index + 1], "plugins")
-        self.assertLess(disable_index, exec_index)
+        self.assertNotIn("--search", command)
+        self.assertIn('web_search="disabled"', command)
+        self.assertIn("sandbox_workspace_write.network_access=true", command)
+        self.assertGreater(command.index('web_search="disabled"'), exec_index)
+        self.assertGreater(
+            command.index("sandbox_workspace_write.network_access=true"), exec_index
+        )
+        self.assertNotIn("supports_standalone_web_search", " ".join(command))
         self.assertTrue(
             all(
-                index < exec_index
+                index > exec_index
                 for index, value in enumerate(command)
                 if value == "-c"
             )
         )
+
+    def test_invoke_places_skill_override_after_exec(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="", stderr=""
+        )
+        with (
+            mock.patch.object(
+                self.module,
+                "disabled_skill_override",
+                return_value="skills.config=[]",
+            ),
+            mock.patch.object(self.module.subprocess, "run", return_value=completed) as run,
+        ):
+            self.module.invoke_codex(Path("/tmp"), "prompt", 10)
+
+        command = run.call_args.args[0]
+        exec_index = command.index("exec")
+        self.assertGreater(command.index("skills.config=[]"), exec_index)
 
     def test_invoke_adds_model_and_reasoning_effort_to_exec(self) -> None:
         completed = subprocess.CompletedProcess(
@@ -809,6 +907,22 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             command[exec_index + 1 : exec_index + 5],
             ["--model", "gpt-5.6-luna", "-c", 'model_reasoning_effort="xhigh"'],
         )
+        self.assertNotIn("sandbox_workspace_write.network_access=true", command)
+
+    def test_workspace_write_uses_cd_as_primary_codex_workspace(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="", stderr=""
+        )
+        repo = Path("/tmp/agent-skill-eval/repo")
+        with mock.patch.object(
+            self.module.subprocess, "run", return_value=completed
+        ) as run:
+            self.module.invoke_codex(repo, "prompt", 10, sandbox="workspace-write")
+
+        command = run.call_args.args[0]
+        cd_index = command.index("--cd")
+        self.assertEqual(command[cd_index + 1], str(repo))
+        self.assertNotIn("--add-dir", command)
 
     def test_target_variants_receive_target_model_settings(self) -> None:
         tempdir, repo = self.make_repo()
@@ -904,8 +1018,16 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
                 }
             }
         )
+
+        def fake_invoke(*args, **kwargs):
+            judge_home = kwargs["codex_home"]
+            self.assertTrue(judge_home.is_dir())
+            self.assertFalse((judge_home / "config.toml").is_symlink())
+            self.assertFalse((judge_home / "auth.json").is_symlink())
+            return trace
+
         with mock.patch.object(
-            self.module, "invoke_codex", return_value=trace
+            self.module, "invoke_codex", side_effect=fake_invoke
         ) as invoke:
             self.module.judge_results(
                 [case],
@@ -975,6 +1097,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
                     "gpt-5.6-test-judge",
                     "--judge-reasoning-effort",
                     "high",
+                    "--strict-all-trials",
                 ]
             )
 
@@ -984,6 +1107,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         self.assertEqual(config.reasoning_effort, "low")
         self.assertEqual(config.judge_model, "gpt-5.6-test-judge")
         self.assertEqual(config.judge_reasoning_effort, "high")
+        self.assertTrue(config.strict_all_trials)
 
     def test_main_uses_required_model_defaults_without_flags(self) -> None:
         defaults = self.module.EvalConfig()
@@ -991,6 +1115,11 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         self.assertEqual(defaults.reasoning_effort, "xhigh")
         self.assertEqual(defaults.judge_model, "gpt-5.6-sol")
         self.assertEqual(defaults.judge_reasoning_effort, "medium")
+        self.assertFalse(defaults.strict_all_trials)
+
+        with mock.patch.object(self.module.sys, "version_info", (3, 10)):
+            with self.assertRaisesRegex(SystemExit, "requires Python 3.11\\+"):
+                self.module.require_supported_python()
 
         target = self.module.EvalTarget(
             name="demo",
@@ -1310,11 +1439,104 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             normalized, "Here is the requested result.\nI read the input carefully."
         )
 
-    def test_comparison_requires_a_win_without_overall_regression(self) -> None:
+    def test_case_majority_is_per_case_and_not_global_n_of_trials(self) -> None:
+        cases = [
+            self.module.EvalCase(
+                id=f"case-{index}",
+                prompt="Reply.",
+                should_trigger=False,
+                assertions=("The answer is useful.",),
+            )
+            for index in range(8)
+        ]
+        trial_passes = {
+            (case.id, trial): not (case.id == "case-7" and trial != 1)
+            for case in cases
+            for trial in range(1, 4)
+        }
+
+        self.assertFalse(
+            self.module.aggregate_case_assertions(
+                cases, trial_passes, trials=3, strict_all_trials=False
+            )
+        )
+        self.assertTrue(
+            self.module.case_assertions_pass([True, True, False], strict_all_trials=False)
+        )
+        self.assertFalse(
+            self.module.case_assertions_pass([True, True, False], strict_all_trials=True)
+        )
+
+    def test_comparison_requires_no_regression(self) -> None:
         self.assertTrue(self.module.comparison_passes(1, 1))
         self.assertTrue(self.module.comparison_passes(2, 0))
-        self.assertFalse(self.module.comparison_passes(0, 0))
+        self.assertTrue(self.module.comparison_passes(0, 0))
         self.assertFalse(self.module.comparison_passes(1, 2))
+
+    def test_failure_evidence_preserves_normalized_blind_answers_and_judge(self) -> None:
+        target = self.module.EvalTarget(
+            name="demo",
+            kind="skill",
+            path=Path("/tmp/demo"),
+            eval_path=Path("/tmp/demo/evals/evals.json"),
+        )
+        case = self.module.EvalCase(
+            id="positive",
+            prompt="Reply.",
+            should_trigger=True,
+            assertions=("The answer is useful.",),
+        )
+        results = [
+            self.module.RunResult(
+                case_id=case.id,
+                trial=1,
+                variant="candidate",
+                output="candidate answer\n🤖 I read the skill.",
+                target_read=True,
+            ),
+            self.module.RunResult(
+                case_id=case.id,
+                trial=1,
+                variant="baseline",
+                output="baseline answer\n🤖 I read the skill.",
+                target_read=False,
+            ),
+        ]
+        mapping = {(case.id, 1): {"A": "baseline", "B": "candidate"}}
+        judged = [
+            {
+                "id": case.id,
+                "trial": 1,
+                "A_assertions_pass": False,
+                "B_assertions_pass": False,
+                "only_assertions_pass": None,
+                "preferred": "tie",
+                "reason": "contradictory fixture",
+            }
+        ]
+
+        evidence = self.module.build_failure_evidence(
+            target,
+            results,
+            mapping,
+            judged,
+            '{"cases": []}',
+            {(case.id, 1)},
+            policy="per-case majority",
+        )
+
+        self.assertEqual(evidence["cases"][0]["blind_mapping"], mapping[(case.id, 1)])
+        self.assertEqual(
+            evidence["cases"][0]["answers"],
+            {
+                "candidate": "candidate answer",
+                "baseline": "baseline answer",
+                "A": "baseline answer",
+                "B": "candidate answer",
+            },
+        )
+        self.assertEqual(evidence["cases"][0]["judge"], judged[0])
+        self.assertEqual(evidence["judge_output"], '{"cases": []}')
 
     def test_evaluate_skill_uses_fake_codex_and_caches_success(self) -> None:
         tempdir, repo = self.make_repo()
@@ -1387,6 +1609,170 @@ emit({"type": "agent_message", "text": output})
 
         self.assertTrue(passed)
         self.assertTrue(cached)
+
+    def test_evaluate_target_uses_case_majority_and_strict_override(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        skill = write_skill(repo, "majority")
+        target = self.module.EvalTarget(
+            name=skill.name,
+            kind="skill",
+            path=skill,
+            eval_path=skill / "evals/evals.json",
+        )
+
+        def fake_run_target_case(target, spec, timeout, **kwargs):
+            return self.module.RunResult(
+                case_id=spec.case.id,
+                trial=spec.trial,
+                variant=spec.variant,
+                output=f"{spec.variant}-{spec.case.id}-{spec.trial}",
+                target_read=spec.case.should_trigger,
+            )
+
+        def fake_judge_results(cases, results, timeout, **kwargs):
+            mappings = {}
+            entries = []
+            for case in cases:
+                for trial in range(1, 4):
+                    if case.should_trigger:
+                        mappings[(case.id, trial)] = {
+                            "A": "candidate",
+                            "B": "baseline",
+                        }
+                        entries.append(
+                            {
+                                "id": case.id,
+                                "trial": trial,
+                                "A_assertions_pass": case.id != "positive"
+                                or trial != 3,
+                                "B_assertions_pass": False,
+                                "only_assertions_pass": None,
+                                "preferred": "A",
+                                "reason": "fixture",
+                            }
+                        )
+                    else:
+                        mappings[(case.id, trial)] = {"only": "candidate"}
+                        entries.append(
+                            {
+                                "id": case.id,
+                                "trial": trial,
+                                "A_assertions_pass": None,
+                                "B_assertions_pass": None,
+                                "only_assertions_pass": True,
+                                "preferred": "only",
+                                "reason": "fixture",
+                            }
+                        )
+            return entries, mappings, '{"cases": []}'
+
+        with (
+            mock.patch.object(self.module, "codex_identity", return_value="codex"),
+            mock.patch.object(
+                self.module, "run_target_case", side_effect=fake_run_target_case
+            ),
+            mock.patch.object(
+                self.module, "judge_results", side_effect=fake_judge_results
+            ),
+        ):
+            majority_cache = self.module.ResultCache(repo / "majority-cache")
+            majority = self.module.evaluate_target(
+                target,
+                self.module.EvalConfig(trials=3, jobs=2, timeout=10),
+                majority_cache,
+            )
+            strict_cache = self.module.ResultCache(repo / "strict-cache")
+            strict = self.module.evaluate_target(
+                target,
+                self.module.EvalConfig(
+                    trials=3, jobs=2, timeout=10, strict_all_trials=True
+                ),
+                strict_cache,
+            )
+
+        self.assertTrue(majority)
+        self.assertTrue(list((repo / "majority-cache").glob("*.evidence.json")))
+        self.assertFalse(strict)
+
+    def test_evaluate_target_preserves_evidence_for_duplicate_coverage_failure(
+        self,
+    ) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        skill = write_skill(repo, "coverage")
+        target = self.module.EvalTarget(
+            name=skill.name,
+            kind="skill",
+            path=skill,
+            eval_path=skill / "evals/evals.json",
+        )
+        judge_output = '{"cases": ["duplicate"]}'
+
+        def fake_run_target_case(target, spec, timeout, **kwargs):
+            return self.module.RunResult(
+                case_id=spec.case.id,
+                trial=spec.trial,
+                variant=spec.variant,
+                output=f"{spec.variant}-{spec.case.id}",
+                target_read=spec.case.should_trigger,
+            )
+
+        def fake_judge_results(cases, results, timeout, **kwargs):
+            mappings = {}
+            entries = []
+            for case in cases:
+                if case.should_trigger:
+                    mappings[(case.id, 1)] = {"A": "candidate", "B": "baseline"}
+                    entries.append(
+                        {
+                            "id": case.id,
+                            "trial": 1,
+                            "A_assertions_pass": True,
+                            "B_assertions_pass": False,
+                            "only_assertions_pass": None,
+                            "preferred": "A",
+                            "reason": "fixture",
+                        }
+                    )
+                else:
+                    mappings[(case.id, 1)] = {"only": "candidate"}
+                    entries.append(
+                        {
+                            "id": case.id,
+                            "trial": 1,
+                            "A_assertions_pass": None,
+                            "B_assertions_pass": None,
+                            "only_assertions_pass": True,
+                            "preferred": "only",
+                            "reason": "fixture",
+                        }
+                    )
+            entries.append(dict(entries[0]))
+            return entries, mappings, judge_output
+
+        with (
+            mock.patch.object(self.module, "codex_identity", return_value="codex"),
+            mock.patch.object(
+                self.module, "run_target_case", side_effect=fake_run_target_case
+            ),
+            mock.patch.object(
+                self.module, "judge_results", side_effect=fake_judge_results
+            ),
+        ):
+            cache = self.module.ResultCache(repo / "coverage-cache")
+            passed = self.module.evaluate_target(
+                target,
+                self.module.EvalConfig(trials=1, jobs=2, timeout=10),
+                cache,
+            )
+
+        evidence_files = list((repo / "coverage-cache").glob("*.evidence.json"))
+        self.assertFalse(passed)
+        self.assertEqual(len(evidence_files), 1)
+        evidence = json.loads(evidence_files[0].read_text(encoding="utf-8"))
+        self.assertFalse(evidence["cases"])
+        self.assertEqual(evidence["judge_output"], judge_output)
 
 
 if __name__ == "__main__":

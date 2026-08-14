@@ -1077,6 +1077,8 @@ def build_failure_evidence(
     failed_keys: set[tuple[str, int]],
     *,
     policy: str,
+    trigger_passes: dict[tuple[str, int], bool],
+    trigger_ok: bool,
 ) -> dict[str, object]:
     by_key = {
         (result.case_id, result.trial, result.variant): result for result in results
@@ -1098,6 +1100,7 @@ def build_failure_evidence(
         for label, variant in mapping.items():
             result = by_key.get((case_id, trial, variant))
             answers[label] = normalize_artifact(result.output) if result else None
+        candidate = by_key.get((case_id, trial, "candidate"))
         evidence_cases.append(
             {
                 "case_id": case_id,
@@ -1105,9 +1108,11 @@ def build_failure_evidence(
                 "answers": answers,
                 "blind_mapping": mapping,
                 "judge": judged_by_key.get((case_id, trial)),
+                "trigger_passed": trigger_passes.get((case_id, trial), False),
+                "target_read": candidate.target_read if candidate else None,
             }
         )
-    return {
+    evidence: dict[str, object] = {
         "version": 1,
         "target": target.name,
         "kind": target.kind,
@@ -1115,6 +1120,23 @@ def build_failure_evidence(
         "judge_output": judge_output,
         "cases": evidence_cases,
     }
+    if not trigger_ok:
+        # A trigger-only failure can leave every assertion passing, so the failed
+        # cases alone do not show which trials read the target.
+        evidence["trigger_outcomes"] = [
+            {
+                "case_id": case_id,
+                "trial": trial,
+                "trigger_passed": passed,
+                "target_read": (
+                    by_key[(case_id, trial, "candidate")].target_read
+                    if (case_id, trial, "candidate") in by_key
+                    else None
+                ),
+            }
+            for (case_id, trial), passed in sorted(trigger_passes.items())
+        ]
+    return evidence
 
 
 def codex_identity() -> str:
@@ -1311,6 +1333,8 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
                 judge_output,
                 failed_keys,
                 policy=policy,
+                trigger_passes=trigger_passes,
+                trigger_ok=trigger_ok,
             ),
         )
     passed = (

@@ -258,6 +258,8 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         )
         self.assertIn(wiring["runner"], prek)
         self.assertIn(wiring["runner"], makefile)
+        self.assertIn("uv run --python 3.14.6 --no-project", makefile)
+        self.assertNotIn("--strict-all-trials", makefile)
         self.assertIn(wiring["runner"].replace(".", "\\."), workflow)
         self.assertNotIn("agent_skill_eval", prek + makefile + workflow)
 

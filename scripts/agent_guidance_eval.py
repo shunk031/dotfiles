@@ -4,7 +4,9 @@
 
 UNPROVEN_POLICY: If behavior-identical candidates produce contradictory real-model
 results, classify the candidate as UNPROVEN. Declare the acceptance rule before
-execution and do not retry an acceptance failure until the rule produces PASS.
+execution. After an acceptance failure, do not rerun a behavior-identical
+candidate; rerun only after a behavior-relevant candidate change or an
+independently approved acceptance-policy change.
 The default acceptance rule is per-case trial majority, complete coverage, and
 candidate_wins >= baseline_wins; ``--strict-all-trials`` restores the previous
 all-trials assertion rule.
@@ -1103,7 +1105,6 @@ def build_failure_evidence(
                 "answers": answers,
                 "blind_mapping": mapping,
                 "judge": judged_by_key.get((case_id, trial)),
-                "judge_output": judge_output,
             }
         )
     return {
@@ -1111,6 +1112,7 @@ def build_failure_evidence(
         "target": target.name,
         "kind": target.kind,
         "policy": policy,
+        "judge_output": judge_output,
         "cases": evidence_cases,
     }
 
@@ -1297,7 +1299,8 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
         or key_pair in action_failure_keys
         or key_pair in comparison_failure_keys
     }
-    if failed_keys:
+    evidence_required = bool(failed_keys) or not coverage_ok
+    if evidence_required:
         cache.store_evidence(
             key,
             build_failure_evidence(
@@ -1319,11 +1322,11 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
     )
     if passed:
         cache.store(key, {"passed": True, "target": target.name, "kind": target.kind})
-        if failed_keys:
+        if evidence_required:
             print(f"{target.name}: evidence={cache.evidence_path(key)}")
         print(f"{target.name}: passed")
         return True
-    if failed_keys:
+    if evidence_required:
         failure_details.append(f"evidence={cache.evidence_path(key)}")
     print(
         f"{target.name}: failed "

@@ -1536,7 +1536,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             },
         )
         self.assertEqual(evidence["cases"][0]["judge"], judged[0])
-        self.assertEqual(evidence["cases"][0]["judge_output"], '{"cases": []}')
+        self.assertEqual(evidence["judge_output"], '{"cases": []}')
 
     def test_evaluate_skill_uses_fake_codex_and_caches_success(self) -> None:
         tempdir, repo = self.make_repo()
@@ -1694,6 +1694,85 @@ emit({"type": "agent_message", "text": output})
         self.assertTrue(majority)
         self.assertTrue(list((repo / "majority-cache").glob("*.evidence.json")))
         self.assertFalse(strict)
+
+    def test_evaluate_target_preserves_evidence_for_duplicate_coverage_failure(
+        self,
+    ) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+        skill = write_skill(repo, "coverage")
+        target = self.module.EvalTarget(
+            name=skill.name,
+            kind="skill",
+            path=skill,
+            eval_path=skill / "evals/evals.json",
+        )
+        judge_output = '{"cases": ["duplicate"]}'
+
+        def fake_run_target_case(target, spec, timeout, **kwargs):
+            return self.module.RunResult(
+                case_id=spec.case.id,
+                trial=spec.trial,
+                variant=spec.variant,
+                output=f"{spec.variant}-{spec.case.id}",
+                target_read=spec.case.should_trigger,
+            )
+
+        def fake_judge_results(cases, results, timeout, **kwargs):
+            mappings = {}
+            entries = []
+            for case in cases:
+                if case.should_trigger:
+                    mappings[(case.id, 1)] = {"A": "candidate", "B": "baseline"}
+                    entries.append(
+                        {
+                            "id": case.id,
+                            "trial": 1,
+                            "A_assertions_pass": True,
+                            "B_assertions_pass": False,
+                            "only_assertions_pass": None,
+                            "preferred": "A",
+                            "reason": "fixture",
+                        }
+                    )
+                else:
+                    mappings[(case.id, 1)] = {"only": "candidate"}
+                    entries.append(
+                        {
+                            "id": case.id,
+                            "trial": 1,
+                            "A_assertions_pass": None,
+                            "B_assertions_pass": None,
+                            "only_assertions_pass": True,
+                            "preferred": "only",
+                            "reason": "fixture",
+                        }
+                    )
+            entries.append(dict(entries[0]))
+            return entries, mappings, judge_output
+
+        with (
+            mock.patch.object(self.module, "codex_identity", return_value="codex"),
+            mock.patch.object(
+                self.module, "run_target_case", side_effect=fake_run_target_case
+            ),
+            mock.patch.object(
+                self.module, "judge_results", side_effect=fake_judge_results
+            ),
+        ):
+            cache = self.module.ResultCache(repo / "coverage-cache")
+            passed = self.module.evaluate_target(
+                target,
+                self.module.EvalConfig(trials=1, jobs=2, timeout=10),
+                cache,
+            )
+
+        evidence_files = list((repo / "coverage-cache").glob("*.evidence.json"))
+        self.assertFalse(passed)
+        self.assertEqual(len(evidence_files), 1)
+        evidence = json.loads(evidence_files[0].read_text(encoding="utf-8"))
+        self.assertFalse(evidence["cases"])
+        self.assertEqual(evidence["judge_output"], judge_output)
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ setup:
 
 .PHONY: eval-guidance
 eval-guidance:
-	uv run --no-project python scripts/agent_guidance_eval.py eval --all --trials 3 --jobs 2 --timeout 180
+	uv run --no-project python scripts/agent_guidance_eval.py eval --all --trials 3 --jobs 2 --timeout 600
 
 #
 # Docker

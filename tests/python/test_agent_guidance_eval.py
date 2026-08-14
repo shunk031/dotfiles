@@ -597,6 +597,40 @@ class AgentGuidanceEvalTest(unittest.TestCase):
             )
         )
 
+    def test_parse_trace_records_shell_research_before_file_change(self) -> None:
+        trace = "\n".join(
+            [
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {
+                            "type": "command_execution",
+                            "command": "curl -fsSL https://developers.openai.com/codex/codex-manual.md",
+                        },
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {
+                            "type": "command_execution",
+                            "command": "curl -fsSL https://raw.githubusercontent.com/openai/codex/main/codex-rs/core/src/web_search.rs",
+                        },
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {"type": "file_change", "changes": []},
+                    }
+                ),
+            ]
+        )
+
+        parsed = self.module.parse_trace(trace, "demo")
+
+        self.assertEqual(parsed.actions, ("web_search", "github_search", "file_change"))
+
     def test_parse_trace_recognizes_gh_code_search_as_github_research(self) -> None:
         trace = json.dumps(
             {
@@ -754,19 +788,6 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         )
         self.assertEqual(source_config.read_bytes(), config_bytes)
 
-    def test_web_search_override_enables_the_selected_custom_provider(self) -> None:
-        with mock.patch.object(
-            self.module,
-            "configured_model_provider",
-            return_value="custom-provider",
-        ):
-            override = self.module.web_search_provider_override()
-
-        self.assertEqual(
-            override,
-            "model_providers.custom-provider.supports_standalone_web_search=true",
-        )
-
     def test_sandbox_override_replaces_requested_sandbox(self) -> None:
         completed = subprocess.CompletedProcess(
             args=[], returncode=0, stdout="", stderr=""
@@ -792,20 +813,15 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         sandbox_index = command.index("--sandbox")
         self.assertEqual(command[sandbox_index + 1], "danger-full-access")
 
-    def test_invoke_places_global_search_config_before_exec(self) -> None:
+    def test_invoke_disables_native_search_for_research(self) -> None:
         completed = subprocess.CompletedProcess(
             args=[], returncode=0, stdout="", stderr=""
         )
         with (
             mock.patch.object(
                 self.module,
-                "web_search_provider_override",
-                return_value="model_providers.custom.supports_standalone_web_search=true",
-            ),
-            mock.patch.object(
-                self.module,
                 "disabled_skill_override",
-                return_value='skills.config=[{path="/tmp/demo",enabled=false}]',
+                return_value="",
             ),
             mock.patch.object(
                 self.module.subprocess, "run", return_value=completed
@@ -815,17 +831,39 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
 
         command = run.call_args.args[0]
         exec_index = command.index("exec")
-        self.assertLess(command.index("--search"), exec_index)
-        disable_index = command.index("--disable")
-        self.assertEqual(command[disable_index + 1], "plugins")
-        self.assertLess(disable_index, exec_index)
+        self.assertNotIn("--search", command)
+        self.assertIn('web_search="disabled"', command)
+        self.assertIn("sandbox_workspace_write.network_access=true", command)
+        self.assertGreater(command.index('web_search="disabled"'), exec_index)
+        self.assertGreater(
+            command.index("sandbox_workspace_write.network_access=true"), exec_index
+        )
+        self.assertNotIn("supports_standalone_web_search", " ".join(command))
         self.assertTrue(
             all(
-                index < exec_index
+                index > exec_index
                 for index, value in enumerate(command)
                 if value == "-c"
             )
         )
+
+    def test_invoke_places_skill_override_after_exec(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="", stderr=""
+        )
+        with (
+            mock.patch.object(
+                self.module,
+                "disabled_skill_override",
+                return_value="skills.config=[]",
+            ),
+            mock.patch.object(self.module.subprocess, "run", return_value=completed) as run,
+        ):
+            self.module.invoke_codex(Path("/tmp"), "prompt", 10)
+
+        command = run.call_args.args[0]
+        exec_index = command.index("exec")
+        self.assertGreater(command.index("skills.config=[]"), exec_index)
 
     def test_invoke_adds_model_and_reasoning_effort_to_exec(self) -> None:
         completed = subprocess.CompletedProcess(
@@ -848,6 +886,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             command[exec_index + 1 : exec_index + 5],
             ["--model", "gpt-5.6-luna", "-c", 'model_reasoning_effort="xhigh"'],
         )
+        self.assertNotIn("sandbox_workspace_write.network_access=true", command)
 
     def test_workspace_write_uses_cd_as_primary_codex_workspace(self) -> None:
         completed = subprocess.CompletedProcess(

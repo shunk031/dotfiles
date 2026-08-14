@@ -569,6 +569,11 @@ def parse_trace(
                 target_read = True
             if re.search(r"\bgh\s+search\s+(?:code|repos?|commits?)\b", command):
                 actions.append("github_search")
+            elif "github.com" in command.lower() or "githubusercontent.com" in command.lower():
+                if re.search(r"\b(?:curl|wget|git\s+(?:clone|fetch)|gh\s+(?:api|browse|repo|search))\b", command):
+                    actions.append("github_search")
+            elif re.search(r"\b(?:curl|wget)\b.*https?://", command):
+                actions.append("web_search")
     return ParsedTrace(
         output=messages[-1] if messages else "",
         target_read=target_read,
@@ -647,34 +652,6 @@ def codex_executable() -> str:
     return os.environ.get("AGENT_GUIDANCE_EVAL_CODEX", "codex")
 
 
-def configured_model_provider() -> str | None:
-    config_path = Path.home() / ".codex/config.toml"
-    try:
-        config = tomllib.loads(config_path.read_text(encoding="utf-8"))
-    except (OSError, tomllib.TOMLDecodeError):
-        return None
-    provider = config.get("model_provider")
-    providers = config.get("model_providers")
-    if (
-        not isinstance(provider, str)
-        or not provider
-        or not isinstance(providers, dict)
-        or not isinstance(providers.get(provider), dict)
-    ):
-        return None
-    return provider
-
-
-def web_search_provider_override() -> str | None:
-    provider = configured_model_provider()
-    if provider is None:
-        return None
-    key = (
-        provider if re.fullmatch(r"[A-Za-z0-9_-]+", provider) else json.dumps(provider)
-    )
-    return f"model_providers.{key}.supports_standalone_web_search=true"
-
-
 def disabled_skill_override() -> str | None:
     paths: set[Path] = set()
     home = Path.home()
@@ -706,19 +683,24 @@ def invoke_codex(
     # sandbox at all; AGENT_GUIDANCE_EVAL_SANDBOX lets such hosts pick the
     # sandbox mode explicitly (for example danger-full-access).
     sandbox = os.environ.get("AGENT_GUIDANCE_EVAL_SANDBOX", sandbox)
-    command = [codex_executable(), "--disable", "plugins"]
+    command = [codex_executable(), "--disable", "plugins", "exec"]
+    command.extend(codex_model_arguments(model, reasoning_effort))
     if search:
-        command.append("--search")
-        provider_override = web_search_provider_override()
-        if provider_override:
-            command.extend(["-c", provider_override])
+        # Keep research evals independent of the provider's standalone search
+        # endpoint; shell-based URL retrieval is classified from the trace.
+        command.extend(
+            [
+                "-c",
+                'web_search="disabled"',
+                "-c",
+                "sandbox_workspace_write.network_access=true",
+            ]
+        )
     override = disabled_skill_override()
     if override:
         command.extend(["-c", override])
     command.extend(
         [
-            "exec",
-            *codex_model_arguments(model, reasoning_effort),
             "--ephemeral",
             "--json",
             "--sandbox",

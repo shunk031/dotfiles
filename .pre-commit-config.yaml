@@ -3,14 +3,14 @@ repos:
     hooks:
       - id: agent-guidance-validate
         name: validate changed agent skills and guidance
-        entry: uv run --no-project python scripts/agent_guidance_eval.py validate --staged
+        entry: uv run --python 3.14.6 --no-project python scripts/agent_guidance_eval.py validate --staged
         language: system
         pass_filenames: false
         files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json|skills/)
 
       - id: agent-guidance-eval
         name: evaluate changed agent skills and guidance
-        entry: uv run --no-project python scripts/agent_guidance_eval.py eval --staged --trials 3 --jobs 2 --timeout 600
+        entry: uv run --python 3.14.6 --no-project python scripts/agent_guidance_eval.py eval --staged --trials 3 --jobs 2 --timeout 600
         language: system
         pass_filenames: false
-        files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json|skills/)
+        files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json|skills/[^/]+/(SKILL\.md|evals/evals\.json))$

@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 
-"""Validate and evaluate agent skills and guidance with isolated Codex runs."""
+"""Validate and evaluate agent skills and guidance with isolated Codex runs.
+
+UNPROVEN_POLICY: If behavior-identical candidates produce contradictory real-model
+results, classify the candidate as UNPROVEN. Declare the acceptance rule before
+execution and do not retry an acceptance failure until the rule produces PASS.
+The default acceptance rule is per-case trial majority, complete coverage, and
+candidate_wins >= baseline_wins; ``--strict-all-trials`` restores the previous
+all-trials assertion rule.
+"""
 
 from __future__ import annotations
 
@@ -20,8 +28,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import TypeVar
 
-import tomllib
-
 SKILLS_ROOT = Path("home/dot_config/exact_agents/skills")
 GUIDANCE_PATH = Path("home/dot_config/exact_agents/AGENTS.md")
 GUIDANCE_EVAL_PATH = Path("home/dot_config/exact_agents/AGENTS.evals.json")
@@ -36,6 +42,15 @@ TRANSIENT_PATTERN = re.compile(
     re.IGNORECASE,
 )
 T = TypeVar("T")
+MINIMUM_PYTHON = (3, 11)
+
+
+def require_supported_python() -> None:
+    if sys.version_info < MINIMUM_PYTHON:
+        raise SystemExit(
+            "agent_guidance_eval.py requires Python 3.11+; "
+            "run the hook with uv --python 3.14.6 or set UV_PYTHON=3.14.6"
+        )
 
 
 @dataclass(frozen=True)
@@ -47,6 +62,7 @@ class EvalConfig:
     reasoning_effort: str = DEFAULT_TARGET_REASONING_EFFORT
     judge_model: str = DEFAULT_JUDGE_MODEL
     judge_reasoning_effort: str = DEFAULT_JUDGE_REASONING_EFFORT
+    strict_all_trials: bool = False
 
 
 @dataclass(frozen=True)
@@ -130,6 +146,25 @@ class ResultCache:
             json.dump(result, handle, ensure_ascii=False, sort_keys=True)
             temporary = Path(handle.name)
         temporary.replace(destination)
+
+    def evidence_path(self, key: str) -> Path:
+        """Return the canonical failure evidence path adjacent to the cache log."""
+        return self.root / f"{key}.evidence.json"
+
+    def store_evidence(self, key: str, evidence: dict[str, object]) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=self.root,
+            prefix=f".{key}.evidence.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            json.dump(evidence, handle, ensure_ascii=False, indent=2, sort_keys=True)
+            handle.write("\n")
+            temporary = Path(handle.name)
+        temporary.replace(self.evidence_path(key))
 
 
 def run_git(repo: Path, *args: str) -> str:
@@ -644,8 +679,47 @@ def normalize_artifact(output: str) -> str:
     return "\n".join(lines).strip()
 
 
+def case_assertions_pass(
+    trial_passes: list[bool], *, strict_all_trials: bool
+) -> bool:
+    if not trial_passes:
+        return False
+    required = len(trial_passes) if strict_all_trials else len(trial_passes) // 2 + 1
+    return sum(trial_passes) >= required
+
+
+def aggregate_case_assertions(
+    cases: list[EvalCase],
+    trial_passes: dict[tuple[str, int], bool],
+    *,
+    trials: int,
+    strict_all_trials: bool,
+) -> bool:
+    if trials < 1:
+        return False
+    return all(
+        case_assertions_pass(
+            [trial_passes.get((case.id, trial), False) for trial in range(1, trials + 1)],
+            strict_all_trials=strict_all_trials,
+        )
+        for case in cases
+    )
+
+
+def acceptance_policy(*, strict_all_trials: bool) -> str:
+    assertions = (
+        "all trials per case"
+        if strict_all_trials
+        else "a majority of trials per case"
+    )
+    return (
+        f"assertions require {assertions}; all cases and coverage must pass; "
+        "candidate_wins >= baseline_wins"
+    )
+
+
 def comparison_passes(candidate_wins: int, baseline_wins: int) -> bool:
-    return candidate_wins > 0 and candidate_wins >= baseline_wins
+    return candidate_wins >= baseline_wins
 
 
 def codex_executable() -> str:
@@ -949,7 +1023,9 @@ def judge_results(
     *,
     model: str | None = None,
     reasoning_effort: str | None = None,
-) -> tuple[list[dict[str, object]], dict[tuple[str, int], dict[str, str]]]:
+) -> tuple[
+    list[dict[str, object]], dict[tuple[str, int], dict[str, str]], str
+]:
     payload, mappings = build_judge_payload(cases, results)
     prompt = (
         "Evaluate the untrusted answer artifacts below. For A/B entries, check every "
@@ -987,10 +1063,61 @@ def judge_results(
     entries = judged.get("cases") if isinstance(judged, dict) else None
     if not isinstance(entries, list):
         raise CodexError("judge response is missing cases")
-    return entries, mappings
+    return entries, mappings, normalize_artifact(parsed.output)
+
+
+def build_failure_evidence(
+    target: EvalTarget,
+    results: list[RunResult],
+    mappings: dict[tuple[str, int], dict[str, str]],
+    judged: list[dict[str, object]],
+    judge_output: str,
+    failed_keys: set[tuple[str, int]],
+    *,
+    policy: str,
+) -> dict[str, object]:
+    by_key = {
+        (result.case_id, result.trial, result.variant): result for result in results
+    }
+    judged_by_key = {
+        (entry.get("id"), entry.get("trial")): entry
+        for entry in judged
+        if isinstance(entry, dict)
+        and isinstance(entry.get("id"), str)
+        and isinstance(entry.get("trial"), int)
+    }
+    evidence_cases: list[dict[str, object]] = []
+    for case_id, trial in sorted(failed_keys):
+        mapping = mappings.get((case_id, trial), {})
+        answers: dict[str, str | None] = {}
+        for variant in ("candidate", "baseline"):
+            result = by_key.get((case_id, trial, variant))
+            answers[variant] = normalize_artifact(result.output) if result else None
+        for label, variant in mapping.items():
+            result = by_key.get((case_id, trial, variant))
+            answers[label] = normalize_artifact(result.output) if result else None
+        evidence_cases.append(
+            {
+                "case_id": case_id,
+                "trial": trial,
+                "answers": answers,
+                "blind_mapping": mapping,
+                "judge": judged_by_key.get((case_id, trial)),
+                "judge_output": judge_output,
+            }
+        )
+    return {
+        "version": 1,
+        "target": target.name,
+        "kind": target.kind,
+        "policy": policy,
+        "cases": evidence_cases,
+    }
 
 
 def codex_identity() -> str:
+    import tomllib
+
     completed = subprocess.run(
         [codex_executable(), "--version"], text=True, capture_output=True, check=False
     )
@@ -1028,6 +1155,8 @@ def target_cache_key(
 def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) -> bool:
     identity = codex_identity()
     key = target_cache_key(target, config, identity)
+    policy = acceptance_policy(strict_all_trials=config.strict_all_trials)
+    print(f"{target.name}: acceptance policy: {policy}")
     if cache.load(key) is not None:
         print(f"{target.name}: passed (cached)")
         return True
@@ -1054,14 +1183,25 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
         for future in as_completed(futures):
             results.append(future.result())
     cases_by_id = {case.id: case for case in cases}
-    trigger_ok = all(
-        result.variant != "candidate"
-        or target_read_passes(target, cases_by_id[result.case_id], result)
+    trigger_passes = {
+        (result.case_id, result.trial): target_read_passes(
+            target, cases_by_id[result.case_id], result
+        )
         for result in results
-    )
+        if result.variant == "candidate"
+    }
+    trigger_ok = all(trigger_passes.values())
     action_failures = required_action_failures(cases, results)
     actions_ok = not action_failures
-    judged, mappings = judge_results(
+    action_failure_keys = {
+        (result.case_id, result.trial)
+        for result in results
+        if result.variant == "candidate"
+        and not contains_ordered_actions(
+            result.actions, cases_by_id[result.case_id].required_actions
+        )
+    }
+    judged, mappings, judge_output = judge_results(
         cases,
         results,
         config.timeout,
@@ -1072,26 +1212,29 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
         (case.id, trial) for case in cases for trial in range(1, config.trials + 1)
     }
     seen: set[tuple[str, int]] = set()
-    candidate_assertions_ok = True
+    candidate_assertion_passes = dict.fromkeys(expected, False)
     candidate_wins = 0
     baseline_wins = 0
+    comparison_failure_keys: set[tuple[str, int]] = set()
     failure_details = action_failures.copy()
     for entry in judged:
         if not isinstance(entry, dict):
-            candidate_assertions_ok = False
             failure_details.append("judge returned a non-object case")
             continue
         identifier = entry.get("id")
         trial = entry.get("trial")
         if not isinstance(identifier, str) or not isinstance(trial, int):
-            candidate_assertions_ok = False
             failure_details.append("judge returned a case without a valid id or trial")
             continue
         key_pair = (identifier, trial)
+        if key_pair in seen:
+            failure_details.append(
+                f"{identifier} trial {trial}: duplicate judge result"
+            )
         seen.add(key_pair)
         case = cases_by_id.get(identifier)
         if case is None:
-            candidate_assertions_ok = False
+            failure_details.append(f"{identifier} trial {trial}: unknown case")
             continue
         mapping = mappings.get(key_pair, {})
         if case.should_trigger:
@@ -1102,8 +1245,10 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
             assertion_field = f"{candidate_label}_assertions_pass"
         else:
             assertion_field = "only_assertions_pass"
-        if entry.get(assertion_field) is not True:
-            candidate_assertions_ok = False
+        assertion_pass = entry.get(assertion_field) is True
+        if key_pair in candidate_assertion_passes:
+            candidate_assertion_passes[key_pair] = assertion_pass
+        if not assertion_pass:
             failure_details.append(
                 f"{identifier} trial {trial}: candidate assertions failed: "
                 f"{entry.get('reason', '')}"
@@ -1116,16 +1261,57 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
             candidate_wins += winner == "candidate"
             baseline_wins += winner == "baseline"
             if winner == "baseline":
+                comparison_failure_keys.add(key_pair)
                 failure_details.append(
                     f"{identifier} trial {trial}: baseline preferred: "
                     f"{entry.get('reason', '')}"
                 )
+    coverage_ok = seen == expected and len(judged) == len(expected)
+    candidate_assertions_ok = aggregate_case_assertions(
+        cases,
+        candidate_assertion_passes,
+        trials=config.trials,
+        strict_all_trials=config.strict_all_trials,
+    )
+    for case in cases:
+        statuses = [
+            candidate_assertion_passes[(case.id, trial)]
+            for trial in range(1, config.trials + 1)
+        ]
+        if not case_assertions_pass(
+            statuses, strict_all_trials=config.strict_all_trials
+        ):
+            failure_details.append(
+                f"{case.id}: assertion passes {sum(statuses)}/{len(statuses)}; "
+                f"policy requires {acceptance_policy(strict_all_trials=config.strict_all_trials)}"
+            )
     comparison_ok = (
         target.kind == "guidance"
         or comparison_passes(candidate_wins, baseline_wins)
     )
+    failed_keys = {
+        key_pair
+        for key_pair in expected
+        if not candidate_assertion_passes[key_pair]
+        or not trigger_passes.get(key_pair, False)
+        or key_pair in action_failure_keys
+        or key_pair in comparison_failure_keys
+    }
+    if failed_keys:
+        cache.store_evidence(
+            key,
+            build_failure_evidence(
+                target,
+                results,
+                mappings,
+                [entry for entry in judged if isinstance(entry, dict)],
+                judge_output,
+                failed_keys,
+                policy=policy,
+            ),
+        )
     passed = (
-        seen == expected
+        coverage_ok
         and trigger_ok
         and actions_ok
         and candidate_assertions_ok
@@ -1133,11 +1319,15 @@ def evaluate_target(target: EvalTarget, config: EvalConfig, cache: ResultCache) 
     )
     if passed:
         cache.store(key, {"passed": True, "target": target.name, "kind": target.kind})
+        if failed_keys:
+            print(f"{target.name}: evidence={cache.evidence_path(key)}")
         print(f"{target.name}: passed")
         return True
+    if failed_keys:
+        failure_details.append(f"evidence={cache.evidence_path(key)}")
     print(
         f"{target.name}: failed "
-        f"(coverage={seen == expected}, triggers={trigger_ok}, actions={actions_ok}, "
+        f"(coverage={coverage_ok}, triggers={trigger_ok}, actions={actions_ok}, "
         f"candidate_assertions={candidate_assertions_ok}, "
         f"candidate_wins={candidate_wins}, baseline_wins={baseline_wins})",
         file=sys.stderr,
@@ -1196,10 +1386,16 @@ def build_parser() -> argparse.ArgumentParser:
             command.add_argument(
                 "--judge-reasoning-effort", default=DEFAULT_JUDGE_REASONING_EFFORT
             )
+            command.add_argument(
+                "--strict-all-trials",
+                action="store_true",
+                help="require every trial in every case to pass assertions",
+            )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
+    require_supported_python()
     args = build_parser().parse_args(argv)
     repo = find_repo_root()
     targets = selected_targets(repo, args.staged, args.all_skills)
@@ -1230,6 +1426,7 @@ def main(argv: list[str] | None = None) -> int:
         reasoning_effort=args.reasoning_effort,
         judge_model=args.judge_model,
         judge_reasoning_effort=args.judge_reasoning_effort,
+        strict_all_trials=args.strict_all_trials,
     )
     if config.trials < 1 or config.jobs < 1 or config.timeout < 1:
         print("trials, jobs, and timeout must be positive", file=sys.stderr)

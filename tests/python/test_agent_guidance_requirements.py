@@ -714,11 +714,9 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         )
         agents = agents_path.read_text(encoding="utf-8")
         skill = skill_path.read_text(encoding="utf-8")
-        web_search = skill.index(
-            "Call the agent's native web search tool (`web_search` in Codex)"
-        )
+        web_search = skill.index("Use an available web-research capability")
         github_search = skill.index(
-            "call the native web search tool again with results restricted to `github.com`"
+            "use a GitHub search or inspect `github.com` sources"
         )
         implementation = skill.index("Implement and verify")
 

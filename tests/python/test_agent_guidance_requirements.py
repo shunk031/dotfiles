@@ -727,9 +727,35 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         self.assertLess(web_search, github_search)
         self.assertLess(github_search, implementation)
         self.assertIn("Do not edit files until both tool calls are complete", skill)
+        self.assertIn("stop before designing or editing", skill)
         self.assertIn(
             "In the final response, name and link the web sources and GitHub examples consulted",
             skill,
+        )
+        self.assertIn(
+            "The final response must list at least one official non-GitHub URL and one representative GitHub URL",
+            skill,
+        )
+        self.assertIn(
+            "explain how each source affected the implementation",
+            skill,
+        )
+        self.assertIn(
+            "The GitHub URL must point directly to implementation code or configuration",
+            skill,
+        )
+
+    def test_work_safety_rejects_hook_bypass_and_targetless_validation(self) -> None:
+        agents = (REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md").read_text(
+            encoding="utf-8"
+        )
+        guardrail = (
+            "Never bypass repository hooks or validation with `--no-verify` or an equivalent."
+        )
+        self.assertEqual(agents.count(guardrail), 1)
+        self.assertIn(
+            "If a hook fails, hangs, or reports no matching targets, stop and report it",
+            agents,
         )
 
     def test_manage_agent_guidance_route_has_one_working_style_owner(self) -> None:

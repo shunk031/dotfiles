@@ -74,7 +74,7 @@ for spec in "${WORKER_SPECS[@]}"; do
     tabs["${tab}"]="${key}"
 done
 
-for command in herdr jq sha256sum awk sleep; do
+for command in herdr jq shasum awk sleep; do
     command -v "${command}" > /dev/null || {
         printf 'observer: required command is missing: %s\n' "${command}" >&2
         exit 127
@@ -82,7 +82,7 @@ for command in herdr jq sha256sum awk sleep; do
 done
 
 function hash_text() {
-    printf '%s' "$1" | sha256sum | awk '{print $1}'
+    printf '%s' "$1" | shasum -a 256 | awk '{print $1}'
 }
 
 function observe_once() {

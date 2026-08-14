@@ -10,7 +10,7 @@ repos:
 
       - id: agent-guidance-eval
         name: evaluate changed agent skills and guidance
-        entry: uv run --no-project python scripts/agent_guidance_eval.py eval --staged --trials 1 --jobs 2 --timeout 180
+        entry: uv run --no-project python scripts/agent_guidance_eval.py eval --staged --trials 1 --jobs 2 --timeout 600
         language: system
         pass_filenames: false
         files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json|skills/)

@@ -36,6 +36,7 @@ command_name="${1:-} ${2:-}"
 shift 2 || true
 case "${command_name}" in
     "agent list")
+        printf '%s\n' sample >> "${state_dir}/samples"
         if [[ "$(<"${state_dir}/agents_mode")" == malformed ]]; then
             printf '%s\n' malformed-json
         else
@@ -92,41 +93,63 @@ EOF
     PATH="${BATS_TEST_TMPDIR}/observer-bin:${PATH}"
     export PATH
     : > "${HERDR_OBSERVER_STUB_STATE}/prompts"
+    : > "${HERDR_OBSERVER_STUB_STATE}/samples"
 
-    launch_dir="${BATS_TEST_TMPDIR}/observer-launch"
-    mkdir -p "${launch_dir}"
-    launch_pid_file="${launch_dir}/pid"
-    launch_log="${launch_dir}/observer.log"
-    setsid bash -c '
-        setsid "$1" --orchestrator orch264 --worker "stale|w1:p1|w1:t1" --worker "moving|w2:p1|w2:t1" --worker "complete|w3:p1|w3:t1" --worker "pr-wait|w4:p1|w4:t1" --worker "missing|w9:p1|w9:t1" --worker "unreadable|w5:p1|w5:t1" --interval-seconds 1 --stale-samples 2 >"$2" 2>&1 &
-        printf "%s\n" "$!" >"$3"
-        kill -TERM -- "-$$"
-    ' bash "${OBSERVER_SCRIPT_PATH}" "${launch_log}" "${launch_pid_file}" || true
-    OBSERVER_PID="$(<"${launch_pid_file}")"
+    launch_log="${BATS_TEST_TMPDIR}/observer.log"
+    "${OBSERVER_SCRIPT_PATH}" --orchestrator orch264 --worker "stale|w1:p1|w1:t1" --worker "moving|w2:p1|w2:t1" --worker "complete|w3:p1|w3:t1" --worker "pr-wait|w4:p1|w4:t1" --worker "missing|w9:p1|w9:t1" --worker "unreadable|w5:p1|w5:t1" --interval-seconds 1 --stale-samples 2 > "${launch_log}" 2>&1 &
+    OBSERVER_PID=$!
     kill -0 "${OBSERVER_PID}"
 
-    sleep 1.2
+    for _ in {1..50}; do
+        grep -Fq 'observer: malformed herdr agent list; sample rejected' "${launch_log}" && break
+        sleep 0.1
+    done
+    grep -Fq 'observer: malformed herdr agent list; sample rejected' "${launch_log}"
     [ ! -s "${HERDR_OBSERVER_STUB_STATE}/prompts" ]
     printf '%s\n' valid > "${HERDR_OBSERVER_STUB_STATE}/agents_mode"
-    sleep 1.3
 
+    for _ in {1..50}; do
+        [ "$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/prompts")" -ge 1 ] && break
+        sleep 0.1
+    done
     [ "$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/prompts")" -ge 1 ]
     grep -F 'OBSERVER orch264: bounded reconciliation required' "${HERDR_OBSERVER_STUB_STATE}/prompts"
     grep -F 'worker=complete ' "${HERDR_OBSERVER_STUB_STATE}/prompts"
     ! grep -Fq 'worker=moving ' "${HERDR_OBSERVER_STUB_STATE}/prompts"
-    sleep 1.3
+
+    for _ in {1..50}; do
+        [ "$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/prompts")" -eq 2 ] && break
+        sleep 0.1
+    done
     [ "$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/prompts")" -eq 2 ]
     grep -F 'worker=stale ' "${HERDR_OBSERVER_STUB_STATE}/prompts"
     ! grep -Fq 'worker=foreign ' "${HERDR_OBSERVER_STUB_STATE}/prompts"
     ! grep -Fq 'pr-wait' "${HERDR_OBSERVER_STUB_STATE}/prompts"
     ! grep -Fq 'unreadable' "${HERDR_OBSERVER_STUB_STATE}/prompts"
+    sample_count="$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/samples")"
     printf '%s\n' 'stale transcript moved' > "${HERDR_OBSERVER_STUB_STATE}/transcript_stale"
-    sleep 1.3
+
+    for _ in {1..50}; do
+        [ "$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/samples")" -gt "${sample_count}" ] && break
+        sleep 0.1
+    done
+    [ "$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/samples")" -gt "${sample_count}" ]
     [ "$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/prompts")" -eq 2 ]
-    sleep 1.3
+
+    sample_count="$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/samples")"
+    for _ in {1..50}; do
+        if [ "$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/samples")" -gt "${sample_count}" ] && [ "$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/prompts")" -eq 3 ]; then
+            break
+        fi
+        sleep 0.1
+    done
     [ "$(wc -l < "${HERDR_OBSERVER_STUB_STATE}/prompts")" -eq 3 ]
     printf '%s\n' '{"result":{"agents":[]},"type":"agent_list"}' > "${HERDR_OBSERVER_STUB_STATE}/agents.json"
-    sleep 1.3
+
+    for _ in {1..50}; do
+        ! kill -0 "${OBSERVER_PID}" 2> /dev/null && break
+        sleep 0.1
+    done
     ! kill -0 "${OBSERVER_PID}"
     OBSERVER_PID=''
 }

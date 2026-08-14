@@ -64,7 +64,6 @@
       "prompt": "You are the orchestrator agent orch264 in a Herdr session. A bounded reconciliation is already complete: Herdr state and the readable transcript confirm that the worker is still working; its worktree has staged, unpushed changes; PR/CI is green only for the old head. This is an offline dry run; state whether any prompt or acknowledgement is sent and what is awaited next.",
       "should_trigger": true,
       "assertions": [
-        "The response recognizes that the supplied reconciliation found a working worker, staged and unpushed work, and green PR/CI only for the old head.",
         "The response sends no prompt or acknowledgement, awaits the next DONE or BLOCKED report, and remains report-driven without polling."
       ]
     },

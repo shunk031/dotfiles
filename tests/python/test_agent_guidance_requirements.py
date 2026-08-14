@@ -715,10 +715,10 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         agents = agents_path.read_text(encoding="utf-8")
         skill = skill_path.read_text(encoding="utf-8")
         web_search = skill.index(
-            "Call the agent's native web search tool (`web_search` in Codex)"
+            "Call the host-provided native web-search capability"
         )
         github_search = skill.index(
-            "call the native web search tool again with results restricted to `github.com`"
+            "call the same native web-search capability again with results restricted to `github.com`"
         )
         implementation = skill.index("Implement and verify")
 
@@ -726,6 +726,10 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         self.assertIn("Use the `shunk031-research-before-implementation` skill", agents)
         self.assertLess(web_search, github_search)
         self.assertLess(github_search, implementation)
+        self.assertIn(
+            "do not assume a particular tool name or namespace",
+            skill,
+        )
         self.assertIn("Do not edit files until both tool calls are complete", skill)
         self.assertIn(
             "In the final response, name and link the web sources and GitHub examples consulted",

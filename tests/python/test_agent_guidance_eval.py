@@ -1523,6 +1523,8 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             '{"cases": []}',
             {(case.id, 1)},
             policy="per-case majority",
+            trigger_passes={(case.id, 1): True},
+            trigger_ok=True,
         )
 
         self.assertEqual(evidence["cases"][0]["blind_mapping"], mapping[(case.id, 1)])
@@ -1537,6 +1539,98 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         )
         self.assertEqual(evidence["cases"][0]["judge"], judged[0])
         self.assertEqual(evidence["judge_output"], '{"cases": []}')
+        self.assertTrue(evidence["cases"][0]["trigger_passed"])
+        self.assertTrue(evidence["cases"][0]["target_read"])
+        self.assertNotIn("trigger_outcomes", evidence)
+
+    def test_failure_evidence_names_trigger_only_failure_and_lists_all_cases(
+        self,
+    ) -> None:
+        target = self.module.EvalTarget(
+            name="demo",
+            kind="guidance",
+            path=Path("/tmp/demo"),
+            eval_path=Path("/tmp/demo/evals/evals.json"),
+        )
+        passing = self.module.EvalCase(
+            id="passing",
+            prompt="Reply.",
+            should_trigger=True,
+            assertions=("The answer is useful.",),
+        )
+        failing = self.module.EvalCase(
+            id="failing",
+            prompt="Reply.",
+            should_trigger=True,
+            assertions=("The answer is useful.",),
+        )
+        results = [
+            self.module.RunResult(
+                case_id=passing.id,
+                trial=1,
+                variant="candidate",
+                output="answer\n🤖 I read the skill.",
+                target_read=True,
+            ),
+            self.module.RunResult(
+                case_id=failing.id,
+                trial=1,
+                variant="candidate",
+                output="answer without the receipt",
+                target_read=False,
+            ),
+        ]
+        judged = [
+            {
+                "id": passing.id,
+                "trial": 1,
+                "only_assertions_pass": True,
+                "reason": "fine",
+            },
+            {
+                "id": failing.id,
+                "trial": 1,
+                "only_assertions_pass": True,
+                "reason": "fine",
+            },
+        ]
+        trigger_passes = {(passing.id, 1): True, (failing.id, 1): False}
+
+        evidence = self.module.build_failure_evidence(
+            target,
+            results,
+            {},
+            judged,
+            '{"cases": []}',
+            {(failing.id, 1)},
+            policy="per-case majority",
+            trigger_passes=trigger_passes,
+            trigger_ok=False,
+        )
+
+        self.assertEqual(
+            [(case["case_id"], case["trial"]) for case in evidence["cases"]],
+            [(failing.id, 1)],
+        )
+        self.assertFalse(evidence["cases"][0]["trigger_passed"])
+        self.assertFalse(evidence["cases"][0]["target_read"])
+        self.assertEqual(
+            evidence["trigger_outcomes"],
+            [
+                {
+                    "case_id": failing.id,
+                    "trial": 1,
+                    "trigger_passed": False,
+                    "target_read": False,
+                },
+                {
+                    "case_id": passing.id,
+                    "trial": 1,
+                    "trigger_passed": True,
+                    "target_read": True,
+                },
+            ],
+        )
 
     def test_evaluate_skill_uses_fake_codex_and_caches_success(self) -> None:
         tempdir, repo = self.make_repo()

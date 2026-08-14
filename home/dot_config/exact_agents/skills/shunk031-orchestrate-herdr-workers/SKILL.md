@@ -22,16 +22,17 @@ An orchestrator delegates independent tasks to worker agents, one git worktree t
 
 ## Launch each worker
 
-3. Before any task edits, create each worker with `herdr worktree create`; do not substitute manual `git worktree add` plus `herdr tab create`. Read the new tab and pane IDs from the JSON response:
+3. Before any task edits, create each worker with `herdr worktree create`; do not substitute manual `git worktree add` plus `herdr tab create`. Unless the user explicitly requested another workspace, immediately move the returned root pane into a new tab in the orchestrator's existing workspace before starting the agent. Read the destination tab and pane IDs from the move response and use those destination IDs for all subsequent commands:
 
    ```bash
    herdr worktree create --cwd "$PWD" --branch <topic-branch> --label "🚧 <short task>" --no-focus
+   herdr pane move <returned-root-pane-id> --new-tab --workspace "$HERDR_WORKSPACE_ID" --label "🚧 <short task>" --no-focus
    ```
 
-4. Start Codex in the new pane, prefixing the worker name with your own name so names stay unique across nesting while respecting the 32-character cap:
+4. Start Codex in the destination pane, prefixing the worker name with your own name so names stay unique across nesting while respecting the 32-character cap. Do not reuse the pre-move root pane ID:
 
    ```bash
-   herdr agent start <your-name>-<task> --kind codex --pane <pane-id> -- -m gpt-5.6-luna -c model_reasoning_effort=xhigh
+   herdr agent start <your-name>-<task> --kind codex --pane <destination-pane-id> -- -m gpt-5.6-luna -c model_reasoning_effort=xhigh
    ```
 
 5. Before each dispatch, record the worker's current `state_change_seq`. Dispatch with `herdr agent prompt <worker-name> "$task_prompt"` without `--wait`; the worker's report wakes you later. Do not treat the CLI `agent_prompted` response as a receipt. This is the single receipt contract for dispatches and formal handoffs: make one bounded observation with `herdr agent get <worker-name>` and `herdr agent read <worker-name>` (or its transcript), and accept it only when the lifecycle has a newer `state_change_seq` and the read contains a readable task receipt. Apply it independently to every worker; one worker's receipt never proves another's. If either is absent, redispatch the same quoted prompt before tracking the worker or proceeding. Once the receipt is observed, completion remains report-driven; do not poll. Use this template, keeping the final sentence only when the task should publish:
@@ -44,7 +45,7 @@ An orchestrator delegates independent tasks to worker agents, one git worktree t
 
 7. Commit in your worktree; push the branch and open a pull request only if your dispatch says so. Then build the report in a variable and send `herdr agent prompt <orch-name> "$report"`, where the report reads `DONE <worker-name>: <one-line summary> <PR URL if any>`. If you cannot proceed, send `BLOCKED <worker-name>: <question>` the same way and wait for a reply. Keep an open PR in the user-action handoff status defined by `shunk031-herdr-tab-status` until no user or CI action remains; only then use its completion status.
 
-8. If your task splits into large independent parts, become a sub-orchestrator: keep your existing agent name, tab, parent orchestrator, and report target; use steps 2-5 to create and dispatch each child with distinct identities and a separately built prompt, verify each child with the step-5 receipt contract, then consolidate child reports and report only to <orch-name>.
+8. If your task splits into large independent parts, become a sub-orchestrator: keep your existing agent name, tab, parent orchestrator, and report target; use steps 2-5 to create and dispatch each child with distinct identities and a separately built prompt, verify each child with the step-5 receipt contract, then consolidate child reports and report only to <orch-name>. Sub-workers report to you using the sub-orchestrator's own worker name as the report target; for example, if parent `orch`'s worker is `orch-api-migration`, sub-workers report to `orch-api-migration`, never directly to `orch`.
 
 ## Collect and finish
 

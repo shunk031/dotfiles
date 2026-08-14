@@ -40,6 +40,7 @@
 - Before modifying tracked files, inspect the branch and worktree. Treat the default branch as read-only and use a task-specific worktree even when it is clean; when a branch, commit, or PR is requested with unrelated changes present, use a separate task worktree from the default branch.
 - Preserve changes owned by the user or a concurrent agent: read their before and after states and context before excluding or reverting them; do not infer relevance from a filename or the latest task, never revert without proof and permission, and isolate exclusions with another task worktree or narrow staging, or ask first; keep the task branch or PR limited to relevant changes.
 - Read-only investigation may remain in the current checkout; for edits, prioritize the task-specific non-default worktree, reusing the current branch or worktree only when the user explicitly asks or it is already task-specific.
+- Never bypass repository hooks or validation with `--no-verify` or an equivalent. If a hook fails, hangs, or reports no matching targets, stop and report it instead of treating validation as successful.
 - If an operation accidentally removes uncommitted work, report it to the user immediately and attempt recovery from the preceding diff, editor history, shell output, stash, or subagent output. Do not perform additional overwrites before recovery.
 
 ## Working Style

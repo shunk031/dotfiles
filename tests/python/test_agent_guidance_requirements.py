@@ -726,6 +726,10 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         self.assertIn("Use the `shunk031-research-before-implementation` skill", agents)
         self.assertLess(web_search, github_search)
         self.assertLess(github_search, implementation)
+        self.assertIn(
+            "do not assume a particular tool name or namespace",
+            skill,
+        )
         self.assertIn("Do not edit files until both tool calls are complete", skill)
         self.assertIn("stop before designing or editing", skill)
         self.assertIn(

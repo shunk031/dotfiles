@@ -223,6 +223,24 @@ class DocSlopReviewTest(unittest.TestCase):
 
         self.assertEqual(exit_code, 1)
 
+    def test_skill_references_the_script_instead_of_bundling_it(self) -> None:
+        """The skill tree is chezmoi-applied, so a bundled copy would deploy broken.
+
+        The script imports the repository's evaluator, which does not exist
+        under the applied skill tree, so the skill must point at the checkout.
+        """
+        skill_root = (
+            REPO_ROOT / "home/dot_config/exact_agents/skills/shunk031-doc-slop-review"
+        )
+        shipped = {path.name for path in skill_root.rglob("*") if path.is_file()}
+        skill_text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+
+        self.assertEqual(shipped, {"SKILL.md", "evals.json"})
+        self.assertIn("scripts/doc_slop_review.py", skill_text)
+        self.assertIn("chezmoi source-path", skill_text)
+        self.assertTrue(SCRIPT_PATH.is_file())
+        self.assertTrue((REPO_ROOT / "scripts/doc_slop_rubric.json").is_file())
+
     def test_main_rejects_empty_input(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             path = Path(tempdir) / "empty.md"

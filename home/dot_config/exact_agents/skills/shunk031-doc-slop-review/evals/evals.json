@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "skill": "shunk031-doc-slop-review",
+  "evals": [
+    {
+      "id": "training-doc-draft",
+      "prompt": "I need to add a TRAINING.md to a package in this repository describing how to reproduce our training runs. Draft it and tell me how you would finish the job before I publish it.",
+      "should_trigger": true,
+      "assertions": [
+        "The response reviews the drafted document before treating it as ready to publish.",
+        "The response names the repository's document slop review script as the tool to run on the draft.",
+        "The response says a failing review is fixed, or waived with a recorded reason, before publication."
+      ]
+    },
+    {
+      "id": "issue-body-draft",
+      "prompt": "Write the issue body for a bug where our nightly job silently skips half its inputs, then open it. Tell me what you do before it goes up, and tell me what you will do if the review reports findings before you open the issue.",
+      "should_trigger": true,
+      "assertions": [
+        "The response reviews the issue body before the issue is created rather than after.",
+        "The response names the repository's document slop review script as the tool to run on the body.",
+        "The response says a failing review is fixed, or waived with a recorded reason, before the issue is opened."
+      ]
+    },
+    {
+      "id": "pull-request-body-draft",
+      "prompt": "I am about to open a pull request for a change that reworks our retry logic. Write the pull request description and explain how you check it before publishing, and tell me what you will do if the review reports findings before you publish it.",
+      "should_trigger": true,
+      "assertions": [
+        "The response checks the pull request description before the pull request is created or updated.",
+        "The response names the repository's document slop review script as the tool to run on the description.",
+        "The response says a failing review is fixed, or waived with a recorded reason, before publishing."
+      ]
+    },
+    {
+      "id": "code-only-change-negative-control",
+      "prompt": "Rename the variable `tmp` to `buffer` in this function and return only the updated code:\n\ndef read(path):\n    tmp = open(path).read()\n    return tmp",
+      "should_trigger": false,
+      "assertions": [
+        "The response returns the updated code with the variable renamed.",
+        "The response does not introduce a document review step for a code-only change."
+      ]
+    },
+    {
+      "id": "conversational-answer-negative-control",
+      "prompt": "Quick question, no writing task: is a rebase or a merge better when my branch is behind main and nobody else has pulled it? Answer in a sentence or two.",
+      "should_trigger": false,
+      "assertions": [
+        "The response answers the question directly.",
+        "The response does not turn a conversational answer into a document review task."
+      ]
+    }
+  ]
+}

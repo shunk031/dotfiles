@@ -431,7 +431,9 @@ def review_documents(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    # python -OO strips docstrings, so fall back rather than crash on startup.
+    summary = (__doc__ or "Review reader-facing text for slop.").splitlines()[0]
+    parser = argparse.ArgumentParser(description=summary)
     parser.add_argument(
         "paths",
         nargs="*",

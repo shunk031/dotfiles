@@ -4,11 +4,11 @@
   "evals": [
     {
       "id": "fan-out-parallel-workers",
-      "prompt": "We are inside a Herdr session. First read .agents/skills/shunk031-orchestrate-herdr-workers/SKILL.md, then follow it to plan the orchestration of a refactor split into three independent tasks run by parallel Codex workers in separate Herdr worktree tabs within the orchestrator's existing workspace/window. Show the complete sequence for all three workers, not only one: for each worker, create the worktree, immediately move its returned root pane into a new tab in the existing workspace, start the agent in the returned destination pane, and dispatch that worker's prompt. Only after all three dispatches are complete, wait for all three worker report prompts. For every worker, the command order must be herdr worktree create, immediately herdr pane move <returned-root-pane-id> --new-tab --workspace \"$HERDR_WORKSPACE_ID\", then herdr agent start using the destination pane ID returned by the move rather than the original root pane ID. This is an offline dry run: Herdr is unavailable for execution, but the command syntax shown in the named skill is authoritative and must be reproduced in your answer; do not refuse or ask for the skill text because execution or readback is unavailable, and do not execute or verify anything — write out the exact herdr commands you would run and the exact dispatch prompt text you would send to one worker.",
+      "prompt": "We are inside a Herdr session. First read .agents/skills/shunk031-orchestrate-herdr-workers/SKILL.md, then follow it to plan the orchestration of a refactor split into three independent tasks run by parallel Codex workers in separate Herdr worktree tabs, with each worker's tab inside that worker's returned repository-associated deliverable workspace and the orchestrator workspace reserved for the orchestrator. Show the complete sequence for all three workers, not only one: for each worker, create or open the deliverable worktree, capture its returned deliverable workspace and root pane IDs, immediately move its returned root pane into a new tab targeted at that returned deliverable workspace, start the agent in the returned destination pane, and dispatch that worker's prompt. Only after all three dispatches are complete, wait for all three worker report prompts. For every worker, the command order must be herdr worktree create or open, immediately herdr pane move <returned-root-pane-id> --new-tab --workspace <returned-deliverable-workspace-id>, then herdr agent start using the destination pane ID returned by the move rather than the original root pane ID. This is an offline dry run: Herdr is unavailable for execution, but the command syntax shown in the named skill is authoritative and must be reproduced in your answer; do not refuse or ask for the skill text because execution or readback is unavailable, and do not execute or verify anything — write out the exact herdr commands you would run and the exact dispatch prompt text you would send to one worker.",
       "should_trigger": true,
       "assertions": [
         "The response renames the orchestrator agent to an addressable name and renames its own tab to a label containing the 🤖 emoji.",
-        "The response performs the exact topology sequence for each worker: herdr worktree create, immediately herdr pane move <returned-root-pane-id> --new-tab --workspace \"$HERDR_WORKSPACE_ID\" into the orchestrator's existing workspace before any herdr agent start, then starts the agent with the destination pane ID returned by the move rather than the pre-move root pane ID.",
+        "The response performs the exact topology sequence for each worker: herdr worktree create or open establishes or reuses that worker's deliverable workspace, immediately herdr pane move <returned-root-pane-id> --new-tab --workspace <returned-deliverable-workspace-id> into that returned deliverable workspace before any herdr agent start, then starts the agent with the destination pane ID returned by the move rather than the pre-move root pane ID.",
         "The response starts workers with herdr agent start --kind codex passing -m gpt-5.6-luna and model_reasoning_effort=xhigh after the -- separator.",
         "Each worker gets a separately built dispatch prompt with its own fixed identity and task/report target, explicitly telling it to read and follow the `shunk031-orchestrate-herdr-workers` skill before starting; no prompt is reused.",
         "The response keeps normal completion report-driven without polling worker reports.",
@@ -85,6 +85,84 @@
         "The response treats REJECT as nonterminal, stores the consolidated findings in a shell variable, and routes them to supplied live owner orch264-adopt-report with `herdr agent prompt orch264-adopt-report`, passing that variable as one quoted argument without shell expansion.",
         "The response records rejected head `cc5a008abc33ef68d07b30ee57c11ed93a3571c3` as re-review pending and says that, after orch264-adopt-report publishes a corrected head, that exact head is routed to the same reviewer orch264-pr627-review.",
         "The response blocks user merge handoff until that reviewer reports ACCEPT and does not merge the PR."
+      ]
+    },
+    {
+      "id": "same-turn-report-routing",
+      "prompt": "You are orchestrator agent orch264 in a Herdr session. During one user turn, the durable queue delivers these reports: orch-build sends DONE but its source-of-truth acceptance is still pending; orch-data is BLOCKED asking whether to use 8 or 16 GPUs; orch-adopt sends STATUS saying it is still working; and an OBSERVER advisory says orch-review has no new report. The user also asks, ‘What is the current status?’ This is an offline dry run; describe the concrete routing actions and wait reasons before ending the same turn, but do not execute commands.",
+      "should_trigger": true,
+      "assertions": [
+        "The response processes all four worker events and answers the user's status question during the same turn instead of deferring the queue.",
+        "For each actionable event, the response gives a concrete routing action or a specific report-driven wait reason."
+      ]
+    },
+    {
+      "id": "orchestrator-provenance",
+      "prompt": "Following the `shunk031-orchestrate-herdr-workers` skill, you are orchestrator agent orch264 in a Herdr session. A worker asks why a constraint appears in its task prompt. The supplied transcript excerpt says: User: ‘Run the package-loader acceptance check.’ Worker prompt: ‘Compare the production loader with an independent reference.’ Orchestrator note: ‘I added this comparison constraint after reviewing the worker report.’ Explain the constraint's provenance using those transcript facts, without executing commands or inventing missing context.",
+      "should_trigger": true,
+      "assertions": [
+        "The response distinguishes the user's instruction from the separately added orchestrator constraint by checking the transcript rather than treating both as user requirements.",
+        "The response explains the constraint's source from the supplied transcript without relying on an unsupported source.",
+        "The response does not present an inferred motive as an observed fact."
+      ]
+    },
+    {
+      "id": "queue-over-conversation",
+      "prompt": "You are orchestrator agent orch264 in a Herdr session. During one user turn, the durable queue delivers these reports: orch-build sends DONE, claims the diff and production-path trace are ready for source-of-truth acceptance, and gives a review link; orch-data sends BLOCKED and asks whether to use 8 or 16 GPUs. The user also asks, ‘Are we on track?’ This is an offline dry run; describe the concrete routing actions and wait reasons before ending the same turn, but do not execute commands.",
+      "should_trigger": true,
+      "assertions": [
+        "The response handles both worker reports in the same user turn while also answering the user's status question.",
+        "The response performs or routes the DONE source-of-truth acceptance, answers or escalates the BLOCKED question, and answers the user's status question without deferring any of them."
+      ]
+    },
+    {
+      "id": "deliverable-workspace-lifecycle",
+      "prompt": "You are orchestrator agent orch264 in a Herdr session coordinating one implementation worker and one independent reviewer for a deliverable that will become a single pull request. In an offline dry run, describe the workspace and tab lifecycle from task start through receiving an issue URL and then a pull-request URL; do not execute commands.",
+      "should_trigger": true,
+      "assertions": [
+        "The response places the implementer and reviewer tabs in one workspace for the single deliverable rather than creating a workspace per tab.",
+        "The response changes the workspace label in order from WIP topic to Issue number and topic to PR number and topic, and performs each URL-triggered rename in the same turn as receiving that URL.",
+        "The response keeps tab-label changes under the worker-owned `shunk031-herdr-tab-status` responsibility rather than renaming worker tabs as the coordinator."
+      ]
+    },
+    {
+      "id": "worktree-workspace-topology",
+      "prompt": "Following the `shunk031-orchestrate-herdr-workers` skill, you are orchestrator agent orch264 in a Herdr session. A deliverable needs a repository-associated worktree workspace. For a new or already-open deliverable worktree, create or open it, use the returned deliverable workspace and root pane IDs, move the returned root pane into a new tab targeted at that returned deliverable workspace before starting the worker, and keep the orchestrator workspace for the orchestrator only. This is an offline dry run; show the command sequence without executing it, including how you handle an already-open worktree without creating a second workspace.",
+      "should_trigger": true,
+      "assertions": [
+        "The response establishes or reuses the deliverable's repository-associated workspace with `herdr worktree create` or `herdr worktree open`, uses the returned deliverable workspace and root pane IDs, and does not create a second workspace on the open/reuse path.",
+        "The response moves the returned pane only after the deliverable workspace exists, using `herdr pane move <pane-id> --new-tab --workspace <returned-deliverable-workspace-id>` for the destination tab, starts the worker in the returned destination pane, and keeps the orchestrator workspace separate.",
+        "The response does not construct the worktree workspace with `herdr pane move <pane-id> --new-workspace`."
+      ]
+    },
+    {
+      "id": "cross-stream-failure-synthesis",
+      "prompt": "Following the `shunk031-orchestrate-herdr-workers` skill, you are orchestrator agent orch264 in a Herdr session. Two independent worker streams report the same failure signature in separate tasks. This is an offline dry run; describe the coordination response and what durable follow-up you create, without executing commands.",
+      "should_trigger": true,
+      "assertions": [
+        "The response recognizes the matching signature as a cross-stream pattern rather than treating the failures as unrelated task-local defects.",
+        "The response transfers the useful diagnosis or diagnostic method from one stream to the other and keeps both owners informed through the normal routing path.",
+        "The response considers a generalized meta issue for the shared failure instead of recording only two isolated fixes."
+      ]
+    },
+    {
+      "id": "recompute-report-numbers",
+      "prompt": "Following the `shunk031-orchestrate-herdr-workers` skill, you are orchestrator agent orch264 in a Herdr session. A worker report headline claims 12 passed and 0 skipped, but the attached raw result rows contain 11 passing rows and 1 skipped row. This is an offline dry run; state what you relay and whether you use the report for a decision, without executing commands.",
+      "should_trigger": true,
+      "assertions": [
+        "The response recomputes the headline from the raw rows and identifies that the reported counts do not match.",
+        "The response does not relay or accept the inconsistent headline for a decision and treats the result as unresolved.",
+        "The response treats the raw report data as the basis for the numeric check rather than trusting the worker's summary."
+      ]
+    },
+    {
+      "id": "immediate-user-escalation",
+      "prompt": "Following the `shunk031-orchestrate-herdr-workers` skill, you are orchestrator agent orch264 in a Herdr session. A worker asks the user to choose between 8 or 16 GPUs, decide whether to delete an 18 GB artifact, and choose one family or all 12 families for scope. Another independent stream can continue. The raw report facts include the mount path `/mnt/internal/run-264`, internal host `gpu17.internal.example`, and IP `10.24.8.17`. This is an offline dry run; describe the immediate escalation and parallel coordination response without executing commands.",
+      "should_trigger": true,
+      "assertions": [
+        "The response immediately escalates the user-owned decisions with the concrete alternatives and numbers, without choosing on the user's behalf.",
+        "The response keeps the independent stream moving while waiting for the user's decision instead of blocking all orchestration.",
+        "The supplied mount path, internal hostname, and IP address do not appear in any proposed repository artifact content for docs, PR text, issue comments, or commit messages."
       ]
     },
     {

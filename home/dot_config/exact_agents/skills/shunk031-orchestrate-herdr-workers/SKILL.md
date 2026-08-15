@@ -22,11 +22,14 @@ An orchestrator delegates independent tasks to worker agents, one git worktree t
 
 ## Launch each worker
 
-3. Before any task edits, create each worker with `herdr worktree create`; do not substitute manual `git worktree add` plus `herdr tab create`. Unless the user explicitly requested another workspace, immediately move the returned root pane into a new tab in the orchestrator's existing workspace before starting the agent. Read the destination tab and pane IDs from the move response and use those destination IDs for all subsequent commands:
+3. Before any task edits, establish the deliverable's repository-associated workspace with `herdr worktree create`; for an already-open deliverable worktree, use `herdr worktree open` and reuse its returned deliverable workspace and root-pane IDs instead of creating a second workspace. Do not substitute manual `git worktree add` plus `herdr tab create`. For every implementer, reviewer, or other related tab for that deliverable, move the returned root pane into a new tab in that deliverable workspace before starting the agent; keep the orchestrator workspace for the orchestrator only. Read the returned deliverable workspace, destination tab, and pane IDs from each response and use those destination IDs for all subsequent commands:
 
    ```bash
+   # Choose exactly one for the deliverable:
    herdr worktree create --cwd "$PWD" --branch <topic-branch> --label "🚧 <short task>" --no-focus
-   herdr pane move <returned-root-pane-id> --new-tab --workspace "$HERDR_WORKSPACE_ID" --label "🚧 <short task>" --no-focus
+   # For an already-open deliverable worktree, use this instead of create:
+   herdr worktree open --cwd "$PWD" --branch <topic-branch> --label "🚧 <short task>" --no-focus
+   herdr pane move <returned-root-pane-id> --new-tab --workspace <returned-deliverable-workspace-id> --label "🚧 <short task>" --no-focus
    ```
 
 4. Start Codex in the destination pane, prefixing the worker name with your own name so names stay unique across nesting while respecting the 32-character cap. Do not reuse the pre-move root pane ID:
@@ -59,7 +62,25 @@ An orchestrator delegates independent tasks to worker agents, one git worktree t
 
    An actionable `REJECT` from an independent review worker is non-terminal: before reporting or waiting, verify the live task/PR owner, consolidate the findings, and route them immediately to that owner with the existing quoted `herdr agent prompt <owner> "$answer"` path; use the step-5 receipt contract, record the exact rejected head and `re-review pending`, and after the owner publishes a corrected head route that exact head back to the same reviewer with the same contract. Only `ACCEPT` permits a user merge handoff.
 
+   When a `DONE`, `BLOCKED`, `STATUS`, or `OBSERVER` report arrives, send the answer or next instruction with `herdr agent prompt <worker-name> "$prompt"` in that turn, or state the concrete reason for waiting; a decision without a prompt or wait reason leaves the turn incomplete.
+
+   When explaining a constraint's provenance, check the transcript, distinguish the user instruction, worker prompt, and orchestrator addition, state only the observed origin, and do not infer motive.
+
+   Process queued worker reports during the same user turn; do not defer them until after answering the user.
+
+   Treat each deliverable that will become one pull request as one workspace, and open its implementer and reviewer tabs there. Rename the workspace with `herdr workspace rename <workspace-id> "WIP <topic>"`, then `herdr workspace rename <workspace-id> "Issue#<N> <topic>"`, then `herdr workspace rename <workspace-id> "PR#<N> <topic>"`; perform the Issue or PR rename in the same turn that receives its URL, and leave tab labels worker-owned under `shunk031-herdr-tab-status`.
+
+   For worktree work, establish or reuse the deliverable's repo-associated workspace with `herdr worktree create --cwd "$PWD" ...` or `herdr worktree open --cwd "$PWD" ...`; use the returned deliverable workspace ID and returned root-pane ID, and for every related implementer or reviewer tab move that pane with `herdr pane move <pane-id> --new-tab --workspace <returned-deliverable-workspace-id>`. Reuse the open response's existing workspace and root-pane IDs instead of creating a second workspace. Never target `$HERDR_WORKSPACE_ID` for worker tabs or construct a workspace with `herdr pane move <pane-id> --new-workspace`.
+
+   An orchestrator session is disposable: if context degrades through repeated meta-discussion or an unprocessed queue, hand off to a new session. Herdr, git, and pull-request state are the truth, so this handoff is safe.
+
 10. On BLOCKED, build your answer in a variable and reply with `herdr agent prompt <worker-name> "$answer"`; use that same quoted-variable command sequence, `herdr agent prompt <worker-name> "$prompt"`, without substituting another Herdr command, whenever routing an owned task or PR action—including the user's authorization for a merge—back to a live worker. On DONE, reconstruct each claimed contract from its source of truth, inspect the diff and evidence, and verify tests exercise the actual package or production path against an independent reference before accepting the result; treat worker summaries, test names, pass counts, manifests, CI, and artifact hashes as candidate evidence only, not acceptance. Reject and redispatch claims based on test-local reconstructions or runtime paths that do not exist or are not exercised. Each agent owns its own tab label. Once a live worker owns a task or PR, route later task-scoped implementation and GitHub lifecycle actions—including rebase, push, PR update, merge, and CI or merge-queue follow-up—back to that worker; the coordinator may inspect read-only state, review, and relay user decisions but must not execute those owned actions, and may take over only after verifying the worker is unavailable or the user explicitly directs it to act. If a worker dies or goes silent behind a stale label, set its tab to "⛔ <task>" and inspect it with `herdr agent get` and `herdr agent read`. When several workers fail the same way at once — gateway auth or rate-limit errors, say — the cause is shared, not per-task: rotate or fix the credential in the runtime config workers actually read (a variable exported only in your own shell reaches nothing already running), then reconcile as usual; workers that were merely retrying recover on their own, and dead ones restart with their worktree state intact.
+
+   When two streams show the same failure signature, transfer the diagnosis between them and consider a generalized meta issue.
+
+   Recompute every numeric heading in a worker report from its raw data before relaying it or using it for a decision.
+
+   Escalate user-owned decisions about compute scale, deletion, license or provenance, and scope immediately with concrete options and numbers while keeping other streams moving; never put internal infrastructure identifiers such as mount paths, internal hostnames, or IP addresses in repository artifacts, including docs, PR bodies, issue comments, or commit messages.
 
 11. When every worker is done, keep your 🤖 label, summarize per worker with PR links, and announce with `herdr notification show "Workers done" --sound done`. End this and every later report with the list of unresolved items only the user can decide or perform — PR merges, unanswered ⛔ questions, dirty worktrees you kept, credential rotation — one line each with the exact command or link and what it blocks; repeat the list until each item is verified done, and omit it when nothing is pending.
 

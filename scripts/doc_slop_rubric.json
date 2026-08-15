@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "review_order": [
+    "stance",
+    "agency",
+    "structure",
+    "vocabulary",
+    "rhythm",
+    "symbols"
+  ],
+  "categories": [
+    {
+      "id": "producer-perspective-ordering",
+      "label_en": "producer-perspective ordering",
+      "label_ja": "生産者視点の順序",
+      "description_en": "The document is ordered by how the work happened rather than by what the reader needs first. The outcome arrives after the process that produced it.",
+      "description_ja": "読み手が最初に必要とする結論ではなく、作業した順序で並んでいる。結果が経緯のあとに置かれている。",
+      "detector": "model"
+    },
+    {
+      "id": "evidence-dump",
+      "label_en": "evidence dump",
+      "label_ja": "証拠の投げ出し",
+      "description_en": "Hashes, identifiers, paths, or jargon are pasted without saying what they mean or why the reader should care.",
+      "description_ja": "ハッシュ、識別子、パス、専門用語を、意味も読む理由も示さずに貼り付けている。",
+      "detector": "both"
+    },
+    {
+      "id": "hollow-framing",
+      "label_en": "hollow openers and closers",
+      "label_ja": "空虚な導入と締め",
+      "description_en": "Opening or closing sentences that carry no information, such as restating the task or ending on a tidy lesson.",
+      "description_ja": "課題の言い換えや、きれいな教訓での着地など、情報を持たない導入や締めの文。",
+      "detector": "both"
+    },
+    {
+      "id": "redundant-enumeration",
+      "label_en": "redundant enumeration",
+      "label_ja": "冗長な列挙",
+      "description_en": "Template lists such as three principles or three lessons, or a closing list that only restates what was already written.",
+      "description_ja": "3つの原則、3つの学びのようなテンプレの列挙。あるいは既出の内容を並べ直すだけの締めのリスト。",
+      "detector": "both"
+    },
+    {
+      "id": "over-hedging",
+      "label_en": "over-hedging",
+      "label_ja": "過剰なぼかし",
+      "description_en": "A judgement is required but the text retreats to it depends, case by case, or approval of every option.",
+      "description_ja": "判断が必要な場面で、場合による、ケースバイケース、全方位肯定に逃げている。",
+      "detector": "both"
+    },
+    {
+      "id": "bare-issue-subject",
+      "label_en": "bare issue-number subject",
+      "label_ja": "番号だけの主語",
+      "description_en": "An issue or pull request number is used as the subject with no statement of what it is, so the reader must look it up to parse the sentence.",
+      "description_ja": "issue や PR の番号をそのまま主語にしており、何の話か書かれていない。読み手が番号を引かないと文が読めない。",
+      "detector": "both"
+    },
+    {
+      "id": "absent-reader-framing",
+      "label_en": "absent reader framing",
+      "label_ja": "読み手の不在",
+      "description_en": "The text never establishes who it is for or what the reader should do or decide next.",
+      "description_ja": "誰に向けた文章で、読み手が次に何をすべきか、何を判断すべきかが書かれていない。",
+      "detector": "model"
+    }
+  ],
+  "prechecks": [
+    {
+      "id": "bare-hash-token",
+      "category": "evidence-dump",
+      "pattern": "(?<![0-9a-zA-Z/])[0-9a-f]{7,}(?![0-9a-zA-Z/])",
+      "flags": [],
+      "severity": "medium",
+      "why_en": "A bare hexadecimal token is quoted with no statement of what it identifies.",
+      "why_ja": "16 進のトークンが、何を指すのかの説明なしに書かれている。",
+      "fix_en": "Say what the token identifies and why it matters, or drop it.",
+      "fix_ja": "そのトークンが何を指し、なぜ重要かを書く。不要なら消す。"
+    },
+    {
+      "id": "bare-issue-number-subject",
+      "category": "bare-issue-subject",
+      "pattern": "^\\s*(?:[-*]\\s+)?#\\d+\\s+(?:said|says|is|was|added|changed|landed|merged|introduced)\\b",
+      "flags": ["IGNORECASE", "MULTILINE"],
+      "severity": "medium",
+      "why_en": "A pull request or issue number is the sentence subject with no description of it.",
+      "why_ja": "PR や issue の番号が、説明なしに文の主語になっている。",
+      "fix_en": "Name what the change did, then cite the number.",
+      "fix_ja": "その変更が何をしたのかを書いてから、番号を添える。"
+    },
+    {
+      "id": "hollow-opener",
+      "category": "hollow-framing",
+      "pattern": "(?:in conclusion|it is important to note|it should be noted|as we all know|いかがでしたか|まとめると、|結論から言うと、以下)",
+      "flags": ["IGNORECASE"],
+      "severity": "low",
+      "why_en": "A formulaic opener or closer that carries no information.",
+      "why_ja": "情報を持たない定型の導入や締め。",
+      "fix_en": "Delete it and start with the claim itself.",
+      "fix_ja": "削除して、主張そのものから書き始める。"
+    },
+    {
+      "id": "template-enumeration",
+      "category": "redundant-enumeration",
+      "pattern": "(?:\\b(?:three|four|five)\\s+(?:key|main|important|core)\\s+\\w+|\\d+つの(?:原則|観点|学び|ポイント|理由))",
+      "flags": ["IGNORECASE"],
+      "severity": "low",
+      "why_en": "A fixed-count list suggests the number was chosen before the content.",
+      "why_ja": "個数が先に決まっている列挙で、内容より形式が先行している。",
+      "fix_en": "Keep the items that carry weight and drop the count from the framing.",
+      "fix_ja": "意味のある項目だけ残し、前置きから個数を外す。"
+    },
+    {
+      "id": "hedge-retreat",
+      "category": "over-hedging",
+      "pattern": "(?:it depends on the (?:case|situation)|case by case|ケースバイケース|場合によります|場合による)",
+      "flags": ["IGNORECASE"],
+      "severity": "medium",
+      "why_en": "The text retreats from a judgement the reader needs.",
+      "why_ja": "読み手が必要としている判断から逃げている。",
+      "fix_en": "State the recommendation and the condition that would change it.",
+      "fix_ja": "推奨を明示し、それが変わる条件を書く。"
+    },
+    {
+      "id": "decorative-residue",
+      "category": "hollow-framing",
+      "pattern": "(?:\\s—\\s|\\*\\*[^*\\n]+\\*\\*\\s*[:：])",
+      "flags": [],
+      "severity": "low",
+      "why_en": "Formatting residue is doing work the sentence should do.",
+      "why_ja": "文が担うべき役割を、装飾記号に任せている。",
+      "fix_en": "Replace with ordinary punctuation or a plain sentence.",
+      "fix_ja": "普通の句読点か、普通の文に置き換える。"
+    }
+  ]
+}

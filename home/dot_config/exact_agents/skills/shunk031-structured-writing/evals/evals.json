@@ -46,6 +46,56 @@
       ]
     },
     {
+      "id": "evidence-training-document",
+      "prompt": "Revise `models/atlas/TRAINING.md` for a maintainer. The target file is not present in the evaluation repository, so return the complete self-contained revised document in your final response rather than reporting a missing file or describing an editing plan. Preserve every supplied fact and do not invent facts. The factual content is mandatory, but the supplied headings, order, and first-person work-log or evidence prose are defects to rewrite; the supplied formatting is not a fact. Current document supplied as source material:\n\n# 268\n\nI first checked the trainer config, then I ran the 300-step comparison, and then I looked at the stage records.\n\n## What I did\n\nThe package is atlas. The S0 data-loader check is accepted. I recorded S1 as a candidate. S2-S5 still need separate real-source gates.\n\n## Evidence notes\n\nThe comparison run used 300 lockstep steps. Issue #268 tracks the remaining parity work.\n\nRewrite the document so a reader can understand the current result before the supporting stage and evidence details.",
+      "should_trigger": true,
+      "assertions": [
+        "The final response contains a self-contained revised document and preserves every supplied fact: package atlas, the accepted S0 data-loader check, S1 as an unaccepted candidate, separate S2-S5 real-source gates, 300 lockstep steps, and issue #268.",
+        "The revised document presents the current result and scope before the detailed stage and evidence information, organizing the material for the reader rather than around the author's work sequence.",
+        "The document uses headings that name concepts or stages.",
+        "The document does not use a bare issue number as a heading or as the grammatical subject of a sentence."
+      ]
+    },
+    {
+      "id": "repository-protocol-document",
+      "prompt": "Revise the supplied section of `docs/lockstep-protocol.md` for a reader who must apply the protocol. The target file is not present in the evaluation repository, so return the complete self-contained revised section in your final response rather than reporting a missing file or describing an editing plan. Preserve every supplied fact and do not invent commands, stages, or evidence. The factual content is mandatory, but the supplied headings, order, and first-person work-log or evidence prose are defects to rewrite; the supplied formatting is not a fact. Current section supplied as source material:\n\n# 271\n\n## Work log\n\nI checked the checker output first, then I wrote this rule.\n\n### 1\n\nA later stage may advance only after the prior stage's evidence is accepted.\n\n## Evidence\n\nI observed a clean checker result, but a clean checker alone is not runtime evidence. The failed behavioral gate preserves the candidate and stops publication. Issue #271 records the protocol clarification.\n\nRewrite the section so the rule's purpose and reader-relevant outcome come before the ordering and failure details.",
+      "should_trigger": true,
+      "assertions": [
+        "The final response contains a self-contained revised section and preserves every supplied fact: prior-stage evidence must be accepted before advancement, a clean checker alone is not runtime evidence, a failed behavioral gate preserves the candidate and stops publication, and issue #271 records the clarification.",
+        "The revised section presents the rule's purpose and reader-relevant outcome before the ordering and failure details, organizing the material for the reader rather than around the author's work sequence.",
+        "The section uses headings that name concepts or protocol topics.",
+        "The section does not use a bare issue number as a heading or as the grammatical subject of a sentence."
+      ]
+    },
+    {
+      "id": "pull-request-body-template",
+      "prompt": "Write the complete Markdown body for pull request #627 using this supplied template order: purpose, changes, evidence, validation, and next action. Use only these supplied facts: the change expands the `shunk031-structured-writing` description and adds evaluation cases for an evidence `TRAINING.md`, a repository protocol document, and a pull-request body; two negative controls cover code-only work and a short conversational reply; the canonical guidance gate runs once at commit time with three trials under the per-case majority policy; the pull request must not be merged by the worker; and the final handoff requires a read-back. Put the purpose and outcome before the detailed evidence. Do not invent results.",
+      "should_trigger": true,
+      "assertions": [
+        "The body leads with the purpose and outcome, then presents the detailed changes and evidence in a reader-understandable order.",
+        "The headings name the supplied topics rather than using a bare issue number, and no sentence uses a bare issue number as its grammatical subject.",
+        "The response preserves all supplied facts about the description expansion, the three document cases, the two negative controls, the single three-trial canonical gate with per-case majority, the no-merge boundary, and read-back handoff."
+      ]
+    },
+    {
+      "id": "code-only-change-negative-control",
+      "prompt": "Change `src/optimizer.py` so `scale(value)` returns `value * 2`. Return the implementation and one focused example only.",
+      "should_trigger": false,
+      "assertions": [
+        "The response directly provides the requested code and focused example.",
+        "The response does not add an unrelated document structure or writing-process discussion."
+      ]
+    },
+    {
+      "id": "short-conversation-negative-control",
+      "prompt": "Reply in one or two natural sentences to this message: I finally fixed the flaky test; thanks for the help!",
+      "should_trigger": false,
+      "assertions": [
+        "The response is a brief natural conversational reply.",
+        "The response does not introduce headings, a report structure, or unnecessary writing guidance."
+      ]
+    },
+    {
       "id": "machine-readable-output",
       "prompt": "Return only this JSON object with keys in the same order: {\"status\":\"ok\",\"count\":2}",
       "should_trigger": false,

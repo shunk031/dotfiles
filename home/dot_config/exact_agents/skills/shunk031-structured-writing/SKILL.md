@@ -1,6 +1,6 @@
 ---
 name: shunk031-structured-writing
-description: Structure and revise detailed instructions, plans, reports, documentation, and bullet lists so their hierarchy and relationships are clear. Use when drafting or reorganizing multi-part prose and repository completion or status reports, even when the resulting report should be concise, especially when deciding between headings, topic bullets, supporting nested bullets, and independent flat items. Do not use for ordinary conversational short answers, code-only output, or machine-readable data unless the user also requests prose organization.
+description: Structure and revise detailed instructions, plans, reports, documentation, evidence documents such as TRAINING.md, repository protocol documents, pull-request bodies, and bullet lists so their hierarchy and relationships are clear. Use when drafting or reorganizing multi-part prose and repository completion or status reports, even when the resulting report should be concise, especially when deciding between headings, topic bullets, supporting nested bullets, and independent flat items. Do not use for ordinary conversational short answers, code-only output, or machine-readable data unless the user also requests prose organization.
 ---
 
 # Structured Writing

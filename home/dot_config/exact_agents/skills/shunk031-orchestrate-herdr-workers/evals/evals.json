@@ -79,11 +79,11 @@
     },
     {
       "id": "independent-review-reject-owner-redispatch",
-      "prompt": "You are orchestrator agent orch264 in a Herdr session. An independent review worker named orch264-pr627-review reports `REJECT PR #627 at cc5a008abc33ef68d07b30ee57c11ed93a3571c3`; the supplied live implementation/PR owner is orch264-adopt-report. This is an offline dry run; without executing commands, state the observable coordination outcomes: how the consolidated findings are stored in a shell variable and the quoted Herdr command passes that variable as one argument to the supplied live owner, what exact head/status is recorded while re-review is pending, who receives the owner's corrected head for re-review, and whether or when user merge handoff is permitted.",
+      "prompt": "You are orchestrator agent orch264 in a Herdr session. An independent review worker named orch264-pr627-review reports `REJECT PR #627 at cc5a008`; the supplied live implementation/PR owner is orch264-adopt-report. This is an offline dry run; without executing commands, state the observable coordination outcomes: how the consolidated findings are stored in a shell variable and the quoted Herdr command passes that variable as one argument to the supplied live owner, what exact head/status is recorded while re-review is pending, who receives the owner's corrected head for re-review, and whether or when user merge handoff is permitted.",
       "should_trigger": true,
       "assertions": [
         "The response treats REJECT as nonterminal, stores the consolidated findings in a shell variable, and routes them to supplied live owner orch264-adopt-report with `herdr agent prompt orch264-adopt-report`, passing that variable as one quoted argument without shell expansion.",
-        "The response records rejected head `cc5a008abc33ef68d07b30ee57c11ed93a3571c3` as re-review pending and says that, after orch264-adopt-report publishes a corrected head, that exact head is routed to the same reviewer orch264-pr627-review.",
+        "The response records rejected head `cc5a008` as re-review pending and says that, after orch264-adopt-report publishes a corrected head, that exact head is routed to the same reviewer orch264-pr627-review.",
         "The response blocks user merge handoff until that reviewer reports ACCEPT and does not merge the PR."
       ]
     },
@@ -150,9 +150,7 @@
       "prompt": "Following the `shunk031-orchestrate-herdr-workers` skill, you are orchestrator agent orch264 in a Herdr session. A worker report headline claims 12 passed and 0 skipped, but the attached raw result rows contain 11 passing rows and 1 skipped row. This is an offline dry run; state what you relay and whether you use the report for a decision, without executing commands.",
       "should_trigger": true,
       "assertions": [
-        "The response recomputes the headline from the raw rows and identifies that the reported counts do not match.",
-        "The response does not relay or accept the inconsistent headline for a decision and treats the result as unresolved.",
-        "The response treats the raw report data as the basis for the numeric check rather than trusting the worker's summary."
+        "The response recomputes the counts from the raw rows, states that they do not match the reported headline, and does not accept the report as all-passing until the discrepancy is resolved."
       ]
     },
     {
@@ -179,6 +177,14 @@
       "should_trigger": false,
       "assertions": [
         "The response plans the parallel work without herdr commands, Herdr tabs, or the Herdr worker report protocol."
+      ]
+    },
+    {
+      "id": "sender-first-worker-report",
+      "prompt": "You are Herdr worker `parity-fix-worker` in worktree `/tmp/parity-fix-worker`; your orchestrator is agent `orch299`. These worker, task, worktree, orchestrator, and report-target identities are fixed. You have just completed the assigned task: add a regression test for the package parity checksum and verify the focused test passes. Notify your orchestrator now by running `herdr agent prompt orch299 \"<MESSAGE>\"`. Before replying, explicitly read `.agents/skills/shunk031-orchestrate-herdr-workers/SKILL.md` and follow its worker protocol. Build MESSAGE in a quoted-heredoc shell variable as required by the skill, then return the exact shell command sequence you would run to send the report. Do not explain the protocol.",
+      "should_trigger": true,
+      "assertions": [
+        "The drafted DONE report begins with the sender's own assigned worker name immediately after `DONE ` and before the colon, rather than using the orchestrator's name as the sender."
       ]
     }
   ]

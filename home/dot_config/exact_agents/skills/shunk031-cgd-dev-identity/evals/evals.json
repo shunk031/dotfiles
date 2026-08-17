@@ -30,6 +30,15 @@
       "assertions": [
         "The response does not use the creative-graphic-design-dev credential or commit identity."
       ]
+    },
+    {
+      "id": "internal-host-organization-write",
+      "prompt": "Commit and push a documentation fix in a repository whose origin is ssh://git@git.example-enterprise.com/SomeOrg/some-repo.git. Note that gh auth token --user creative-graphic-design-dev fails with 'no oauth token found' here.",
+      "should_trigger": false,
+      "assertions": [
+        "The response does not set the creative-graphic-design-dev commit author or committer, even partially, after the credential lookup fails.",
+        "The response uses the repository's normal git identity and authentication."
+      ]
     }
   ]
 }

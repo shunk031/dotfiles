@@ -1,6 +1,6 @@
 ---
 name: shunk031-cgd-dev-identity
-description: Use this skill for all GitHub write operations in creative-graphic-design organization repositories (such as design-generators), including git commits and pushes, PR creation and updates, issue and PR comments, labels, milestones, and user-requested merges. Perform them as the creative-graphic-design-dev machine user. Use it both when the user explicitly requests the bot or dev account and whenever beginning write work in an organization repository without an explicit request.
+description: Use this skill for all GitHub write operations in creative-graphic-design organization repositories (such as design-generators), including git commits and pushes, PR creation and updates, issue and PR comments, labels, milestones, and user-requested merges. Perform them as the creative-graphic-design-dev machine user. Use it both when the user explicitly requests the bot or dev account and whenever beginning write work in a creative-graphic-design organization repository without an explicit request; never use it in repositories of any other organization or host.
 ---
 
 # CGD Dev Identity
@@ -13,7 +13,11 @@ Perform git and gh write operations for creative-graphic-design organization rep
 
 Before starting write operations, perform the following checks in the working shell and worktree. Run them as a starting procedure rather than investigating only after a failure.
 
-1. Ensure that GitHub CLI has the bot account in its system credential store. On a new machine, run the interactive setup command once and authenticate in the browser as `creative-graphic-design-dev`:
+1. For repository writes, confirm that `git remote get-url origin` points to `github.com/creative-graphic-design`.
+
+   If it does not, this skill does not apply; use normal git identity and authentication. New-machine `setup-gh-cgd` bootstrap is exempt.
+
+2. Ensure that GitHub CLI has the bot account in its system credential store. On a new machine, run the interactive setup command once and authenticate in the browser as `creative-graphic-design-dev`:
 
    ```bash
    setup-gh-cgd
@@ -21,7 +25,7 @@ Before starting write operations, perform the following checks in the working sh
 
    Do not use `gh auth switch` during agent work. It changes the active account for the whole host and can race with concurrent sessions.
 
-2. Retrieve the stored bot token by account name and pass it only to each write command that uses gh or git credentials:
+3. Retrieve the stored bot token by account name and pass it only to each write command that uses gh or git credentials:
 
    ```bash
    GH_TOKEN="$(gh auth token --hostname github.com --user creative-graphic-design-dev)" gh pr create ...
@@ -30,7 +34,7 @@ Before starting write operations, perform the following checks in the working sh
 
    Do not export the token into a persistent shell and do not print it. The per-command prefix keeps account selection explicit and avoids changing GitHub CLI's global active account.
 
-3. Verify the GitHub identity and push permission for the organization repository. `gh api user` only confirms the logged-in account and cannot verify access to organization resources:
+4. Verify the GitHub identity and push permission for the organization repository. `gh api user` only confirms the logged-in account and cannot verify access to organization resources:
 
    ```bash
    GH_TOKEN="$(gh auth token --hostname github.com --user creative-graphic-design-dev)" gh api user --jq .login
@@ -39,7 +43,7 @@ Before starting write operations, perform the following checks in the working sh
 
    Do not start write operations unless the first command returns `creative-graphic-design-dev` and the second returns `true`.
 
-4. Set the commit author to the bot for each commit command:
+5. Set the commit author to the bot for each commit command:
 
    ```bash
    git -c user.name=creative-graphic-design-dev \
@@ -49,7 +53,7 @@ Before starting write operations, perform the following checks in the working sh
 
    Do not use `git config user.name/email` in a linked worktree: it writes to the shared `.git/config` and changes the author for the main checkout and concurrent worktrees as well.
 
-5. Push over HTTPS because SSH does not use the proxy in this environment. Set an explicit push URL:
+6. Push over HTTPS because SSH does not use the proxy in this environment. Set an explicit push URL:
 
    ```bash
    git remote set-url --push origin https://github.com/creative-graphic-design/<repo>
@@ -59,8 +63,9 @@ Before starting write operations, perform the following checks in the working sh
 
 ## Scope
 
-- This skill applies only to creative-graphic-design organization repositories. Do not use the stored bot credential for other organizations or personal repositories; use normal authentication there.
-- Attribute every coding-agent write to an organization repository to the bot. This includes commits, pushes, PR creation and updates, PR replies, issue comments, labels, milestones, and user-requested merges.
+- This skill applies only to creative-graphic-design organization repositories on github.com. Do not use the stored bot credential or the bot commit identity for other hosts, organizations, or personal repositories; use normal authentication and the normal git identity there.
+- Attribute every coding-agent write to a creative-graphic-design organization repository to the bot. This includes commits, pushes, PR creation and updates, PR replies, issue comments, labels, milestones, and user-requested merges.
+- If any Setup verification fails, abandon the bot identity entirely: do not apply it partially, such as setting the bot commit author while the credential check failed or pushing through another account. Stop and report instead.
 - The human (`shunk031`) retains only PR approval in the GitHub UI and the decision to merge. Do not approve PRs as the bot.
 
 ## Troubleshooting

@@ -132,7 +132,8 @@
       "assertions": [
         "The response establishes or reuses the deliverable's repository-associated workspace with `herdr worktree create` or `herdr worktree open`, uses the returned deliverable workspace and root pane IDs, and does not create a second workspace on the open/reuse path.",
         "The response moves the returned pane only after the deliverable workspace exists, using `herdr pane move <pane-id> --new-tab --workspace <returned-deliverable-workspace-id>` for the destination tab, starts the worker in the returned destination pane, and keeps the orchestrator workspace separate.",
-        "The response does not construct the worktree workspace with `herdr pane move <pane-id> --new-workspace`."
+        "The response does not construct the worktree workspace with `herdr pane move <pane-id> --new-workspace`.",
+        "Workspace labels use emoji-free WIP/Issue#/PR# forms, while status emojis appear only on tab labels such as the `herdr pane move ... --new-tab --label` example."
       ]
     },
     {

@@ -5,7 +5,7 @@ description: Orchestrate and coordinate coding workers in Herdr by spawning para
 
 # Orchestrate Herdr Workers
 
-An orchestrator delegates independent tasks to worker agents, one git worktree tab each; workers report back by prompting the orchestrator, and normal completion remains report-driven without coordinator polling. Read the herdr skill first: it owns all CLI mechanics, JSON responses, ID handling, and safety rules. This skill adds only the orchestration protocol. Build every peer prompt in a shell variable first (for example, with a quoted heredoc) and pass it as one argument; never let the shell expand task or report text.
+An orchestrator delegates independent tasks to worker agents, one git worktree tab each; workers report back by prompting the orchestrator, and normal completion remains report-driven without coordinator polling. Read this skill file and the herdr skill first: the herdr skill owns all CLI mechanics, JSON responses, ID handling, and safety rules. This skill adds only the orchestration protocol. Build every peer prompt in a shell variable first (for example, with a quoted heredoc) and pass it as one argument; never let the shell expand task or report text.
 
 ## Set up the orchestrator
 
@@ -26,9 +26,9 @@ An orchestrator delegates independent tasks to worker agents, one git worktree t
 
    ```bash
    # Choose exactly one for the deliverable:
-   herdr worktree create --cwd "$PWD" --branch <topic-branch> --label "🚧 <short task>" --no-focus
+   herdr worktree create --cwd "$PWD" --branch <topic-branch> --label "WIP <short task>" --no-focus
    # For an already-open deliverable worktree, use this instead of create:
-   herdr worktree open --cwd "$PWD" --branch <topic-branch> --label "🚧 <short task>" --no-focus
+   herdr worktree open --cwd "$PWD" --branch <topic-branch> --label "WIP <short task>" --no-focus
    herdr pane move <returned-root-pane-id> --new-tab --workspace <returned-deliverable-workspace-id> --label "🚧 <short task>" --no-focus
    ```
 

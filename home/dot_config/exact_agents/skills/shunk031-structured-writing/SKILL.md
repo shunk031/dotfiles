@@ -27,32 +27,27 @@ Make the document's logical relationships visible without imposing a template on
 - Group every claim that explains the same topic under that parent, including scope, caching, and failure behavior; do not detach one merely because it describes a different aspect.
 - Do not leave supporting sentences in a flat list without a topic sentence. Keep bullets at one level only when each item can stand on its own as a topic sentence.
 - Convert procedures into ordered steps when sequence matters; keep unordered lists for independent points.
-- In reader-facing evidence or protocol documents, use a conceptual heading and the reader's outcome first. Do not use a bare issue number (for example, `# 271`) as a heading or as the grammatical subject; mention the issue as supporting metadata after the rule or result.
+- In reader-facing evidence or protocol documents, use a conceptual heading and the reader's outcome first. Do not use a bare identifier as a heading or as the grammatical subject; mention metadata after the rule or result.
 
 ### Japanese technical reports
 
-- When a Japanese report has one topic followed by facts that explain or qualify it, make the topic the parent bullet and nest the supporting facts below it. Do not put several related full sentences into one flat bullet.
+- When a Japanese report has one topic followed by facts that explain or qualify it, make the topic the parent bullet and nest the supporting facts below it. Write the parent as a reader-facing statement, not as an unexplained `label: value` pair, and do not put several related full sentences into one flat bullet.
 - End supporting bullets with a noun phrase (体言止め) when they function as compact evidence or conditions. Keep the parent as the readable topic; do not force every bullet into the same sentence ending.
-- Keep the concrete subject and the exact unit in the topic or its first supporting bullet. Do not invent a shorter label while compressing the source.
+- 書き換えを返す前に、次の3段階を完了するまで最終稿を返さない。
+  1. 原文が定義していない、または役割を説明していないラベル・単位・略語をすべて列挙する。
+  2. 列挙した各項目を平易な参照先に置き換えるか、初出で定義する。原文に読み手向けの意味がない項目は、意味を推測できても未定義として指摘し、補わない。
+  3. すべての数値について数える対象を確認し、単位の初出でその対象を明記する。
 
   ```text
   Before
-  - モデルはQwen3-VL-32B-ThinkingをSGLang経由で呼び出した。サンプリングはtemperature=0、thinking有効、画像番号付与とし、座標はPicture 1基準の0..1000に正規化した。主実行は max_tokens=4096 とした。全24行のうち、reasoningが4096-token上限まで消費されてfinalが空になった12行だけ、入力とpromptを変えず max_tokens=8192 で再実行した。retryは別のサンプルではなく、同じ入力・promptに対して長さ上限だけを変えた再実行である。
+  - モデルの実行条件を確認した。温度を0にし、画像番号を付け、座標を0..1000に正規化した。上限に達したものは同じ入力で再実行した。
 
   After
-  - モデルはQwen3-VL-32B-ThinkingをSGLang経由で呼び出し
-    - サンプリングは`temperature=0`、thinking有効（`enable_thinking=true`）、画像番号付与（`add_vision_id=true`）とし、座標はPicture 1基準の `0..1000` に正規化
-  - 初回実行は`max_tokens=4096`
-    - 24クエリ（3実験 × 8ペア）のうち、reasoningが4096-token上限まで消費されて最終回答が空になった12クエリだけ、入力とpromptを変えず`max_tokens=8192`で再実行
+  - モデルは指定した実行条件で呼び出し
+    - 温度0、画像番号付与、座標の正規化
+  - 上限到達時は再実行
+    - 同じ入力を使い、上限だけを変更した再実行
   ```
-
-- In the example, `24クエリ` names what is counted and `最終回答` names the reader-facing result. Apply the same rule to every report: if a term or unit is not already clear, define it at first use or write the plain referent instead of copying an opaque shorthand.
-
-- Treat the Japanese example as a required final check, not as optional style advice. Before returning the rewrite, verify all of the following:
-  - A parent bullet names the topic (`モデルは…` or `初回実行は…`); related settings, conditions, and retry facts are nested below that parent.
-  - Supporting bullets end in compact noun phrases (体言止め) where they are evidence or conditions; parent bullets remain readable topics.
-  - Never introduce or preserve an unexplained compression label. In this incident, `主実行` becomes `初回実行`, `final` becomes `最終回答`, and `retry` becomes `再実行`.
-  - Replace `全24行` with the supplied counted object, such as `24クエリ（3実験 × 8ペア）`, only when the source establishes that object. If the source does not establish what is counted, flag the missing unit instead of guessing.
 
 ## Plans
 
@@ -69,5 +64,5 @@ Make the document's logical relationships visible without imposing a template on
 1. Identify the intended audience, outcome, and independent topics.
 2. Group supporting details under the topic they explain.
 3. Remove repeated framing, placeholder headings, and conclusions that merely restate the list.
-4. Preserve exact commands, paths, identifiers, constraints, and authorization language.
+4. Preserve exact commands, paths, canonical identifiers, constraints, and authorization language; do not mistake an undefined prose label for a canonical identifier.
 5. Read the result linearly and confirm that each level remains understandable without relying on formatting alone.

@@ -24,6 +24,17 @@
       ]
     },
     {
+      "id": "japanese-report-hierarchy",
+      "prompt": "Rewrite this Japanese technical-report note as an easy-to-scan bullet list without changing any facts. The report counts 24 queries (3 experiments × 8 pairs): 主実行は max_tokens=4096 とした。全24行のうち、reasoningが4096-token上限まで消費されてfinalが空になった12行だけ、入力とpromptを変えず max_tokens=8192 で再実行した。retryは別のサンプルではなく、同じ入力・promptに対して長さ上限だけを変えた再実行である。モデルはQwen3-VL-32B-ThinkingをSGLang経由で呼び出し、temperature=0、thinking有効、画像番号付与、座標はPicture 1基準の0..1000に正規化した。",
+      "should_trigger": true,
+      "assertions": [
+        "The response does not leave related sentences flat: whenever a topic has supporting details, it uses a parent topic with nested supporting bullets; independent one-fact topics may remain at one level.",
+        "Supporting bullets that serve as compact evidence or conditions use noun-phrase endings where appropriate; parent topics remain readable and the response does not force a uniform ending on every bullet.",
+        "The response preserves the supplied execution facts: max_tokens=4096 for the initial run, 24 queries with 12 qualifying reruns, the same input and prompt, and max_tokens=8192 for the rerun.",
+        "The response preserves the supplied model and settings: Qwen3-VL-32B-Thinking via SGLang, temperature=0, thinking enabled, image numbering, and Picture 1-based 0..1000 coordinate normalization."
+      ]
+    },
+    {
       "id": "decision-complete-plan",
       "prompt": "Create an implementation plan for replacing a synchronous file-processing loop with two-worker parallel processing. The implementation will be handed to another engineer.",
       "should_trigger": true,

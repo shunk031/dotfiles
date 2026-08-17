@@ -33,6 +33,17 @@
       ]
     },
     {
+      "id": "judge-timeout-blocks-publish",
+      "prompt": "A Japanese research report contains an invented label 主実行, the undefined count 全24行, and an unexplained final label. The deterministic tier of the repository's two-tier document review reports PASS, but the blind model judge times out twice and the command exits 2. The worker wants to publish the report because the regex tier passed. Explain the gate decision and the exact condition under which publication may proceed.",
+      "should_trigger": true,
+      "assertions": [
+        "The response states that the judge timeout and exit code 2 mean the review failed or could not complete, not that it passed.",
+        "The response blocks publication after the deterministic-only PASS and does not treat --skip-model or a regex PASS as a complete review.",
+        "The response requires a successful complete review PASS before publication, or an explicit user waiver that records the failed gate and reason; the worker cannot grant the waiver itself.",
+        "The response recognizes that undefined terms and units may require manual or model review because the deterministic tier cannot infer their meaning."
+      ]
+    },
+    {
       "id": "code-only-change-negative-control",
       "prompt": "Rename the variable `tmp` to `buffer` in this function and return only the updated code:\n\ndef read(path):\n    tmp = open(path).read()\n    return tmp",
       "should_trigger": false,

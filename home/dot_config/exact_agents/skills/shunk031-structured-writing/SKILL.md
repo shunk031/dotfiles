@@ -27,6 +27,27 @@ Make the document's logical relationships visible without imposing a template on
 - Group every claim that explains the same topic under that parent, including scope, caching, and failure behavior; do not detach one merely because it describes a different aspect.
 - Do not leave supporting sentences in a flat list without a topic sentence. Keep bullets at one level only when each item can stand on its own as a topic sentence.
 - Convert procedures into ordered steps when sequence matters; keep unordered lists for independent points.
+- In reader-facing evidence or protocol documents, use a conceptual heading and the reader's outcome first. Do not use a bare identifier as a heading or as the grammatical subject; mention metadata after the rule or result.
+
+### Japanese technical reports
+
+- When a Japanese report has one topic followed by facts that explain or qualify it, make the topic the parent bullet and nest the supporting facts below it. Write the parent as a reader-facing statement, not as an unexplained `label: value` pair, and do not put several related full sentences into one flat bullet.
+- End supporting bullets with a noun phrase (体言止め) when they function as compact evidence or conditions. Keep the parent as the readable topic; do not force every bullet into the same sentence ending.
+- 書き換えを返す前に、次の3段階を完了するまで最終稿を返さない。
+  1. 原文が定義していない、または役割を説明していないラベル・単位・略語をすべて列挙する。
+  2. 列挙した各項目を平易な参照先に置き換えるか、初出で定義する。原文に読み手向けの意味がない項目は、意味を推測できても未定義として指摘し、補わない。
+  3. すべての数値について数える対象を確認し、単位の初出でその対象を明記する。
+
+  ```text
+  Before
+  - 負荷試験は同時接続100で実施した。全500リクエストのうち、応答が5秒を超えた12リクエストだけ、内容を変えずタイムアウト上限10秒で再送した。
+
+  After
+  - 負荷試験は同時接続100で実施
+    - 対象は全500リクエスト
+  - 応答5秒超の12リクエストだけ再送
+    - 内容は同一、タイムアウト上限のみ10秒に変更
+  ```
 
 ## Plans
 
@@ -43,5 +64,5 @@ Make the document's logical relationships visible without imposing a template on
 1. Identify the intended audience, outcome, and independent topics.
 2. Group supporting details under the topic they explain.
 3. Remove repeated framing, placeholder headings, and conclusions that merely restate the list.
-4. Preserve exact commands, paths, identifiers, constraints, and authorization language.
+4. Preserve exact commands, paths, canonical identifiers, constraints, and authorization language; do not mistake an undefined prose label for a canonical identifier.
 5. Read the result linearly and confirm that each level remains understandable without relying on formatting alone.

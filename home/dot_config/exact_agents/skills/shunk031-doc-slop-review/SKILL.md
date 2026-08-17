@@ -1,6 +1,6 @@
 ---
 name: shunk031-doc-slop-review
-description: Review reader-facing text with the repository's two-tier slop review before publishing it. Use when writing or editing documentation, README or TRAINING files, issue bodies and comments, pull request bodies and descriptions, or status reports that another person will read. Runs deterministic checks and one blind model judge over the draft, quotes each problem, and produces a PASS or FAIL to attach to the publish report.
+description: Review reader-facing text with the repository's two-tier slop review before publishing it. Use when writing or editing documentation, README or TRAINING files, issue bodies and comments, pull request bodies and descriptions, or status reports that another person will read. Runs deterministic checks and one blind model judge over the draft, quotes each problem, and produces a PASS or FAIL to attach to the publish report; an unavailable review is a failed gate, not a PASS.
 ---
 
 # Document Slop Review
@@ -38,9 +38,18 @@ carries the explanation a reader depends on.
 2. Run the review on the draft with the command above.
 3. Address every finding, or state why a finding does not apply. A finding you
    disagree with is answered in the report, not ignored silently.
-4. Re-run until it reports PASS, then attach that verdict to the publish
-   report. If publishing with a FAIL, record the waiver and its reason in the
-   same report.
+4. Re-run until the complete two-tier review reports PASS, then attach that
+   verdict to the publish report. A deterministic-only PASS (including
+   `--skip-model`) is not a complete review and is not permission to publish.
+5. Treat exit code `2` as a failed review that blocks publication. This includes
+   a model-judge timeout, an unavailable judge, an invalid judge response, or a
+   missing reviewable draft. Stop and report the failure instead of publishing.
+   Retry only when the review can be run again; two timeouts do not become a
+   PASS.
+6. Publish after a PASS, or only after an explicit user waiver. A waiver for a
+   FAIL or an unavailable review must name the failed gate and record the user's
+   reason in the same publish report; the worker must not infer or silently grant
+   the waiver.
 
 ## Where the script lives
 
@@ -78,6 +87,13 @@ run. A `2` is not a PASS; report it as a failed review.
 Each finding names its rubric category, quotes the offending text, explains the
 problem, and proposes a fix. Findings marked `regex` come from the
 deterministic tier; findings marked `model` come from the judge.
+
+- A clean deterministic tier does not prove that every technical term,
+  abbreviation, or unit is defined. Regex cannot know whether `24行` means
+  lines, queries, or records, or whether `final` has been introduced. Manually
+  inspect terminology and reader context even when the deterministic tier
+  reports no findings; the Japanese vocabulary owner is
+  `shunk031-ai-slop-checklist-ja`.
 
 A model finding is discarded when its quoted excerpt does not appear in the
 document, which keeps the output specific. The report counts those in

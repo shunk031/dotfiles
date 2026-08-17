@@ -166,29 +166,34 @@ EOF
     [ -f "${TMPL_SCRIPT_PATH}" ]
 }
 
-@test "[common] install_herdr_skill succeeds when the named npm runner is stale" {
+@test "[common] sync_herdr_skill succeeds when the named npm runner is stale" {
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
     MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
-    SKILLS_CALLS_PATH="${BATS_TEST_TMPDIR}/skills_args.txt"
-    export MISE_CALLS_PATH SKILLS_CALLS_PATH
+    HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_args.txt"
+    export MISE_CALLS_PATH HERDR_CALLS_PATH
     write_mise_with_stale_named_runner
 
-    cat > "${BATS_TEST_TMPDIR}/bin/skills" << 'EOF'
+    cat > "${BATS_TEST_TMPDIR}/bin/herdr" << 'EOF'
 #!/usr/bin/env bash
-printf '%s\n' "$*" > "${SKILLS_CALLS_PATH}"
+printf '%s\n' "$*" > "${HERDR_CALLS_PATH}"
+printf '%s\n' 'generated Herdr skill'
 EOF
-    chmod +x "${BATS_TEST_TMPDIR}/bin/skills"
+    chmod +x "${BATS_TEST_TMPDIR}/bin/herdr"
 
-    PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" run install_herdr_skill
+    PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" run sync_herdr_skill
     [ "${status}" -eq 0 ]
 
     run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "exec -- skills add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
+    [ "${output}" = "exec -- herdr --skill" ]
 
-    run cat "${BATS_TEST_TMPDIR}/skills_args.txt"
+    run cat "${BATS_TEST_TMPDIR}/herdr_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
+    [ "${output}" = "--skill" ]
+
+    run cat "${HOME}/.agents/skills/herdr/SKILL.md"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "generated Herdr skill" ]
 }
 
 @test "[common] activate_mise evaluates mise activation output" {
@@ -229,16 +234,27 @@ EOF
     [ "${lines[0]}" = "exec -- herdr integration install claude" ]
 }
 
-@test "[common] install_herdr_skill installs the shared skill globally" {
+@test "[common] sync_herdr_skill writes the shared skill from Herdr" {
     MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
     export MISE_CALLS_PATH
-    write_mise_logger
+    cat > "${MISE_BIN}" << 'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
+if [ "$*" = "exec -- herdr --skill" ]; then
+    printf '%s\n' 'generated Herdr skill'
+fi
+EOF
+    chmod +x "${MISE_BIN}"
 
-    install_herdr_skill
+    sync_herdr_skill
 
     run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "exec -- skills add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
+    [ "${output}" = "exec -- herdr --skill" ]
+
+    run cat "${HOME}/.agents/skills/herdr/SKILL.md"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "generated Herdr skill" ]
 }
 
 @test "[common] herdr script runs full installation workflow" {
@@ -262,21 +278,17 @@ EOF
     cat > "${BATS_TEST_TMPDIR}/bin/herdr" << 'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${HERDR_CALLS_PATH}"
+if [ "$*" = "--skill" ]; then
+    printf '%s\n' "$*"
+fi
 EOF
     chmod +x "${BATS_TEST_TMPDIR}/bin/herdr"
-
-    cat > "${BATS_TEST_TMPDIR}/bin/skills" << 'EOF'
-#!/usr/bin/env bash
-printf '%s\n' "${HERDR_TEST_MISE_ACTIVATED:-unset}|$*" > "${SKILLS_CALLS_PATH}"
-EOF
-    chmod +x "${BATS_TEST_TMPDIR}/bin/skills"
 
     run env \
         DOTFILES_DEBUG=1 \
         HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_args.txt" \
         HOME="${HOME}" \
         MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt" \
-        SKILLS_CALLS_PATH="${BATS_TEST_TMPDIR}/skills_args.txt" \
         PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" \
         bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
@@ -286,13 +298,14 @@ EOF
     [ "${lines[0]}" = "activate bash" ]
     [ "${lines[1]}" = "install herdr" ]
     [ "${lines[2]}" = "exec -- herdr integration install claude" ]
-    [ "${lines[3]}" = "exec -- skills add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
+    [ "${lines[3]}" = "exec -- herdr --skill" ]
 
     run cat "${BATS_TEST_TMPDIR}/herdr_args.txt"
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "integration install claude" ]
+    [ "${lines[1]}" = "--skill" ]
 
-    run cat "${BATS_TEST_TMPDIR}/skills_args.txt"
+    run cat "${HOME}/.agents/skills/herdr/SKILL.md"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "1|add ogulcancelik/herdr --skill herdr --agent claude-code antigravity-cli --global --yes" ]
+    [ "${output}" = "--skill" ]
 }

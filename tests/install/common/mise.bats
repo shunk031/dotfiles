@@ -449,7 +449,7 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=' ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version' ]
     [ -e "${BATS_TEST_TMPDIR}/curl_args.txt" ]
 }
 
@@ -462,7 +462,7 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=' ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version' ]
     [ -e "${BATS_TEST_TMPDIR}/curl_args.txt" ]
 }
 
@@ -476,7 +476,7 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=existing-token' ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=existing-token\nexec -- herdr --version' ]
     [ ! -e "${GH_CALLS_PATH}" ]
 }
 
@@ -489,7 +489,7 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=stub-token' ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=stub-token\nexec -- herdr --version' ]
     [ "$(< "${GH_CALLS_PATH}")" = "auth token" ]
 }
 
@@ -502,6 +502,6 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=' ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version' ]
     [ "$(< "${GH_CALLS_PATH}")" = "auth token" ]
 }

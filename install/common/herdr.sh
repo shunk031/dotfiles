@@ -4,7 +4,7 @@
 # @brief Install Herdr integrations and skill assets.
 # @description
 #   Activates `mise` when available, installs Herdr integrations for configured
-#   coding agents, and installs the shared Herdr skill globally.
+#   coding agents, and syncs the shared Herdr skill from the installed binary.
 
 set -Eeuo pipefail
 
@@ -13,12 +13,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly MISE_BIN="${HOME}/.local/bin/mise"
-readonly HERDR_SKILL_REPO="ogulcancelik/herdr"
-readonly HERDR_SKILL_NAME="herdr"
-readonly HERDR_SKILL_AGENTS=(
-    claude-code
-    antigravity-cli
-)
+readonly HERDR_SKILL_PATH="${HOME}/.agents/skills/herdr/SKILL.md"
 
 readonly HERDR_INTEGRATIONS=(
     claude
@@ -50,14 +45,21 @@ function install_herdr_integrations() {
 }
 
 #
-# @description Install the shared Herdr skill globally.
+# @description Sync the shared Herdr skill from the installed Herdr binary.
 #
-function install_herdr_skill() {
-    "${MISE_BIN}" exec -- skills add "${HERDR_SKILL_REPO}" \
-        --skill "${HERDR_SKILL_NAME}" \
-        --agent "${HERDR_SKILL_AGENTS[@]}" \
-        --global \
-        --yes
+function sync_herdr_skill() {
+    local skill_dir temp
+
+    skill_dir="$(dirname "${HERDR_SKILL_PATH}")"
+    mkdir -p "${skill_dir}"
+    temp="$(mktemp "${skill_dir}/.SKILL.md.XXXXXX")" || return 1
+
+    if ! "${MISE_BIN}" exec -- herdr --skill > "${temp}"; then
+        rm -f "${temp}"
+        return 1
+    fi
+
+    mv "${temp}" "${HERDR_SKILL_PATH}"
 }
 
 #
@@ -67,7 +69,7 @@ function main() {
     activate_mise
     install_herdr
     install_herdr_integrations
-    install_herdr_skill
+    sync_herdr_skill
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

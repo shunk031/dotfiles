@@ -60,6 +60,26 @@ function render_run_after_template() {
     chmod +x "${RUN_AFTER_SCRIPT}"
 }
 
+function write_herdr_stub() {
+    local herdr_path="${TEST_BIN_DIR}/herdr"
+
+    cat > "${herdr_path}" << 'EOF'
+#!/usr/bin/env bash
+
+printf '%s\n' "$*" >> "${HERDR_CALLS_PATH}"
+case "$*" in
+    --version)
+        printf '%s\n' 'herdr 0.8.0'
+        ;;
+    --skill)
+        printf '%s\n' 'generated Herdr skill'
+        ;;
+esac
+EOF
+
+    chmod +x "${herdr_path}"
+}
+
 function write_mise_stub() {
     local version="${1:-2026.6.13}"
 
@@ -82,6 +102,13 @@ case "\$1" in
         printf 'MISE_CURRENT_VERSION=%s\\n' "\${MISE_CURRENT_VERSION:-}" >> "\${MISE_CALLS_PATH}"
         printf 'MISE_VERSION=%s\\n' "\${MISE_VERSION:-}" >> "\${MISE_CALLS_PATH}"
         printf 'GITHUB_TOKEN=%s\\n' "\${GITHUB_TOKEN:-}" >> "\${MISE_CALLS_PATH}"
+        ;;
+    exec)
+        printf 'exec %s\\n' "\${*:2}" >> "\${MISE_CALLS_PATH}"
+        if [ "\${2:-}" = "--" ]; then
+            shift 2
+            "\$@"
+        fi
         ;;
 esac
 EOF
@@ -128,6 +155,13 @@ case "$1" in
         printf 'MISE_CURRENT_VERSION=%s\n' "${MISE_CURRENT_VERSION:-}" >> "${MISE_CALLS_PATH}"
         printf 'MISE_VERSION=%s\n' "${MISE_VERSION:-}" >> "${MISE_CALLS_PATH}"
         printf 'GITHUB_TOKEN=%s\n' "${GITHUB_TOKEN:-}" >> "${MISE_CALLS_PATH}"
+        ;;
+    exec)
+        printf 'exec %s\n' "${*:2}" >> "${MISE_CALLS_PATH}"
+        if [ "${2:-}" = "--" ]; then
+            shift 2
+            "$@"
+        fi
         ;;
 esac
 MISE
@@ -374,7 +408,28 @@ EOF
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] run_after template installs pinned mise tools after apply" {
+@test "[common] run_after template installs pinned mise tools and syncs Herdr skill after apply" {
+    write_mise_stub
+    write_herdr_stub
+    export HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_calls.txt"
+
+    run bash "${RUN_AFTER_SCRIPT}"
+    [ "${status}" -eq 0 ]
+
+    run cat "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version\nexec -- herdr --skill' ]
+
+    run cat "${HERDR_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = $'--version\n--skill' ]
+
+    run cat "${HOME}/.agents/skills/herdr/SKILL.md"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "generated Herdr skill" ]
+}
+
+@test "[common] run_after template skips Herdr skill sync when Herdr is unavailable" {
     write_mise_stub
 
     run bash "${RUN_AFTER_SCRIPT}"
@@ -382,7 +437,8 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=' ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version' ]
+    [ ! -e "${HOME}/.agents/skills/herdr/SKILL.md" ]
 }
 
 @test "[common] run_after template bootstraps mise when it is not installed" {

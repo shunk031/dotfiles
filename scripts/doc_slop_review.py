@@ -45,6 +45,11 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from types import ModuleType
 
+try:
+    from markdown_unwrap import find_hard_wraps
+except ModuleNotFoundError:
+    from scripts.markdown_unwrap import find_hard_wraps
+
 RUBRIC_PATH = Path(__file__).resolve().parent / "doc_slop_rubric.json"
 EVAL_SCRIPT_PATH = Path(__file__).resolve().parent / "agent_guidance_eval.py"
 DEFAULT_JUDGE_MODEL = "gpt-5.6-sol"
@@ -134,10 +139,24 @@ def compile_flags(names: object) -> int:
 
 def run_prechecks(document: Document, rubric: dict[str, object]) -> list[Finding]:
     """Apply the deterministic tier, which the model is then told to skip."""
+    findings = [
+        Finding(
+            source=document.name,
+            category="markdown-hard-wrap",
+            severity="high",
+            excerpt=hard_wrap.excerpt,
+            why="A CJK continuation is split by a soft Markdown line break.",
+            suggested_fix=(
+                "run: uv run python scripts/markdown_unwrap.py --fix <file> "
+                "from the dotfiles checkout"
+            ),
+            detector="regex",
+        )
+        for hard_wrap in find_hard_wraps(document.text)
+    ]
     prechecks = rubric.get("prechecks")
     if not isinstance(prechecks, list):
-        return []
-    findings: list[Finding] = []
+        return findings
     for rule in prechecks:
         if not isinstance(rule, dict):
             continue

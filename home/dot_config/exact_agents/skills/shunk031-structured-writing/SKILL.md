@@ -10,6 +10,7 @@ Make the document's logical relationships visible without imposing a template on
 ## Structure
 
 - Keep reports and responses concise. Expand only when asked.
+- Markdown prose is never hard-wrapped mid-sentence: keep one logical line per sentence or bullet; mechanical fix: `scripts/markdown_unwrap.py` in the dotfiles checkout.
 - Lead a detailed section with its main conclusion or topic.
 - Use headings to separate distinct concerns, not to decorate short text. For short repository completion or status reports, lead with the outcome and essential validation in the smallest readable paragraph or compact list; omit template headings or sections when that is enough, while retaining headings for genuinely distinct concerns in detailed reports.
 - Use `Label: Details` when it improves scanning. Treat it as an option, not a mandatory template.

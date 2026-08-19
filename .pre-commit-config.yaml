@@ -1,6 +1,12 @@
 repos:
   - repo: local
     hooks:
+      - id: markdown-unwrapper
+        name: unwrap Markdown soft wraps
+        entry: uv run --python 3.14.6 --no-project python scripts/markdown_unwrap.py --fix
+        language: system
+        files: \.md$
+
       - id: agent-guidance-validate
         name: validate changed agent skills and guidance
         entry: uv run --python 3.14.6 --no-project python scripts/agent_guidance_eval.py validate --staged

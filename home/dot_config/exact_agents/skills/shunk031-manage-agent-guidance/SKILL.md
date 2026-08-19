@@ -25,6 +25,7 @@ Do not draft or edit until steps 2–6 are complete. When evidence is unavailabl
 
 - Persist only concise, actionable prevention that generalizes beyond the incident and states a reusable root-cause safeguard.
 - Exclude secrets, task-specific facts, transient state, incident narratives, and unverified assumptions.
+- Persistent guidance never references issue/PR numbers, migration tracking status, or other facts that expire. Guidance files are loaded indefinitely, but these facts have deadlines: the issue closes, the migration finishes, and the bare number becomes unresolvable outside its tracker — leaving future readers a rule they can neither verify nor act on. Record expiring facts in the issue tracker or a dated research note instead.
 
 ## Instruction Migrations
 

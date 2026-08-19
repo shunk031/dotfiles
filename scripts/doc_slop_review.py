@@ -39,6 +39,7 @@ import argparse
 import importlib.util
 import json
 import re
+import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass, asdict
@@ -47,6 +48,8 @@ from types import ModuleType
 
 RUBRIC_PATH = Path(__file__).resolve().parent / "doc_slop_rubric.json"
 EVAL_SCRIPT_PATH = Path(__file__).resolve().parent / "agent_guidance_eval.py"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+TEXTLINT_CONFIG_PATH = REPO_ROOT / "home/dot_config/textlint/config.json"
 DEFAULT_JUDGE_MODEL = "gpt-5.6-sol"
 DEFAULT_JUDGE_REASONING_EFFORT = "medium"
 DEFAULT_TIMEOUT = 600
@@ -145,6 +148,93 @@ class ReviewReport:
 
 class ReviewError(RuntimeError):
     """Report a condition that prevents the review from completing."""
+
+
+def textlint_severity(value: object) -> str:
+    """Map textlint's numeric severity to the review threshold."""
+    return {1: "medium", 2: "high", 3: "low"}.get(value, "high")
+
+
+def run_textlint(document: Document) -> list[Finding]:
+    """Run the shared Markdown rules and convert their JSON findings."""
+    filename = Path(document.name)
+    stdin_filename = (
+        document.name
+        if filename.suffix.lower() in {".md", ".markdown"}
+        else f"{filename.stem or 'document'}.md"
+    )
+    command = [
+        "textlint",
+        "--format",
+        "json",
+        "--config",
+        str(TEXTLINT_CONFIG_PATH),
+        "--stdin",
+        "--stdin-filename",
+        stdin_filename,
+    ]
+    try:
+        result = subprocess.run(
+            command,
+            cwd=REPO_ROOT,
+            input=document.text,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+    except OSError as error:
+        raise ReviewError(f"textlint unavailable: {error}") from error
+    if result.returncode not in {0, 1}:
+        detail = result.stderr.strip() or f"exit status {result.returncode}"
+        raise ReviewError(f"textlint failed: {detail}")
+    try:
+        results = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise ReviewError("textlint returned invalid JSON") from error
+    if not isinstance(results, list):
+        raise ReviewError("textlint JSON result is not a list")
+
+    findings: list[Finding] = []
+    for result_entry in results:
+        if not isinstance(result_entry, dict):
+            raise ReviewError("textlint JSON result contains an invalid file entry")
+        messages = result_entry.get("messages")
+        if not isinstance(messages, list):
+            raise ReviewError("textlint JSON result is missing messages")
+        for message in messages:
+            if not isinstance(message, dict):
+                raise ReviewError("textlint JSON result contains an invalid message")
+            message_range = message.get("range")
+            if (
+                not isinstance(message_range, list)
+                or len(message_range) != 2
+                or not all(isinstance(value, int) for value in message_range)
+            ):
+                raise ReviewError("textlint message is missing a valid range")
+            start, end = message_range
+            if start < 0 or end < start or end > len(document.text):
+                raise ReviewError("textlint message has an out-of-bounds range")
+            excerpt = document.text[start:end]
+            if not excerpt.strip():
+                context_start = document.text.rfind("\n", 0, start) + 1
+                context_end = document.text.find("\n", end)
+                if context_end == -1:
+                    context_end = len(document.text)
+                excerpt = document.text[context_start:context_end].strip()
+            if not excerpt:
+                raise ReviewError("textlint message has an empty range")
+            findings.append(
+                Finding(
+                    source=document.name,
+                    category=str(message.get("ruleId", "textlint")),
+                    severity=textlint_severity(message.get("severity")),
+                    excerpt=excerpt,
+                    why=str(message.get("message", "")),
+                    suggested_fix="Run textlint --fix to apply the rule's fix.",
+                    detector="textlint",
+                )
+            )
+    return findings
 
 
 def load_eval_module() -> ModuleType:
@@ -552,8 +642,9 @@ def review_documents(
     findings: list[Finding] = []
     discarded = 0
     for document in documents:
-        precheck_findings = run_prechecks(document, rubric)
-        findings.extend(precheck_findings)
+        deterministic_findings = run_textlint(document)
+        deterministic_findings.extend(run_prechecks(document, rubric))
+        findings.extend(deterministic_findings)
         if skip_model:
             continue
         if evaluator is None:
@@ -561,7 +652,7 @@ def review_documents(
         model_findings, dropped = review_with_model(
             document,
             rubric,
-            precheck_findings,
+            deterministic_findings,
             timeout=timeout,
             model=model,
             reasoning_effort=reasoning_effort,

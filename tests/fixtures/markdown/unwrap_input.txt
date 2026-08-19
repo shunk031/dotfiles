@@ -1,0 +1,42 @@
+---
+title: 日本語の前付け
+description: keep this metadata unchanged
+---
+
+# 見出しは独立した行
+
+日本語の文章は
+次の行へ続く。
+English prose is
+wrapped at the boundary.
+mixed 日本語
+English continuation.
+
+- 箇条書きの文章は
+  次の行へ続く。
+- English bullet is
+  continued here.
+- 混在した文は
+  English で続く。
+
+| 項目 | 値 |
+| --- | --- |
+| A | B |
+
+<div>
+HTML content
+</div>
+
+    indented code
+    remains separate
+
+```python
+日本語のコード
+続きもコード
+```
+
+intentional break<br>
+next paragraph.
+
+Japanese sentence with
+English continuation.

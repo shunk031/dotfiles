@@ -48,6 +48,7 @@ Use this skill for the full report, not only its prose polish. Treat each rule b
 ## How should bullets and lines be formatted?
 
 - When a topic has supporting evidence or conditions, make a parent bullet state the topic and nest those supports beneath it; write compact supporting bullets in noun-ending form（体言止め）and gloss every term at first use. Reason: nesting shows which evidence supports which topic while 体言止め keeps compact supports scannable.
+- Give each bullet exactly one fact; split a multi-clause sentence into a parent topic bullet with short nested supports instead of chaining clauses with であり／だが／ため in one line. Reason: fix cycles tend to append clauses to existing sentences, and readers reject the resulting dense lines.
 
 ```markdown
 - ケースごとの判定

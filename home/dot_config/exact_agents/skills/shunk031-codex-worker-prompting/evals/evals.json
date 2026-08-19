@@ -3,41 +3,62 @@
   "skill": "shunk031-codex-worker-prompting",
   "evals": [
     {
-      "id": "machine-checkable-dispatch-contract",
-      "prompt": "Write a task prompt for a Codex worker that must inspect exact commit SHA abc1234, run `uv run pytest tests/test_cli.py`, stop if `git ls-remote origin refs/heads/task` does not match the expected remote head, and report a failed gate without pushing. Keep the prompt concise and include explicit STOP conditions.",
+      "id": "gate-contract-and-conflict",
+      "prompt": "Write a task prompt for a Codex worker that must inspect exact commit SHA abc1234, run `uv run pytest tests/test_cli.py`, and stop if `git ls-remote origin refs/heads/task` does not match the expected remote head. Pair the test gate with what it does not measure, and require a stop-and-report response if any gate conflicts with another instead of silently satisfying one gate.",
       "should_trigger": true,
       "assertions": [
-        "The prompt includes the exact SHA, exact test command, remote-head read-back or comparison, and an explicit stop condition.",
-        "The prompt tells the worker to report a failed gate rather than treating an impossible or mismatched gate as defiance.",
-        "The prompt uses machine-checkable conditions instead of vague success language."
+        "The prompt includes the exact SHA, exact test command, remote-head comparison, and an explicit stop condition.",
+        "The prompt states what the test gate does not measure.",
+        "The prompt requires stopping and reporting when gates conflict or a gate is impossible."
       ]
     },
     {
-      "id": "literal-follow-up-verification",
-      "prompt": "Draft a follow-up to a Codex worker after a stale PR head was reported. Require a precondition check, a read-back of the current PR head, and an `ls-remote` comparison before any retry. State that the worker must halt if the facts do not match.",
+      "id": "literal-invariants-and-environment",
+      "prompt": "Draft a follow-up to a Codex worker after a stale PR head was reported. State invariants for the expected number, claim strength, attribution, file scope, and section order. Require verified proxy, HTTPS push URL, API field ID, sandbox, and auth facts inline, mark any unverified belief as a hypothesis, and include the exact command block for precondition, PR read-back, and `ls-remote` checks before a retry.",
       "should_trigger": true,
       "assertions": [
-        "The follow-up treats stated facts as literal execution inputs and adds precondition, PR read-back, and ls-remote verification.",
-        "The follow-up requires halting when the read-back facts are stale or mismatched."
+        "The follow-up states explicit invariants for numbers, claim strength, attribution, file scope, and section order.",
+        "The follow-up distinguishes verified environment facts from hypotheses and includes the requested environment categories.",
+        "The follow-up supplies exact verification commands and requires halting when read-back facts are stale or mismatched."
       ]
     },
     {
-      "id": "bounded-authorization-and-environment",
-      "prompt": "Write an authorization prompt for one bounded Codex worker task. Include stop-and-report points, STOP conditions for user-owned merges and destructive actions, and inline facts about proxies, an HTTPS push URL, API field IDs, the sandbox variable, and auth fallback behavior. Also tell the orchestrator when to rotate the worker and where to externalize handoff state.",
+      "id": "bounded-lifecycle-judgment",
+      "prompt": "Write an authorization prompt for one Codex worker dispatch that may carry a full lifecycle. Give every retryable step an explicit retry budget, wait duration, and terminal report state. For a review decision, include the decision rule, uncertain-case default, and cost asymmetry that justifies the default. Encode STOP conditions for user-owned merges and destructive actions.",
       "should_trigger": true,
       "assertions": [
-        "The prompt contains one bounded task with explicit stop-and-report points and STOP conditions for merges and destructive actions.",
-        "The prompt enumerates the requested proxy, HTTPS push URL, API field ID, sandbox, and auth fallback facts inline.",
-        "The prompt includes rotation below roughly 30 percent remaining context and externalized handoff state."
+        "The prompt allows a full lifecycle while bounding retryable loops with a retry budget, wait duration, and terminal report state.",
+        "The prompt includes a judgment decision rule, uncertain-case default, and cost asymmetry.",
+        "The prompt encodes user-owned merges and destructive actions as STOP conditions."
+      ]
+    },
+    {
+      "id": "requirements-register-and-research",
+      "prompt": "Write a dispatch for a worker producing a reader-facing report. Specify requirements and acceptance criteria rather than an implementation. Treat a belief that a tool is unsuitable as a hypothesis to verify, require research before implementation for tool choices, write the dispatch in the report's target register, keep internal codenames and audit constraints out of the report, and put compliance evidence in the PR body.",
+      "should_trigger": true,
+      "assertions": [
+        "The dispatch specifies requirements and acceptance criteria without prescribing an implementation.",
+        "The dispatch turns tool-unsuitability beliefs into hypotheses and requires research before implementation for tool choices.",
+        "The dispatch uses the reader-facing target register and keeps internal codenames and audit constraints out of the report while placing compliance evidence in the PR body."
+      ]
+    },
+    {
+      "id": "class-sweep-and-role-rotation",
+      "prompt": "Write a follow-up after a reviewer names three instances of the same defect class. Require the worker to remove the class and provide either an enumerate-and-classify table for every candidate or a detector that reproduces the known-bad state before the fix and reports zero after it. Also specify fresh sessions for independent review verdicts, retirement on degraded or anchored output, natural-boundary rotation, on-disk paths with final-versus-draft state after crashes, what not to recompute, and handoff documents or PR comments while keeping the PR body reader-facing.",
+      "should_trigger": true,
+      "assertions": [
+        "The follow-up requires removing the whole defect class and proving coverage with an enumerate-and-classify table or before-and-after detector.",
+        "The follow-up rotates on independent review roles, degraded or anchored output, and natural task boundaries rather than a fixed context percentage.",
+        "The follow-up enumerates on-disk final-versus-draft state after a crash, states what not to recompute, and keeps handoff state separate from the reader-facing PR body."
       ]
     },
     {
       "id": "transport-ownership-boundary",
-      "prompt": "Explain which skill should own dispatch receipts, report formats, and Herdr reconciliation, and which skill should own the wording of Codex worker task prompts. Keep the answer to two sentences.",
+      "prompt": "Explain which skill should own dispatch delivery, report formats, and Herdr reconciliation, and which skill should own the wording of Codex worker task prompts. Keep the answer to two sentences and do not reproduce transport procedures.",
       "should_trigger": true,
       "assertions": [
-        "The response assigns dispatch receipts, report formats, and reconciliation to shunk031-orchestrate-herdr-workers.",
-        "The response assigns Codex worker prompt wording to shunk031-codex-worker-prompting without duplicating transport mechanics."
+        "The response assigns dispatch delivery, report formats, and reconciliation to shunk031-orchestrate-herdr-workers.",
+        "The response assigns Codex worker prompt wording to shunk031-codex-worker-prompting without duplicating transport procedures."
       ]
     },
     {

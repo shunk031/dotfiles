@@ -118,7 +118,18 @@ class AgentGuidanceEvalTest(unittest.TestCase):
         run_git(repo, "init", "-q")
         run_git(repo, "config", "user.email", "test@example.com")
         run_git(repo, "config", "user.name", "Test")
+        run_git(repo, "config", "gc.auto", "0")
+        run_git(repo, "config", "maintenance.auto", "false")
         return tempdir, repo
+
+    def test_temp_repositories_disable_background_maintenance(self) -> None:
+        tempdir, repo = self.make_repo()
+        self.addCleanup(tempdir.cleanup)
+
+        self.assertEqual(run_git(repo, "config", "--get", "gc.auto"), "0")
+        self.assertEqual(
+            run_git(repo, "config", "--get", "maintenance.auto"), "false"
+        )
 
     def test_discover_changed_skills_returns_staged_additions_and_updates(self) -> None:
         tempdir, repo = self.make_repo()

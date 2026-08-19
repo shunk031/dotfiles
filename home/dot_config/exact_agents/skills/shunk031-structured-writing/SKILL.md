@@ -34,7 +34,7 @@ Make the document's logical relationships visible without imposing a template on
 
 - When a Japanese report has one topic followed by facts that explain or qualify it, make the topic the parent bullet and nest the supporting facts below it. Write the parent as a reader-facing statement, not as an unexplained `label: value` pair, and do not put several related full sentences into one flat bullet.
 - End supporting bullets with a noun phrase (体言止め) when they function as compact evidence or conditions. Keep the parent as the readable topic; do not force every bullet into the same sentence ending.
-- 書き換えを返す前に、次の3段階を完了するまで最終稿を返さない。
+- 書き換えを返す前に、次の 3 段階を完了するまで最終稿を返さない。
   1. 原文が定義していない、または役割を説明していないラベル・単位・略語をすべて列挙する。
   2. 列挙した各項目を平易な参照先に置き換えるか、初出で定義する。原文に読み手向けの意味がない項目は、意味を推測できても未定義として指摘し、補わない。
   3. すべての数値について数える対象を確認し、単位の初出でその対象を明記する。

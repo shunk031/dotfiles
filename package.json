@@ -1,0 +1,9 @@
+{
+  "name": "shunk031-dotfiles-markdown-tooling",
+  "private": true,
+  "devDependencies": {
+    "@cffnpwr/textlint-rule-no-arbitrary-line-break": "1.1.0",
+    "textlint": "15.8.0",
+    "textlint-rule-ja-space-between-half-and-full-width": "3.0.3"
+  }
+}

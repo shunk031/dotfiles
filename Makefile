@@ -10,6 +10,7 @@ DOKCER_RAM_GB=4
 .PHONY: setup
 setup:
 	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise install
+	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise exec -- npm ci --ignore-scripts --no-audit --no-fund
 	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise exec -- prek install
 
 .PHONY: eval-guidance

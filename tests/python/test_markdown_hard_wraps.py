@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -26,32 +27,55 @@ class MarkdownHardWrapTest(unittest.TestCase):
         cls.module = load_module()
         cls.rubric = cls.module.load_rubric()
 
-    def test_deterministic_tier_flags_only_cjk_continuation_wraps(self) -> None:
+    def test_deterministic_tier_delegates_to_textlint(self) -> None:
         document = self.module.Document(
             name=str(FIXTURE_PATH),
             text=FIXTURE_PATH.read_text(encoding="utf-8"),
         )
 
         findings = self.module.run_prechecks(document, self.rubric)
-        hard_wraps = [
-            finding for finding in findings if finding.category == "markdown-hard-wrap"
-        ]
+        hard_wraps = [finding for finding in findings if finding.detector == "textlint"]
 
         self.assertEqual(len(hard_wraps), 2)
         self.assertEqual(
             {finding.excerpt for finding in hard_wraps},
             {
-                "日本語の途中\n続きです。",
-                "- 箇条書きの途中\n  続きです。",
+                "日本語の途中",
+                "- 箇条書きの途中",
             },
         )
         for finding in hard_wraps:
             self.assertEqual(finding.severity, "high")
-            self.assertEqual(finding.detector, "regex")
+            self.assertTrue(finding.category.startswith("markdown-textlint:"))
+            self.assertEqual(finding.detector, "textlint")
             self.assertIn(
                 "run: uv run python scripts/markdown_unwrap.py --fix <file>",
-                finding.suggested_fix,
+                finding.why,
             )
+
+    def test_unavailable_textlint_is_a_review_error(self) -> None:
+        original = self.module.MARKDOWN_UNWRAP_SCRIPT_PATH
+        self.module.MARKDOWN_UNWRAP_SCRIPT_PATH = Path("/does/not/exist.py")
+        try:
+            with self.assertRaises(self.module.ReviewError) as context:
+                self.module.run_prechecks(
+                    self.module.Document(name="note.md", text="日本語の文。\n"),
+                    self.rubric,
+                )
+        finally:
+            self.module.MARKDOWN_UNWRAP_SCRIPT_PATH = original
+
+        self.assertIn("textlint check could not run", str(context.exception))
+
+        original = self.module.MARKDOWN_UNWRAP_SCRIPT_PATH
+        self.module.MARKDOWN_UNWRAP_SCRIPT_PATH = Path("/does/not/exist.py")
+        try:
+            with tempfile.TemporaryDirectory() as tempdir:
+                path = Path(tempdir) / "note.md"
+                path.write_text("日本語の文。\n", encoding="utf-8")
+                self.assertEqual(self.module.main([str(path), "--skip-model"]), 2)
+        finally:
+            self.module.MARKDOWN_UNWRAP_SCRIPT_PATH = original
 
     def test_clean_and_protected_markdown_has_no_hard_wrap_finding(self) -> None:
         document = self.module.Document(
@@ -66,7 +90,4 @@ class MarkdownHardWrapTest(unittest.TestCase):
 
         findings = self.module.run_prechecks(document, self.rubric)
 
-        self.assertNotIn(
-            "markdown-hard-wrap",
-            {finding.category for finding in findings},
-        )
+        self.assertEqual(findings, [])

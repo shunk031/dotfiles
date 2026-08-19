@@ -2,11 +2,12 @@
 
 """Review reader-facing text for slop with a deterministic tier and one model judge.
 
-Two tiers run per document. The regex tier catches what a pattern can decide on
-its own and is reported separately, so the model is asked only about the
-categories a pattern cannot reach, such as producer-perspective ordering and
-absent reader framing. The judge is a single Codex call per document, blind to
-authorship, and every finding must quote the text it objects to.
+Two tiers run per document. The deterministic tier runs the repository's pinned
+Markdown linter and the rubric's regular expressions, so the model is asked
+only about categories those checks cannot reach, such as producer-perspective
+ordering and absent reader framing. The judge is a single Codex call per
+document, blind to authorship, and every finding must quote the text it objects
+to.
 
 The rubric lives in `doc_slop_rubric.json` next to this script and is bilingual
 (ja/en). It is distilled from the `shunk031-ai-slop-checklist-ja` and
@@ -39,19 +40,20 @@ import argparse
 import importlib.util
 import json
 import re
+import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from types import ModuleType
 
-try:
-    from markdown_unwrap import find_hard_wraps
-except ModuleNotFoundError:
-    from scripts.markdown_unwrap import find_hard_wraps
-
 RUBRIC_PATH = Path(__file__).resolve().parent / "doc_slop_rubric.json"
 EVAL_SCRIPT_PATH = Path(__file__).resolve().parent / "agent_guidance_eval.py"
+MARKDOWN_UNWRAP_SCRIPT_PATH = Path(__file__).resolve().parent / "markdown_unwrap.py"
+MARKDOWN_UNWRAP_FIX = (
+    "run: uv run python scripts/markdown_unwrap.py --fix <file> "
+    "from the dotfiles checkout"
+)
 DEFAULT_JUDGE_MODEL = "gpt-5.6-sol"
 DEFAULT_JUDGE_REASONING_EFFORT = "medium"
 DEFAULT_TIMEOUT = 600
@@ -137,23 +139,92 @@ def compile_flags(names: object) -> int:
     return flags
 
 
-def run_prechecks(document: Document, rubric: dict[str, object]) -> list[Finding]:
-    """Apply the deterministic tier, which the model is then told to skip."""
-    findings = [
-        Finding(
-            source=document.name,
-            category="markdown-hard-wrap",
-            severity="high",
-            excerpt=hard_wrap.excerpt,
-            why="A CJK continuation is split by a soft Markdown line break.",
-            suggested_fix=(
-                "run: uv run python scripts/markdown_unwrap.py --fix <file> "
-                "from the dotfiles checkout"
-            ),
-            detector="regex",
+def _textlint_excerpt(text: str, message: dict[str, object]) -> str:
+    lines = text.splitlines()
+    location = message.get("loc")
+    if isinstance(location, dict):
+        start = location.get("start")
+        if isinstance(start, dict) and isinstance(start.get("line"), int):
+            line_number = start["line"]
+            if 1 <= line_number <= len(lines):
+                return lines[line_number - 1].strip()
+    return str(message.get("message", "textlint finding")).strip()
+
+
+def run_textlint_check(document: Document) -> list[Finding]:
+    """Run the repository wrapper and convert every textlint message."""
+    with tempfile.TemporaryDirectory(prefix="doc-slop-textlint-") as tempdir:
+        path = Path(tempdir) / "document.md"
+        path.write_text(document.text, encoding="utf-8")
+        try:
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(MARKDOWN_UNWRAP_SCRIPT_PATH),
+                    "--check",
+                    "--json",
+                    str(path),
+                ],
+                cwd=MARKDOWN_UNWRAP_SCRIPT_PATH.parent.parent,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except OSError as error:
+            raise ReviewError(f"textlint check could not run: {error}") from error
+
+    if completed.returncode not in {0, 1}:
+        detail = (completed.stderr or completed.stdout).strip()
+        raise ReviewError(
+            "textlint check could not run"
+            + (f" (exit {completed.returncode}): {detail}" if detail else "")
         )
-        for hard_wrap in find_hard_wraps(document.text)
-    ]
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError as error:
+        detail = (completed.stderr or completed.stdout).strip()
+        raise ReviewError(
+            "textlint check could not run: wrapper returned invalid JSON"
+            + (f": {detail}" if detail else "")
+        ) from error
+    if not isinstance(payload, list):
+        raise ReviewError("textlint check could not run: wrapper returned non-list JSON")
+
+    findings: list[Finding] = []
+    for result in payload:
+        if not isinstance(result, dict):
+            raise ReviewError("textlint check could not run: invalid file result")
+        messages = result.get("messages")
+        if not isinstance(messages, list):
+            raise ReviewError("textlint check could not run: invalid messages")
+        for raw_message in messages:
+            if not isinstance(raw_message, dict):
+                raise ReviewError("textlint check could not run: invalid finding")
+            message = str(raw_message.get("message", "textlint finding")).strip()
+            rule_id = str(raw_message.get("ruleId", "textlint"))
+            severity_value = raw_message.get("severity", 2)
+            try:
+                severity_number = int(severity_value)
+            except (TypeError, ValueError):
+                severity_number = 2
+            severity = "high" if severity_number >= 2 else "medium"
+            findings.append(
+                Finding(
+                    source=document.name,
+                    category=f"markdown-textlint:{rule_id}",
+                    severity=severity,
+                    excerpt=_textlint_excerpt(document.text, raw_message),
+                    why=f"{rule_id}: {message} Remediation: {MARKDOWN_UNWRAP_FIX}",
+                    suggested_fix=MARKDOWN_UNWRAP_FIX,
+                    detector="textlint",
+                )
+            )
+    return findings
+
+
+def run_prechecks(document: Document, rubric: dict[str, object]) -> list[Finding]:
+    """Apply deterministic checks, which the model is then told to skip."""
+    findings = run_textlint_check(document)
     prechecks = rubric.get("prechecks")
     if not isinstance(prechecks, list):
         return findings
@@ -226,7 +297,7 @@ def build_judge_prompt(
         "Quote the offending text verbatim in `excerpt` for every finding; the "
         "excerpt must appear in the document exactly. Do not give generic "
         "advice and do not report a problem you cannot quote. Prefer the "
-        "categories a regular expression cannot decide, such as "
+        "categories the deterministic checks cannot decide, such as "
         "producer-perspective ordering and absent reader framing.\n\n"
         "A deterministic pass already reported these excerpts. Do not repeat "
         "them:\n"
@@ -492,7 +563,7 @@ def main(argv: list[str] | None = None) -> int:
             evaluator=None,
         )
     except ReviewError as error:
-        print(f"doc slop review failed: {error}", file=sys.stderr)
+        print(f"doc slop review could not run: {error}", file=sys.stderr)
         return 2
     output = format_json_report(report) if args.json else format_text_report(report)
     print(output)

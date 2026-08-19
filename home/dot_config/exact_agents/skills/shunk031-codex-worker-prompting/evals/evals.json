@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "skill": "shunk031-codex-worker-prompting",
+  "evals": [
+    {
+      "id": "machine-checkable-dispatch-contract",
+      "prompt": "Write a task prompt for a Codex worker that must inspect exact commit SHA abc1234, run `uv run pytest tests/test_cli.py`, stop if `git ls-remote origin refs/heads/task` does not match the expected remote head, and report a failed gate without pushing. Keep the prompt concise and include explicit STOP conditions.",
+      "should_trigger": true,
+      "assertions": [
+        "The prompt includes the exact SHA, exact test command, remote-head read-back or comparison, and an explicit stop condition.",
+        "The prompt tells the worker to report a failed gate rather than treating an impossible or mismatched gate as defiance.",
+        "The prompt uses machine-checkable conditions instead of vague success language."
+      ]
+    },
+    {
+      "id": "literal-follow-up-verification",
+      "prompt": "Draft a follow-up to a Codex worker after a stale PR head was reported. Require a precondition check, a read-back of the current PR head, and an `ls-remote` comparison before any retry. State that the worker must halt if the facts do not match.",
+      "should_trigger": true,
+      "assertions": [
+        "The follow-up treats stated facts as literal execution inputs and adds precondition, PR read-back, and ls-remote verification.",
+        "The follow-up requires halting when the read-back facts are stale or mismatched."
+      ]
+    },
+    {
+      "id": "bounded-authorization-and-environment",
+      "prompt": "Write an authorization prompt for one bounded Codex worker task. Include stop-and-report points, STOP conditions for user-owned merges and destructive actions, and inline facts about proxies, an HTTPS push URL, API field IDs, the sandbox variable, and auth fallback behavior. Also tell the orchestrator when to rotate the worker and where to externalize handoff state.",
+      "should_trigger": true,
+      "assertions": [
+        "The prompt contains one bounded task with explicit stop-and-report points and STOP conditions for merges and destructive actions.",
+        "The prompt enumerates the requested proxy, HTTPS push URL, API field ID, sandbox, and auth fallback facts inline.",
+        "The prompt includes rotation below roughly 30 percent remaining context and externalized handoff state."
+      ]
+    },
+    {
+      "id": "transport-ownership-boundary",
+      "prompt": "Explain which skill should own dispatch receipts, report formats, and Herdr reconciliation, and which skill should own the wording of Codex worker task prompts. Keep the answer to two sentences.",
+      "should_trigger": true,
+      "assertions": [
+        "The response assigns dispatch receipts, report formats, and reconciliation to shunk031-orchestrate-herdr-workers.",
+        "The response assigns Codex worker prompt wording to shunk031-codex-worker-prompting without duplicating transport mechanics."
+      ]
+    },
+    {
+      "id": "ordinary-code-request",
+      "prompt": "Write a Python function named cube that returns the cube of its numeric argument, then show one example call.",
+      "should_trigger": false,
+      "assertions": [
+        "The response directly provides the requested function and example.",
+        "The response does not add worker-prompting guidance unrelated to the code request."
+      ]
+    },
+    {
+      "id": "short-conversation",
+      "prompt": "Reply naturally in one or two sentences: I finally fixed the flaky test. Thanks for your help!",
+      "should_trigger": false,
+      "assertions": [
+        "The response is a brief natural conversational reply.",
+        "The response does not introduce prompt contracts or dispatch guidance."
+      ]
+    }
+  ]
+}

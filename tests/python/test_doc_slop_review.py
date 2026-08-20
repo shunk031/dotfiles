@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import os
 import stat
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -567,6 +569,87 @@ class DocSlopReviewTest(unittest.TestCase):
         self.assertEqual(payload["findings"][0]["detector"], "regex")
         self.assertEqual(payload["findings"][0]["category"], "over-hedging")
         self.assertFalse(payload["model_consulted"])
+        self.assertNotIn("skipped_categories", payload)
+        self.assertNotIn("skipped categories:", text)
+
+    def test_skip_category_suppresses_deterministic_and_model_findings(self) -> None:
+        document = self.document("It depends on the case.\nSection title\n")
+        checks = {
+            check_id: {
+                "passed": True,
+                "excerpt": "",
+                "why": "fixture pass",
+                "suggested_fix": "",
+            }
+            for check_id in self.module.JUDGE_CHECK_IDS
+        }
+        checks["uninformative-section-title"] = {
+            "passed": False,
+            "excerpt": "Section title",
+            "why": "The heading does not tell the reader what question it answers.",
+            "suggested_fix": "Make the heading answer the section's question.",
+        }
+        evaluator = stub_evaluator(self.module, [], checks=checks)
+
+        with patch.object(self.module, "run_textlint", return_value=[]):
+            report = self.module.review_documents(
+                [document],
+                self.rubric,
+                skip_model=False,
+                timeout=1,
+                model=None,
+                reasoning_effort=None,
+                evaluator=evaluator,
+                skip_categories=[
+                    "over-hedging",
+                    "uninformative-section-title",
+                ],
+            )
+
+        self.assertTrue(report.passed)
+        self.assertEqual(report.findings, [])
+        self.assertEqual(
+            report.skipped_categories,
+            {
+                "over-hedging": 1,
+                "uninformative-section-title": 1,
+            },
+        )
+
+        text = self.module.format_text_report(report)
+        payload = json.loads(self.module.format_json_report(report))
+        self.assertIn(
+            "skipped categories: over-hedging (1 findings suppressed), "
+            "uninformative-section-title (1 findings suppressed)",
+            text,
+        )
+        self.assertEqual(
+            payload["skipped_categories"], report.skipped_categories
+        )
+        self.assertEqual(payload["findings"], [])
+
+    def test_unknown_skip_category_is_warned_about(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            path = Path(tempdir) / "doc.md"
+            path.write_text("Clean text for the reader.\n", encoding="utf-8")
+            stderr = io.StringIO()
+
+            with patch.object(self.module, "run_textlint", return_value=[]):
+                with redirect_stderr(stderr):
+                    exit_code = self.module.main(
+                        [
+                            str(path),
+                            "--skip-model",
+                            "--skip-category",
+                            "not-a-real-category",
+                        ]
+                    )
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn(
+            "warning: unknown skip category: not-a-real-category",
+            stderr.getvalue(),
+        )
 
     def test_main_reports_failure_exit_code_without_calling_a_model(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

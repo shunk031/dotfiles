@@ -1,0 +1,4 @@
+interface:
+  display_name: "Japanese Research Reports"
+  short_description: "Write reader-first Japanese research reports"
+  default_prompt: "Use $shunk031-research-report-ja to write or rewrite this Japanese research report for a first-time reader."

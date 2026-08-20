@@ -10,10 +10,12 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "scripts/doc_slop_review.py"
 FIXTURE_ROOT = REPO_ROOT / "tests/fixtures/doc_slop_review"
+MARKDOWN_FIXTURE_ROOT = REPO_ROOT / "tests/fixtures/markdown"
 
 
 def load_module():
@@ -233,6 +235,69 @@ class DocSlopReviewTest(unittest.TestCase):
 
         self.assertEqual(self.module.run_prechecks(document, self.rubric), [])
 
+    def test_textlint_tier_reports_quoted_json_ranges(self) -> None:
+        text = (MARKDOWN_FIXTURE_ROOT / "unwrap_input.txt").read_text(
+            encoding="utf-8"
+        )
+        document = self.document(text, "fixture.md")
+        completed = SimpleNamespace(
+            returncode=1,
+            stdout=json.dumps(
+                [
+                    {
+                        "filePath": "fixture.md",
+                        "messages": [
+                            {
+                                "ruleId": "@cffnpwr/textlint-rule-no-arbitrary-line-break",
+                                "message": "line break",
+                                "range": [text.index("日本語の文章は"), text.index("日本語の文章は") + len("日本語の文章は")],
+                                "severity": 2,
+                            }
+                        ],
+                    }
+                ]
+            ),
+            stderr="",
+        )
+
+        with patch.object(self.module.subprocess, "run", return_value=completed) as run:
+            findings = self.module.run_textlint(document)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].detector, "textlint")
+        self.assertEqual(findings[0].excerpt, "日本語の文章は")
+        command = run.call_args.args[0]
+        self.assertEqual(command[0:4], ["textlint", "--format", "json", "--config"])
+        self.assertEqual(command[4], str(self.module.TEXTLINT_CONFIG_PATH))
+        self.assertEqual(command[-3:], ["--stdin", "--stdin-filename", "fixture.md"])
+        self.assertEqual(run.call_args.kwargs["cwd"], REPO_ROOT)
+        self.assertEqual(run.call_args.kwargs["input"], text)
+
+    def test_textlint_engine_unavailable_is_a_review_error(self) -> None:
+        with patch.object(
+            self.module.subprocess, "run", side_effect=FileNotFoundError("textlint")
+        ):
+            with self.assertRaises(self.module.ReviewError):
+                self.module.run_textlint(self.document("本文です。", "doc.md"))
+
+    def test_markdown_fixture_contracts_pin_rule_caveats(self) -> None:
+        blockquote_input = (MARKDOWN_FIXTURE_ROOT / "blockquote_input.txt").read_text(
+            encoding="utf-8"
+        )
+        blockquote_expected = (
+            MARKDOWN_FIXTURE_ROOT / "blockquote_expected.txt"
+        ).read_text(encoding="utf-8")
+        spacing_input = (
+            MARKDOWN_FIXTURE_ROOT / "spacing_side_effect_input.txt"
+        ).read_text(encoding="utf-8")
+        spacing_expected = (
+            MARKDOWN_FIXTURE_ROOT / "spacing_side_effect_expected.txt"
+        ).read_text(encoding="utf-8")
+
+        self.assertEqual(blockquote_input, blockquote_expected)
+        self.assertEqual(spacing_input, "既存の文English。\n")
+        self.assertEqual(spacing_expected, "既存の文 English。\n")
+
     def test_model_findings_without_a_quotable_excerpt_are_discarded(self) -> None:
         document = self.document("The reader is told what changed and why.\n")
         evaluator = stub_evaluator(
@@ -339,15 +404,16 @@ class DocSlopReviewTest(unittest.TestCase):
         }
         evaluator = stub_evaluator(self.module, [], checks=checks)
 
-        report = self.module.review_documents(
-            [document],
-            self.rubric,
-            skip_model=False,
-            timeout=1,
-            model=None,
-            reasoning_effort=None,
-            evaluator=evaluator,
-        )
+        with patch.object(self.module, "run_textlint", return_value=[]):
+            report = self.module.review_documents(
+                [document],
+                self.rubric,
+                skip_model=False,
+                timeout=1,
+                model=None,
+                reasoning_effort=None,
+                evaluator=evaluator,
+            )
 
         self.assertFalse(report.passed)
         self.assertEqual(len(report.findings), 1)
@@ -383,15 +449,16 @@ class DocSlopReviewTest(unittest.TestCase):
         }
         evaluator = stub_evaluator(self.module, [], checks=checks)
 
-        report = self.module.review_documents(
-            [document],
-            self.rubric,
-            skip_model=False,
-            timeout=1,
-            model=None,
-            reasoning_effort=None,
-            evaluator=evaluator,
-        )
+        with patch.object(self.module, "run_textlint", return_value=[]):
+            report = self.module.review_documents(
+                [document],
+                self.rubric,
+                skip_model=False,
+                timeout=1,
+                model=None,
+                reasoning_effort=None,
+                evaluator=evaluator,
+            )
 
         self.assertTrue(report.passed)
         self.assertEqual(report.findings, [])
@@ -420,15 +487,16 @@ class DocSlopReviewTest(unittest.TestCase):
         }
         evaluator = stub_evaluator(self.module, [], checks=checks)
 
-        report = self.module.review_documents(
-            [document],
-            self.rubric,
-            skip_model=False,
-            timeout=1,
-            model=None,
-            reasoning_effort=None,
-            evaluator=evaluator,
-        )
+        with patch.object(self.module, "run_textlint", return_value=[]):
+            report = self.module.review_documents(
+                [document],
+                self.rubric,
+                skip_model=False,
+                timeout=1,
+                model=None,
+                reasoning_effort=None,
+                evaluator=evaluator,
+            )
 
         self.assertFalse(report.passed)
         self.assertEqual(len(report.findings), 1)
@@ -477,15 +545,16 @@ class DocSlopReviewTest(unittest.TestCase):
 
     def test_report_formats_carry_findings_and_verdict(self) -> None:
         document = self.document("It depends on the case.\n")
-        report = self.module.review_documents(
-            [document],
-            self.rubric,
-            skip_model=True,
-            timeout=1,
-            model=None,
-            reasoning_effort=None,
-            evaluator=None,
-        )
+        with patch.object(self.module, "run_textlint", return_value=[]):
+            report = self.module.review_documents(
+                [document],
+                self.rubric,
+                skip_model=True,
+                timeout=1,
+                model=None,
+                reasoning_effort=None,
+                evaluator=None,
+            )
 
         text = self.module.format_text_report(report)
         payload = json.loads(self.module.format_json_report(report))
@@ -509,7 +578,8 @@ class DocSlopReviewTest(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            exit_code = self.module.main([str(path), "--skip-model", "--json"])
+            with patch.object(self.module, "run_textlint", return_value=[]):
+                exit_code = self.module.main([str(path), "--skip-model", "--json"])
 
         self.assertEqual(exit_code, 1)
 

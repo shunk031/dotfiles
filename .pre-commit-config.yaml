@@ -14,3 +14,13 @@ repos:
         language: system
         pass_filenames: false
         files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json|skills/[^/]+/(SKILL\.md|evals/evals\.json))$
+
+      - id: textlint-markdown
+        name: fix hard-wrapped Markdown prose
+        entry: textlint --fix --config home/dot_config/textlint/config.json
+        language: node
+        additional_dependencies:
+          - textlint@15.8.0
+          - '@cffnpwr/textlint-rule-no-arbitrary-line-break@1.1.0'
+          - textlint-rule-ja-space-between-half-and-full-width@3.0.3
+        types: [markdown]

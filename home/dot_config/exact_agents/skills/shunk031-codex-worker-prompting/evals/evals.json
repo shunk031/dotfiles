@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "skill": "shunk031-codex-worker-prompting",
+  "evals": [
+    {
+      "id": "gate-contract-and-conflict",
+      "prompt": "Write a task prompt for a Codex worker that must inspect exact commit SHA abc1234, run `uv run pytest tests/test_cli.py`, and stop if `git ls-remote origin refs/heads/task` does not match the expected remote head. Pair the test gate with what it does not measure, and require a stop-and-report response if any gate conflicts with another instead of silently satisfying one gate.",
+      "should_trigger": true,
+      "assertions": [
+        "The prompt includes the exact SHA, exact test command, remote-head comparison, and an explicit stop condition.",
+        "The prompt states what the test gate does not measure.",
+        "The prompt requires stopping and reporting when gates conflict or a gate is impossible."
+      ]
+    },
+    {
+      "id": "literal-invariants-and-environment",
+      "prompt": "Draft a follow-up to a Codex worker after a stale PR head was reported. State invariants for the expected number, claim strength, attribution, file scope, and section order. Require verified proxy, HTTPS push URL, API field ID, sandbox, and auth facts inline, mark any unverified belief as a hypothesis, and include the exact command block for precondition, PR read-back, and `ls-remote` checks before a retry.",
+      "should_trigger": true,
+      "assertions": [
+        "The follow-up states explicit invariants for numbers, claim strength, attribution, file scope, and section order.",
+        "The follow-up distinguishes verified environment facts from hypotheses and includes the requested environment categories.",
+        "The follow-up supplies exact verification commands and requires halting when read-back facts are stale or mismatched."
+      ]
+    },
+    {
+      "id": "bounded-lifecycle-judgment",
+      "prompt": "Write an authorization prompt for one Codex worker dispatch that may carry a full lifecycle. Give every retryable step an explicit retry budget, wait duration, and terminal report state. For a review decision, include the decision rule, uncertain-case default, and cost asymmetry that justifies the default. Encode STOP conditions for user-owned merges and destructive actions.",
+      "should_trigger": true,
+      "assertions": [
+        "The prompt allows a full lifecycle while bounding retryable loops with a retry budget, wait duration, and terminal report state.",
+        "The prompt includes a judgment decision rule, uncertain-case default, and cost asymmetry.",
+        "The prompt encodes user-owned merges and destructive actions as STOP conditions."
+      ]
+    },
+    {
+      "id": "requirements-register-and-research",
+      "prompt": "Write a dispatch for a worker producing a reader-facing report. Specify requirements and acceptance criteria rather than an implementation. Treat a belief that a tool is unsuitable as a hypothesis to verify, require research before implementation for tool choices, write the dispatch in the report's target register, keep internal codenames and audit constraints out of the report, and put compliance evidence in the PR body.",
+      "should_trigger": true,
+      "assertions": [
+        "The dispatch specifies requirements and acceptance criteria without prescribing an implementation.",
+        "The dispatch turns tool-unsuitability beliefs into hypotheses and requires research before implementation for tool choices.",
+        "The dispatch uses the reader-facing target register and keeps internal codenames and audit constraints out of the report while placing compliance evidence in the PR body."
+      ]
+    },
+    {
+      "id": "class-sweep-and-role-rotation",
+      "prompt": "Write a follow-up after a reviewer names three instances of the same defect class. Require the worker to remove the class and provide either an enumerate-and-classify table for every candidate or a detector that reproduces the known-bad state before the fix and reports zero after it. Also specify fresh sessions for independent review verdicts, retirement on degraded or anchored output, natural-boundary rotation, on-disk paths with final-versus-draft state after crashes, what not to recompute, and handoff documents or PR comments while keeping the PR body reader-facing.",
+      "should_trigger": true,
+      "assertions": [
+        "The follow-up requires removing the whole defect class and proving coverage with an enumerate-and-classify table or before-and-after detector.",
+        "The follow-up rotates on independent review roles, degraded or anchored output, and natural task boundaries rather than a fixed context percentage.",
+        "The follow-up enumerates on-disk final-versus-draft state after a crash, states what not to recompute, and keeps handoff state separate from the reader-facing PR body."
+      ]
+    },
+    {
+      "id": "transport-ownership-boundary",
+      "prompt": "Explain which skill should own dispatch delivery, report formats, and Herdr reconciliation, and which skill should own the wording of Codex worker task prompts. Keep the answer to two sentences and do not reproduce transport procedures.",
+      "should_trigger": true,
+      "assertions": [
+        "The response assigns dispatch delivery, report formats, and reconciliation to shunk031-orchestrate-herdr-workers.",
+        "The response assigns Codex worker prompt wording to shunk031-codex-worker-prompting without duplicating transport procedures."
+      ]
+    },
+    {
+      "id": "ordinary-code-request",
+      "prompt": "Write a Python function named cube that returns the cube of its numeric argument, then show one example call.",
+      "should_trigger": false,
+      "assertions": [
+        "The response directly provides the requested function and example.",
+        "The response does not add worker-prompting guidance unrelated to the code request."
+      ]
+    },
+    {
+      "id": "short-conversation",
+      "prompt": "Reply naturally in one or two sentences: I finally fixed the flaky test. Thanks for your help!",
+      "should_trigger": false,
+      "assertions": [
+        "The response is a brief natural conversational reply.",
+        "The response does not introduce prompt contracts or dispatch guidance."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Worker Prompting"
+  short_description: "Write precise prompts and authorizations for Codex workers"
+  default_prompt: "Use this skill when writing bounded task prompts, follow-ups, or authorizations for Codex-family worker models."

@@ -42,7 +42,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from types import ModuleType
 
@@ -144,6 +144,7 @@ class ReviewReport:
     threshold: str
     model_consulted: bool
     discarded_model_findings: int
+    skipped_categories: dict[str, int] = field(default_factory=dict)
 
 
 class ReviewError(RuntimeError):
@@ -271,6 +272,46 @@ def category_ids(rubric: dict[str, object]) -> list[str]:
         for entry in categories
         if isinstance(entry, dict) and isinstance(entry.get("id"), str)
     ]
+
+
+def textlint_category_ids() -> set[str]:
+    """Return category names emitted by the configured textlint rules."""
+    try:
+        config = json.loads(TEXTLINT_CONFIG_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()
+    rules = config.get("rules") if isinstance(config, dict) else None
+    if not isinstance(rules, dict):
+        return set()
+    return {name for name in rules if isinstance(name, str)}
+
+
+def known_category_ids(rubric: dict[str, object]) -> set[str]:
+    """Return rubric, model-check, and deterministic rule category names."""
+    return (
+        set(category_ids(rubric))
+        | set(JUDGE_CHECK_IDS)
+        | textlint_category_ids()
+    )
+
+
+def unique_categories(categories: list[str] | None) -> list[str]:
+    """Deduplicate repeated flags while preserving their first-seen order."""
+    return list(dict.fromkeys(categories or []))
+
+
+def suppress_categories(
+    findings: list[Finding], skip_categories: list[str]
+) -> tuple[list[Finding], dict[str, int]]:
+    """Remove requested categories and count every suppressed finding."""
+    counts = {category: 0 for category in skip_categories}
+    retained: list[Finding] = []
+    for finding in findings:
+        if finding.category in counts:
+            counts[finding.category] += 1
+        else:
+            retained.append(finding)
+    return retained, counts
 
 
 def compile_flags(names: object) -> int:
@@ -560,6 +601,12 @@ def severity_rank(finding: Finding) -> int:
 def format_text_report(report: ReviewReport) -> str:
     lines = [f"documents: {', '.join(report.documents)}"]
     lines.append(f"threshold: {report.threshold}")
+    if report.skipped_categories:
+        skipped = ", ".join(
+            f"{category} ({count} findings suppressed)"
+            for category, count in report.skipped_categories.items()
+        )
+        lines.append(f"skipped categories: {skipped}")
     if not report.model_consulted:
         lines.append("model judge: skipped")
     if report.discarded_model_findings:
@@ -592,6 +639,8 @@ def format_json_report(report: ReviewReport) -> str:
         "passed": report.passed,
         "findings": [asdict(finding) for finding in report.findings],
     }
+    if report.skipped_categories:
+        payload["skipped_categories"] = report.skipped_categories
     return json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True)
 
 
@@ -638,6 +687,7 @@ def review_documents(
     model: str | None,
     reasoning_effort: str | None,
     evaluator: ModuleType | None,
+    skip_categories: list[str] | None = None,
 ) -> ReviewReport:
     findings: list[Finding] = []
     discarded = 0
@@ -660,6 +710,9 @@ def review_documents(
         )
         findings.extend(model_findings)
         discarded += dropped
+    findings, skipped = suppress_categories(
+        findings, unique_categories(skip_categories)
+    )
     return ReviewReport(
         documents=[document.name for document in documents],
         findings=findings,
@@ -667,6 +720,7 @@ def review_documents(
         threshold=threshold_description(),
         model_consulted=not skip_model,
         discarded_model_findings=discarded,
+        skipped_categories=skipped,
     )
 
 
@@ -689,6 +743,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="run only the deterministic tier",
     )
+    parser.add_argument(
+        "--skip-category",
+        action="append",
+        metavar="NAME",
+        help="suppress findings with this category; may be repeated",
+    )
     parser.add_argument("--json", action="store_true", help="emit JSON")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT)
     parser.add_argument("--model", default=DEFAULT_JUDGE_MODEL)
@@ -702,6 +762,13 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         rubric = load_rubric()
+        skip_categories = unique_categories(args.skip_category)
+        for category in skip_categories:
+            if category not in known_category_ids(rubric):
+                print(
+                    f"warning: unknown skip category: {category}",
+                    file=sys.stderr,
+                )
         documents = read_documents(args.paths, as_diff=args.diff)
         report = review_documents(
             documents,
@@ -711,6 +778,7 @@ def main(argv: list[str] | None = None) -> int:
             model=args.model,
             reasoning_effort=args.reasoning_effort,
             evaluator=None,
+            skip_categories=skip_categories,
         )
     except ReviewError as error:
         print(f"doc slop review failed: {error}", file=sys.stderr)

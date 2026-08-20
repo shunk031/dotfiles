@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
+import stat
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "scripts/doc_slop_review.py"
@@ -70,6 +73,120 @@ class DocSlopReviewTest(unittest.TestCase):
     def fixture(self, name: str):
         path = FIXTURE_ROOT / name
         return self.document(path.read_text(encoding="utf-8"), name=str(path))
+
+    def staging_evaluator(self, observed: dict[str, object]) -> SimpleNamespace:
+        evaluator = self.module.load_eval_module()
+
+        def invoke_codex(*args, **kwargs):
+            codex_home = kwargs["codex_home"]
+            observed["entries"] = {
+                path.name: path.read_bytes() for path in codex_home.iterdir()
+            }
+            observed["modes"] = {
+                path.name: stat.S_IMODE(path.stat().st_mode)
+                for path in codex_home.iterdir()
+            }
+            return "trace"
+
+        return SimpleNamespace(
+            CodexError=evaluator.CodexError,
+            initialize_temp_repo=lambda repo: None,
+            initialize_codex_home=evaluator.initialize_codex_home,
+            codex_settings_kwargs=lambda model, effort: {},
+            invoke_codex=invoke_codex,
+            retry_transient=lambda operation, retries=1: operation(),
+            parse_trace=lambda trace, name: SimpleNamespace(
+                output=json.dumps(
+                    {
+                        "checks": {
+                            check_id: {
+                                "passed": True,
+                                "excerpt": "",
+                                "why": "fixture pass",
+                                "suggested_fix": "",
+                            }
+                            for check_id in self.module.JUDGE_CHECK_IDS
+                        },
+                        "findings": [],
+                    }
+                )
+            ),
+        )
+
+    def test_judge_home_contains_only_config_and_auth_with_source_modes(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            source = Path(tempdir) / "fixture-codex-home"
+            source.mkdir()
+            config = source / "config.toml"
+            auth = source / "auth.json"
+            config.write_text('model = "fixture"\n', encoding="utf-8")
+            auth.write_text('{"token":"fixture"}\n', encoding="utf-8")
+            config.chmod(0o640)
+            auth.chmod(0o600)
+            expected_entries = {
+                "config.toml": config.read_bytes(),
+                "auth.json": auth.read_bytes(),
+            }
+            (source / "logs").mkdir()
+            (source / "state.sqlite").write_text("must not be staged", encoding="utf-8")
+            observed: dict[str, object] = {}
+
+            with mock.patch.dict(os.environ, {"CODEX_HOME": str(source)}, clear=True):
+                self.module.review_with_model(
+                    self.document("clean text\n"),
+                    self.rubric,
+                    [],
+                    timeout=1,
+                    model=None,
+                    reasoning_effort=None,
+                    evaluator=self.staging_evaluator(observed),
+                )
+
+        self.assertEqual(
+            observed["entries"],
+            expected_entries,
+        )
+        self.assertEqual(observed["modes"], {"config.toml": 0o640, "auth.json": 0o600})
+
+    def test_codex_home_override_selects_fixture_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = Path(tempdir)
+            first = root / "first-codex-home"
+            second = root / "second-codex-home"
+            first.mkdir()
+            second.mkdir()
+            (first / "config.toml").write_text("source = 'first'\n", encoding="utf-8")
+            (first / "auth.json").write_text('{"source":"first"}\n', encoding="utf-8")
+            (second / "config.toml").write_text("source = 'second'\n", encoding="utf-8")
+            (second / "auth.json").write_text('{"source":"second"}\n', encoding="utf-8")
+
+            observed_first: dict[str, object] = {}
+            with mock.patch.dict(os.environ, {"CODEX_HOME": str(first)}, clear=True):
+                self.module.review_with_model(
+                    self.document("clean text\n"),
+                    self.rubric,
+                    [],
+                    timeout=1,
+                    model=None,
+                    reasoning_effort=None,
+                    evaluator=self.staging_evaluator(observed_first),
+                )
+
+            observed_second: dict[str, object] = {}
+            with mock.patch.dict(os.environ, {"CODEX_HOME": str(second)}, clear=True):
+                self.module.review_with_model(
+                    self.document("clean text\n"),
+                    self.rubric,
+                    [],
+                    timeout=1,
+                    model=None,
+                    reasoning_effort=None,
+                    evaluator=self.staging_evaluator(observed_second),
+                )
+
+        self.assertEqual(observed_first["entries"]["config.toml"], b"source = 'first'\n")
+        self.assertEqual(observed_second["entries"]["config.toml"], b"source = 'second'\n")
+        self.assertNotEqual(observed_first["entries"], observed_second["entries"])
 
     def test_rubric_covers_every_required_category_bilingually(self) -> None:
         expected = {

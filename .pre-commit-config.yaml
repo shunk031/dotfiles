@@ -24,3 +24,7 @@ repos:
           - '@cffnpwr/textlint-rule-no-arbitrary-line-break@1.1.0'
           - textlint-rule-ja-space-between-half-and-full-width@3.0.3
         types: [markdown]
+        # Test fixtures are frozen inputs whose exact bytes are the contract the
+        # tests assert against. Auto-fixing them rewrites the very prose a
+        # fixture exists to hold still.
+        exclude: ^tests/fixtures/

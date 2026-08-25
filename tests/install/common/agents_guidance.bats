@@ -8,8 +8,6 @@ readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
 readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
 readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager.toml"
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
-readonly MANAGE_AGENT_GUIDANCE_SKILL_PATH="./home/dot_config/exact_agents/skills/shunk031-manage-agent-guidance"
-readonly STRUCTURED_WRITING_SKILL_PATH="./home/dot_config/exact_agents/skills/shunk031-structured-writing"
 readonly AGENT_GUIDANCE_REQUIREMENTS_PATH="./tests/fixtures/agent_guidance_requirements.json"
 readonly AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH="./tests/python/test_agent_guidance_requirements.py"
 readonly GUIDANCE_EVAL_SCRIPT="./scripts/agent_guidance_eval.py"
@@ -29,12 +27,7 @@ readonly CODEX_README_PATH="./home/dot_codex/README.md"
 readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/exact_agents/README.md"
 readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
 readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
-readonly SHARED_SKILLS_SYMLINK_DIR="./home/exact_dot_agents/skills"
 readonly CLAUDE_SKILLS_KEEP_PATH="./home/dot_claude/skills/.keep"
-readonly CLAUDE_SKILL_DIR_SYMLINK_TEMPLATE="./home/dot_claude/symlink_skills.tmpl"
-readonly GEMINI_SKILLS_SYMLINK_DIR="./home/dot_gemini/config/skills"
-readonly GEMINI_SKILL_DIR_SYMLINK_TEMPLATE="./home/dot_gemini/config/symlink_skills.tmpl"
-readonly LINK_SHARED_SKILLS_SCRIPT="./home/.chezmoiscripts/common/run_after_90-link-shared-skills.sh.tmpl"
 readonly GITIGNORE_PATH="./.gitignore"
 
 @test "[common] codex guidance entrypoint stays minimal and reads shared guidance" {
@@ -182,58 +175,16 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] specialized guidance lives in managed skills" {
-    [ -f "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md" ]
-    [ -f "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json" ]
-    [ -f "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md" ]
-    [ -f "${STRUCTURED_WRITING_SKILL_PATH}/evals/evals.json" ]
-    [ ! -e "./home/dot_config/exact_agents/skills/setup-agent-docs" ]
+@test "[common] specialized guidance is delegated to a skill, not inlined here" {
+    # The skill bodies moved to shunk031/skills. What this repository still owns
+    # is the delegation: the guidance names each skill and says nothing more.
+    # Asserting on the bodies from here would assert against a checkout this
+    # repository does not control.
+    [ ! -e "./home/dot_config/exact_agents/skills" ]
 
-    run grep -F 'name: shunk031-manage-agent-guidance' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    run grep -F 'shunk031-manage-agent-guidance' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'name: shunk031-structured-writing' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Treat it as an option, not a mandatory template.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'make the parent the topic sentence, nest supporting sentences, and use the last child as a conclusion when useful.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F -- '- topic sentence' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Do not leave supporting sentences in a flat list without a topic sentence.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Keep reports and responses concise. Expand only when asked.' "${STRUCTURED_WRITING_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Persist only concise, actionable prevention that generalizes beyond the incident and states a reusable root-cause safeguard.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'For work in this public dotfiles repository, run guidance evaluation locally through `prek`.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'In this public dotfiles repository, use `SKIP=agent-guidance-eval` only for an emergency.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Never skip static validation in this public dotfiles repository.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'For this public dotfiles repository, run real model evaluation locally, not in CI.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'For this public dotfiles repository, CI may test the evaluation runner only with a fake `codex` executable.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Before assigning a destination, inspect code, adjacent configuration comments, tests, CI, schemas, and automation for an existing machine-enforced owner.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Keep prose only when human or agent judgment remains and omission would materially change behavior.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Treat incidents as reasons to improve enforcement, not permanent prose.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'When enforcement fully owns behavior, propose removal with concrete evidence and obtain approval rather than mapping it into `AGENTS.md` or a new skill.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Build a consumer map for every candidate overlap' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F '"id": "audit-mixed-guidance-consumers"' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json"
-    [ "${status}" -eq 0 ]
-    run grep -F '"id": "remove-machine-enforced-incident-guidance"' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json"
-    [ "${status}" -eq 0 ]
-    run grep -F 'hypothetical-incident-policy-1' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/evals/evals.json"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Add or update a static migration contract that fails when a mapped requirement disappears or a known duplicate remains outside its authoritative owner.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
-    [ "${status}" -eq 0 ]
-    run grep -F 'Do not delete an unmapped or unapproved rule.' "${MANAGE_AGENT_GUIDANCE_SKILL_PATH}/SKILL.md"
+    run grep -F 'shunk031-structured-writing' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -467,43 +418,6 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "$(readlink ./CLAUDE.md)" = "AGENTS.md" ]
 }
 
-@test "[common] shared skills pool exposes repo-managed skills through per-skill symlink templates" {
-    [ ! -e "./home/exact_dot_agents/symlink_skills.tmpl" ]
-    [ ! -e "${CLAUDE_SKILL_DIR_SYMLINK_TEMPLATE}" ]
-    [ ! -e "${GEMINI_SKILL_DIR_SYMLINK_TEMPLATE}" ]
-    [ -d "${SHARED_SKILLS_SYMLINK_DIR}" ]
-
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shunk031-humanizer-ja.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shunk031-humanizer-ja" ]
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shunk031-manage-agent-guidance.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shunk031-manage-agent-guidance" ]
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shunk031-research-before-implementation.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shunk031-research-before-implementation" ]
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shunk031-structured-writing.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shunk031-structured-writing" ]
-    [ ! -e "${SHARED_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl" ]
-    [ "$(< "${SHARED_SKILLS_SYMLINK_DIR}/symlink_shunk031-shdoc-shell-docs.tmpl")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/shunk031-shdoc-shell-docs" ]
-}
-
-@test "[common] Gemini skills expose repo-managed skills through per-skill symlink templates" {
-    [ -d "${GEMINI_SKILLS_SYMLINK_DIR}" ]
-
-    local skills="shunk031-ai-slop-checklist-ja shunk031-cgd-dev-identity shunk031-transformers-convert shunk031-gh-comment-attach-files shunk031-high-impact-journal-publishing shunk031-humanizer-ja shunk031-manage-agent-guidance shunk031-python-uv-workflow shunk031-research-before-implementation shunk031-shdoc-shell-docs shunk031-structured-writing"
-    local skill
-    local template
-    local expected
-
-    for skill in ${skills}; do
-        template="${GEMINI_SKILLS_SYMLINK_DIR}/symlink_${skill}.tmpl"
-        expected="{{ .chezmoi.sourceDir }}/dot_config/exact_agents/skills/${skill}"
-        [ -f "${template}" ]
-        [ "$(< "${template}")" = "${expected}" ]
-    done
-
-    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_agmsg.tmpl" ]
-    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_delegate-codex.tmpl" ]
-    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_herdr.tmpl" ]
-    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_skill-creator.tmpl" ]
-    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_worklog-manager.tmpl" ]
-    [ ! -e "${GEMINI_SKILLS_SYMLINK_DIR}/symlink_setup-agent-docs.tmpl" ]
-}
-
 @test "[common] prek validates and evaluates changed managed skills and guidance" {
     [ -f "${PREK_CONFIG_PATH}" ]
     [ -f "${GUIDANCE_EVAL_SCRIPT}" ]
@@ -526,25 +440,6 @@ readonly GITIGNORE_PATH="./.gitignore"
 @test "[common] skill-creator remains installer-managed for Claude Code" {
     [ ! -e "${SKILL_CREATOR_SHARED_SKILL_PATH}" ]
     [ ! -e "${SKILL_CREATOR_SYMLINK_TEMPLATE}" ]
-}
-
-@test "[common] run_after script subscribes tool skills directories to the shared pool" {
-    [ -f "${LINK_SHARED_SKILLS_SCRIPT}" ]
-
-    run grep -F 'POOL="${HOME}/.agents/skills"' "${LINK_SHARED_SKILLS_SCRIPT}"
-    [ "${status}" -eq 0 ]
-    run grep -F '"${HOME}/.claude/skills"' "${LINK_SHARED_SKILLS_SCRIPT}"
-    [ "${status}" -eq 0 ]
-    run grep -F '{{ if ne (env "CI") "true" -}}' "${LINK_SHARED_SKILLS_SCRIPT}"
-    [ "${status}" -eq 0 ]
-
-    # Never clobber a real, installer-written entry with a pool symlink.
-    run grep -F 'if [ -e "${target}" ] && [ ! -L "${target}" ]; then' "${LINK_SHARED_SKILLS_SCRIPT}"
-    [ "${status}" -eq 0 ]
-
-    # Prune dangling pool symlinks whose pool entry has been removed.
-    run grep -F 'if [ ! -e "${link_target}" ]; then' "${LINK_SHARED_SKILLS_SCRIPT}"
-    [ "${status}" -eq 0 ]
 }
 
 @test "[common] gitignore no longer allowlists repo-managed skills" {

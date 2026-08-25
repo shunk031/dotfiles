@@ -186,7 +186,13 @@ EOF
 
     install_missing_skills
 
-    run grep -c -- 'add shunk031/skills --skill shunk031-humanizer-ja --agent claude-code --agent codex --global --yes' "${MISE_CALLS_PATH}"
+    # The name still goes to the CLI: a symlink is not a real installation, so
+    # `pool_has_skill` rejects it and the skill stays in the batch. The call now
+    # carries every missing skill from that source rather than only this one.
+    run grep -c -- '--skill shunk031-humanizer-ja' "${MISE_CALLS_PATH}"
+    [ "${output}" = "1" ]
+
+    run grep -c -- 'add shunk031/skills .*--agent claude-code --agent codex --global --yes' "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]
 }
 

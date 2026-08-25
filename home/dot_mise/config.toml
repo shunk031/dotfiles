@@ -57,6 +57,11 @@ sqlite = "3.53.3"
 "npm:pyright" = "1.1.411"
 "npm:skills" = "1.5.20"
 
+# textlint tools
+"npm:@cffnpwr/textlint-rule-no-arbitrary-line-break" = "1.1.0"
+"npm:textlint" = "15.8.0"
+"npm:textlint-rule-ja-space-between-half-and-full-width" = "3.0.3"
+
 [settings]
 idiomatic_version_file_enable_tools = ["python"]
 minimum_release_age = "7d"

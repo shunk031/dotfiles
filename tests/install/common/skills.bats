@@ -190,6 +190,47 @@ EOF
     [ "${output}" = "1" ]
 }
 
+@test "[common] install issues one call per repository, not per skill" {
+    # `skills add` takes --skill repeatably and clones the repository once per
+    # call, so one call per skill re-clones the same repository for every entry.
+    write_mise_stub
+
+    install_missing_skills
+
+    # Every public entry comes from one of two repositories.
+    run grep -c '^add ' "${MISE_CALLS_PATH}"
+    [ "${output}" -le 2 ]
+
+    run grep -c -- '--skill shunk031-humanizer-ja' "${MISE_CALLS_PATH}"
+    [ "${output}" = "1" ]
+    run grep -c -- '--skill shunk031-structured-writing' "${MISE_CALLS_PATH}"
+    [ "${output}" = "1" ]
+}
+
+@test "[common] a repository is called with only the skills still missing" {
+    write_mise_stub
+    mkdir -p "${SKILLS_POOL}/shunk031-humanizer-ja"
+
+    install_missing_skills
+
+    run grep -c -- '--skill shunk031-humanizer-ja' "${MISE_CALLS_PATH}"
+    [ "${output}" = "0" ]
+    run grep -c -- '--skill shunk031-structured-writing' "${MISE_CALLS_PATH}"
+    [ "${output}" = "1" ]
+}
+
+@test "[common] a repository with nothing missing is not called at all" {
+    write_mise_stub
+    local name
+    while IFS= read -r name; do
+        mkdir -p "${SKILLS_POOL}/${name}"
+    done < <(allowlist_skill_names)
+
+    install_missing_skills
+
+    [ ! -f "${MISE_CALLS_PATH}" ]
+}
+
 @test "[common] a failing install is reported without aborting the apply" {
     write_mise_stub 1
 

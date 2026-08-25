@@ -187,6 +187,58 @@ function allowlist_entry_skill() {
 }
 
 #
+# @description Print every source a subscription installs from.
+# @description
+#   Deduplicated, because `skills add` clones the repository it is given. One
+#   call per skill re-clones the same repository for every entry it holds.
+# @stdout Newline-separated `<owner>/<repo>[#<ref>]`, sorted and unique.
+#
+function declared_sources() {
+    local entry
+
+    local -a subscriptions=()
+    read_lines_into subscriptions < <(declared_subscriptions)
+    if [ "${#subscriptions[@]}" -eq 0 ]; then
+        return 0
+    fi
+
+    for entry in "${subscriptions[@]}"; do
+        allowlist_entry_source "${entry}"
+    done | LC_ALL=C sort -u
+}
+
+#
+# @description Print `--skill <name>` flags for one source's missing skills.
+# @description
+#   `skills add` takes `--skill` repeatably, so a source installs in one call.
+#   A source with nothing missing yields nothing, and the caller skips it, which
+#   is what keeps a steady-state apply off the network.
+# @arg $1 source string An `<owner>/<repo>[#<ref>]`.
+# @stdout Alternating `--skill` and skill-name lines, or nothing.
+#
+function missing_skill_flags() {
+    local source="$1"
+    local entry skill
+
+    local -a subscriptions=()
+    read_lines_into subscriptions < <(declared_subscriptions)
+    if [ "${#subscriptions[@]}" -eq 0 ]; then
+        return 0
+    fi
+
+    for entry in "${subscriptions[@]}"; do
+        [ "$(allowlist_entry_source "${entry}")" = "${source}" ] || continue
+
+        skill="$(allowlist_entry_skill "${entry}")"
+        if pool_has_skill "${skill}"; then
+            continue
+        fi
+
+        printf -- '--skill\n%s\n' "${skill}"
+    done
+}
+
+#
 # @description Print every skill name in the allowlist, one per line.
 # @stdout Newline-separated skill names.
 #
@@ -280,6 +332,20 @@ function pool_has_skill() {
 #
 # @description Install every allowlisted skill that is not already in the pool.
 # @description
+#   One call per source, not per skill. `skills add` clones the repository it is
+#   given, so calling it per skill re-clones the same repository for every entry
+#   it holds: 19 clones for 19 public entries, where 2 will do. Measured at 8
+#   seconds for three skills installed separately against 2 seconds for the same
+#   three in one call.
+#
+#   Batching does not coarsen failure. A name the repository does not have is
+#   skipped and the rest still install, with a zero exit; and a clone that fails
+#   outright would have failed for every skill of that source anyway, because
+#   each per-skill call cloned it too.
+#
+#   The same skipping means a typo in the allowlist is silent. The name simply
+#   never arrives, and every apply retries it.
+#
 #   `skills add` replaces a legacy symlink with a real directory without
 #   following it, so no separate cleanup step is needed. Leaving the symlink in
 #   place until the install succeeds is also what keeps an offline apply
@@ -287,35 +353,34 @@ function pool_has_skill() {
 # @exitcode 0 Always; individual failures are reported and counted.
 #
 function install_missing_skills() {
-    local entry source skill
+    local source
     local failures=0
 
-    local -a subscriptions=()
-    read_lines_into subscriptions < <(declared_subscriptions)
-    if [ "${#subscriptions[@]}" -eq 0 ]; then
+    local -a sources=()
+    read_lines_into sources < <(declared_sources)
+    if [ "${#sources[@]}" -eq 0 ]; then
         return 0
     fi
 
-    for entry in "${subscriptions[@]}"; do
-        source="$(allowlist_entry_source "${entry}")"
-        skill="$(allowlist_entry_skill "${entry}")"
-
-        if pool_has_skill "${skill}"; then
+    for source in "${sources[@]}"; do
+        local -a flags=()
+        read_lines_into flags < <(missing_skill_flags "${source}")
+        if [ "${#flags[@]}" -eq 0 ]; then
             continue
         fi
 
         if ! skills_cli add "${source}" \
-            --skill "${skill}" \
+            "${flags[@]}" \
             "${SKILLS_AGENT_FLAGS[@]}" \
             --global \
             --yes; then
-            echo "skills: failed to install ${skill} from ${source}" >&2
+            echo "skills: failed to install from ${source}" >&2
             failures=$((failures + 1))
         fi
     done
 
     if [ "${failures}" -gt 0 ]; then
-        echo "skills: ${failures} skill(s) could not be installed; the next apply retries" >&2
+        echo "skills: ${failures} repository/repositories could not be installed; the next apply retries" >&2
     fi
 }
 

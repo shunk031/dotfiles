@@ -12,6 +12,10 @@
     "validate_hook": "agent-guidance-validate",
     "eval_hook": "agent-guidance-eval",
     "skip_variable": "SKIP=agent-guidance-eval",
+    "guidance_runner": "shuhari eval instructions",
+    "guidance_validate_hook": "shuhari-validate-instructions",
+    "guidance_eval_hook": "shuhari-eval-instructions",
+    "guidance_skip_variable": "SKIP=shuhari-eval-instructions",
     "wiring_only_paths": [
       {"path": "home/dot_config/exact_agents/skills/shunk031-manage-agent-guidance/SKILL.md", "reason": "Only evaluator and hook naming changed; no skill behavior changed."},
       {"path": "home/dot_config/exact_agents/skills/shunk031-structured-writing/evals/evals.json", "reason": "Only evaluator terminology in the existing cases changed; no case behavior changed."}

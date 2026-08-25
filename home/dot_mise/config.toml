@@ -47,6 +47,13 @@ sqlite = "3.53.3"
 # Cargo tools
 "cargo:pueue" = "4.0.4"
 
+# Go tools
+#
+# Shuhari ships no git tags, so its module version list is empty and mise
+# cannot resolve `latest`. This pins the module-proxy pseudo-version of a
+# specific `main` commit; replace it with a semantic version once one exists.
+"go:github.com/shunk031/shuhari/cmd/shuhari" = "0.0.0-20260824171335-deb972da670a"
+
 # GitHub release tools
 "github:d-kuro/gwq" = "0.1.1"
 "github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }

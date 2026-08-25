@@ -28,7 +28,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import TypeVar
+from typing import TypedDict, TypeVar
 
 SKILLS_ROOT = Path("home/dot_config/exact_agents/skills")
 GUIDANCE_PATH = Path("home/dot_config/exact_agents/AGENTS.md")
@@ -354,27 +354,9 @@ def discover_changed_targets(repo: Path, staged: bool) -> list[EvalTarget]:
         )
         for name, path in skill_paths.items()
     }
-    args = ["diff"]
-    if staged:
-        args.append("--cached")
-    args.extend(["--name-only", "--diff-filter=ACMR"])
-    changed_paths = set(run_git(repo, *args).splitlines())
-    guidance_changed = bool(
-        {GUIDANCE_PATH.as_posix(), GUIDANCE_EVAL_PATH.as_posix()} & changed_paths
-    )
-    namespace_only_guidance = staged and staged_file_changes_only_namespaces(
-        repo, GUIDANCE_PATH, namespace_renames
-    )
+    # Guidance moved to Shuhari, whose eval schema this harness rejects. Only
+    # the in-tree skills are still evaluated here.
     targets: list[EvalTarget] = []
-    if guidance_changed and not namespace_only_guidance:
-        targets.append(
-            EvalTarget(
-                name=GUIDANCE_TARGET_NAME,
-                kind="guidance",
-                path=repo / GUIDANCE_PATH,
-                eval_path=repo / GUIDANCE_EVAL_PATH,
-            )
-        )
     targets.extend(
         EvalTarget(
             name=name,
@@ -402,16 +384,8 @@ def discover_all_skills(repo: Path) -> list[Path]:
 
 
 def discover_all_targets(repo: Path) -> list[EvalTarget]:
+    # Guidance is evaluated by `shuhari eval instructions`; see `make eval-guidance`.
     targets: list[EvalTarget] = []
-    if (repo / GUIDANCE_PATH).is_file() and (repo / GUIDANCE_EVAL_PATH).is_file():
-        targets.append(
-            EvalTarget(
-                name=GUIDANCE_TARGET_NAME,
-                kind="guidance",
-                path=repo / GUIDANCE_PATH,
-                eval_path=repo / GUIDANCE_EVAL_PATH,
-            )
-        )
     targets.extend(
         EvalTarget(
             name=path.name,
@@ -869,10 +843,22 @@ def codex_model_arguments(
     return arguments
 
 
+class CodexSettings(TypedDict, total=False):
+    """The subset of `invoke_codex` keywords that model selection controls.
+
+    A plain `dict[str, str]` would widen every keyword to `str` at the unpack
+    site, which makes `schema: Path | None` and `search: bool` look like type
+    errors.
+    """
+
+    model: str
+    reasoning_effort: str
+
+
 def codex_settings_kwargs(
     model: str | None, reasoning_effort: str | None
-) -> dict[str, str]:
-    settings: dict[str, str] = {}
+) -> CodexSettings:
+    settings: CodexSettings = {}
     if model is not None:
         settings["model"] = model
     if reasoning_effort is not None:

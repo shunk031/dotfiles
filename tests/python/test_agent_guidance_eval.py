@@ -287,7 +287,12 @@ class AgentGuidanceEvalTest(unittest.TestCase):
         )
         self.assertEqual(self.module.validate_target(targets[0]), [])
 
-    def test_discover_changed_targets_includes_staged_user_guidance(self) -> None:
+    def test_discover_changed_targets_leaves_user_guidance_to_shuhari(self) -> None:
+        """Guidance evals moved to the Shuhari schema, which this harness rejects.
+
+        Claiming the target here would fail the commit on a file this harness no
+        longer understands.
+        """
         tempdir, repo = self.make_repo()
         self.addCleanup(tempdir.cleanup)
         guidance = write_guidance(repo)
@@ -303,14 +308,9 @@ class AgentGuidanceEvalTest(unittest.TestCase):
 
         targets = self.module.discover_changed_targets(repo, staged=True)
 
-        self.assertEqual(
-            [target.name for target in targets],
-            ["user-guidance"],
-        )
-        self.assertEqual(targets[0].kind, "guidance")
-        self.assertEqual(targets[0].eval_path.name, "AGENTS.evals.json")
+        self.assertEqual(targets, [])
 
-    def test_staged_and_all_target_discovery_keep_guidance_separate_from_skills(
+    def test_staged_and_all_target_discovery_cover_skills_only(
         self,
     ) -> None:
         tempdir, repo = self.make_repo()
@@ -335,14 +335,13 @@ class AgentGuidanceEvalTest(unittest.TestCase):
         staged = self.module.discover_changed_targets(repo, staged=True)
         self.assertEqual(
             [(target.kind, target.name) for target in staged],
-            [("guidance", "user-guidance"), ("skill", "changed")],
+            [("skill", "changed")],
         )
 
         all_targets = self.module.discover_all_targets(repo)
         self.assertEqual(
             [(target.kind, target.name) for target in all_targets],
             [
-                ("guidance", "user-guidance"),
                 ("skill", "changed"),
                 ("skill", "unchanged"),
             ],
@@ -435,9 +434,7 @@ class AgentGuidanceEvalTest(unittest.TestCase):
                 (run_repo / ".agents/AGENTS.md").read_text(encoding="utf-8"),
                 guidance.read_text(encoding="utf-8"),
             )
-            return json.dumps(
-                {"item": {"type": "agent_message", "text": "neutral"}}
-            )
+            return json.dumps({"item": {"type": "agent_message", "text": "neutral"}})
 
         with mock.patch.object(self.module, "invoke_codex", side_effect=fake_invoke):
             result = self.module.run_target_case(
@@ -452,7 +449,9 @@ class AgentGuidanceEvalTest(unittest.TestCase):
 
         self.assertEqual(result.output, "neutral")
 
-    def test_initialize_codex_home_copies_credentials_without_live_symlinks(self) -> None:
+    def test_initialize_codex_home_copies_credentials_without_live_symlinks(
+        self,
+    ) -> None:
         tempdir, repo = self.make_repo()
         self.addCleanup(tempdir.cleanup)
         source = repo / "source-codex-home"
@@ -472,17 +471,16 @@ class AgentGuidanceEvalTest(unittest.TestCase):
                 (source / name).read_text(encoding="utf-8"),
             )
 
-    def test_prek_hooks_trigger_for_guidance_and_skills(self) -> None:
+    def test_prek_hooks_split_skills_from_guidance(self) -> None:
+        """Each harness gates only the files whose eval schema it understands."""
         config = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
 
-        validate_files = (
-            "files: ^home/dot_config/exact_agents/"
-            "(AGENTS\\.md|AGENTS\\.evals\\.json|skills/)"
-        )
+        # Anchored to end of line: the eval hook's pattern starts with the same
+        # prefix, so an unanchored count matches both hooks.
+        validate_files = "files: ^home/dot_config/exact_agents/skills/\n"
         eval_files = (
             "files: ^home/dot_config/exact_agents/"
-            "(AGENTS\\.md|AGENTS\\.evals\\.json|"
-            "skills/[^/]+/(SKILL\\.md|evals/evals\\.json))$"
+            "skills/[^/]+/(SKILL\\.md|evals/evals\\.json)$"
         )
         self.assertEqual(config.count(validate_files), 1)
         self.assertEqual(config.count(eval_files), 1)
@@ -501,6 +499,24 @@ class AgentGuidanceEvalTest(unittest.TestCase):
             eval_start,
         )
         self.assertGreater(config.index(eval_files, eval_start), eval_start)
+
+        # The Python hooks must not claim the guidance files any more.
+        self.assertNotIn("AGENTS\\.evals\\.json|skills/", config)
+
+    def test_prek_hooks_gate_guidance_with_shuhari(self) -> None:
+        config = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
+
+        guidance_files = (
+            "files: ^home/dot_config/exact_agents/(AGENTS\\.md|AGENTS\\.evals\\.json)$"
+        )
+        self.assertEqual(config.count(guidance_files), 2)
+        self.assertIn("id: shuhari-validate-instructions", config)
+        self.assertIn("id: shuhari-eval-instructions", config)
+        # The offline schema check must not make live model calls.
+        validate_start = config.index("id: shuhari-validate-instructions")
+        eval_start = config.index("id: shuhari-eval-instructions")
+        self.assertIn("--validate-only", config[validate_start:eval_start])
+        self.assertNotIn("--validate-only", config[eval_start:])
 
     def test_validate_skill_accepts_required_action_sequence(self) -> None:
         tempdir, repo = self.make_repo()
@@ -805,7 +821,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             self.assertEqual(stat.S_IMODE(source_path.stat().st_mode), 0o600)
 
         target_config.write_bytes(
-            target_config.read_bytes() + b"\n[projects.\"/tmp/new\"]\n"
+            target_config.read_bytes() + b'\n[projects."/tmp/new"]\n'
         )
         self.assertEqual(source_config.read_bytes(), config_bytes)
 
@@ -878,7 +894,9 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
                 "disabled_skill_override",
                 return_value="skills.config=[]",
             ),
-            mock.patch.object(self.module.subprocess, "run", return_value=completed) as run,
+            mock.patch.object(
+                self.module.subprocess, "run", return_value=completed
+            ) as run,
         ):
             self.module.invoke_codex(Path("/tmp"), "prompt", 10)
 
@@ -938,9 +956,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
 
         def fake_invoke(run_repo, prompt, timeout, **kwargs):
             seen.append(kwargs)
-            return json.dumps(
-                {"item": {"type": "agent_message", "text": "answer"}}
-            )
+            return json.dumps({"item": {"type": "agent_message", "text": "answer"}})
 
         with mock.patch.object(self.module, "invoke_codex", side_effect=fake_invoke):
             for variant in ("candidate", "baseline"):
@@ -1074,9 +1090,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         )
         with (
             mock.patch.object(self.module, "find_repo_root", return_value=Path("/tmp")),
-            mock.patch.object(
-                self.module, "selected_targets", return_value=[target]
-            ),
+            mock.patch.object(self.module, "selected_targets", return_value=[target]),
             mock.patch.object(self.module, "validate_target", return_value=[]),
             mock.patch.object(
                 self.module, "cache_for_repo", return_value=mock.sentinel.cache
@@ -1129,9 +1143,7 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         )
         with (
             mock.patch.object(self.module, "find_repo_root", return_value=Path("/tmp")),
-            mock.patch.object(
-                self.module, "selected_targets", return_value=[target]
-            ),
+            mock.patch.object(self.module, "selected_targets", return_value=[target]),
             mock.patch.object(self.module, "validate_target", return_value=[]),
             mock.patch.object(
                 self.module, "cache_for_repo", return_value=mock.sentinel.cache
@@ -1461,10 +1473,14 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             )
         )
         self.assertTrue(
-            self.module.case_assertions_pass([True, True, False], strict_all_trials=False)
+            self.module.case_assertions_pass(
+                [True, True, False], strict_all_trials=False
+            )
         )
         self.assertFalse(
-            self.module.case_assertions_pass([True, True, False], strict_all_trials=True)
+            self.module.case_assertions_pass(
+                [True, True, False], strict_all_trials=True
+            )
         )
 
     def test_positive_case_triggers_tolerate_a_minority_miss(self) -> None:
@@ -1495,7 +1511,11 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
             should_trigger=False,
             assertions=("The answer is useful.",),
         )
-        fired_once = {(control.id, 1): False, (control.id, 2): True, (control.id, 3): True}
+        fired_once = {
+            (control.id, 1): False,
+            (control.id, 2): True,
+            (control.id, 3): True,
+        }
 
         self.assertFalse(
             self.module.aggregate_case_triggers(
@@ -1542,7 +1562,9 @@ print(json.dumps({{"type": "item.completed", "item": {{"type": "agent_message", 
         self.assertTrue(self.module.comparison_passes(0, 0))
         self.assertFalse(self.module.comparison_passes(1, 2))
 
-    def test_failure_evidence_preserves_normalized_blind_answers_and_judge(self) -> None:
+    def test_failure_evidence_preserves_normalized_blind_answers_and_judge(
+        self,
+    ) -> None:
         target = self.module.EvalTarget(
             name="demo",
             kind="skill",

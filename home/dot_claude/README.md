@@ -1,6 +1,6 @@
 - This directory is applied as `~/.claude`.
 - Chezmoi maps it to the canonical source in [home/dot_config/claude/](../dot_config/claude/).
 - Chezmoi maps `~/.claude/agents` to Claude wrapper agents in [home/dot_config/claude/agents/](../dot_config/claude/agents/). Those wrappers tell Claude to read shared instructions from `~/.agents/agents`.
-- `skills/` only carries a `.keep` marker so chezmoi creates `~/.claude/skills` as a real, Claude-only directory. It is not populated from this repo: `home/.chezmoiscripts/common/run_after_90-link-shared-skills.sh.tmpl` subscribes it to the shared pool at `~/.agents/skills` after every `chezmoi apply`, and skill installers may also write real skill directories there directly.
+- `skills/` only carries a `.keep` marker so chezmoi creates `~/.claude/skills` as a real, Claude-only directory. It is not populated from this repo: the `skills` CLI links each skill it installs into `~/.claude/skills` when `home/.chezmoiscripts/common/run_after_30-reconcile-agent-skills.sh.tmpl` reconciles the shared pool at `~/.agents/skills`, and skill installers may also write real skill directories there directly.
 - The design keeps the home-facing path stable while the real files live in one git-friendly source tree.
 - Edit the canonical source, not this adapter directory.

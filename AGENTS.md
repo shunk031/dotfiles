@@ -11,6 +11,12 @@
 - Management boundary: Treat the public `home/` tree and the private `chezmoi` source/config as separate management domains.
 - Codex boundary: This repo manages the Codex CLI, shared guidance, `~/.codex/AGENTS.md`, and `~/.codex/agents`; `dotfiles-private` manages `~/.codex/config.toml`, private profiles, credentials, and internal launchers.
 
+## Skills
+
+- Skill content is not in this repository. Public skills live in [shunk031/skills](https://github.com/shunk031/skills) and internal ones in `shunk031/skills-private`; these dotfiles subscribe to both through the allowlist in `install/common/skills.sh`.
+- When asked to add, change, or remove a skill, use the `shunk031-manage-public-private-skills` skill to decide which repository owns it before editing anything.
+- Changing which skills this machine installs is an allowlist edit here; changing what a skill does is an edit in the repository that owns it.
+
 ## Comment Policy
 
 - When adding or updating comments for shell scripts or shell-based executables, write them in English using shdoc-compatible format; use the `shunk031-shdoc-shell-docs` skill for detailed conventions.

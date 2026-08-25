@@ -1,2 +1,6 @@
 # Remove the retired zshenv loader for private environment variables.
 .zshenv
+
+# Gemini reads the shared pool through a single `~/.gemini/config/skills.json`
+# pointer now, so the per-skill symlink directory is obsolete.
+.gemini/config/skills

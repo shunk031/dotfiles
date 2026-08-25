@@ -1,8 +1,6 @@
 # CI coverage in this repository is collected from shell-oriented unit tests.
-# Exclude agent skill assets so helper docs/scripts do not affect project coverage.
 ignore:
   - "codecov.yml"
-  - "home/dot_config/exact_agents/skills/**/*"
 coverage:
   status:
     project:

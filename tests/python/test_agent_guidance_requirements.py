@@ -168,13 +168,16 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         return result.stdout.splitlines()
 
     def _guidance_paths(self) -> list[Path]:
+        # Skill bodies are no longer here. They live in shunk031/skills and
+        # shunk031/skills-private, which own their own gates, so scanning for
+        # them would either find nothing or assert against a checkout this
+        # repository does not control.
         exact_agents = REPO_ROOT / "home/dot_config/exact_agents"
         return [
             REPO_ROOT / "AGENTS.md",
             exact_agents / "AGENTS.md",
             exact_agents / "README.md",
             *sorted((exact_agents / "agents").glob("*.md")),
-            *sorted((exact_agents / "skills").glob("*/SKILL.md")),
         ]
 
     def _assert_semantic_fragment(self, source_clause: str) -> None:
@@ -470,6 +473,11 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         )
 
         for item in support_requirements + gwq_requirements:
+            # A relocated requirement's destination is a skill repository, which
+            # this repository cannot read and does not gate. Its occurrence
+            # count still travels with it, and the owning repository asserts it.
+            if item["disposition"] == "relocated":
+                continue
             destination = (REPO_ROOT / item["destination"]).read_text(encoding="utf-8")
             self.assertEqual(
                 destination.count(item["required_text"]),
@@ -482,22 +490,40 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
             with self.subTest(requirement=item["id"]):
                 self.assertIn(item["source_id"], source_ids)
                 self.assertIsInstance(item["source_line"], int)
-                self.assertIn(item["disposition"], {"mapped", "removed"})
+                self.assertIn(item["disposition"], {"mapped", "relocated", "removed"})
 
-                if item["disposition"] == "mapped":
+                if item["disposition"] == "relocated":
+                    # The requirement still holds; it is enforced in the skill
+                    # repository that now owns the body. Naming the repository
+                    # and the skill keeps the trail without asserting against a
+                    # checkout this repository does not control.
+                    self.assertIsInstance(item.get("destination_repo"), str)
+                    self.assertTrue(item["destination_repo"])
+                    self.assertIsInstance(item.get("destination_skill"), str)
+                    self.assertTrue(item["destination_skill"])
+                    self.assertNotIn("destination", item)
+
+                if item["disposition"] in {"mapped", "relocated"}:
+                    # A relocated requirement keeps its rule and its required
+                    # text: it still holds, and the skill repository that now
+                    # owns the body enforces it there. Only `destination` goes,
+                    # because the path it named is not in this repository.
                     self.assertIsInstance(item.get("rule_id"), str)
                     self.assertTrue(item["rule_id"])
-                    destination = item.get("destination")
                     required_text = item.get("required_text")
-                    self.assertIsInstance(destination, str)
-                    self.assertTrue(destination)
                     self.assertIsInstance(required_text, str)
                     self.assertTrue(required_text)
                     destination_occurrences = item.get("destination_occurrences")
                     self.assertIsInstance(destination_occurrences, int)
                     self.assertGreaterEqual(destination_occurrences, 1)
                     self.assertNotIn("rationale", item)
-                else:
+
+                if item["disposition"] == "mapped":
+                    destination = item.get("destination")
+                    self.assertIsInstance(destination, str)
+                    self.assertTrue(destination)
+
+                if item["disposition"] == "removed":
                     self.assertNotIn("destination", item)
                     self.assertNotIn("rule_id", item)
                     self.assertNotIn("required_text", item)
@@ -597,11 +623,13 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
             (adapter["rule_id"], adapter["path"], adapter["text"]): adapter
             for adapter in self.contract["thin_adapters"]
         }
+        # `persistence-quality` and `repository-skill-validation` were owned
+        # entirely by skill bodies, which moved to shunk031/skills. Exclusivity
+        # is a claim about where text may appear in this repository, and a rule
+        # with no text here has nothing to be exclusive about.
         expected_rules = {
             "gwq-worktree-mechanics",
             "skill-pool-wiring",
-            "persistence-quality",
-            "repository-skill-validation",
         }
         self.assertEqual(set(self.contract["exclusive_owner_rule_ids"]), expected_rules)
 
@@ -639,10 +667,13 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         self.assertEqual(actual_ids, expected_ids)
         self.assertEqual(len(adapters), len(actual_ids))
 
+        # A thin adapter may point at a rule this repository no longer owns.
+        # That is what makes it thin: the owner is the skill body, which moved
+        # to shunk031/skills, and the adapter here is the pointer to it.
         mapped_rules = {
             item["rule_id"]
             for item in self.requirements
-            if item["disposition"] == "mapped"
+            if item["disposition"] in {"mapped", "relocated"}
         }
         unique_adapters = {
             (adapter["rule_id"], adapter["path"], adapter["text"])
@@ -706,61 +737,39 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
 
         for adapter in adapters:
             with self.subTest(adapter=adapter["id"]):
+                # As above: an adapter may point at a rule whose owner is now a
+                # skill body in shunk031/skills. Its text still has to appear
+                # exactly where the adapter says and nowhere else, which the
+                # loop below checks either way.
                 self.assertIn(
                     adapter["rule_id"],
                     {
                         item["rule_id"]
                         for item in self.requirements
-                        if item["disposition"] == "mapped"
+                        if item["disposition"] in {"mapped", "relocated"}
                     },
                 )
                 for path, text in guidance_paths.items():
                     expected = adapter["occurrences"] if path == adapter["path"] else 0
                     self.assertEqual(text.count(adapter["text"]), expected)
 
-    def test_guidance_reverse_scan_has_all_twenty_derived_paths(self) -> None:
-        self.assertEqual(len(self._guidance_paths()), 20)
+    def test_guidance_reverse_scan_covers_every_guidance_file_here(self) -> None:
+        # Four: the root AGENTS.md, the shared AGENTS.md and README.md, and one
+        # per-agent adapter. It was twenty while sixteen skill bodies were also
+        # in this repository.
+        self.assertEqual(len(self._guidance_paths()), 4)
 
-    def test_third_party_research_has_one_routing_rule_and_skill_owner(self) -> None:
-        agents_path = REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md"
-        skill_path = (
-            REPO_ROOT
-            / "home/dot_config/exact_agents/skills/shunk031-research-before-implementation/SKILL.md"
+    def test_third_party_research_routes_to_exactly_one_skill(self) -> None:
+        # What this repository owns is the routing rule: the guidance names the
+        # skill once and delegates. The skill's own body — the order of its
+        # stages and the wording of its reporting requirements — moved to
+        # shunk031/skills, which gates it there. Asserting on it from here would
+        # be asserting against a checkout this repository does not control.
+        agents = (REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md").read_text(
+            encoding="utf-8"
         )
-        agents = agents_path.read_text(encoding="utf-8")
-        skill = skill_path.read_text(encoding="utf-8")
-        web_search = skill.index("Use an available web-research capability")
-        github_search = skill.index(
-            "use a GitHub search or inspect `github.com` sources"
-        )
-        implementation = skill.index("Implement and verify")
-
         self.assertEqual(agents.count("`shunk031-research-before-implementation`"), 1)
         self.assertIn("Use the `shunk031-research-before-implementation` skill", agents)
-        self.assertLess(web_search, github_search)
-        self.assertLess(github_search, implementation)
-        self.assertIn(
-            "do not assume a particular tool name or namespace",
-            skill,
-        )
-        self.assertIn("Do not edit files until both tool calls are complete", skill)
-        self.assertIn("stop before designing or editing", skill)
-        self.assertIn(
-            "In the final response, name and link the web sources and GitHub examples consulted",
-            skill,
-        )
-        self.assertIn(
-            "The final response must list at least one official non-GitHub URL and one representative GitHub URL",
-            skill,
-        )
-        self.assertIn(
-            "explain how each source affected the implementation",
-            skill,
-        )
-        self.assertIn(
-            "The GitHub URL must point directly to implementation code or configuration",
-            skill,
-        )
 
     def test_work_safety_rejects_hook_bypass_and_targetless_validation(self) -> None:
         agents = (REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md").read_text(

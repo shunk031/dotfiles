@@ -7,6 +7,12 @@ coverage*
 .agents/worklog/
 .playwright-cli/
 
+# Shuhari writes `<target>-workspace/` beside the evaluated target, so the
+# instructions gate drops one under `home/dot_config/`. They hold verbatim
+# agent transcripts: never commit them. Matched repository-wide because the
+# location follows whatever target Shuhari is pointed at.
+*-workspace/
+
 # Herdr and other integrations may generate Claude hooks here. Ignore generated
 # hooks by default and explicitly allow repo-managed hooks below.
 home/dot_config/claude/hooks/*

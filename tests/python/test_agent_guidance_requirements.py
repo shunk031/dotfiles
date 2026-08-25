@@ -238,10 +238,18 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         self.assertEqual(wiring["validate_hook"], "agent-guidance-validate")
         self.assertEqual(wiring["eval_hook"], "agent-guidance-eval")
         self.assertEqual(wiring["skip_variable"], "SKIP=agent-guidance-eval")
+        # Guidance is evaluated by Shuhari; the Python runner keeps the in-tree
+        # skills, whose eval schema it still owns.
+        self.assertEqual(wiring["guidance_runner"], "shuhari eval instructions")
         self.assertEqual(
-            {
-                item["path"] for item in wiring["wiring_only_paths"]
-            },
+            wiring["guidance_validate_hook"], "shuhari-validate-instructions"
+        )
+        self.assertEqual(wiring["guidance_eval_hook"], "shuhari-eval-instructions")
+        self.assertEqual(
+            wiring["guidance_skip_variable"], "SKIP=shuhari-eval-instructions"
+        )
+        self.assertEqual(
+            {item["path"] for item in wiring["wiring_only_paths"]},
             {
                 "home/dot_config/exact_agents/skills/shunk031-manage-agent-guidance/SKILL.md",
                 "home/dot_config/exact_agents/skills/shunk031-structured-writing/evals/evals.json",
@@ -257,10 +265,16 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn(wiring["runner"], prek)
-        self.assertIn(wiring["runner"], makefile)
-        self.assertIn("uv run --python 3.14.6 --no-project", makefile)
-        self.assertNotIn("--strict-all-trials", makefile)
         self.assertIn(wiring["runner"].replace(".", "\\."), workflow)
+        self.assertIn("uv run --python 3.14.6 --no-project", prek)
+        # `make eval-guidance` drives the guidance suite, so it is the Shuhari
+        # command that has to appear in the Makefile now.
+        self.assertIn(wiring["guidance_runner"], makefile)
+        self.assertIn(wiring["guidance_runner"], prek)
+        self.assertIn(wiring["guidance_validate_hook"], prek)
+        self.assertIn(wiring["guidance_eval_hook"], prek)
+        self.assertNotIn(wiring["runner"], makefile)
+        self.assertNotIn("--strict-all-trials", makefile)
         self.assertNotIn("agent_skill_eval", prek + makefile + workflow)
 
     def test_each_historical_bullet_or_directive_has_semantic_requirements(
@@ -529,8 +543,7 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         removed = {
             item["id"]: item["rationale"]
             for item in self.requirements
-            if item["disposition"] == "removed"
-            and item["id"].startswith("root-mise-")
+            if item["disposition"] == "removed" and item["id"].startswith("root-mise-")
         }
         self.assertEqual(set(removed), set(expected_evidence))
         for requirement_id, evidence in expected_evidence.items():
@@ -753,9 +766,7 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         agents = (REPO_ROOT / "home/dot_config/exact_agents/AGENTS.md").read_text(
             encoding="utf-8"
         )
-        guardrail = (
-            "Never bypass repository hooks or validation with `--no-verify` or an equivalent."
-        )
+        guardrail = "Never bypass repository hooks or validation with `--no-verify` or an equivalent."
         self.assertEqual(agents.count(guardrail), 1)
         self.assertIn(
             "If a hook fails, hangs, or reports no matching targets, stop and report it",

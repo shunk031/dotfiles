@@ -57,12 +57,12 @@ EOF
     done
 }
 
-@test "[common] the allowlist subscribes to both skill repositories" {
+@test "[common] the allowlist subscribes to the public skill repositories" {
     run allowlist_skill_names
     [ "${status}" -eq 0 ]
 
     printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^shunk031/skills:'
-    printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^shunk031/skills-private:'
+    printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^anthropics/skills:'
 }
 
 @test "[common] the allowlist holds no duplicate skill names" {
@@ -303,33 +303,45 @@ EOF
     [ "${status}" -eq 0 ]
 }
 
-@test "the public allowlist names no private skill" {
+@test "[common] the public allowlist names no private skill" {
     # This repository is public. A private skill's name is disclosure on its
     # own: it can carry an internal host, an internal service, or an internal
     # process. Private subscriptions belong in the file the private dotfiles
     # source applies, never in this one.
-    run grep -c 'skills-private:' "${REPO_ROOT}/install/common/skills.sh"
+    run grep -c 'skills-private:' "${SCRIPT_PATH}"
     [ "${output}" = "0" ]
 }
 
-@test "a missing private allowlist is not an error" {
+@test "[common] a missing private allowlist is not an error" {
     # A machine with only the public source has no private file, and must
     # reconcile the public skills normally rather than failing the apply.
-    HOME="${BATS_TEST_TMPDIR}/no-private" run bash -c \
-        "source '${REPO_ROOT}/install/common/skills.sh'; declared_subscriptions | grep -c 'skills-private:' || true"
-    [ "${output}" = "0" ]
+    [ ! -f "${SKILLS_PRIVATE_ALLOWLIST}" ]
+
+    run declared_subscriptions
+    [ "${status}" -eq 0 ]
+    [ -n "${output}" ]
 }
 
-@test "a private entry keeps its pinned ref through comment stripping" {
-    # Entries may carry a `#<ref>` suffix pinning a branch or tag. Stripping
-    # from any `#` would rewrite such an entry to an unpinned one and silently
-    # install a different revision than the one declared.
-    local private_dir="${BATS_TEST_TMPDIR}/pinned/.config/agents"
-    mkdir -p "${private_dir}"
-    printf '# a comment\n\nowner/repo#some-branch:pinned-example\n' \
-        > "${private_dir}/skills-private.allowlist"
+@test "[common] private entries join the public ones when the file is applied" {
+    mkdir -p "$(dirname -- "${SKILLS_PRIVATE_ALLOWLIST}")"
+    printf 'owner/repo:private-example\n' > "${SKILLS_PRIVATE_ALLOWLIST}"
 
-    HOME="${BATS_TEST_TMPDIR}/pinned" run bash -c \
-        "source '${REPO_ROOT}/install/common/skills.sh'; declared_subscriptions | grep '^owner/repo'"
-    [ "${output}" = "owner/repo#some-branch:pinned-example" ]
+    run declared_subscriptions
+    [ "${status}" -eq 0 ]
+    printf '%s\n' "${output}" | grep -q '^owner/repo:private-example$'
+    printf '%s\n' "${output}" | grep -q '^shunk031/skills:'
+}
+
+@test "[common] a private entry keeps its pinned ref through comment stripping" {
+    # Entries may carry a `#<ref>` suffix pinning a branch or tag. Stripping
+    # from any `#` would rewrite such an entry to an unpinned one, which still
+    # parses and still installs — just from a revision nobody declared.
+    mkdir -p "$(dirname -- "${SKILLS_PRIVATE_ALLOWLIST}")"
+    printf '# a whole-line comment\n\nowner/repo#some-branch:pinned-example\n' \
+        > "${SKILLS_PRIVATE_ALLOWLIST}"
+
+    run declared_subscriptions
+    [ "${status}" -eq 0 ]
+    printf '%s\n' "${output}" | grep -q '^owner/repo#some-branch:pinned-example$'
+    ! printf '%s\n' "${output}" | grep -q '^#'
 }

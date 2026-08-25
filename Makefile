@@ -16,6 +16,12 @@ setup:
 eval-guidance:
 	uv run --python 3.14.6 --no-project python scripts/agent_guidance_eval.py eval --all --trials 3 --jobs 2 --timeout 600
 
+# Reconciliation throttles `skills update` to once a day so that `make watch`
+# does not fetch on every file save. This forces the update now.
+.PHONY: skills-update
+skills-update:
+	DOTFILES_SKILLS_FORCE_UPDATE=1 bash install/common/skills.sh
+
 #
 # Docker
 #

@@ -182,9 +182,9 @@ readonly GITIGNORE_PATH="./.gitignore"
     # repository does not control.
     [ ! -e "./home/dot_config/exact_agents/skills" ]
 
-    run grep -F 'shunk031-manage-agent-guidance' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Use the `shunk031-manage-agent-guidance` skill' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'shunk031-structured-writing' "${SHARED_AGENTS_PATH}"
+    run grep -F 'Use the `shunk031-research-before-implementation` skill' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -216,7 +216,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F 'test_expected_thin_adapters_are_complete_and_exclusive' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'test_guidance_reverse_scan_has_all_twenty_derived_paths' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
+    run grep -F 'test_guidance_reverse_scan_covers_every_guidance_file_here' "${AGENT_GUIDANCE_REQUIREMENTS_TEST_PATH}"
     [ "${status}" -eq 0 ]
 }
 

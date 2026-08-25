@@ -22,6 +22,14 @@ function teardown() {
     export PATH
 }
 
+function write_mise_logger() {
+    cat > "${MISE_BIN}" << 'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
+EOF
+    chmod +x "${MISE_BIN}"
+}
+
 @test "[common] herdr run-once template exists" {
     [ -f "${TMPL_SCRIPT_PATH}" ]
 }

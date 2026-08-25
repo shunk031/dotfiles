@@ -91,6 +91,35 @@ EOF
     [ ! -e "${SKILLS_POOL}/shunk031-retired" ]
 }
 
+@test "[common] prune unsubscribes a private skill once its allowlist is gone" {
+    # Intended, not incidental. The private allowlist is the declaration, so an
+    # absent file means no subscription, exactly as a removed public entry does.
+    # It also keeps private skill content from outliving a machine's access to
+    # the private source. Ordinary applies never reach this: `run_once_after_01`
+    # applies the private source before `run_after_30` first reconciles.
+    write_mise_stub
+    mkdir -p "${SKILLS_STATE_DIR}" "${SKILLS_POOL}/private-example"
+    printf '%s\n' private-example > "${SKILLS_MANIFEST}"
+    [ ! -f "${SKILLS_PRIVATE_ALLOWLIST}" ]
+
+    prune_unlisted_skills
+
+    [ ! -e "${SKILLS_POOL}/private-example" ]
+}
+
+@test "[common] prune keeps a private skill while its allowlist declares it" {
+    write_mise_stub
+    mkdir -p "${SKILLS_STATE_DIR}" "${SKILLS_POOL}/private-example"
+    mkdir -p "$(dirname -- "${SKILLS_PRIVATE_ALLOWLIST}")"
+    printf '%s\n' private-example > "${SKILLS_MANIFEST}"
+    printf 'owner/repo:private-example\n' > "${SKILLS_PRIVATE_ALLOWLIST}"
+
+    prune_unlisted_skills
+
+    [ -d "${SKILLS_POOL}/private-example" ]
+    [ ! -f "${MISE_CALLS_PATH}" ]
+}
+
 @test "[common] prune scopes every removal to the owned agents" {
     write_mise_stub
     mkdir -p "${SKILLS_STATE_DIR}" "${SKILLS_POOL}/shunk031-retired"

@@ -395,6 +395,20 @@ function remove_pool_entry() {
 #   not allowlisted" would delete the generated `herdr` entry and any skill a
 #   different installer owns.
 #
+#   An absent private allowlist unsubscribes its skills, and that is the
+#   intended behaviour rather than an oversight. The file is the declaration:
+#   no declaration means no subscription, which is exactly how a removed public
+#   entry behaves. It is also the posture the public/private split exists for,
+#   since private skill content should not outlive a machine's access to the
+#   private source.
+#
+#   Ordinary applies never hit that path. `run_once_after_01` applies the
+#   private source, and chezmoi orders `after` scripts by target name, so the
+#   file is on disk before `run_after_30` first reconciles. `make watch`
+#   applies only the public source, but by then the file is already there. The
+#   only way to reach this case is for the private source to be gone or to have
+#   failed to apply, and then removal is the correct answer.
+#
 function prune_unlisted_skills() {
     local name
 

@@ -138,7 +138,7 @@ function activate_mise() {
 # @arg $@ string Arguments forwarded to the CLI.
 #
 function skills_cli() {
-    "${MISE_BIN}" exec -- skills "$@"
+    skills "$@"
 }
 
 #

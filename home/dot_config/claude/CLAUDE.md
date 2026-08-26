@@ -6,3 +6,5 @@
 ## Claude Only
 
 - There are currently no Claude-specific settings, but they may be added in the future.
+
+@RTK.md

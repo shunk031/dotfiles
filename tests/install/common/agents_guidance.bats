@@ -30,7 +30,7 @@ readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
 readonly CLAUDE_SKILLS_KEEP_PATH="./home/dot_claude/skills/.keep"
 readonly GITIGNORE_PATH="./.gitignore"
 
-@test "[common] codex guidance entrypoint stays minimal and reads shared guidance" {
+@test "[common] codex guidance entrypoint reads shared guidance and includes RTK instructions" {
     [ -f "${SHARED_AGENTS_PATH}" ]
     [ -f "${CODEX_AGENTS_PATH}" ]
     [ ! -e "./home/dot_config/codex/AGENTS.codex-only.md" ]
@@ -39,6 +39,12 @@ readonly GITIGNORE_PATH="./.gitignore"
     run grep -F '> After reading this `AGENTS.md`, say: `🤖 I read ~/.codex/AGENTS.md.`' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'Shared instructions: Read `~/.agents/AGENTS.md` first' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F '## RTK' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Prefix supported shell commands with `rtk`' "${CODEX_AGENTS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'Use `rtk gain` to inspect savings' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F '`~/.agents/AGENTS-private.md`' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

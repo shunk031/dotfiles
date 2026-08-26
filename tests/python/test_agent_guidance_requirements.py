@@ -465,14 +465,6 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
     def test_repeated_destination_fragments_have_explicit_occurrence_counts(
         self,
     ) -> None:
-        support_requirements = [
-            item
-            for item in self.requirements
-            if item.get("required_text") == "- support sentence"
-        ]
-        self.assertEqual(
-            {item["destination_occurrences"] for item in support_requirements}, {2}
-        )
         gwq_requirements = [
             item
             for item in self.requirements
@@ -483,7 +475,7 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
             {item["destination_occurrences"] for item in gwq_requirements}, {2}
         )
 
-        for item in support_requirements + gwq_requirements:
+        for item in gwq_requirements:
             # A relocated requirement's destination is a skill repository, which
             # this repository cannot read and does not gate. Its occurrence
             # count still travels with it, and the owning repository asserts it.
@@ -536,6 +528,8 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
 
                 if item["disposition"] == "removed":
                     self.assertNotIn("destination", item)
+                    self.assertNotIn("destination_repo", item)
+                    self.assertNotIn("destination_skill", item)
                     self.assertNotIn("rule_id", item)
                     self.assertNotIn("required_text", item)
                     self.assertNotIn("destination_occurrences", item)
@@ -552,6 +546,35 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
                 # The Python evaluation runner this described is deleted, so
                 # there is nothing left for CI to test with a fake `codex`.
                 "root-test-fake-evaluation-clause-2",
+                # These requirements were previously owned by a writing skill
+                # that is being removed, so no active destination remains here.
+                "writing-format-1",
+                "writing-procedural-guidance-1",
+                "writing-procedural-guidance-2-clause-2",
+                "reporting-concision",
+                "reporting-bullet-structure-1",
+                "reporting-bullet-example",
+                "reporting-bullet-example-support-1",
+                "reporting-bullet-example-support-2",
+                "reporting-bullet-example-conclusion",
+                "reporting-avoid-flat-lists-1",
+                "reporting-avoid-flat-lists-2-clause-2",
+                "plan-applicability",
+                "plan-required-items-1",
+                "plan-required-paths",
+                "plan-required-interfaces",
+                "plan-required-file-changes",
+                "plan-required-tests",
+                "plan-required-assumptions",
+                "plan-expected-granularity",
+                "plan-code-specificity",
+                "plan-complex-decisions",
+                "plan-per-file-writing",
+                "plan-incomplete",
+                "plan-unknowns-1",
+                "plan-unknowns-2-clause-2",
+                "plan-assumptions-1",
+                "plan-assumptions-2-clause-2",
                 "coding-error-handling",
                 "coding-final-deliverables",
                 "authority-implementation-denied-actions",

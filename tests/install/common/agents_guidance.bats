@@ -111,8 +111,6 @@ readonly GITIGNORE_PATH="./.gitignore"
     run grep -Fc 'Use the `shunk031-manage-agent-guidance` skill when adding, moving, or deleting persistent instructions, agent wrappers, or skills.' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     [ "${output}" = "1" ]
-    run grep -F 'Use `shunk031-structured-writing`' "${SHARED_AGENTS_PATH}"
-    [ "${status}" -ne 0 ]
     run grep -F 'Delegate GitHub issue, branch, commit, push, PR, and CI workflows to `gh-workflow-manager` by default' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
 }

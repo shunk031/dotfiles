@@ -20,27 +20,13 @@
     }
   ],
   "evaluation_wiring": {
-    "runner": "scripts/agent_guidance_eval.py",
     "guidance_source": "home/dot_config/exact_agents/AGENTS.md",
     "guidance_eval": "home/dot_config/exact_agents/AGENTS.evals.json",
-    "cache": "agent-guidance-eval-cache/v1",
-    "validate_hook": "agent-guidance-validate",
-    "eval_hook": "agent-guidance-eval",
-    "skip_variable": "SKIP=agent-guidance-eval",
-    "guidance_runner": "shuhari eval instructions",
-    "guidance_validate_hook": "shuhari-validate-instructions",
-    "guidance_eval_hook": "shuhari-eval-instructions",
-    "guidance_skip_variable": "SKIP=shuhari-eval-instructions",
-    "wiring_only_paths": [
-      {
-        "path": "home/dot_config/exact_agents/skills/shunk031-manage-agent-guidance/SKILL.md",
-        "reason": "Only evaluator and hook naming changed; no skill behavior changed."
-      },
-      {
-        "path": "home/dot_config/exact_agents/skills/shunk031-structured-writing/evals/evals.json",
-        "reason": "Only evaluator terminology in the existing cases changed; no case behavior changed."
-      }
-    ]
+    "wiring_only_paths": [],
+    "runner": "shuhari eval instructions",
+    "validate_hook": "shuhari-validate-instructions",
+    "eval_hook": "shuhari-eval-instructions",
+    "skip_variable": "SKIP=shuhari-eval-instructions"
   },
   "requirements": [
     {
@@ -1731,7 +1717,7 @@
       "source_line": 21,
       "source_clause": "use `SKIP=agent-skill-eval` only when an emergency requires bypassing model evaluation",
       "disposition": "relocated",
-      "required_text": "use `SKIP=agent-guidance-eval` only for an emergency.",
+      "required_text": "use `SKIP=shuhari-eval-instructions` only for an emergency.",
       "destination_occurrences": 1,
       "rule_id": "repository-skill-validation",
       "source_clause_kind": "fragment",

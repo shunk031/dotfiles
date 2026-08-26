@@ -229,56 +229,49 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
             self.assertNotIn("line_requirement_counts", source)
 
     def test_guidance_evaluation_wiring_has_one_truthful_consumer_map(self) -> None:
+        # One harness, so one set of keys. The `guidance_`-prefixed duplicates
+        # existed while the Python runner and Shuhari ran side by side; with the
+        # Python runner gone the prefix distinguishes nothing.
         wiring = self.contract["evaluation_wiring"]
-        self.assertEqual(wiring["runner"], "scripts/agent_guidance_eval.py")
+        self.assertEqual(wiring["runner"], "shuhari eval instructions")
         self.assertEqual(
             wiring["guidance_source"], "home/dot_config/exact_agents/AGENTS.md"
         )
         self.assertEqual(
             wiring["guidance_eval"], "home/dot_config/exact_agents/AGENTS.evals.json"
         )
-        self.assertEqual(wiring["cache"], "agent-guidance-eval-cache/v1")
-        self.assertEqual(wiring["validate_hook"], "agent-guidance-validate")
-        self.assertEqual(wiring["eval_hook"], "agent-guidance-eval")
-        self.assertEqual(wiring["skip_variable"], "SKIP=agent-guidance-eval")
-        # Guidance is evaluated by Shuhari; the Python runner keeps the in-tree
-        # skills, whose eval schema it still owns.
-        self.assertEqual(wiring["guidance_runner"], "shuhari eval instructions")
-        self.assertEqual(
-            wiring["guidance_validate_hook"], "shuhari-validate-instructions"
-        )
-        self.assertEqual(wiring["guidance_eval_hook"], "shuhari-eval-instructions")
-        self.assertEqual(
-            wiring["guidance_skip_variable"], "SKIP=shuhari-eval-instructions"
-        )
-        self.assertEqual(
-            {item["path"] for item in wiring["wiring_only_paths"]},
-            {
-                "home/dot_config/exact_agents/skills/shunk031-manage-agent-guidance/SKILL.md",
-                "home/dot_config/exact_agents/skills/shunk031-structured-writing/evals/evals.json",
-            },
-        )
-        self.assertTrue(
-            all(item["reason"].strip() for item in wiring["wiring_only_paths"])
-        )
+        self.assertEqual(wiring["validate_hook"], "shuhari-validate-instructions")
+        self.assertEqual(wiring["eval_hook"], "shuhari-eval-instructions")
+        self.assertEqual(wiring["skip_variable"], "SKIP=shuhari-eval-instructions")
 
+        # Both entries named paths in the skill tree, which moved to
+        # shunk031/skills. Nothing in this repository is wiring-only now.
+        self.assertEqual(wiring["wiring_only_paths"], [])
+
+        for key in ("cache", "guidance_runner", "guidance_validate_hook"):
+            self.assertNotIn(key, wiring)
+
+        # The map has to agree with the files, not only with itself. Before this
+        # it compared the fixture against literals in the same test, so a hook
+        # renamed in `.pre-commit-config.yaml` or a `make` target renamed in the
+        # Makefile would leave the contract green while nothing ran.
+        # Compare whole lines. `assertIn` on `- id: <hook>` also matches
+        # `- id: <hook>-renamed`, which is the rename this is meant to catch.
         prek = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
+        hook_ids = {
+            line.strip().removeprefix("- id: ")
+            for line in prek.splitlines()
+            if line.strip().startswith("- id: ")
+        }
+        self.assertIn(wiring["validate_hook"], hook_ids)
+        self.assertIn(wiring["eval_hook"], hook_ids)
+        self.assertNotIn("agent-guidance-", prek)
+
         makefile = (REPO_ROOT / "Makefile").read_text(encoding="utf-8")
-        workflow = (REPO_ROOT / ".github/workflows/test.yaml").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn(wiring["runner"], prek)
-        self.assertIn(wiring["runner"].replace(".", "\\."), workflow)
-        self.assertIn("uv run --python 3.14.6 --no-project", prek)
-        # `make eval-guidance` drives the guidance suite, so it is the Shuhari
-        # command that has to appear in the Makefile now.
-        self.assertIn(wiring["guidance_runner"], makefile)
-        self.assertIn(wiring["guidance_runner"], prek)
-        self.assertIn(wiring["guidance_validate_hook"], prek)
-        self.assertIn(wiring["guidance_eval_hook"], prek)
-        self.assertNotIn(wiring["runner"], makefile)
-        self.assertNotIn("--strict-all-trials", makefile)
-        self.assertNotIn("agent_skill_eval", prek + makefile + workflow)
+        self.assertIn(wiring["runner"], makefile)
+
+        for key in ("guidance_source", "guidance_eval"):
+            self.assertTrue((REPO_ROOT / wiring[key]).is_file(), wiring[key])
 
     def test_each_historical_bullet_or_directive_has_semantic_requirements(
         self,
@@ -814,16 +807,12 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         }
         self.assertEqual(duplicate_always_on, {})
 
-        always_on_sections = set(section_owners)
-        duplicates_in_skills = {
-            (skill.relative_to(REPO_ROOT).as_posix(), line)
-            for skill in (REPO_ROOT / "home/dot_config/exact_agents/skills").glob(
-                "*/SKILL.md"
-            )
-            for line in skill.read_text(encoding="utf-8").splitlines()
-            if line in always_on_sections
-        }
-        self.assertEqual(duplicates_in_skills, set())
+        # The second half of this test scanned `home/dot_config/exact_agents/
+        # skills/*/SKILL.md` for the same duplicated sections. That tree moved to
+        # shunk031/skills, so the glob matched nothing and the assertion passed
+        # without checking anything. Skill bodies are gated in the repository
+        # that owns them; asserting on them from here would assert against a
+        # checkout this repository does not control.
 
 
 if __name__ == "__main__":

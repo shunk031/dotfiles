@@ -4,21 +4,6 @@ repos:
       # The in-tree skills still use the Python harness. Guidance no longer
       # does: `AGENTS.evals.json` is on the Shuhari schema, which this harness
       # rejects, so these two hooks are scoped to `skills/` only.
-      - id: agent-guidance-validate
-        name: validate changed in-tree agent skills
-        entry: uv run --python 3.14.6 --no-project python scripts/agent_guidance_eval.py validate --staged
-        language: system
-        pass_filenames: false
-        files: ^home/dot_config/exact_agents/skills/
-
-      - id: agent-guidance-eval
-        name: evaluate changed in-tree agent skills
-        entry: uv run --python 3.14.6 --no-project python scripts/agent_guidance_eval.py eval --staged --trials 3 --jobs 2 --timeout 600
-        language: system
-        pass_filenames: false
-        files: ^home/dot_config/exact_agents/skills/[^/]+/(SKILL\.md|evals/evals\.json)$
-
-      # Schema-only check for the guidance evals. Offline, no agent, no model.
       - id: shuhari-validate-instructions
         name: validate the user guidance eval schema
         entry: bash -c 'MISE_CONFIG_FILE=home/dot_mise/config.toml mise exec -- shuhari eval instructions home/dot_config/exact_agents/AGENTS.md --evals home/dot_config/exact_agents/AGENTS.evals.json --validate-only'

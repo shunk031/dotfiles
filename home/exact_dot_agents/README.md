@@ -1,6 +1,6 @@
 - This directory is applied as `~/.agents`.
 - Chezmoi maps it to the canonical source in [home/dot_config/exact_agents/](../dot_config/exact_agents/).
 - Chezmoi maps `~/.agents/agents` to shared agent instructions in [home/dot_config/exact_agents/agents/](../dot_config/exact_agents/agents/).
-- Chezmoi maps `~/.agents/skills`, the shared skills pool, to per-skill symlink templates in [skills/](skills/); each `symlink_<name>.tmpl` points at one skill directory under [home/dot_config/exact_agents/skills/](../dot_config/exact_agents/skills/).
+- `~/.agents/skills`, the shared skills pool, is not mapped from here. It is a real directory the `skills` CLI installs into, reconciled against the allowlist in [install/common/skills.sh](../../install/common/skills.sh) on every apply, and listed in [chezmoiignore.d/common](../.chezmoitemplates/chezmoiignore.d/common) so chezmoi leaves it alone.
 - The design keeps the home-facing path stable while the real files live in one git-friendly source tree.
 - Edit the canonical source, not this adapter directory.

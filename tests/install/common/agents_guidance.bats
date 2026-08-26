@@ -418,13 +418,19 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "$(readlink ./CLAUDE.md)" = "AGENTS.md" ]
 }
 
-@test "[common] prek validates and evaluates changed managed skills and guidance" {
+@test "[common] prek validates and evaluates changed guidance" {
     [ -f "${PREK_CONFIG_PATH}" ]
-    [ -f "${GUIDANCE_EVAL_SCRIPT}" ]
 
-    run grep -F 'id: agent-guidance-validate' "${PREK_CONFIG_PATH}"
+    # The Python harness and its two hooks are gone: it evaluated the in-tree
+    # skills, and that tree moved to shunk031/skills. What remains here is the
+    # shared guidance, which Shuhari evaluates.
+    [ ! -e "${GUIDANCE_EVAL_SCRIPT}" ]
+    run grep -F 'agent-guidance-' "${PREK_CONFIG_PATH}"
+    [ "${status}" -ne 0 ]
+
+    run grep -F 'id: shuhari-validate-instructions' "${PREK_CONFIG_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'id: agent-guidance-eval' "${PREK_CONFIG_PATH}"
+    run grep -F 'id: shuhari-eval-instructions' "${PREK_CONFIG_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'pass_filenames: false' "${PREK_CONFIG_PATH}"
     [ "${status}" -eq 0 ]

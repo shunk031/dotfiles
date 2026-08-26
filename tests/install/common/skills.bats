@@ -358,10 +358,9 @@ EOF
 }
 
 @test "[common] the shared pool is ignored by chezmoi" {
-    # `home/exact_dot_agents/skills/` still declares a symlink for each migrated
-    # skill. Without this ignore entry chezmoi reasserts those symlinks on every
-    # apply, overwriting the directories the skills CLI installed, and the two
-    # mechanisms flip the same paths back and forth.
+    # `~/.agents` is applied with `exact_` semantics, so without this entry
+    # chezmoi treats every pool directory the `skills` CLI installed as an
+    # unmanaged stray and deletes it on the next apply.
     run grep -Fx '.agents/skills' "${CHEZMOIIGNORE_PATH}"
     [ "${status}" -eq 0 ]
 }

@@ -4,3 +4,9 @@
 # Gemini reads the shared pool through a single `~/.gemini/config/skills.json`
 # pointer now, so the per-skill symlink directory is obsolete.
 .gemini/config/skills
+
+# Claude-Mem is no longer enabled by the managed Claude Code settings.
+.claude-mem
+.claude/plugins/cache/thedotmack/claude-mem
+.claude/plugins/data/claude-mem-thedotmack
+.claude/plugins/marketplaces/thedotmack

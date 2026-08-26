@@ -74,6 +74,6 @@
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
-    "claude-mem@thedotmack": true
+    "claude-mem@thedotmack": false
   }
 }

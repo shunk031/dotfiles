@@ -418,7 +418,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "$(readlink ./CLAUDE.md)" = "AGENTS.md" ]
 }
 
-@test "[common] prek validates and evaluates changed managed skills and guidance" {
+@test "[common] prek validates and evaluates changed guidance" {
     [ -f "${PREK_CONFIG_PATH}" ]
 
     # The Python harness and its two hooks are gone: it evaluated the in-tree

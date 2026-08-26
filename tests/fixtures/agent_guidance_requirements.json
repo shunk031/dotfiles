@@ -2087,13 +2087,9 @@
       "source_id": "root-historical",
       "source_line": 46,
       "source_clause": "CI may test the evaluation runner with a fake `codex` executable.",
-      "disposition": "relocated",
-      "required_text": "For this public dotfiles repository, CI may test the evaluation runner only with a fake `codex` executable.",
-      "destination_occurrences": 1,
-      "rule_id": "repository-skill-validation",
+      "disposition": "removed",
       "source_clause_kind": "fragment",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-manage-agent-guidance"
+      "rationale": "The Python evaluation runner this described is deleted. CI never ran a real model for it, and there is no runner left to test with a fake `codex` binary. Shuhari's gates run in pre-commit only, which the surviving development guidance already states."
     },
     {
       "id": "root-test-real-evaluation",

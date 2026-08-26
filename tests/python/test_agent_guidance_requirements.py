@@ -267,6 +267,24 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         self.assertIn(wiring["eval_hook"], hook_ids)
         self.assertNotIn("agent-guidance-", prek)
 
+        # An id proves a hook is listed, not that it runs anything. Both
+        # entries could be replaced with `true` and the ids would still be
+        # there, so check what each one actually invokes.
+        entries = [
+            line.strip().removeprefix("entry: ")
+            for line in prek.splitlines()
+            if line.strip().startswith("entry: ")
+        ]
+        guidance_entries = [e for e in entries if wiring["runner"] in e]
+        self.assertEqual(len(guidance_entries), 2, entries)
+        for entry in guidance_entries:
+            self.assertIn(wiring["guidance_source"], entry)
+            self.assertIn(wiring["guidance_eval"], entry)
+        self.assertTrue(
+            any("--validate-only" in entry for entry in guidance_entries),
+            guidance_entries,
+        )
+
         makefile = (REPO_ROOT / "Makefile").read_text(encoding="utf-8")
         self.assertIn(wiring["runner"], makefile)
 
@@ -531,6 +549,9 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
         self.assertEqual(
             removed_ids,
             {
+                # The Python evaluation runner this described is deleted, so
+                # there is nothing left for CI to test with a fake `codex`.
+                "root-test-fake-evaluation-clause-2",
                 "coding-error-handling",
                 "coding-final-deliverables",
                 "authority-implementation-denied-actions",

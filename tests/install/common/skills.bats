@@ -20,17 +20,45 @@ function teardown() {
     export PATH
 }
 
-# @description Install a `mise` stub that records its arguments.
+# @description Install `mise` and `skills` stubs that record their arguments.
 # @arg $1 exit_code The status the stub exits with; defaults to 0.
 function write_mise_stub() {
     local exit_code="${1:-0}"
+    local stub_bin="${BATS_TEST_TMPDIR}/bin"
 
     cat > "${MISE_BIN}" << EOF
 #!/usr/bin/env bash
+if [ "\$*" = "activate bash" ]; then
+    printf 'export PATH="%s:\$PATH"\n' "${stub_bin}"
+    exit 0
+fi
 printf '%s\n' "\$*" >> "\${MISE_CALLS_PATH}"
 exit ${exit_code}
 EOF
     chmod +x "${MISE_BIN}"
+
+    mkdir -p "${stub_bin}"
+    cat > "${stub_bin}/skills" << EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "\${MISE_CALLS_PATH}"
+exit ${exit_code}
+EOF
+    chmod +x "${stub_bin}/skills"
+    PATH="${stub_bin}:${PATH}"
+    export PATH
+}
+
+@test "[common] skills CLI uses the active tool without re-entering mise" {
+    write_mise_stub
+    PATH="${PATH#"${BATS_TEST_TMPDIR}/bin:"}"
+    export PATH
+
+    activate_mise
+    skills_cli --version
+
+    run cat "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "--version" ]
 }
 
 @test "[common] skills reconcile template exists and runs after the mise tools script" {
@@ -129,7 +157,7 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "exec -- skills remove --skill shunk031-retired --agent claude-code --agent codex --global --yes" ]
+    [ "${output}" = "remove --skill shunk031-retired --agent claude-code --agent codex --global --yes" ]
 }
 
 @test "[common] prune never targets the agents rooted at the private config tree" {

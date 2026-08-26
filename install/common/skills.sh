@@ -135,6 +135,11 @@ function activate_mise() {
 
 #
 # @description Run the pinned `skills` CLI.
+# @description
+#   The CLI's GitHub tree check uses Node's `fetch`, which does not use
+#   `HTTP_PROXY` or `HTTPS_PROXY` unless `NODE_USE_ENV_PROXY=1` is set. In a
+#   proxied environment, force a fresh reconciliation with:
+#   `NODE_USE_ENV_PROXY=1 DOTFILES_SKILLS_FORCE_UPDATE=1 chezmoi apply`
 # @arg $@ string Arguments forwarded to the CLI.
 #
 function skills_cli() {

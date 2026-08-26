@@ -142,39 +142,27 @@
       "source_id": "shared-historical",
       "source_line": 23,
       "source_clause": "- Format: Structure detailed instructions in a format such as `- Summary: Details`.",
-      "disposition": "relocated",
-      "required_text": "Use `Label: Details` when it improves scanning.",
-      "destination_occurrences": 1,
-      "rule_id": "writing-format",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "writing-procedural-guidance-1",
       "source_id": "shared-historical",
       "source_line": 24,
       "source_clause": "- Procedural guidance: Write instructions as steps to perform when work begins to prevent problems, rather than as checks to make only after a problem occurs.",
-      "disposition": "relocated",
-      "required_text": "Write procedures as steps to perform when work begins",
-      "destination_occurrences": 1,
-      "rule_id": "writing-procedural-guidance",
       "source_clause_kind": "fragment",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "writing-procedural-guidance-2-clause-2",
       "source_id": "shared-historical",
       "source_line": 24,
       "source_clause": "For example, when introducing a hook, write “When starting work in a new clone or worktree, install it before editing or committing,” rather than “Check it if it does not run.”",
-      "disposition": "relocated",
-      "required_text": "install the hook before editing or committing",
-      "destination_occurrences": 1,
-      "rule_id": "writing-procedural-guidance",
       "source_clause_kind": "example",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "guidance-scope-classification",
@@ -518,106 +506,74 @@
       "source_id": "shared-historical",
       "source_line": 53,
       "source_clause": "- Concision: Keep reports and responses concise. Expand only when asked.",
-      "disposition": "relocated",
-      "required_text": "Keep reports and responses concise. Expand only when asked.",
-      "destination_occurrences": 1,
-      "rule_id": "reporting-concision",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "reporting-bullet-structure-1",
       "source_id": "shared-historical",
       "source_line": 54,
       "source_clause": "- Bullet structure: When using bullet lists, follow paragraph-writing principles: make the parent item the topic sentence, nested items supporting sentences, and the last nested item a conclusion sentence when useful.",
-      "disposition": "relocated",
-      "required_text": "When one bullet states a topic and later bullets only support it, make the parent the topic sentence, nest supporting sentences, and use the last child as a conclusion when useful.",
-      "destination_occurrences": 1,
-      "rule_id": "reporting-structure",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "reporting-bullet-example",
       "source_id": "shared-historical",
       "source_line": 56,
       "source_clause": "  - topic sentence",
-      "disposition": "relocated",
-      "required_text": "- topic sentence",
-      "destination_occurrences": 1,
-      "rule_id": "reporting-bullet-example",
       "source_clause_kind": "example",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "reporting-bullet-example-support-1",
       "source_id": "shared-historical",
       "source_line": 57,
       "source_clause": "    - support sentence",
-      "disposition": "relocated",
-      "required_text": "- support sentence",
-      "destination_occurrences": 2,
-      "rule_id": "support-sentence-example",
       "source_occurrence": 1,
       "source_clause_kind": "example",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "reporting-bullet-example-support-2",
       "source_id": "shared-historical",
       "source_line": 58,
       "source_clause": "    - support sentence",
-      "disposition": "relocated",
-      "required_text": "- support sentence",
-      "destination_occurrences": 2,
-      "rule_id": "support-sentence-example",
       "source_occurrence": 1,
       "source_clause_kind": "example",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "reporting-bullet-example-conclusion",
       "source_id": "shared-historical",
       "source_line": 59,
       "source_clause": "    - conclusion sentence",
-      "disposition": "relocated",
-      "required_text": "- conclusion sentence",
-      "destination_occurrences": 1,
-      "rule_id": "reporting-bullet-example-conclusion",
       "source_clause_kind": "example",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "reporting-avoid-flat-lists-1",
       "source_id": "shared-historical",
       "source_line": 61,
       "source_clause": "- Avoid flat lists: Do not list supporting sentences without a topic sentence.",
-      "disposition": "relocated",
-      "required_text": "Do not leave supporting sentences in a flat list without a topic sentence.",
-      "destination_occurrences": 1,
-      "rule_id": "reporting-flat-lists",
       "source_clause_kind": "fragment",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "reporting-avoid-flat-lists-2-clause-2",
       "source_id": "shared-historical",
       "source_line": 61,
       "source_clause": "When items are at one level, make sure each can stand on its own as a topic sentence.",
-      "disposition": "relocated",
-      "required_text": "each item can stand on its own as a topic sentence",
-      "destination_occurrences": 1,
-      "rule_id": "reporting-flat-lists",
       "source_clause_kind": "fragment",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "github-comments-deliverable-1",
@@ -1186,208 +1142,144 @@
       "source_id": "shared-historical",
       "source_line": 119,
       "source_clause": "- Applicability: For plans involving repository changes, such as coding, configuration changes, CLI or API changes, data-flow changes, or new tests, do not stop at an abstract approach. Provide a concrete proposal that an implementer can start directly.",
-      "disposition": "relocated",
-      "required_text": "Make implementation plans decision-complete",
-      "destination_occurrences": 1,
-      "rule_id": "plan-applicability",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-required-items-1",
       "source_id": "shared-historical",
       "source_line": 120,
       "source_clause": "- Required items: The final plan must include at least the following:",
-      "disposition": "relocated",
-      "required_text": "Make implementation plans decision-complete",
-      "destination_occurrences": 1,
-      "rule_id": "plan-required-items",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-required-paths",
       "source_id": "shared-historical",
       "source_line": 121,
       "source_clause": "  - Directories and file paths to change",
-      "disposition": "relocated",
-      "required_text": "directories and file paths",
-      "destination_occurrences": 1,
-      "rule_id": "plan-required-paths",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-required-interfaces",
       "source_id": "shared-historical",
       "source_line": 122,
       "source_clause": "  - Functions, classes, configuration keys, CLI arguments, and public APIs to add, edit, or delete",
-      "disposition": "relocated",
-      "required_text": "functions, classes, types, configuration keys, CLI arguments, and public APIs to add, edit, or delete",
-      "destination_occurrences": 1,
-      "rule_id": "plan-required-interfaces",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-required-file-changes",
       "source_id": "shared-historical",
       "source_line": 123,
       "source_clause": "  - What to change in each file and how",
-      "disposition": "relocated",
-      "required_text": "per-file behavior",
-      "destination_occurrences": 1,
-      "rule_id": "plan-required-file-changes",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-required-tests",
       "source_id": "shared-historical",
       "source_line": 124,
       "source_clause": "  - Required test files, test cases to add, and the essential assertions to verify",
-      "disposition": "relocated",
-      "required_text": "test files, cases, and essential assertions",
-      "destination_occurrences": 1,
-      "rule_id": "plan-required-tests",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-required-assumptions",
       "source_id": "shared-historical",
       "source_line": 125,
       "source_clause": "  - Implementation assumptions, defaults to adopt, and unresolved questions",
-      "disposition": "relocated",
-      "required_text": "assumptions, defaults, and unresolved questions",
-      "destination_occurrences": 1,
-      "rule_id": "plan-required-assumptions",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-expected-granularity",
       "source_id": "shared-historical",
       "source_line": 126,
       "source_clause": "- Expected granularity: Provide enough detail that an implementer can begin with almost no additional design decisions. Specify function names, types, configuration keys, CLI, data flow, removal targets, and the direction of the changes.",
-      "disposition": "relocated",
-      "required_text": "implementation can start without another design pass",
-      "destination_occurrences": 1,
-      "rule_id": "plan-expected-granularity",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-code-specificity",
       "source_id": "shared-historical",
       "source_line": 127,
       "source_clause": "- Code specificity: For important implementation changes, always include a proposed function signature, pseudocode, or short code snippet. Use a roughly 5–20 line fragment when useful.",
-      "disposition": "relocated",
-      "required_text": "function signature, pseudocode, or a roughly 5–20 line code fragment",
-      "destination_occurrences": 1,
-      "rule_id": "plan-code-specificity",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-complex-decisions",
       "source_id": "shared-historical",
       "source_line": 128,
       "source_clause": "- Especially required cases: For plans that introduce more implementation decisions, such as parallelization, replacing a concrete API, a data-transformation pipeline, state management, asynchrony, or schema changes, always provide a concrete proposal that identifies the chosen API, processing flow, or function skeleton.",
-      "disposition": "relocated",
-      "required_text": "data flow, state, asynchrony, migration, or parallelization decisions",
-      "destination_occurrences": 1,
-      "rule_id": "plan-complex-decisions",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-per-file-writing",
       "source_id": "shared-historical",
       "source_line": 129,
       "source_clause": "- Per-file writing: Describe the work at a level that conveys which symbol in which file will change and how. For example, replace `build_dataset()` in `src/foo/bar.py` with map-based processing, or add equivalence tests to `tests/test_bar.py`.",
-      "disposition": "relocated",
-      "required_text": "describe each file or subsystem precisely enough",
-      "destination_occurrences": 1,
-      "rule_id": "plan-per-file-writing",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-incomplete",
       "source_id": "shared-historical",
       "source_line": 130,
       "source_clause": "- Incomplete plans: Treat a plan that lacks any of the required items above as incomplete. Do not present an incomplete plan as the final plan.",
-      "disposition": "relocated",
-      "required_text": "Do not present an incomplete plan as final",
-      "destination_occurrences": 1,
-      "rule_id": "plan-incomplete",
       "source_clause_kind": "whole-line",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-unknowns-1",
       "source_id": "shared-historical",
       "source_line": 131,
       "source_clause": "- Handling unknowns: If an important assumption is missing, do not expand the scope on your own; ask only about the ambiguity.",
-      "disposition": "relocated",
-      "required_text": "Ask only for product intent or decisions that cannot be derived safely.",
-      "destination_occurrences": 1,
-      "rule_id": "plan-unknowns",
       "source_clause_kind": "fragment",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-unknowns-2-clause-2",
       "source_id": "shared-historical",
       "source_line": 131,
       "source_clause": "do not ask about facts that can be learned by reading the repository; investigate first.",
-      "disposition": "relocated",
-      "required_text": "Resolve discoverable repository facts before planning.",
-      "destination_occurrences": 1,
-      "rule_id": "plan-unknowns",
       "source_clause_kind": "fragment",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-assumptions-1",
       "source_id": "shared-historical",
       "source_line": 132,
       "source_clause": "- Handling assumptions: If you proceed without waiting for a response",
-      "disposition": "relocated",
-      "required_text": "under `Assumptions` or `Premises`",
-      "destination_occurrences": 1,
-      "rule_id": "plan-assumptions",
       "source_clause_kind": "fragment",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "plan-assumptions-2-clause-2",
       "source_id": "shared-historical",
       "source_line": 132,
       "source_clause": "state the assumptions under “Assumptions” or “Premises” and explain how they affect the implementation.",
-      "disposition": "relocated",
-      "required_text": "explain their implementation effect",
-      "destination_occurrences": 1,
-      "rule_id": "plan-assumptions",
       "source_clause_kind": "fragment",
-      "destination_repo": "shunk031/skills",
-      "destination_skill": "shunk031-structured-writing"
+      "disposition": "removed",
+      "rationale": "The previous destination skill is being removed from shunk031/skills, so this requirement has no active destination."
     },
     {
       "id": "uncommitted-treatment",

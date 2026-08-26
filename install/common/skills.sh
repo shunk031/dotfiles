@@ -67,23 +67,18 @@ readonly SKILLS_LINKED_AGENT_DIRS=(
 # Keep sorted by repository, then by skill name.
 readonly SKILLS_ALLOWLIST=(
     "anthropics/skills:skill-creator"
-    "shunk031/skills:shunk031-ai-slop-checklist-ja"
     "shunk031/skills:shunk031-cgd-dev-identity"
     "shunk031/skills:shunk031-codex-worker-prompting"
-    "shunk031/skills:shunk031-doc-slop-review"
     "shunk031/skills:shunk031-gh-comment-attach-files"
     "shunk031/skills:shunk031-herdr-tab-status"
     "shunk031/skills:shunk031-high-impact-journal-publishing"
-    "shunk031/skills:shunk031-humanizer-ja"
     "shunk031/skills:shunk031-manage-agent-guidance"
     "shunk031/skills:shunk031-manage-public-private-dotfiles"
     "shunk031/skills:shunk031-manage-public-private-skills"
     "shunk031/skills:shunk031-orchestrate-herdr-workers"
     "shunk031/skills:shunk031-python-uv-workflow"
     "shunk031/skills:shunk031-research-before-implementation"
-    "shunk031/skills:shunk031-research-report-ja"
     "shunk031/skills:shunk031-shdoc-shell-docs"
-    "shunk031/skills:shunk031-structured-writing"
     "shunk031/skills:shunk031-transformers-convert"
 )
 

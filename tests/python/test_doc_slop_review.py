@@ -48,7 +48,7 @@ def stub_evaluator(
                 "why": "fixture pass",
                 "suggested_fix": "",
             }
-            for check_id in module.JUDGE_CHECK_IDS
+            for check_id in module.profile_check_ids(module.DEFAULT_DOC_TYPE)
         }
 
     return SimpleNamespace(
@@ -109,7 +109,7 @@ class DocSlopReviewTest(unittest.TestCase):
                                 "why": "fixture pass",
                                 "suggested_fix": "",
                             }
-                            for check_id in self.module.JUDGE_CHECK_IDS
+                            for check_id in self.module.profile_check_ids(self.module.DEFAULT_DOC_TYPE)
                         },
                         "findings": [],
                     }
@@ -355,22 +355,35 @@ class DocSlopReviewTest(unittest.TestCase):
         self.assertIn("08ad2939", prompt)
         self.assertIn("Body text about", prompt)
 
-    def test_judge_prompt_freezes_first_time_researcher_checks(self) -> None:
+    def test_judge_prompt_freezes_report_contract_checks(self) -> None:
         prompt = self.module.build_judge_prompt(
             self.document("A report opening."), self.rubric, []
         )
 
-        self.assertIn("researcher reading the document for the FIRST time", prompt)
+        self.assertIn("a researcher outside the project", prompt)
         self.assertIn("zero project context", prompt)
+        self.assertIn("FIRST time", prompt)
         self.assertIn('"checks"', prompt)
         self.assertIn("question, method, result, and consequence", prompt)
         self.assertIn("Japanese-English pidgin", prompt)
-        self.assertIn("undefined at first use", prompt)
-        self.assertIn("what question that section answers", prompt)
+        self.assertIn("defined at first use", prompt)
         self.assertIn("internal-only evidence", prompt)
         self.assertIn("gitignore status", prompt)
         self.assertIn("instructions to auditors", prompt)
-        for check_id in self.module.JUDGE_CHECK_IDS:
+        self.assertIn("advisory", prompt)
+        for check_id in self.module.profile_check_ids(self.module.DEFAULT_DOC_TYPE):
+            self.assertIn(check_id, prompt)
+
+    def test_judge_prompt_selects_the_declared_doc_type_audience(self) -> None:
+        prompt = self.module.build_judge_prompt(
+            self.document("An issue opening."), self.rubric, [], doc_type="issue"
+        )
+
+        self.assertIn("maintains this repository", prompt)
+        self.assertNotIn("zero project context", prompt)
+        self.assertIn("opening-problem-evidence-request", prompt)
+        self.assertNotIn("opening-question-method-result-consequence", prompt)
+        for check_id in self.module.profile_check_ids("issue"):
             self.assertIn(check_id, prompt)
 
     def test_missing_affirmative_check_results_block_a_model_pass(self) -> None:
@@ -396,7 +409,7 @@ class DocSlopReviewTest(unittest.TestCase):
                 "why": "fixture pass",
                 "suggested_fix": "",
             }
-            for check_id in self.module.JUDGE_CHECK_IDS
+            for check_id in self.module.profile_check_ids(self.module.DEFAULT_DOC_TYPE)
         }
         checks["japanese-english-pidgin"] = {
             "passed": False,
@@ -447,7 +460,7 @@ class DocSlopReviewTest(unittest.TestCase):
                 "why": "The first-time reader can follow this check.",
                 "suggested_fix": "",
             }
-            for check_id in self.module.JUDGE_CHECK_IDS
+            for check_id in self.module.profile_check_ids(self.module.DEFAULT_DOC_TYPE)
         }
         evaluator = stub_evaluator(self.module, [], checks=checks)
 
@@ -474,7 +487,7 @@ class DocSlopReviewTest(unittest.TestCase):
                 "why": "fixture pass",
                 "suggested_fix": "",
             }
-            for check_id in self.module.JUDGE_CHECK_IDS
+            for check_id in self.module.profile_check_ids(self.module.DEFAULT_DOC_TYPE)
         }
         checks["process-metadata-and-internal-identifiers"] = {
             "passed": False,
@@ -509,8 +522,71 @@ class DocSlopReviewTest(unittest.TestCase):
         self.assertEqual(report.findings[0].severity, "high")
         self.assertEqual(report.findings[0].excerpt, "internal-only evidence")
 
-    def test_threshold_fails_on_high_or_three_medium_findings(self) -> None:
-        def finding(severity: str):
+    def test_advisory_model_findings_do_not_fail_the_review(self) -> None:
+        document = self.document("Clean text for the reader.\n")
+        evaluator = stub_evaluator(
+            self.module,
+            [
+                {
+                    "category": "evidence-dump",
+                    "severity": "high",
+                    "excerpt": "Clean text for the reader.",
+                    "why": "fixture advisory observation",
+                    "suggested_fix": "none",
+                }
+            ],
+        )
+
+        with patch.object(self.module, "run_textlint", return_value=[]):
+            report = self.module.review_documents(
+                [document],
+                self.rubric,
+                skip_model=False,
+                timeout=1,
+                model=None,
+                reasoning_effort=None,
+                evaluator=evaluator,
+            )
+
+        self.assertTrue(report.passed)
+        advisory = [f for f in report.findings if not f.gating]
+        self.assertEqual(len(advisory), 1)
+        self.assertEqual(advisory[0].category, "evidence-dump")
+        text = self.module.format_text_report(report)
+        self.assertIn("advisory, model", text)
+        self.assertTrue(text.rstrip().endswith("PASS"))
+
+    def test_textlint_runs_only_for_japanese_documents(self) -> None:
+        english = self.document("English text with a hard\nwrap inside a sentence.\n")
+        japanese = self.document("文の途中で\n改行しています。\n")
+
+        with patch.object(
+            self.module, "run_textlint", return_value=[]
+        ) as run_textlint:
+            self.module.review_documents(
+                [english],
+                self.rubric,
+                skip_model=True,
+                timeout=1,
+                model=None,
+                reasoning_effort=None,
+                evaluator=None,
+            )
+            run_textlint.assert_not_called()
+
+            self.module.review_documents(
+                [japanese],
+                self.rubric,
+                skip_model=True,
+                timeout=1,
+                model=None,
+                reasoning_effort=None,
+                evaluator=None,
+            )
+            run_textlint.assert_called_once()
+
+    def test_gate_fails_on_gating_findings_and_ignores_advisory_ones(self) -> None:
+        def finding(severity: str, gating: bool):
             return self.module.Finding(
                 source="doc.md",
                 category="evidence-dump",
@@ -518,14 +594,20 @@ class DocSlopReviewTest(unittest.TestCase):
                 excerpt="x",
                 why="y",
                 suggested_fix="z",
-                detector="regex",
+                detector="regex" if gating else "model",
+                gating=gating,
             )
 
         self.assertTrue(self.module.passes_threshold([]))
-        self.assertTrue(self.module.passes_threshold([finding("medium")] * 2))
-        self.assertFalse(self.module.passes_threshold([finding("medium")] * 3))
-        self.assertFalse(self.module.passes_threshold([finding("high")]))
-        self.assertTrue(self.module.passes_threshold([finding("low")] * 9))
+        self.assertFalse(self.module.passes_threshold([finding("medium", True)]))
+        self.assertFalse(self.module.passes_threshold([finding("high", True)]))
+        self.assertTrue(self.module.passes_threshold([finding("high", False)] * 5))
+        self.assertTrue(self.module.passes_threshold([finding("low", False)] * 9))
+        self.assertFalse(
+            self.module.passes_threshold(
+                [finding("low", False), finding("medium", True)]
+            )
+        )
 
     def test_diff_input_reviews_only_added_lines(self) -> None:
         diff = (
@@ -564,10 +646,13 @@ class DocSlopReviewTest(unittest.TestCase):
         self.assertIn("It depends on the case", text)
         self.assertIn("threshold:", text)
         self.assertIn("model judge: skipped", text)
-        self.assertTrue(text.rstrip().endswith("PASS"))
+        # A deterministic finding gates the verdict.
+        self.assertTrue(text.rstrip().endswith("FAIL"))
         self.assertEqual(payload["passed"], report.passed)
+        self.assertFalse(report.passed)
         self.assertEqual(payload["findings"][0]["detector"], "regex")
         self.assertEqual(payload["findings"][0]["category"], "over-hedging")
+        self.assertTrue(payload["findings"][0]["gating"])
         self.assertFalse(payload["model_consulted"])
         self.assertNotIn("skipped_categories", payload)
         self.assertNotIn("skipped categories:", text)
@@ -581,13 +666,13 @@ class DocSlopReviewTest(unittest.TestCase):
                 "why": "fixture pass",
                 "suggested_fix": "",
             }
-            for check_id in self.module.JUDGE_CHECK_IDS
+            for check_id in self.module.profile_check_ids(self.module.DEFAULT_DOC_TYPE)
         }
-        checks["uninformative-section-title"] = {
+        checks["process-metadata-and-internal-identifiers"] = {
             "passed": False,
             "excerpt": "Section title",
-            "why": "The heading does not tell the reader what question it answers.",
-            "suggested_fix": "Make the heading answer the section's question.",
+            "why": "The heading is an internal process label.",
+            "suggested_fix": "Address the reader instead of the audit process.",
         }
         evaluator = stub_evaluator(self.module, [], checks=checks)
 
@@ -602,7 +687,7 @@ class DocSlopReviewTest(unittest.TestCase):
                 evaluator=evaluator,
                 skip_categories=[
                     "over-hedging",
-                    "uninformative-section-title",
+                    "process-metadata-and-internal-identifiers",
                 ],
             )
 
@@ -612,7 +697,7 @@ class DocSlopReviewTest(unittest.TestCase):
             report.skipped_categories,
             {
                 "over-hedging": 1,
-                "uninformative-section-title": 1,
+                "process-metadata-and-internal-identifiers": 1,
             },
         )
 
@@ -620,7 +705,7 @@ class DocSlopReviewTest(unittest.TestCase):
         payload = json.loads(self.module.format_json_report(report))
         self.assertIn(
             "skipped categories: over-hedging (1 findings suppressed), "
-            "uninformative-section-title (1 findings suppressed)",
+            "process-metadata-and-internal-identifiers (1 findings suppressed)",
             text,
         )
         self.assertEqual(

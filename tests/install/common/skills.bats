@@ -91,6 +91,7 @@ EOF
 
     printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^shunk031/skills:'
     printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^anthropics/skills:'
+    printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^cursor/plugins:unslop$'
 }
 
 @test "[common] the allowlist holds no duplicate skill names" {

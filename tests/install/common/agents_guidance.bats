@@ -142,7 +142,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F 'mise compatibility changes: When a tool or configuration change requires newer mise behavior, determine the minimum mise release that supports the change, raise `min_version` in the same pull request, and record the requirement in the pull request description.' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F 'use the `shunk031-shdoc-shell-docs` skill for detailed conventions' "${ROOT_AGENTS_PATH}"
+    run grep -F 'use the `shunk031-shellscript-shdoc-docs` skill for detailed conventions' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F 'Never run `bats` locally' "${ROOT_AGENTS_PATH}"
     [ "${status}" -eq 0 ]

@@ -1573,7 +1573,7 @@
       "source_clause": "- Comment language: When adding or updating comments for shell scripts or shell-based executables, always write them in English using shdoc-compatible format.",
       "disposition": "mapped",
       "destination": "AGENTS.md",
-      "required_text": "write them in English using shdoc-compatible format; use the `shunk031-shdoc-shell-docs` skill for detailed conventions",
+      "required_text": "write them in English using shdoc-compatible format; use the `shunk031-shellscript-shdoc-docs` skill for detailed conventions",
       "destination_occurrences": 1,
       "rule_id": "root-shell-comments",
       "source_clause_kind": "whole-line"

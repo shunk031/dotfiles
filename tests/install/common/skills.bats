@@ -202,25 +202,25 @@ EOF
 
 @test "[common] install skips a skill already materialized in the pool" {
     write_mise_stub
-    mkdir -p "${SKILLS_POOL}/shunk031-cgd-dev-identity"
+    mkdir -p "${SKILLS_POOL}/shunk031-github-cgd-identity"
 
     install_missing_skills
 
-    run grep -c -- '--skill shunk031-cgd-dev-identity ' "${MISE_CALLS_PATH}"
+    run grep -c -- '--skill shunk031-github-cgd-identity ' "${MISE_CALLS_PATH}"
     [ "${output}" = "0" ]
 }
 
 @test "[common] install replaces a legacy symlink with a real installation" {
     write_mise_stub
-    mkdir -p "${BATS_TEST_TMPDIR}/source/shunk031-cgd-dev-identity"
-    ln -s "${BATS_TEST_TMPDIR}/source/shunk031-cgd-dev-identity" "${SKILLS_POOL}/shunk031-cgd-dev-identity"
+    mkdir -p "${BATS_TEST_TMPDIR}/source/shunk031-github-cgd-identity"
+    ln -s "${BATS_TEST_TMPDIR}/source/shunk031-github-cgd-identity" "${SKILLS_POOL}/shunk031-github-cgd-identity"
 
     install_missing_skills
 
     # The name still goes to the CLI: a symlink is not a real installation, so
     # `pool_has_skill` rejects it and the skill stays in the batch. The call now
     # carries every missing skill from that source rather than only this one.
-    run grep -c -- '--skill shunk031-cgd-dev-identity' "${MISE_CALLS_PATH}"
+    run grep -c -- '--skill shunk031-github-cgd-identity' "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]
 
     run grep -c -- 'add shunk031/skills .*--agent claude-code --agent codex --global --yes' "${MISE_CALLS_PATH}"
@@ -241,7 +241,7 @@ EOF
     run grep -c '^add ' "${MISE_CALLS_PATH}"
     [ "${output}" -eq "${expected_calls}" ]
 
-    run grep -c -- '--skill shunk031-cgd-dev-identity' "${MISE_CALLS_PATH}"
+    run grep -c -- '--skill shunk031-github-cgd-identity' "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]
     run grep -c -- '--skill shunk031-manage-agent-guidance' "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]
@@ -249,11 +249,11 @@ EOF
 
 @test "[common] a repository is called with only the skills still missing" {
     write_mise_stub
-    mkdir -p "${SKILLS_POOL}/shunk031-cgd-dev-identity"
+    mkdir -p "${SKILLS_POOL}/shunk031-github-cgd-identity"
 
     install_missing_skills
 
-    run grep -c -- '--skill shunk031-cgd-dev-identity' "${MISE_CALLS_PATH}"
+    run grep -c -- '--skill shunk031-github-cgd-identity' "${MISE_CALLS_PATH}"
     [ "${output}" = "0" ]
     run grep -c -- '--skill shunk031-manage-agent-guidance' "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]
@@ -315,13 +315,13 @@ EOF
 }
 
 @test "[common] the manifest records only skills that are really installed" {
-    mkdir -p "${SKILLS_POOL}/shunk031-cgd-dev-identity"
+    mkdir -p "${SKILLS_POOL}/shunk031-github-cgd-identity"
     mkdir -p "${BATS_TEST_TMPDIR}/source/shunk031-manage-agent-guidance"
     ln -s "${BATS_TEST_TMPDIR}/source/shunk031-manage-agent-guidance" "${SKILLS_POOL}/shunk031-manage-agent-guidance"
 
     write_managed_skills_manifest
 
-    run grep -c '^shunk031-cgd-dev-identity$' "${SKILLS_MANIFEST}"
+    run grep -c '^shunk031-github-cgd-identity$' "${SKILLS_MANIFEST}"
     [ "${output}" = "1" ]
     run grep -c '^shunk031-manage-agent-guidance$' "${SKILLS_MANIFEST}"
     [ "${output}" = "0" ]

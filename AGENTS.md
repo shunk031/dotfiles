@@ -19,7 +19,7 @@
 
 ## Comment Policy
 
-- When adding or updating comments for shell scripts or shell-based executables, write them in English using shdoc-compatible format; use the `shunk031-shdoc-shell-docs` skill for detailed conventions.
+- When adding or updating comments for shell scripts or shell-based executables, write them in English using shdoc-compatible format; use the `shunk031-shellscript-shdoc-docs` skill for detailed conventions.
 
 ## Development Setup
 

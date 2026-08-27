@@ -231,9 +231,12 @@ EOF
 
     install_missing_skills
 
-    # Every public entry comes from one of two repositories.
+    # Each distinct source should be cloned exactly once, with all of its
+    # missing skills batched into that call.
+    local expected_calls
+    expected_calls="$(declared_sources | awk 'NF { count++ } END { print count + 0 }')"
     run grep -c '^add ' "${MISE_CALLS_PATH}"
-    [ "${output}" -le 2 ]
+    [ "${output}" -eq "${expected_calls}" ]
 
     run grep -c -- '--skill shunk031-cgd-dev-identity' "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]

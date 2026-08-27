@@ -67,6 +67,7 @@ readonly SKILLS_LINKED_AGENT_DIRS=(
 # Keep sorted by repository, then by skill name.
 readonly SKILLS_ALLOWLIST=(
     "anthropics/skills:skill-creator"
+    "coji/natural-japanese:natural-japanese"
     "shunk031/skills:shunk031-cgd-dev-identity"
     "shunk031/skills:shunk031-codex-worker-prompting"
     "shunk031/skills:shunk031-gh-comment-attach-files"
@@ -334,9 +335,8 @@ function pool_has_skill() {
 # @description
 #   One call per source, not per skill. `skills add` clones the repository it is
 #   given, so calling it per skill re-clones the same repository for every entry
-#   it holds: 19 clones for 19 public entries, where 2 will do. Measured at 8
-#   seconds for three skills installed separately against 2 seconds for the same
-#   three in one call.
+#   it holds. Batching each source's skills into one call avoids that duplicate
+#   cloning while preserving the source-level failure boundary.
 #
 #   Batching does not coarsen failure. A name the repository does not have is
 #   skipped and the rest still install, with a zero exit; and a clone that fails

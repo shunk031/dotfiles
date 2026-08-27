@@ -1,6 +1,7 @@
 {
   "model": "opusplan",
   "alwaysThinkingEnabled": true,
+  "autoMemoryEnabled": false,
   "disableClaudeAiConnectors": true,
   "env": {
     "DISABLE_AUTOUPDATER": "1",

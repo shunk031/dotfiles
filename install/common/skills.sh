@@ -57,6 +57,15 @@ readonly SKILLS_GENERATED_ENTRIES=(
     herdr
 )
 
+readonly SKILLS_RETIRED_NAMES=(
+    shunk031-cgd-dev-identity
+    shunk031-gh-comment-attach-files
+    shunk031-high-impact-journal-publishing
+    shunk031-orchestrate-herdr-workers
+    shunk031-shdoc-shell-docs
+    shunk031-transformers-convert
+)
+
 # Agent skills directories that are fed by symlinks into the pool. Codex is
 # absent on purpose: it reads the pool itself.
 readonly SKILLS_LINKED_AGENT_DIRS=(
@@ -455,11 +464,36 @@ function remove_pool_entry() {
 }
 
 #
+# @description Print managed skill names that may need pruning.
+# @description
+#   The manifest normally identifies removed subscriptions. Retired names are
+#   also included while their old pool directory remains, because an earlier
+#   reconciliation may already have replaced the manifest with the new name.
+# @stdout Newline-separated skill names, sorted and unique.
+#
+function prune_candidate_names() {
+    local name
+
+    {
+        if [ -f "${SKILLS_MANIFEST}" ]; then
+            cat "${SKILLS_MANIFEST}"
+        fi
+
+        for name in "${SKILLS_RETIRED_NAMES[@]}"; do
+            if pool_has_skill "${name}"; then
+                printf '%s\n' "${name}"
+            fi
+        done
+    } | LC_ALL=C sort -u
+}
+
+#
 # @description Remove skills that the previous run installed and the allowlist
 #   no longer declares.
 # @description
-#   Scoped to the manifest on purpose. Pruning "everything in the pool that is
-#   not allowlisted" would delete the generated `herdr` entry and any skill a
+#   Candidates are limited to the previous manifest and the explicit retired
+#   name migration list. Pruning "everything in the pool that is not
+#   allowlisted" would delete the generated `herdr` entry and any skill a
 #   different installer owns.
 #
 #   An absent private allowlist unsubscribes its skills, and that is the
@@ -479,10 +513,6 @@ function remove_pool_entry() {
 function prune_unlisted_skills() {
     local name
 
-    if [ ! -f "${SKILLS_MANIFEST}" ]; then
-        return 0
-    fi
-
     while IFS= read -r name || [ -n "${name}" ]; do
         if [ -z "${name}" ] ||
             allowlist_contains "${name}" ||
@@ -499,7 +529,7 @@ function prune_unlisted_skills() {
         fi
 
         remove_pool_entry "${name}"
-    done < "${SKILLS_MANIFEST}"
+    done < <(prune_candidate_names)
 }
 
 #

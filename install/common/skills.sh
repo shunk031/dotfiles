@@ -69,7 +69,6 @@ readonly SKILLS_ALLOWLIST=(
     "anthropics/skills:skill-creator"
     "coji/natural-japanese:natural-japanese"
     "cursor/plugins:unslop"
-    "mattpocock/skills:grill-me"
     "mattpocock/skills:grilling"
     "shunk031/skills:shunk031-codex-worker-prompting"
     "shunk031/skills:shunk031-github-cgd-identity"

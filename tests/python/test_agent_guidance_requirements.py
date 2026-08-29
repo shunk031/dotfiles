@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import unittest
@@ -269,24 +270,39 @@ class AgentGuidanceRequirementsTest(unittest.TestCase):
 
         # An id proves a hook is listed, not that it runs anything. Both
         # entries could be replaced with `true` and the ids would still be
-        # there, so check what each one actually invokes.
+        # there, so check what each one actually invokes. Both entries, and
+        # `make eval-guidance`, now reach Shuhari through one wrapper: an
+        # inline entry has nowhere to describe the machine a run happens on,
+        # which left a host that cannot provide the default sandbox unable to
+        # run the gate at all.
+        wrapper_path = REPO_ROOT / wiring["wrapper"]
+        self.assertTrue(wrapper_path.is_file(), wiring["wrapper"])
+        self.assertTrue(os.access(wrapper_path, os.X_OK), wiring["wrapper"])
+
         entries = [
             line.strip().removeprefix("entry: ")
             for line in prek.splitlines()
             if line.strip().startswith("entry: ")
         ]
-        guidance_entries = [e for e in entries if wiring["runner"] in e]
+        guidance_entries = [e for e in entries if wiring["wrapper"] in e]
         self.assertEqual(len(guidance_entries), 2, entries)
-        for entry in guidance_entries:
-            self.assertIn(wiring["guidance_source"], entry)
-            self.assertIn(wiring["guidance_eval"], entry)
-        self.assertTrue(
-            any("--validate-only" in entry for entry in guidance_entries),
+        self.assertEqual(
+            {e.removeprefix(wiring["wrapper"]).strip() for e in guidance_entries},
+            {"validate", "eval"},
             guidance_entries,
         )
 
+        # The invocation the entries used to spell out now lives in the
+        # wrapper, so that is where it has to stay truthful.
+        wrapper = wrapper_path.read_text(encoding="utf-8")
+        self.assertIn(wiring["runner"], wrapper)
+        self.assertIn(wiring["guidance_source"], wrapper)
+        self.assertIn(wiring["guidance_eval"], wrapper)
+        self.assertIn("--validate-only", wrapper)
+
         makefile = (REPO_ROOT / "Makefile").read_text(encoding="utf-8")
-        self.assertIn(wiring["runner"], makefile)
+        self.assertIn(wiring["wrapper"], makefile)
+        self.assertNotIn(wiring["runner"], makefile)
 
         for key in ("guidance_source", "guidance_eval"):
             self.assertTrue((REPO_ROOT / wiring[key]).is_file(), wiring[key])

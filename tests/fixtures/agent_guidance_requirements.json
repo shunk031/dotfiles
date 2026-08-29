@@ -24,6 +24,7 @@
     "guidance_eval": "home/dot_config/exact_agents/AGENTS.evals.json",
     "wiring_only_paths": [],
     "runner": "shuhari eval instructions",
+    "wrapper": "scripts/shuhari_guidance_gate.sh",
     "validate_hook": "shuhari-validate-instructions",
     "eval_hook": "shuhari-eval-instructions",
     "skip_variable": "SKIP=shuhari-eval-instructions"

@@ -102,6 +102,15 @@ EOF
     [ -z "${duplicates}" ]
 }
 
+@test "[common] retired skill names do not remain subscribed" {
+    local name
+
+    for name in "${SKILLS_RETIRED_NAMES[@]}"; do
+        run allowlist_contains "${name}"
+        [ "${status}" -eq 1 ]
+    done
+}
+
 @test "[common] prune removes nothing when no manifest exists" {
     write_mise_stub
     mkdir -p "${SKILLS_POOL}/shunk031-retired"
@@ -110,6 +119,19 @@ EOF
 
     [ -d "${SKILLS_POOL}/shunk031-retired" ]
     [ ! -f "${MISE_CALLS_PATH}" ]
+}
+
+@test "[common] prune removes a renamed skill after the manifest records only its replacement" {
+    write_mise_stub
+    mkdir -p "${SKILLS_STATE_DIR}" "${SKILLS_POOL}/shunk031-gh-comment-attach-files"
+    printf '%s\n' shunk031-github-comment-attach-files > "${SKILLS_MANIFEST}"
+
+    prune_unlisted_skills
+
+    [ ! -e "${SKILLS_POOL}/shunk031-gh-comment-attach-files" ]
+    run cat "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "remove --skill shunk031-gh-comment-attach-files --agent claude-code --agent codex --global --yes" ]
 }
 
 @test "[common] prune removes a manifest skill the allowlist dropped" {

@@ -15,7 +15,6 @@ readonly PREK_CONFIG_PATH="./.pre-commit-config.yaml"
 readonly SKILL_CREATOR_SHARED_SKILL_PATH="./home/dot_config/exact_agents/skills/skill-creator"
 readonly SKILL_CREATOR_SYMLINK_TEMPLATE="./home/exact_dot_agents/skills/symlink_skill-creator.tmpl"
 readonly AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS.md.tmpl"
-readonly PRIVATE_AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS-private.md.tmpl"
 readonly SHARED_AGENT_DIR_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_agents.tmpl"
 readonly CLAUDE_MD_PATH="./home/dot_config/claude/CLAUDE.md"
 readonly CLAUDE_SYMLINK_TEMPLATE="./home/dot_claude/symlink_CLAUDE.md.tmpl"
@@ -221,7 +220,6 @@ readonly GITIGNORE_PATH="./.gitignore"
 
 @test "[common] agent guidance adapters point to the canonical files" {
     [ "$(< "${AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/AGENTS.md" ]
-    [ "$(< "${PRIVATE_AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.homeDir }}/.local/share/chezmoi-private/home/dot_config/codex/AGENTS-private.md" ]
     [ "$(< "${SHARED_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/agents" ]
     run grep -F '@~/.agents/AGENTS.md' "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]

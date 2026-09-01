@@ -62,7 +62,7 @@ function dock_app_path() {
     [ "$(dock_app_path "${dock_plist}" 1)" = "/Applications/Visual Studio Code.app" ]
     [ "$(dock_app_path "${dock_plist}" 2)" = "/Applications/Slack.app" ]
     [ "$(dock_app_path "${dock_plist}" 3)" = "/Applications/iTerm.app" ]
-    [ "$(dock_app_path "${dock_plist}" 4)" = "/Applications/cmux.app" ]
+    [ "$(dock_app_path "${dock_plist}" 4)" = "/Applications/1Password.app" ]
     [ "$(dock_app_path "${dock_plist}" 5)" = "$(get_system_app_path)" ]
 
     rm -f "${dock_plist}"

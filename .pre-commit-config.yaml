@@ -6,16 +6,15 @@ repos:
       # rejects, so these two hooks are scoped to `skills/` only.
       - id: shuhari-validate-instructions
         name: validate the user guidance eval schema
-        entry: bash -c 'MISE_CONFIG_FILE=home/dot_mise/config.toml mise exec -- shuhari eval instructions home/dot_config/exact_agents/AGENTS.md --evals home/dot_config/exact_agents/AGENTS.evals.json --validate-only'
+        entry: scripts/shuhari_guidance_gate.sh validate
         language: system
         pass_filenames: false
         files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json)$
 
-      # Live model calls, two arms per case. Skip with
-      # `SKIP=shuhari-eval-instructions` when iterating on wording.
+      # Live model calls, two arms per case.
       - id: shuhari-eval-instructions
         name: evaluate changed user guidance
-        entry: bash -c 'MISE_CONFIG_FILE=home/dot_mise/config.toml mise exec -- shuhari eval instructions home/dot_config/exact_agents/AGENTS.md --evals home/dot_config/exact_agents/AGENTS.evals.json --trials 3 --jobs 2 --timeout 600'
+        entry: scripts/shuhari_guidance_gate.sh eval
         language: system
         pass_filenames: false
         require_serial: true

@@ -14,10 +14,7 @@ setup:
 
 .PHONY: eval-guidance
 eval-guidance:
-	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise exec -- \
-	    shuhari eval instructions home/dot_config/exact_agents/AGENTS.md \
-	    --evals home/dot_config/exact_agents/AGENTS.evals.json \
-	    --trials 3 --jobs 2 --timeout 600
+	./scripts/shuhari_guidance_gate.sh eval
 
 # Reconciliation throttles `skills update` to once a day so that `make watch`
 # does not fetch on every file save. This forces the update now.

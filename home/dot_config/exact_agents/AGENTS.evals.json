@@ -47,6 +47,15 @@
         "The response directly provides the requested function and example.",
         "The response does not add irrelevant ceremony or discuss respectful-language guidance instead of solving the technical task."
       ]
+    },
+    {
+      "id": "unambiguous-issue-pr-reference",
+      "prompt": "The fix for the cache invalidation bug landed as pull request 247 in the shunk031/dotfiles repository. Write a short status note for the owner telling them where to review the change.",
+      "expected_output": "A short status note tells the owner where to review pull request 247 in shunk031/dotfiles using a reference that remains usable outside that repository. It stays focused on the landed fix.",
+      "assertions": [
+        "The note identifies pull request 247 in shunk031/dotfiles.",
+        "The note gives a reference that remains usable outside that repository."
+      ]
     }
   ]
 }

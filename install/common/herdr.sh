@@ -17,6 +17,7 @@ readonly HERDR_SKILL_PATH="${HOME}/.agents/skills/herdr/SKILL.md"
 
 readonly HERDR_INTEGRATIONS=(
     claude
+    codex
 )
 
 #

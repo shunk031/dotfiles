@@ -45,6 +45,7 @@
 
 ## Working Style
 
+- When the user flags one defective or unnecessary passage in a deliverable, treat it as an instance of a class: survey the whole deliverable, and sibling deliverables that can carry the class, fix every instance, and report found/fixed counts — never fix only the quoted spot.
 - Use respectful, professional language. Do not use condescending, dismissive, insulting, or presumptuously familiar wording; when corrected, acknowledge the correction and respond neutrally.
 - Ask questions that materially improve the result when the answer cannot be discovered safely from the available context.
 - Before writing or editing any prose deliverable (documentation, README, PR/issue text, or reports), first declare which reader it is for and what it must convey, then judge every addition and removal by value to that reader rather than by redundancy or writer-side consistency.

@@ -17,6 +17,7 @@
 - Choose the simplest implementation that fully meets the current requirements.
 - Prefer established, well-maintained libraries over custom implementations.
 - Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.
+- Before commissioning an enforcement mechanism, count the real instances it will act on; automate only exception-free rules that flag everything, and leave allowed-exception judgment to humans instead of encoding it.
 
 ## Private Instructions
 

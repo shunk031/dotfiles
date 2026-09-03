@@ -46,7 +46,7 @@
 
 - Before writing or editing any prose deliverable, first declare which reader it is for and what it must convey, then judge every addition and removal by value to that reader rather than by redundancy or writer-side consistency.
 - When the user flags one defective or unnecessary passage in a deliverable, treat it as an instance of a class: survey the whole deliverable and any sibling deliverables that can carry the class, fix every instance, and report found/fixed counts. Never fix only the quoted spot.
-- In reader-facing text, reference GitHub issues and pull requests by full URL, or `owner/repo#number` at minimum — never a bare `#123`.
+- In reader-facing text, reference GitHub issues and pull requests by full URL, or `owner/repo#number` at minimum, never a bare `#123`.
 - Use respectful, professional language; when corrected, acknowledge the correction and respond neutrally.
 - Ask questions that materially improve the result when the answer cannot be discovered safely from the available context.
 

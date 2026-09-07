@@ -48,3 +48,12 @@ readonly TMUX_TEMPLATE="./home/dot_tmux.conf.tmpl"
     run grep -F 'include "dot_tmux.conf.d/os/ubuntu_server.conf"' "${TMUX_TEMPLATE}"
     [ "${status}" -eq 0 ]
 }
+
+@test "[rocky-server] SSH environment template configures the Rocky server" {
+    local template="./home/.chezmoiscripts/rocky/run_once_50-server-configure-ssh-env.sh.tmpl"
+
+    run grep -F 'eq .chezmoi.osRelease.id "rocky"' "${template}"
+    [ "${status}" -eq 0 ]
+    run grep -F '../install/rocky/server/ssh_server.sh' "${template}"
+    [ "${status}" -eq 0 ]
+}

@@ -59,23 +59,15 @@ bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
 
 ![Screenshot of setup on MacOS Client machine](.github/screenshot-macos-client.png)
 
-### 🖥️ `Ubuntu` [![Ubuntu](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml)
+### 🖥️ `Ubuntu / Rocky Linux` [![Ubuntu](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml)
 
-- Configuration snippet of the Ubuntu environment for both client and server machine:
-
-```console
-bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"
-```
-
-![Screenshot of setup on Ubuntu Server machine](.github/screenshot-ubuntu-server.png)
-
-### 🪨 `Rocky Linux`
-
-- Configuration snippet for a Rocky Linux server:
+- Configuration snippet for Ubuntu client and server machines, and Rocky Linux server machines:
 
 ```console
 bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 ```
+
+![Screenshot of setup on Ubuntu Server machine](.github/screenshot-ubuntu-server.png)
 
 ### Minimal setup
 

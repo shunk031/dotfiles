@@ -42,8 +42,8 @@ function render_sshd_config() {
             add_value("no_proxy")
 
             printf "AcceptEnv"
-            for (index = 1; index <= value_count; index++) {
-                printf " %s", values[index]
+            for (i = 1; i <= value_count; i++) {
+                printf " %s", values[i]
             }
             printf "\n"
             accept_env_emitted = 1
@@ -55,8 +55,8 @@ function render_sshd_config() {
         }
 
         !in_match && tolower($1) == "acceptenv" {
-            for (index = 2; index <= NF; index++) {
-                add_value($index)
+            for (i = 2; i <= NF; i++) {
+                add_value($i)
             }
             next
         }

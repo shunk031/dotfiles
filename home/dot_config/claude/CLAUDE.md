@@ -5,4 +5,4 @@
 
 ## Claude Only
 
-- There are currently no Claude-specific settings, but they may be added in the future.
+- Never run a subagent on a Fable-tier model. Pass an explicit `model` to every Agent call: `opus` by default, `haiku` or `sonnet` for mechanical searches. Omitting `model` makes the subagent inherit the session model, which silently burns Fable usage; Fable stays reserved for the main session.

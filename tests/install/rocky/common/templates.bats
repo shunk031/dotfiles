@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_TEMPLATE_DIR="./home/.chezmoiscripts/ubuntu"
+readonly EXTERNAL_TEMPLATE="./home/.chezmoiexternal.yaml.tmpl"
 
 @test "[rocky-common] required Linux templates route Rocky Linux to Rocky scripts" {
     local template
@@ -32,5 +33,10 @@ readonly SCRIPT_TEMPLATE_DIR="./home/.chezmoiscripts/ubuntu"
 
 @test "[rocky-server] Starship installer uses the portable system shell" {
     run grep -F 'curl -sS "${url}" | sh -s --' ./install/ubuntu/server/starship.sh
+    [ "${status}" -eq 0 ]
+}
+
+@test "[rocky-common] external template accepts Rocky Linux" {
+    run grep -F 'eq .chezmoi.osRelease.id "rocky"' "${EXTERNAL_TEMPLATE}"
     [ "${status}" -eq 0 ]
 }

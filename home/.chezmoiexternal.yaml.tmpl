@@ -1,8 +1,8 @@
 {{ template "chezmoiexternal.d/common.yaml.tmpl" . }}
 {{ if eq .chezmoi.os "darwin" -}}
 {{   template "chezmoiexternal.d/macos.yaml.tmpl" . }}
-{{ else if (and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.idLike "debian")) -}}
+{{ else if (and (eq .chezmoi.os "linux") (or (eq .chezmoi.osRelease.idLike "debian") (eq .chezmoi.osRelease.id "rocky"))) -}}
 {{   template "chezmoiexternal.d/ubuntu.yaml.tmpl" . }}
 {{ else -}}
-{{   fail (printf "Unknown OS for client system: %s" .chezmoi.os) }}
+{{   fail (printf "Unsupported operating system: %s" .chezmoi.os) }}
 {{ end -}}

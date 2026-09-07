@@ -1,0 +1,3 @@
+{{ if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "rocky") (eq .system "server") -}}
+{{   include "../install/rocky/server/ssh_server.sh" }}
+{{ end -}}

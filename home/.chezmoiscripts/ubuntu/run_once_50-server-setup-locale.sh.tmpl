@@ -3,5 +3,9 @@
 {{     if eq .system "server" -}}
 {{       include "../install/ubuntu/server/setup_locale.sh" }}
 {{     end -}}
+{{   else if eq .chezmoi.osRelease.id "rocky" -}}
+{{     if eq .system "server" -}}
+{{       include "../install/rocky/server/setup_locale.sh" }}
+{{     end -}}
 {{   end -}}
 {{ end -}}

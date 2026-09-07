@@ -3,5 +3,9 @@
 {{     if eq .system "server" -}}
 {{       include "../install/ubuntu/server/misc.sh" }}
 {{     end -}}
+{{   else if eq .chezmoi.osRelease.id "rocky" -}}
+{{     if eq .system "server" -}}
+{{       include "../install/rocky/server/misc.sh" }}
+{{     end -}}
 {{   end -}}
 {{ end -}}

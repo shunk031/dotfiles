@@ -15,7 +15,7 @@
 ## 🗿 Overview
 
 This [dotfiles](https://github.com/shunk031/dotfiles) repository is managed with [`chezmoi🏠`](https://www.chezmoi.io/), a great dotfiles manager.
-The setup scripts are aimed for [MacOS](https://www.apple.com/jp/macos), [Ubuntu Desktop](https://ubuntu.com/desktop), and [Ubuntu Server](https://ubuntu.com/server). The first two (MacOS/Ubuntu Desktop) include settings for `client` machines and the latter one (Ubuntu Server) for `server` machines.
+The setup scripts support [macOS](https://www.apple.com/jp/macos), [Ubuntu Desktop](https://ubuntu.com/desktop), [Ubuntu Server](https://ubuntu.com/server), and [Rocky Linux](https://rockylinux.org/). macOS and Ubuntu Desktop use the `client` configuration. Ubuntu Server and Rocky Linux use the `server` configuration.
 
 The actual dotfiles exist under the [`home`](https://github.com/shunk031/dotfiles/tree/main/home) directory specified in the [`.chezmoiroot`](https://github.com/shunk031/dotfiles/blob/main/.chezmoiroot).
 See [.chezmoiroot - chezmoi](https://www.chezmoi.io/reference/special-files-and-directories/chezmoiroot/) more detail on the setting.
@@ -68,6 +68,14 @@ bash -c "$(wget -qO - http://shunk031.me/dotfiles/setup.sh)"
 ```
 
 ![Screenshot of setup on Ubuntu Server machine](.github/screenshot-ubuntu-server.png)
+
+### 🪨 `Rocky Linux`
+
+- Configuration snippet for a Rocky Linux server:
+
+```console
+bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
+```
 
 ### Minimal setup
 

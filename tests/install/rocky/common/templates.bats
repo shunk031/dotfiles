@@ -2,6 +2,7 @@
 
 readonly SCRIPT_TEMPLATE_DIR="./home/.chezmoiscripts/ubuntu"
 readonly EXTERNAL_TEMPLATE="./home/.chezmoiexternal.yaml.tmpl"
+readonly TMUX_TEMPLATE="./home/dot_tmux.conf.tmpl"
 
 @test "[rocky-common] required Linux templates route Rocky Linux to Rocky scripts" {
     local template
@@ -38,5 +39,12 @@ readonly EXTERNAL_TEMPLATE="./home/.chezmoiexternal.yaml.tmpl"
 
 @test "[rocky-common] external template accepts Rocky Linux" {
     run grep -F 'eq .chezmoi.osRelease.id "rocky"' "${EXTERNAL_TEMPLATE}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[rocky-server] tmux template accepts Rocky Linux" {
+    run grep -F 'eq .chezmoi.osRelease.id "rocky"' "${TMUX_TEMPLATE}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'include "dot_tmux.conf.d/os/ubuntu_server.conf"' "${TMUX_TEMPLATE}"
     [ "${status}" -eq 0 ]
 }

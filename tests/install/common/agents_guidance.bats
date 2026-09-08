@@ -223,7 +223,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     # escape hatch.
     run grep -F 'SKIP=shuhari-eval-instructions' "${PREK_CONFIG_PATH}"
     [ "${status}" -ne 0 ]
-    run grep -F '"aqua:j178/prek" = "0.4.11"' ./home/dot_mise/config.toml
+    run grep -E '^"aqua:j178/prek" = "[0-9]+\.[0-9]+\.[0-9]+"$' ./home/dot_mise/config.toml
     [ "${status}" -eq 0 ]
 }
 

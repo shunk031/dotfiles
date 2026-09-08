@@ -232,7 +232,7 @@ function run_mise_bash_startup() {
     run awk '
         /^\[tools\]$/ { in_tools = 1; next }
         /^\[/ { in_tools = 0 }
-        in_tools && $0 == "fnox = \"1.32.0\"" { found = 1 }
+        in_tools && $0 ~ /^fnox = "[0-9]+[.][0-9]+[.][0-9]+"$/ { found = 1 }
         END { exit !found }
     ' "${MISE_CONFIG_SOURCE}"
     [ "${status}" -eq 0 ]

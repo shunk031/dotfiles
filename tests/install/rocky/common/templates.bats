@@ -33,7 +33,7 @@ readonly TMUX_TEMPLATE="./home/dot_tmux.conf.tmpl"
 }
 
 @test "[rocky-server] Starship installer uses the portable system shell" {
-    run grep -F 'curl -sS "${url}" | sh -s --' ./install/ubuntu/server/starship.sh
+    run grep -F 'curl -sS "${url}" | POSIXLY_CORRECT=1 sh -s --' ./install/ubuntu/server/starship.sh
     [ "${status}" -eq 0 ]
 }
 

@@ -1,6 +1,6 @@
-- This directory is the canonical source for Codex guidance.
-- [AGENTS.md](AGENTS.md) is exposed as `~/.codex/AGENTS.md` through [home/dot_codex/symlink_AGENTS.md.tmpl](../../dot_codex/symlink_AGENTS.md.tmpl). It is the Codex entrypoint and tells Codex to read the shared guidance in `~/.agents/AGENTS.md` first, then the Codex-only guidance in `~/.codex/AGENTS.codex-only.md`.
-- [AGENTS.codex-only.md](AGENTS.codex-only.md) is exposed as `~/.codex/AGENTS.codex-only.md` through [home/dot_codex/symlink_AGENTS.codex-only.md.tmpl](../../dot_codex/symlink_AGENTS.codex-only.md.tmpl). It keeps Codex-only rules separate from the shared guidance.
-- [agents/](agents/) contains Codex TOML wrappers exposed as `~/.codex/agents` through [home/dot_codex/](../../dot_codex/). Keep long shared instructions in `~/.agents/agents`; the TOML wrappers keep Codex-only settings and tell Codex to read the shared Markdown first.
-- The design keeps edits in one git-friendly place while preserving the familiar home path.
-- Edit files here; the adapter keeps the home path stable.
+This directory is the public canonical source for Codex guidance and custom-agent adapters.
+
+- [AGENTS.md](AGENTS.md) is exposed as `~/.codex/AGENTS.md` through [home/dot_codex/symlink_AGENTS.md.tmpl](../../dot_codex/symlink_AGENTS.md.tmpl). It is a minimal Codex entrypoint that records the acknowledgment and points Codex to the shared guidance at `~/.agents/AGENTS.md`.
+- [agents/](agents/) contains Codex TOML adapters exposed as `~/.codex/agents`. Long shared instructions remain under `~/.agents/agents`.
+- Model providers, credentials, private profiles, and internal launchers are managed by the private dotfiles repository; do not add them here.
+- [home/dot_codex/](../../dot_codex/) is only the adapter layer that exposes this source in the applied home layout.

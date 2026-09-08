@@ -9,6 +9,7 @@ plugin.jupyterlab-settings
 .tmux.conf.d/
 .agents/README.md
 .agents/.skill-lock.json
+.agents/skills
 .claude/README.md
 .codex/README.md
 .config/agents

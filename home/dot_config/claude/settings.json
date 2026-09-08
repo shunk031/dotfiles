@@ -1,8 +1,13 @@
 {
   "model": "opusplan",
   "alwaysThinkingEnabled": true,
+  "autoMemoryEnabled": false,
+  "disableClaudeAiConnectors": true,
   "env": {
-    "DISABLE_AUTOUPDATER": "1"
+    "DISABLE_AUTOUPDATER": "1",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
+    "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3"
   },
   "plansDirectory": "./.agents/worklog/claude",
   "permissions": {
@@ -12,7 +17,7 @@
       "Read(.env.*)",
       "Read(id_rsa*)",
       "Read(id_ed25519*)",
-      "Write(.env*)"
+      "Edit(.env*)"
     ],
     "defaultMode": "plan"
   },
@@ -70,6 +75,6 @@
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
-    "claude-mem@thedotmack": true
+    "claude-mem@thedotmack": false
   }
 }

@@ -4,6 +4,25 @@ DOCKER_NUM_CPU=4
 DOKCER_RAM_GB=4
 
 #
+# Development
+#
+
+.PHONY: setup
+setup:
+	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise install
+	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise exec -- prek install
+
+.PHONY: eval-guidance
+eval-guidance:
+	./scripts/shuhari_guidance_gate.sh eval
+
+# Reconciliation throttles `skills update` to once a day so that `make watch`
+# does not fetch on every file save. This forces the update now.
+.PHONY: skills-update
+skills-update:
+	DOTFILES_SKILLS_FORCE_UPDATE=1 bash install/common/skills.sh
+
+#
 # Docker
 #
 

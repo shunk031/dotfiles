@@ -13,33 +13,47 @@
   },
   "packageRules": [
     {
-      "matchManagers": ["mise"],
-      "matchPackageNames": [
-        "npm:@anthropic-ai/claude-code",
-        "npm:@openai/codex"
-      ],
-      "groupName": "agent CLIs"
-    },
-    {
-      "matchManagers": ["mise"],
-      "matchPackageNames": ["python"],
+      "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "major"],
-      "groupName": "Python runtime"
+      "groupName": "GitHub Actions"
     },
     {
-      "matchManagers": ["mise"],
-      "matchPackageNames": ["python"],
+      "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["patch"],
       "enabled": false
     },
     {
       "matchManagers": ["mise"],
-      "groupName": "mise tools",
-      "matchPackageNames": [
-        "!python",
-        "!npm:@anthropic-ai/claude-code",
-        "!npm:@openai/codex"
-      ]
+      "groupName": "mise tools"
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchDepNames": ["python"],
+      "matchUpdateTypes": ["minor", "major"],
+      "groupName": "Python runtime"
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchDepNames": ["python"],
+      "matchUpdateTypes": ["patch"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchDepNames": [
+        "fnox",
+        "herdr",
+        "aqua:anthropics/claude-code",
+        "aqua:google-antigravity/antigravity-cli",
+        "aqua:openai/codex"
+      ],
+      "groupName": "agent tooling",
+      "minimumReleaseAge": "0 days"
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchDepNames": ["aqua:openai/codex"],
+      "extractVersion": "^rust-v?(?<version>.+)$"
     }
   ]
 }

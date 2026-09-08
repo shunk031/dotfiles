@@ -9,6 +9,7 @@
         "${HOME}/.config/tango.yml"
         "${HOME}/.local/bin/common/dev"
         "${HOME}/.local/bin/common/setup-gh"
+        "${HOME}/.local/bin/common/setup-gh-cgd"
         "${HOME}/.gnupg/gpg-agent.conf"
         "${HOME}/.ssh/config"
         "${HOME}/.vimrc"

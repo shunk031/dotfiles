@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# @file home/.chezmoiscripts/common/run_after_30-reconcile-agent-skills.sh.tmpl
+# @brief Reconcile the shared skills pool on every `chezmoi apply`.
+# @description
+#   Runs at `30` rather than earlier because it depends on
+#   `run_after_20-install-mise-tools` having installed the pinned `skills` CLI
+#   and written the generated `herdr` pool entry. chezmoi orders `after`
+#   scripts by target name, so the numeric prefix is the ordering contract.
+
+{{ if ne (env "CI") "true" -}}
+set -Eeuo pipefail
+
+# shellcheck source=/dev/null
+source "{{ .chezmoi.sourceDir }}/../install/common/skills.sh"
+
+# `gh` backs the git credential helper that authenticates the private skills
+# repository, so the toolchain has to be on PATH before reconciling.
+activate_mise
+reconcile_agent_skills
+{{ end -}}

@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+# @file home/dot_local/bin/exact_common/executable_setup-gh-cgd
+# @brief Authenticate the CGD development account with GitHub CLI.
+# @description
+#   Adds the creative-graphic-design-dev account to GitHub CLI's credential
+#   store, verifies the stored identity, and restores the previously active
+#   account after an interactive login.
+
+set -Eeuo pipefail
+
+readonly CGD_GH_HOST="github.com"
+readonly CGD_GH_USER="creative-graphic-design-dev"
+
+# @description Run GitHub CLI without ambient token overrides.
+function gh_with_stored_auth() {
+    env -u GH_TOKEN -u GITHUB_TOKEN gh "$@"
+}
+
+# @description Print the token stored by GitHub CLI for the CGD account.
+# @stdout The stored authentication token.
+function get_cgd_token() {
+    gh_with_stored_auth auth token \
+        --hostname "${CGD_GH_HOST}" \
+        --user "${CGD_GH_USER}"
+}
+
+# @description Verify that the stored CGD credential resolves to the expected account.
+function verify_cgd_identity() {
+    local token login
+
+    token="$(get_cgd_token)" || return 1
+    login="$(GH_TOKEN="${token}" gh api user --jq .login)" || return 1
+
+    if [ "${login}" != "${CGD_GH_USER}" ]; then
+        printf 'Expected GitHub account %s, got %s.\n' "${CGD_GH_USER}" "${login}" >&2
+        return 1
+    fi
+}
+
+# @description Print the currently active GitHub account when one is available.
+# @stdout The active GitHub login, or no output when GitHub CLI is unauthenticated.
+function get_active_user() {
+    gh_with_stored_auth api user --jq .login 2> /dev/null
+}
+
+# @description Restore the account that was active before CGD login.
+# @arg $1 string Previously active GitHub login, or an empty string.
+function restore_active_user() {
+    local previous_user="$1"
+
+    if [ -n "${previous_user}" ] && [ "${previous_user}" != "${CGD_GH_USER}" ]; then
+        gh_with_stored_auth auth switch \
+            --hostname "${CGD_GH_HOST}" \
+            --user "${previous_user}"
+    fi
+}
+
+# @description Authenticate the CGD account and preserve the previous active account.
+function main() {
+    local previous_user
+
+    if get_cgd_token > /dev/null 2>&1; then
+        verify_cgd_identity
+        printf '%s is already authenticated in the GitHub CLI credential store.\n' "${CGD_GH_USER}"
+        return
+    fi
+
+    previous_user="$(get_active_user || true)"
+    printf 'Authenticate in the browser as %s.\n' "${CGD_GH_USER}"
+    gh_with_stored_auth auth login \
+        --hostname "${CGD_GH_HOST}" \
+        --git-protocol https \
+        --web
+
+    if ! verify_cgd_identity; then
+        restore_active_user "${previous_user}" || true
+        return 1
+    fi
+
+    restore_active_user "${previous_user}"
+    printf 'Authenticated %s in the GitHub CLI credential store.\n' "${CGD_GH_USER}"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main
+fi

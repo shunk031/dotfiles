@@ -6,6 +6,10 @@ on:
     paths:
       - ".github/workflows/macos.yaml"
       - "setup.sh"
+      - "home/dot_mise/config.toml"
+      - "install/common/mise.sh"
+      - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
+      - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
       - "install/macos/**"
       - "home/.chezmoiscripts/macos/**"
       - "home/dot_tmux.conf.d/os/macos.conf"
@@ -16,6 +20,10 @@ on:
     paths:
       - ".github/workflows/macos.yaml"
       - "setup.sh"
+      - "home/dot_mise/config.toml"
+      - "install/common/mise.sh"
+      - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
+      - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
       - "install/macos/**"
       - "home/.chezmoiscripts/macos/**"
       - "home/dot_tmux.conf.d/os/macos.conf"
@@ -92,15 +100,11 @@ jobs:
           alert-comment-cc-users: "@shunk031"
           benchmark-data-dir-path: "."
 
-      - uses: jdx/mise-action@v4
-        with:
-          install: true
-          cache: true
-
       - name: Test file existence
         run: |
           brew install bats-core
 
+          source "${HOME}/.config/shell/mise.bash"
           cd $(chezmoi source-path)/../
           bats --print-output-on-failure \
             tests/files/common.bats \

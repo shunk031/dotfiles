@@ -9,24 +9,23 @@
 - Public source: Files under `home/` are the public source state and are applied by `chezmoi` into the user's `$HOME` directory.
 - Private source: Private dotfiles are managed separately from `~/.local/share/chezmoi-private` with config at `~/.config/chezmoi-private/chezmoi.yaml`.
 - Management boundary: Treat the public `home/` tree and the private `chezmoi` source/config as separate management domains.
-- Agent skills: `home/dot_config/exact_agents/skills/*` is ignored by default because global skill installers write through symlinked runtime paths. When adding a repo-managed skill, add an explicit `.gitignore` allowlist entry for that skill.
+- Codex boundary: This repo manages the Codex CLI, shared guidance, `~/.codex/AGENTS.md`, and `~/.codex/agents`; `dotfiles-private` manages `~/.codex/config.toml`, private profiles, credentials, and internal launchers.
+
+## Skills
+
+- Skill content is not in this repository. Public skills live in [shunk031/skills](https://github.com/shunk031/skills) and internal ones in `shunk031/skills-private`; these dotfiles subscribe to both through the allowlist in `install/common/skills.sh`.
+- When asked to add, change, or remove a skill, use the `shunk031-manage-public-private-skills` skill to decide which repository owns it before editing anything.
+- Changing which skills this machine installs is an allowlist edit here; changing what a skill does is an edit in the repository that owns it.
 
 ## Comment Policy
 
-- Comment language: When adding or updating comments for shell scripts or shell-based executables, always write them in English using shdoc-compatible format.
+- When adding or updating comments for shell scripts or shell-based executables, write them in English using shdoc-compatible format; use the `shunk031-shellscript-shdoc-docs` skill for detailed conventions.
 
-## Git / PR Workflow
+## Development Setup
 
-- Default branch read-only: When the current checkout is `main` or the repository default branch, treat repo-tracked files as read-only and create a task-specific worktree from the default branch before any edit, commit, or push work, even when the worktree is clean.
-- Dirty worktree: When you are asked to create a branch, commit, or pull request and the current worktree contains unrelated staged, unstaged, or untracked changes, create a separate task-specific worktree from the default branch.
-- Worktree tooling: Create task worktrees with [`gwq`](https://github.com/d-kuro/gwq): run `gwq add -b <task-branch>` from the default branch checkout, then move there with `cd "$(gwq get <task-branch>)"`. In `gwq add [branch] [path]`, the second positional argument is the destination path, not a base ref, so do not pass `origin/main` there. If the new worktree must start from the latest `origin/main`, run `git fetch origin main` first, create the worktree with `gwq add -b <task-branch>`, move into it, and then run `git merge --ff-only origin/main`. Fall back to plain `git worktree add` only when `gwq` is unavailable.
-- Change isolation: In that separate worktree, apply only the changes relevant to the current task and do not mix unrelated changes into the branch or pull request.
-- Worktree priority: Only prioritize the current branch or worktree when the user explicitly asks you to work there.
-- Commit messages: Use the Conventional Commits format `<type>(<scope>): <summary>` with a lowercase, imperative summary (see <https://www.conventionalcommits.org/en/v1.0.0/>).
-- Post-push CI: After pushing to GitHub, always check the GitHub Actions CI results. If CI fails, investigate the failure, fix the issue, push again, and repeat until all CI checks pass.
-- PR language: Always write pull request titles and descriptions in English.
+- In every new clone or worktree, run `make setup` before editing or committing.
+- mise compatibility changes: When a tool or configuration change requires newer mise behavior, determine the minimum mise release that supports the change, raise `min_version` in the same pull request, and record the requirement in the pull request description.
 
 ## Test Policy
 
-- Local bats: Do not run `bats` tests locally.
-- CI validation: When you need to validate `bats` results, push to GitHub, let GitHub Actions CI run, and check the results there.
+- Never run `bats` locally; use GitHub Actions only when the push/CI workflow is separately authorized.

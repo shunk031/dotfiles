@@ -1,5 +1,5 @@
-このルールを使用するときには、回答時に ❓ の絵文字をつけてください。
+When using this rule, include the ❓ emoji in your response.
 
-## ユーザーへの質問
+## Questions for the User
 
-- Plan モードにおいて仕様が不明確な場合、ユーザーに明確な指示を求めるために `AskUserQuestion` ツールを使用して仕様が明確になるまで質問してください。
+- When the specification is unclear in Plan mode, use the `AskUserQuestion` tool to ask the user for clear direction until the specification is clear.

@@ -56,7 +56,7 @@ jobs:
           # should run. It does not decide whether the required workflow itself
           # reports a status. If more workflows need the same rule later,
           # extract a shared script instead of hiding the pattern in env.
-          if git diff --name-only "${diff_range}" | grep -Eq '^(\.github/workflows/|home/|install/|tests/)'; then
+          if git diff --name-only "${diff_range}" | grep -Eq '^(\.github/workflows/|\.pre-commit-config\.yaml$|Makefile$|home/|install/|scripts/|tests/)'; then
             echo "should_test=true" >> "${GITHUB_OUTPUT}"
           else
             echo "should_test=false" >> "${GITHUB_OUTPUT}"
@@ -90,6 +90,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Skip full unit test run for unrelated changes
         if: ${{ needs.changes.outputs.should_test != 'true' }}
@@ -125,6 +127,10 @@ jobs:
         with:
           shfmt_flags: -i 4 -sr -d
 
+      - name: Run Python unit tests
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        run: python3 -m unittest discover -s tests/python
+
       - name: Run unit test
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
@@ -159,8 +165,19 @@ jobs:
             exit 1
           fi
 
-      - name: Upload coverage to Codecov
+      - name: Check coverage report
+        id: coverage-report
         if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' }}
+        run: |
+          if [ -f ./coverage/coverage.xml ]; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+            echo "::warning::coverage/coverage.xml was not generated; skipping Codecov upload."
+          fi
+
+      - name: Upload coverage to Codecov
+        if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' && steps.coverage-report.outputs.exists == 'true' }}
         uses: codecov/codecov-action@v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

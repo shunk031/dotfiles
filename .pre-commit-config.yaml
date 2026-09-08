@@ -1,0 +1,35 @@
+repos:
+  - repo: local
+    hooks:
+      # The in-tree skills still use the Python harness. Guidance no longer
+      # does: `AGENTS.evals.json` is on the Shuhari schema, which this harness
+      # rejects, so these two hooks are scoped to `skills/` only.
+      - id: shuhari-validate-instructions
+        name: validate the user guidance eval schema
+        entry: scripts/shuhari_guidance_gate.sh validate
+        language: system
+        pass_filenames: false
+        files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json)$
+
+      # Live model calls, two arms per case.
+      - id: shuhari-eval-instructions
+        name: evaluate changed user guidance
+        entry: scripts/shuhari_guidance_gate.sh eval
+        language: system
+        pass_filenames: false
+        require_serial: true
+        files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json)$
+
+      - id: textlint-markdown
+        name: fix hard-wrapped Markdown prose
+        entry: textlint --fix --config home/dot_config/textlint/config.json
+        language: node
+        additional_dependencies:
+          - textlint@15.8.0
+          - '@cffnpwr/textlint-rule-no-arbitrary-line-break@1.1.0'
+          - textlint-rule-ja-space-between-half-and-full-width@3.0.3
+        types: [markdown]
+        # Test fixtures are frozen inputs whose exact bytes are the contract the
+        # tests assert against. Auto-fixing them rewrites the very prose a
+        # fixture exists to hold still.
+        exclude: ^tests/fixtures/

@@ -91,6 +91,7 @@ readonly SKILLS_ALLOWLIST=(
     "shunk031/skills:shunk031-python-uv-workflow"
     "shunk031/skills:shunk031-research-before-implementation"
     "shunk031/skills:shunk031-research-high-impact-journal-publishing"
+    "shunk031/skills:shunk031-research-structured-bullet-writing"
     "shunk031/skills:shunk031-shellscript-shdoc-docs"
 )
 

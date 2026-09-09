@@ -4,6 +4,8 @@ pinentry-program /opt/homebrew/bin/pinentry-mac
 {{-   else -}}
 pinentry-program /usr/local/bin/pinentry-mac
 {{-   end -}}
+{{- else if eq .chezmoi.osRelease.id "rocky" }}
+pinentry-program /usr/bin/pinentry-curses
 {{- end }}
 max-cache-ttl 60480000
 default-cache-ttl 60480000

@@ -38,6 +38,24 @@ readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
     [ -z "${output}" ]
 }
 
+@test "[rocky-common] install_dnf_packages installs the terminal pinentry package when missing" {
+    run bash -c '
+        source "$1"
+
+        function command() {
+            [ "$2" != "pinentry-curses" ]
+        }
+        function sudo() {
+            printf "%s\n" "$*"
+        }
+
+        install_dnf_packages
+    ' _ "${SCRIPT_PATH}"
+
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"dnf install -y pinentry"* ]]
+}
+
 @test "[rocky-common] dependency packages use Rocky names" {
     run grep -F 'ip:iproute' "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
@@ -46,5 +64,8 @@ readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
     [ "${status}" -eq 0 ]
 
     run grep -F 'gpg:gnupg2' "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run grep -F 'pinentry-curses:pinentry' "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
 }

@@ -13,6 +13,7 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly COMMAND_PACKAGES=(
+    "cmp:diffutils"
     "cmake:cmake"
     "curl:curl"
     "git:git"

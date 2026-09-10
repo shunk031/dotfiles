@@ -68,4 +68,7 @@ readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
 
     run grep -F 'pinentry-curses:pinentry' "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
+
+    run grep -F 'cmp:diffutils' "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
 }

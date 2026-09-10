@@ -214,5 +214,5 @@ jobs:
               rpm -q pinentry
               test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
               useradd --create-home --shell /bin/bash bats
-              su --shell /bin/bash bats --command "bats -r tests/install/rocky"
+              su --preserve-environment --shell /bin/bash bats --command "bats -r tests/install/rocky"
             '

@@ -7,7 +7,7 @@ readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
         source "$1"
 
         function command() {
-            [ "$2" != "tmux" ]
+            [ "$2" != "cmake" ]
         }
         function sudo() {
             printf "%s\n" "$*"
@@ -17,7 +17,7 @@ readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
     ' _ "${SCRIPT_PATH}"
 
     [ "${status}" -eq 0 ]
-    [[ "${output}" == *"dnf install -y tmux"* ]]
+    [[ "${output}" == *"dnf install -y cmake"* ]]
 }
 
 @test "[rocky-common] install_dnf_packages skips dnf when commands exist" {

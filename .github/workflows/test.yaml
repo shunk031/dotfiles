@@ -210,7 +210,7 @@ jobs:
             bash -euo pipefail -c '
               dnf install -y epel-release
               dnf install -y bats
-              ./install/rocky/common/dependencies.sh
+              bash ./install/rocky/common/dependencies.sh
               rpm -q pinentry
               test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
               bats -r tests/install/rocky

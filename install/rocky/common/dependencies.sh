@@ -17,6 +17,7 @@ readonly COMMAND_PACKAGES=(
     "curl:curl"
     "git:git"
     "gpg:gnupg2"
+    "pinentry-curses:pinentry"
     "htop:htop"
     "ip:iproute"
     "ping:iputils"

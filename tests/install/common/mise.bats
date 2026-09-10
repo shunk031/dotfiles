@@ -6,7 +6,7 @@ readonly RUN_AFTER_TEMPLATE="./home/.chezmoiscripts/common/run_after_20-install-
 readonly MISE_CONFIG_SOURCE="./home/dot_mise/config.toml"
 readonly MISE_BASH_SOURCE="./home/dot_config/exact_shell/mise.bash"
 readonly MISE_SETUP_WORKFLOWS=(
-    "./.github/workflows/ubuntu.yaml"
+    "./.github/workflows/linux.yaml"
     "./.github/workflows/macos.yaml"
 )
 

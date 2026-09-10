@@ -191,3 +191,28 @@ jobs:
           flags: ${{ env.CODECOV_FLAGS }}
           name: ${{ env.CODECOV_NAME }}
           verbose: true
+
+  rocky:
+    needs: changes
+    if: ${{ needs.changes.outputs.should_test == 'true' }}
+    runs-on: ubuntu-latest
+    container:
+      image: rockylinux/rockylinux:9
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Run Rocky Linux smoke tests
+        run: |
+          dnf install -y epel-release
+          dnf install -y bats
+          bash ./install/rocky/common/dependencies.sh
+          rpm -q pinentry
+          test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
+          useradd --create-home --shell /bin/bash bats
+          test_bin="$(mktemp -d)"
+          printf '%s\n' '#!/usr/bin/env bash' 'exec "$@"' > "${test_bin}/sudo"
+          chmod 755 "${test_bin}" "${test_bin}/sudo"
+          setpriv --reuid=bats --regid=bats --init-groups \
+            env "PATH=${test_bin}:${PATH}" bats -r tests/install/rocky

@@ -1,10 +1,10 @@
-name: Ubuntu
+name: Linux
 
 on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/ubuntu.yaml"
+      - ".github/workflows/linux.yaml"
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
@@ -18,7 +18,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - ".github/workflows/ubuntu.yaml"
+      - ".github/workflows/linux.yaml"
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"

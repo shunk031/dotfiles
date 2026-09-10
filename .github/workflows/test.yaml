@@ -191,3 +191,27 @@ jobs:
           flags: ${{ env.CODECOV_FLAGS }}
           name: ${{ env.CODECOV_NAME }}
           verbose: true
+
+  rocky:
+    needs: changes
+    if: ${{ needs.changes.outputs.should_test == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Run Rocky Linux smoke tests
+        run: |
+          docker run --rm \
+            --volume "${GITHUB_WORKSPACE}:/workspace:ro" \
+            --workdir /workspace \
+            rockylinux:9 \
+            bash -euo pipefail -c '
+              dnf install -y epel-release
+              dnf install -y bats
+              ./install/rocky/common/dependencies.sh
+              rpm -q pinentry
+              test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
+              bats -r tests/install/rocky
+            '

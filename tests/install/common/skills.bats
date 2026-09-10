@@ -135,6 +135,30 @@ EOF
     [ "${output}" = "remove --skill shunk031-gh-comment-attach-files --agent claude-code --agent codex --global --yes" ]
 }
 
+@test "[common] prune removes the pool entry before unregistering the skill" {
+    write_mise_stub
+    local pool_state_path="${BATS_TEST_TMPDIR}/pool-state.txt"
+    export pool_state_path
+    cat > "${BATS_TEST_TMPDIR}/bin/skills" << EOF
+#!/usr/bin/env bash
+if [ -d "${SKILLS_POOL}/shunk031-retired" ]; then
+    printf '%s\n' present > "\${pool_state_path}"
+else
+    printf '%s\n' absent > "\${pool_state_path}"
+fi
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/bin/skills"
+
+    mkdir -p "${SKILLS_STATE_DIR}" "${SKILLS_POOL}/shunk031-retired"
+    printf '%s\n' shunk031-retired > "${SKILLS_MANIFEST}"
+
+    prune_unlisted_skills
+
+    run cat "${pool_state_path}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = absent ]
+}
+
 @test "[common] prune removes a manifest skill the allowlist dropped" {
     write_mise_stub
     mkdir -p "${SKILLS_STATE_DIR}" "${SKILLS_POOL}/shunk031-retired"

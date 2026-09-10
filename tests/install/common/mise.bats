@@ -216,18 +216,18 @@ function run_mise_bash_startup() {
     [[ "${output}" =~ ^[0-9]+[.][0-9]+[.][0-9]+$ ]]
 }
 
-@test "[common] mise version supports declarative system bootstrap" {
+@test "[common] mise version supports declarative system bootstrap and dangling npm install repair" {
     local min_version
 
     min_version="$(get_mise_min_version_from_config "${MISE_CONFIG_SOURCE}")"
-    run is_mise_version_at_least "${min_version}" "2026.8.2"
+    run is_mise_version_at_least "${min_version}" "2026.8.15"
     [ "${status}" -eq 0 ]
 }
 
 @test "[common] mise config pins fnox for command-backed authentication" {
     run get_mise_min_version_from_config "${MISE_CONFIG_SOURCE}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "2026.8.2" ]
+    [ "${output}" = "2026.8.15" ]
 
     run awk '
         /^\[tools\]$/ { in_tools = 1; next }

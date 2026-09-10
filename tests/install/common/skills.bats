@@ -85,15 +85,16 @@ EOF
     done
 }
 
-@test "[common] the allowlist subscribes to the public skill repositories" {
+@test "[common] the public skills repository is subscribed without per-skill entries" {
     run allowlist_skill_names
     [ "${status}" -eq 0 ]
 
-    printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^shunk031/skills:'
+    [ "${SKILLS_PUBLIC_REPOSITORY}" = "shunk031/skills" ]
+    [[ "$(printf '%s\n' "${SKILLS_ALLOWLIST[@]}")" != *"shunk031/skills:"* ]]
     printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^anthropics/skills:'
     printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^cursor/plugins:unslop$'
     printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^mattpocock/skills:grilling$'
-    ! printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^mattpocock/skills:grill-me$'
+    [[ "$(printf '%s\n' "${SKILLS_ALLOWLIST[@]}")" != *"mattpocock/skills:grill-me"* ]]
 }
 
 @test "[common] the allowlist holds no duplicate skill names" {
@@ -105,6 +106,7 @@ EOF
 @test "[common] retired skill names do not remain subscribed" {
     local name
 
+    printf '%s\n' "${SKILLS_RETIRED_NAMES[@]}" | grep -q '^shunk031-research-structured-bullet-writing$'
     for name in "${SKILLS_RETIRED_NAMES[@]}"; do
         run allowlist_contains "${name}"
         [ "${status}" -eq 1 ]
@@ -121,11 +123,10 @@ EOF
     [ ! -f "${MISE_CALLS_PATH}" ]
 }
 
-@test "[common] prune removes a renamed skill after the manifest records only its replacement" {
+@test "[common] prune removes a retired skill from the selected manifest" {
     write_mise_stub
     mkdir -p "${SKILLS_STATE_DIR}" "${SKILLS_POOL}/shunk031-gh-comment-attach-files"
-    printf '%s\n' shunk031-github-comment-attach-files > "${SKILLS_MANIFEST}"
-
+    printf '%s\n' shunk031-gh-comment-attach-files > "${SKILLS_MANIFEST}"
     prune_unlisted_skills
 
     [ ! -e "${SKILLS_POOL}/shunk031-gh-comment-attach-files" ]
@@ -224,60 +225,40 @@ EOF
 
 @test "[common] install skips a skill already materialized in the pool" {
     write_mise_stub
-    mkdir -p "${SKILLS_POOL}/shunk031-github-cgd-identity"
+    mkdir -p "${SKILLS_POOL}/natural-japanese"
 
     install_missing_skills
 
-    run grep -c -- '--skill shunk031-github-cgd-identity ' "${MISE_CALLS_PATH}"
+    run grep -c -- '--skill natural-japanese ' "${MISE_CALLS_PATH}"
     [ "${output}" = "0" ]
 }
 
 @test "[common] install replaces a legacy symlink with a real installation" {
     write_mise_stub
-    mkdir -p "${BATS_TEST_TMPDIR}/source/shunk031-github-cgd-identity"
-    ln -s "${BATS_TEST_TMPDIR}/source/shunk031-github-cgd-identity" "${SKILLS_POOL}/shunk031-github-cgd-identity"
+    mkdir -p "${BATS_TEST_TMPDIR}/source/natural-japanese"
+    ln -s "${BATS_TEST_TMPDIR}/source/natural-japanese" "${SKILLS_POOL}/natural-japanese"
 
     install_missing_skills
 
     # The name still goes to the CLI: a symlink is not a real installation, so
     # `pool_has_skill` rejects it and the skill stays in the batch. The call now
     # carries every missing skill from that source rather than only this one.
-    run grep -c -- '--skill shunk031-github-cgd-identity' "${MISE_CALLS_PATH}"
+    run grep -c -- '--skill natural-japanese' "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]
 
-    run grep -c -- 'add shunk031/skills .*--agent claude-code --agent codex --global --yes' "${MISE_CALLS_PATH}"
-    [ "${output}" = "1" ]
-}
-
-@test "[common] install issues one call per repository, not per skill" {
-    # `skills add` takes --skill repeatably and clones the repository once per
-    # call, so one call per skill re-clones the same repository for every entry.
-    write_mise_stub
-
-    install_missing_skills
-
-    # Each distinct source should be cloned exactly once, with all of its
-    # missing skills batched into that call.
-    local expected_calls
-    expected_calls="$(declared_sources | awk 'NF { count++ } END { print count + 0 }')"
-    run grep -c '^add ' "${MISE_CALLS_PATH}"
-    [ "${output}" -eq "${expected_calls}" ]
-
-    run grep -c -- '--skill shunk031-github-cgd-identity' "${MISE_CALLS_PATH}"
-    [ "${output}" = "1" ]
-    run grep -c -- '--skill shunk031-manage-agent-guidance' "${MISE_CALLS_PATH}"
+    run grep -c -- 'add coji/natural-japanese .*--agent claude-code --agent codex --global --yes' "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]
 }
 
 @test "[common] a repository is called with only the skills still missing" {
     write_mise_stub
-    mkdir -p "${SKILLS_POOL}/shunk031-github-cgd-identity"
+    mkdir -p "${SKILLS_POOL}/natural-japanese"
 
     install_missing_skills
 
-    run grep -c -- '--skill shunk031-github-cgd-identity' "${MISE_CALLS_PATH}"
+    run grep -c -- '--skill natural-japanese' "${MISE_CALLS_PATH}"
     [ "${output}" = "0" ]
-    run grep -c -- '--skill shunk031-manage-agent-guidance' "${MISE_CALLS_PATH}"
+    run grep -c -- '--skill skill-creator' "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]
 }
 
@@ -337,15 +318,16 @@ EOF
 }
 
 @test "[common] the manifest records only skills that are really installed" {
-    mkdir -p "${SKILLS_POOL}/shunk031-github-cgd-identity"
-    mkdir -p "${BATS_TEST_TMPDIR}/source/shunk031-manage-agent-guidance"
-    ln -s "${BATS_TEST_TMPDIR}/source/shunk031-manage-agent-guidance" "${SKILLS_POOL}/shunk031-manage-agent-guidance"
+    write_mise_stub
+    mkdir -p "${SKILLS_POOL}/natural-japanese"
+    mkdir -p "${BATS_TEST_TMPDIR}/source/skill-creator"
+    ln -s "${BATS_TEST_TMPDIR}/source/skill-creator" "${SKILLS_POOL}/skill-creator"
 
     write_managed_skills_manifest
 
-    run grep -c '^shunk031-github-cgd-identity$' "${SKILLS_MANIFEST}"
+    run grep -c '^natural-japanese$' "${SKILLS_MANIFEST}"
     [ "${output}" = "1" ]
-    run grep -c '^shunk031-manage-agent-guidance$' "${SKILLS_MANIFEST}"
+    run grep -c '^skill-creator$' "${SKILLS_MANIFEST}"
     [ "${output}" = "0" ]
 }
 
@@ -399,6 +381,8 @@ EOF
 
     run cat "${SKILLS_UPDATE_STAMP}"
     [ "${output}" != "1" ]
+    run grep -c -- "^add shunk031/skills --skill \* --agent claude-code --agent codex --global --yes$" "${MISE_CALLS_PATH}"
+    [ "${output}" = "1" ]
 }
 
 @test "[common] a failed update leaves the stamp alone so the next apply retries" {
@@ -460,7 +444,7 @@ EOF
     run declared_subscriptions
     [ "${status}" -eq 0 ]
     printf '%s\n' "${output}" | grep -q '^owner/repo:private-example$'
-    printf '%s\n' "${output}" | grep -q '^shunk031/skills:'
+    printf '%s\n' "${output}" | grep -q '^anthropics/skills:'
 }
 
 @test "[common] a private entry keeps its pinned ref through comment stripping" {

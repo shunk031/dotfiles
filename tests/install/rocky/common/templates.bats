@@ -57,3 +57,12 @@ readonly TMUX_TEMPLATE="./home/dot_tmux.conf.tmpl"
     run grep -F '../install/rocky/server/ssh_server.sh' "${template}"
     [ "${status}" -eq 0 ]
 }
+
+@test "[rocky-common] GPG agent template selects the Rocky terminal pinentry" {
+    local template="./home/private_dot_gnupg/gpg-agent.conf.tmpl"
+
+    run grep -F 'else if eq .chezmoi.osRelease.id "rocky"' "${template}"
+    [ "${status}" -eq 0 ]
+    run grep -F 'pinentry-program /usr/bin/pinentry-curses' "${template}"
+    [ "${status}" -eq 0 ]
+}

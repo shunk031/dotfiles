@@ -41,6 +41,9 @@ EOF
     cat > "${stub_bin}/skills" << EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "\${MISE_CALLS_PATH}"
+if [ "\${1:-}" = "update" ] && [ -n "\${SKILLS_UPDATE_OUTPUT_PATH:-}" ]; then
+    cat "\${SKILLS_UPDATE_OUTPUT_PATH}"
+fi
 exit ${exit_code}
 EOF
     chmod +x "${stub_bin}/skills"
@@ -400,6 +403,13 @@ EOF
     write_mise_stub
     mkdir -p "${SKILLS_STATE_DIR}"
     printf '%s\n' 1 > "${SKILLS_UPDATE_STAMP}"
+    SKILLS_UPDATE_OUTPUT_PATH="${BATS_TEST_TMPDIR}/update-output"
+    export SKILLS_UPDATE_OUTPUT_PATH
+    cat > "${SKILLS_UPDATE_OUTPUT_PATH}" << 'EOF'
+Warning: The following skills from owner/repo appear to have been deleted upstream:
+  • deleted-one
+Skipping deletion in non-interactive mode.
+EOF
 
     update_installed_skills
 
@@ -407,6 +417,8 @@ EOF
     [ "${output}" != "1" ]
     run grep -c -- "^add shunk031/skills --skill \* --agent claude-code --agent codex --global --yes$" "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]
+    run grep -Fx 'remove --skill deleted-one --global --yes' "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] a failed update leaves the stamp alone so the next apply retries" {

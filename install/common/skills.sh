@@ -419,6 +419,8 @@ function skills_update_is_due() {
 # @exitcode 0 Always; a failed update is reported and retried later.
 #
 function update_installed_skills() {
+    local output skill
+
     if ! skills_update_is_due; then
         return 0
     fi
@@ -428,10 +430,16 @@ function update_installed_skills() {
         return 0
     fi
 
-    if ! skills_cli update --global --yes; then
+    if ! output="$(NO_COLOR=1 skills_cli update --global --yes 2>&1)"; then
+        printf '%s\n' "${output}"
         echo "skills: update failed; the next apply retries" >&2
         return 0
     fi
+
+    printf '%s\n' "${output}"
+    while IFS= read -r skill; do
+        skills_cli remove --skill "${skill}" --global --yes || echo "skills: could not remove ${skill}" >&2
+    done < <(printf '%s\n' "${output}" | sed -n '/^Warning: The following skills from .* appear to have been deleted upstream:$/,/^Skipping deletion in non-interactive mode\.$/s/^  • //p')
 
     mkdir -p "${SKILLS_STATE_DIR}"
     date +%s > "${SKILLS_UPDATE_STAMP}"

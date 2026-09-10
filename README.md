@@ -59,7 +59,7 @@ bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
 
 ![Screenshot of setup on MacOS Client machine](.github/screenshot-macos-client.png)
 
-### 🖥️ `Ubuntu / Rocky Linux` [![Ubuntu](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml)
+### 🖥️ `Ubuntu / Rocky Linux` [![Linux](https://github.com/shunk031/dotfiles/actions/workflows/linux.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/linux.yaml)
 
 - Configuration snippet for Ubuntu client and server machines, and Rocky Linux server machines:
 

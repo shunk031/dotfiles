@@ -214,5 +214,9 @@ jobs:
               rpm -q pinentry
               test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
               useradd --create-home --shell /bin/bash bats
-              setpriv --reuid=bats --regid=bats --init-groups bats -r tests/install/rocky
+              test_bin="$(mktemp -d)"
+              printf '%s\n' '#!/usr/bin/env bash' 'exec "$@"' > "${test_bin}/sudo"
+              chmod 755 "${test_bin}" "${test_bin}/sudo"
+              setpriv --reuid=bats --regid=bats --init-groups \
+                env "PATH=${test_bin}:${PATH}" bats -r tests/install/rocky
             '

@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
 # @file install/common/skills.sh
-# @brief Reconcile the shared skills pool against a declared allowlist.
+# @brief Reconcile the shared skills pool against repository and selected subscriptions.
 # @description
 #   Skill content lives in `shunk031/skills` and `shunk031/skills-private`.
 #   These dotfiles subscribe to those repositories rather than carrying the
-#   skills themselves: `SKILLS_ALLOWLIST` declares what should be installed,
-#   and `reconcile_agent_skills` makes `~/.agents/skills` match it on every
-#   `chezmoi apply`.
+#   skills themselves. Public skills from `shunk031/skills` are discovered as
+#   one repository subscription. Third-party and private subscriptions select
+#   individual skills. `reconcile_agent_skills` applies both forms to
+#   `~/.agents/skills` on every `chezmoi apply`.
 #
 #   Reconciliation is install, update, and prune. It is written to be safe to
 #   run on every apply, which means it must be quiet when nothing changed and
@@ -15,12 +16,11 @@
 #
 #   * Install skips names already materialized in the pool, so a steady-state
 #     apply performs no network access.
-#   * Update runs on a 24-hour stamp because `make watch` applies on every file
-#     save. `DOTFILES_SKILLS_FORCE_UPDATE=1` overrides the throttle.
-#   * Prune consults a manifest of what the previous run installed. Without
-#     that manifest it removes nothing, because "everything not in the
-#     allowlist" would delete the private skills and the generated `herdr`
-#     entry.
+#   * Repository discovery and updates run on a 24-hour stamp because `make
+#     watch` applies on every file save. `DOTFILES_SKILLS_FORCE_UPDATE=1`
+#     overrides the throttle.
+#   * Prune consults a manifest of selected third-party and private skills.
+#     Public repository skills are not individually tracked.
 #
 #   A failed install is reported and does not abort the apply. Losing one skill
 #   is better than failing the whole apply, and the next reconcile retries.
@@ -37,7 +37,7 @@ readonly SKILLS_STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/dotfiles"
 # The manifest deliberately lives outside `~/.agents`. That tree is applied
 # with `exact_` semantics, so a state file written inside it would be deleted
 # on the next apply unless it also earned a chezmoiignore entry.
-readonly SKILLS_MANIFEST="${SKILLS_STATE_DIR}/managed-skills"
+readonly SKILLS_MANIFEST="${SKILLS_STATE_DIR}/managed-selected-skills"
 readonly SKILLS_UPDATE_STAMP="${SKILLS_STATE_DIR}/skills-update-stamp"
 readonly SKILLS_UPDATE_INTERVAL_SECONDS=86400
 
@@ -62,6 +62,7 @@ readonly SKILLS_RETIRED_NAMES=(
     shunk031-gh-comment-attach-files
     shunk031-high-impact-journal-publishing
     shunk031-orchestrate-herdr-workers
+    shunk031-research-structured-bullet-writing
     shunk031-shdoc-shell-docs
     shunk031-transformers-convert
 )
@@ -72,27 +73,16 @@ readonly SKILLS_LINKED_AGENT_DIRS=(
     "${HOME}/.claude/skills"
 )
 
-# Declared subscriptions, one skill per line, as `<owner>/<repo>[#<ref>]:<skill>`.
-# Keep sorted by repository, then by skill name.
+# Re-running `skills add --skill '*'` discovers newly added public skills.
+readonly SKILLS_PUBLIC_REPOSITORY="shunk031/skills"
+
+# Selected subscriptions, one skill per line, as
+# `<owner>/<repo>[#<ref>]:<skill>`. Keep sorted by repository, then skill name.
 readonly SKILLS_ALLOWLIST=(
     "anthropics/skills:skill-creator"
     "coji/natural-japanese:natural-japanese"
     "cursor/plugins:unslop"
     "mattpocock/skills:grilling"
-    "shunk031/skills:shunk031-codex-worker-prompting"
-    "shunk031/skills:shunk031-github-cgd-identity"
-    "shunk031/skills:shunk031-github-comment-attach-files"
-    "shunk031/skills:shunk031-herdr-orchestrate-workers"
-    "shunk031/skills:shunk031-herdr-tab-status"
-    "shunk031/skills:shunk031-manage-agent-guidance"
-    "shunk031/skills:shunk031-manage-public-private-dotfiles"
-    "shunk031/skills:shunk031-manage-public-private-skills"
-    "shunk031/skills:shunk031-python-transformers-convert"
-    "shunk031/skills:shunk031-python-uv-workflow"
-    "shunk031/skills:shunk031-research-before-implementation"
-    "shunk031/skills:shunk031-research-high-impact-journal-publishing"
-    "shunk031/skills:shunk031-research-structured-bullet-writing"
-    "shunk031/skills:shunk031-shellscript-shdoc-docs"
 )
 
 # Private subscriptions, applied by the private dotfiles source. Absent on a
@@ -425,11 +415,16 @@ function skills_update_is_due() {
 }
 
 #
-# @description Update installed skills at most once per day.
+# @description Rediscover repository subscriptions and update installed skills at most once per day.
 # @exitcode 0 Always; a failed update is reported and retried later.
 #
 function update_installed_skills() {
     if ! skills_update_is_due; then
+        return 0
+    fi
+
+    if ! skills_cli add "${SKILLS_PUBLIC_REPOSITORY}" --skill '*' "${SKILLS_AGENT_FLAGS[@]}" --global --yes; then
+        echo "skills: failed to refresh ${SKILLS_PUBLIC_REPOSITORY}; the next apply retries" >&2
         return 0
     fi
 
@@ -489,18 +484,17 @@ function prune_candidate_names() {
 }
 
 #
-# @description Remove skills that the previous run installed and the allowlist
-#   no longer declares.
+# @description Remove skills that the previous run installed and no active subscription retains.
 # @description
 #   Candidates are limited to the previous manifest and the explicit retired
 #   name migration list. Pruning "everything in the pool that is not
-#   allowlisted" would delete the generated `herdr` entry and any skill a
+#   subscribed" would delete the generated `herdr` entry and any skill a
 #   different installer owns.
 #
 #   An absent private allowlist unsubscribes its skills, and that is the
 #   intended behaviour rather than an oversight. The file is the declaration:
-#   no declaration means no subscription, which is exactly how a removed public
-#   entry behaves. It is also the posture the public/private split exists for,
+#   no declaration means no subscription, which is exactly how a removed
+#   selected entry behaves. It is also the posture the public/private split exists for,
 #   since private skill content should not outlive a machine's access to the
 #   private source.
 #
@@ -568,7 +562,7 @@ function link_generated_pool_entries() {
 }
 
 #
-# @description Record the allowlisted skills that are present in the pool.
+# @description Record selected skills that are present in the pool.
 # @description
 #   Only what is actually installed is recorded, so a skill that failed to
 #   install is retried next time instead of being pruned later.
@@ -589,7 +583,7 @@ function write_managed_skills_manifest() {
 }
 
 #
-# @description Make the shared skills pool match the declared allowlist.
+# @description Make the shared skills pool match the declared subscriptions.
 #
 function reconcile_agent_skills() {
     if [ ! -x "${MISE_BIN}" ]; then

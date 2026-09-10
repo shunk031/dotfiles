@@ -213,5 +213,6 @@ jobs:
               bash ./install/rocky/common/dependencies.sh
               rpm -q pinentry
               test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
-              bats -r tests/install/rocky
+              useradd --create-home --shell /bin/bash bats
+              su --shell /bin/bash bats --command "bats -r tests/install/rocky"
             '

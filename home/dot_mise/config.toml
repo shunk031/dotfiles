@@ -72,6 +72,7 @@ sqlite = "3.53.4"
 [settings]
 idiomatic_version_file_enable_tools = ["python"]
 minimum_release_age = "7d"
+python.compile = false
 ruby.compile = false
 minimum_release_age_excludes = [
   "aqua:anthropics/claude-code",

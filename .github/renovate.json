@@ -41,7 +41,6 @@
     {
       "matchManagers": ["mise"],
       "matchDepNames": [
-        "fnox",
         "herdr",
         "aqua:anthropics/claude-code",
         "aqua:google-antigravity/antigravity-cli",

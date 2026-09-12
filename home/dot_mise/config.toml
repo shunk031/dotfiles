@@ -77,7 +77,7 @@ idiomatic_version_file_enable_tools = ["python"]
 minimum_release_age = "7d"
 # Keep this list identical to the `agent tooling` group in `.github/renovate.json`:
 # that group pins on release day, so anything Renovate lists there but that is missing
-# here stays refused until the cutoff passes. fnox is intentionally absent — it stores
+# here stays refused until the cutoff passes. `fnox` is intentionally absent — it stores
 # credentials, so it keeps the cooling-off period, which signature verification cannot
 # replace.
 minimum_release_age_excludes = [

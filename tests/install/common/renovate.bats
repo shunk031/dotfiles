@@ -3,7 +3,7 @@
 readonly RENOVATE_CONFIG_PATH="./.github/renovate.json"
 readonly DEPENDABOT_CONFIG_PATH="./.github/dependabot.yaml"
 readonly MISE_CONFIG_PATH="./home/dot_mise/config.toml"
-readonly UBUNTU_WORKFLOW_PATH="./.github/workflows/ubuntu.yaml"
+readonly LINUX_WORKFLOW_PATH="./.github/workflows/linux.yaml"
 readonly MACOS_WORKFLOW_PATH="./.github/workflows/macos.yaml"
 
 @test "[common] Renovate exclusively manages GitHub Actions updates" {
@@ -49,6 +49,9 @@ renovate = json.loads(renovate_path.read_text(encoding="utf-8"))
 mise_text = mise_path.read_text(encoding="utf-8")
 renovate_text = json.dumps(renovate)
 
+# Agent tooling mise pins, and the identifier each one is pinned under. Renovate reads
+# these names from the mise config, so a backend-prefixed rewrite would silently change
+# what its rules match.
 tracked_dep_names = [
     "fnox",
     "herdr",
@@ -56,8 +59,8 @@ tracked_dep_names = [
     "aqua:google-antigravity/antigravity-cli",
     "aqua:openai/codex",
 ]
-# fnox stores credentials, so it keeps the cooling-off period instead of taking the
-# day-zero updates the rest of the agent tooling gets.
+# The subset that skips the cooling-off period. fnox stores credentials, so it keeps the
+# wait instead of taking the day-zero updates the rest of the agent tooling gets.
 day_zero_dep_names = [
     "herdr",
     "aqua:anthropics/claude-code",
@@ -202,7 +205,7 @@ PYTHON
 }
 
 @test "[common] mise changes trigger fresh-install workflows" {
-    run python3 - "${UBUNTU_WORKFLOW_PATH}" "${MACOS_WORKFLOW_PATH}" << 'PYTHON'
+    run python3 - "${LINUX_WORKFLOW_PATH}" "${MACOS_WORKFLOW_PATH}" << 'PYTHON'
 import sys
 from pathlib import Path
 

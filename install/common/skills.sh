@@ -505,6 +505,9 @@ function prune_candidate_names() {
 #   only way to reach this case is for the private source to be gone or to have
 #   failed to apply, and then removal is the correct answer.
 #
+#   Remove the pool entry before `skills remove` so the CLI sees no remaining
+#   universal-agent install path and clears the skill from its registry.
+#
 function prune_unlisted_skills() {
     local name
 
@@ -515,6 +518,8 @@ function prune_unlisted_skills() {
             continue
         fi
 
+        remove_pool_entry "${name}"
+
         if ! skills_cli remove \
             --skill "${name}" \
             "${SKILLS_AGENT_FLAGS[@]}" \
@@ -522,8 +527,6 @@ function prune_unlisted_skills() {
             --yes; then
             echo "skills: could not unregister ${name}" >&2
         fi
-
-        remove_pool_entry "${name}"
     done < <(prune_candidate_names)
 }
 

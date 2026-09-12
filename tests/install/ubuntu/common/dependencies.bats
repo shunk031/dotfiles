@@ -10,17 +10,20 @@ readonly SCRIPT_PATH="./install/ubuntu/common/dependencies.sh"
     '
 
     [ "${status}" -eq 0 ]
-    [ "${lines[0]}" -eq 13 ]
+    [ "${lines[0]}" -eq 16 ]
 
     expected_packages=(
         busybox
         cmake
         curl
+        gcc
+        g++
         git
         gpg
         htop
         iproute2
         iputils-ping
+        make
         sudo
         unzip
         vim

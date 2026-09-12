@@ -269,38 +269,12 @@ jobs:
 
           gem install --no-document bashcov simplecov-cobertura
 
-      - name: Prepare non-root test user
-        run: |
-          set -Eeuo pipefail
-
-          useradd --create-home --shell /bin/bash bats
-          test_bin="$(mktemp -d)"
-          printf '%s\n' \
-            '#!/usr/bin/env bash' \
-            '# @file ci/fake-sudo' \
-            '# @brief Execute a command without privilege escalation.' \
-            '# @description' \
-            '#   Removes the environment-preservation option used by install scripts.' \
-            'if [[ "${1:-}" == --preserve-env=* ]]; then' \
-            '    shift' \
-            'fi' \
-            'exec "$@"' > "${test_bin}/sudo"
-          chmod 755 "${test_bin}" "${test_bin}/sudo"
-          chown -R bats:bats "${GITHUB_WORKSPACE}"
-          printf 'TEST_BIN=%s\n' "${test_bin}" >> "${GITHUB_ENV}"
-
       - name: Run Python unit tests
-        run: |
-          setpriv --reuid=bats --regid=bats --init-groups \
-            env "PATH=${TEST_BIN}:${PATH}" \
-            python3 -m unittest discover -s tests/python
+        run: python3 -m unittest discover -s tests/python
 
       - name: Run shell unit tests with coverage
         run: |
-          setpriv --reuid=bats --regid=bats --init-groups \
-            env \
-            "PATH=${TEST_BIN}:${PATH}" \
-            "BASHCOV_COMMAND_NAME=unit-test-container-${TARGET_OS}" \
+          BASHCOV_COMMAND_NAME="unit-test-container-${TARGET_OS}" \
             bashcov --skip-uncovered --root . -- ./scripts/run_unit_test.sh
 
       - name: Check coverage report

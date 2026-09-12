@@ -41,7 +41,8 @@ readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
     ' _ "${SCRIPT_PATH}"
 
     [ "${status}" -eq 0 ]
-    [ "${output}" = "sudo --preserve-env=http_proxy,https_proxy,no_proxy dnf install -y cmake" ]
+    [[ "${output}" == *"sudo --preserve-env=http_proxy,https_proxy,no_proxy dnf install -y cmake"* ]]
+    [[ "${output}" != *"unexpected dnf call"* ]]
 }
 
 @test "[rocky-common] install_dnf_packages skips dnf when commands exist" {

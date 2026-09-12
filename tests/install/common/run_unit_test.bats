@@ -5,6 +5,8 @@
 # @description
 #   Confirms unsupported targets fail before any real Bats suite is executed.
 
+bats_require_minimum_version 1.5.0
+
 readonly SCRIPT_PATH="./scripts/run_unit_test.sh"
 
 @test "[common] run_unit_test rejects an unsupported target" {

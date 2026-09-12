@@ -4,7 +4,7 @@
 # @brief Run the repository's shell unit tests.
 # @description
 #   Dispatches the common Bats suite and the OS-specific Bats suite selected by
-#   the `OS` environment variable.
+#   the explicit `TARGET_OS` environment variable.
 
 # Keep this wrapper minimal: CI invokes this script through `bashcov`.
 # `-u` is intentionally omitted because strict nounset can propagate through
@@ -23,17 +23,24 @@ function run_common_test() {
 # @description Run the OS-specific Bats suite for the active CI target.
 #
 function run_os_specific_test() {
-    if [ "${OS}" == "macos-14" ]; then
+    case "${TARGET_OS:-}" in
+    macos-14)
         # macOS-only install tests.
         bats -r "tests/install/macos/common/"
-
-    elif [ "${OS}" == "ubuntu-latest" ]; then
+        ;;
+    ubuntu | ubuntu-latest)
         # Ubuntu-only install tests.
         bats -r "tests/install/ubuntu/common/"
-    else
-        echo "${OS} and ${SYSTEM} are not supported" >&2
+        ;;
+    rocky)
+        # Rocky Linux-only install tests.
+        bats -r "tests/install/rocky/"
+        ;;
+    *)
+        echo "${TARGET_OS:-<unset>} and ${SYSTEM:-<unset>} are not supported" >&2
         exit 1
-    fi
+        ;;
+    esac
 }
 
 #

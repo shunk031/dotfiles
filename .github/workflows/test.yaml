@@ -80,6 +80,7 @@ jobs:
       # Export matrix values to shell scripts so existing test helpers can use
       # simple `OS`/`SYSTEM` checks without depending on GitHub expression syntax.
       OS: ${{ matrix.os }}
+      TARGET_OS: ${{ matrix.os }}
       SYSTEM: ${{ matrix.system }}
       # Keep Codecov naming deterministic per job. This makes it easy to trace
       # upload sessions in Codecov API/UI and avoids accidental session overlap.
@@ -192,27 +193,136 @@ jobs:
           name: ${{ env.CODECOV_NAME }}
           verbose: true
 
-  rocky:
+  container:
     needs: changes
     if: ${{ needs.changes.outputs.should_test == 'true' }}
+    strategy:
+      matrix:
+        include:
+          - target_os: ubuntu
+            image: ubuntu:26.04
+          - target_os: rocky
+            image: rockylinux/rockylinux:9
+
     runs-on: ubuntu-latest
     container:
-      image: rockylinux/rockylinux:9
+      image: ${{ matrix.image }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      OS: ${{ matrix.target_os }}
+      TARGET_OS: ${{ matrix.target_os }}
+      SYSTEM: server
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CODECOV_FLAGS: container-${{ matrix.target_os }}
+      CODECOV_NAME: codecov-dotfiles-container-${{ matrix.target_os }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Run Rocky Linux smoke tests
+      - name: Install test tools
         run: |
-          dnf install -y epel-release
-          dnf install -y bats
-          bash ./install/rocky/common/dependencies.sh
-          rpm -q pinentry
-          test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
+          set -Eeuo pipefail
+
+          if [ "${TARGET_OS}" = "ubuntu" ]; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y --no-install-recommends \
+              bats \
+              curl \
+              gpg \
+              jq \
+              parallel \
+              python3 \
+              ruby \
+              shfmt \
+              sudo \
+              util-linux
+            bash ./install/ubuntu/common/dependencies.sh
+          elif [ "${TARGET_OS}" = "rocky" ]; then
+            dnf install -y epel-release
+            dnf install -y bats jq parallel python3 ruby util-linux
+            bash ./install/rocky/common/dependencies.sh
+            rpm -q pinentry
+            test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
+
+            # EPEL 9 does not provide shfmt, so install the repository-pinned
+            # upstream release and verify its published digest.
+            shfmt_path=/usr/local/bin/shfmt
+            curl --fail --location --silent --show-error \
+              "https://github.com/mvdan/sh/releases/download/v3.14.0/shfmt_v3.14.0_linux_amd64" \
+              --output "${shfmt_path}"
+            printf '%s  %s\n' \
+              fe42021c7272ef2d67ea36cbc3031683c625d0badec733ef3a57b567246a0b66 \
+              "${shfmt_path}" | sha256sum --check --status -
+            chmod 755 "${shfmt_path}"
+          else
+            echo "${TARGET_OS} is not supported" >&2
+            exit 1
+          fi
+
+          gem install --no-document bashcov simplecov-cobertura
+
+      - name: Prepare non-root test user
+        run: |
+          set -Eeuo pipefail
+
           useradd --create-home --shell /bin/bash bats
           test_bin="$(mktemp -d)"
-          printf '%s\n' '#!/usr/bin/env bash' 'exec "$@"' > "${test_bin}/sudo"
+          printf '%s\n' \
+            '#!/usr/bin/env bash' \
+            '# @file ci/fake-sudo' \
+            '# @brief Execute a command without privilege escalation.' \
+            '# @description' \
+            '#   Removes the environment-preservation option used by install scripts.' \
+            'if [[ "${1:-}" == --preserve-env=* ]]; then' \
+            '    shift' \
+            'fi' \
+            'exec "$@"' > "${test_bin}/sudo"
           chmod 755 "${test_bin}" "${test_bin}/sudo"
+          chown -R bats:bats "${GITHUB_WORKSPACE}"
+          printf 'TEST_BIN=%s\n' "${test_bin}" >> "${GITHUB_ENV}"
+
+      - name: Run `shfmt`
+        run: shfmt -i 4 -sr -d .
+
+      - name: Run Python unit tests
+        run: |
           setpriv --reuid=bats --regid=bats --init-groups \
-            env "PATH=${test_bin}:${PATH}" bats -r tests/install/rocky
+            env "PATH=${TEST_BIN}:${PATH}" \
+            python3 -m unittest discover -s tests/python
+
+      - name: Run shell unit tests with coverage
+        run: |
+          setpriv --reuid=bats --regid=bats --init-groups \
+            env \
+            "PATH=${TEST_BIN}:${PATH}" \
+            "BASHCOV_COMMAND_NAME=unit-test-container-${TARGET_OS}" \
+            bashcov --skip-uncovered --root . -- ./scripts/run_unit_test.sh
+
+      - name: Check coverage report
+        id: coverage-report
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        run: |
+          if [ -f ./coverage/coverage.xml ]; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+            echo "::warning::coverage/coverage.xml was not generated; skipping Codecov upload."
+          fi
+
+      - name: Upload coverage to Codecov
+        if: ${{ github.actor != 'dependabot[bot]' && steps.coverage-report.outputs.exists == 'true' }}
+        uses: codecov/codecov-action@v7
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: ./coverage/coverage.xml
+          disable_search: true
+          env_vars: OS,SYSTEM
+          fail_ci_if_error: true
+          flags: ${{ env.CODECOV_FLAGS }}
+          name: ${{ env.CODECOV_NAME }}
+          verbose: true

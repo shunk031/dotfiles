@@ -49,8 +49,7 @@ renovate = json.loads(renovate_path.read_text(encoding="utf-8"))
 mise_text = mise_path.read_text(encoding="utf-8")
 renovate_text = json.dumps(renovate)
 
-# fnox is deliberately absent: it stores credentials, so it keeps the cooling-off period
-# instead of taking the day-zero updates the rest of the agent tooling gets. mise.bats
+# fnox is absent on purpose: it stores credentials, so it keeps the wait. mise.bats
 # covers that mise still pins it.
 expected_dep_names = [
     "herdr",
@@ -88,7 +87,13 @@ codex_rule = next(
     and rule.get("matchDepNames") == ["aqua:openai/codex"]
     and "extractVersion" in rule
 )
+excludes_match = re.search(
+    r"^minimum_release_age_excludes\s*=\s*\[(?P<body>[^\]]*)\]",
+    mise_text,
+    re.MULTILINE,
+)
 
+assert excludes_match is not None
 assert configured_dep_names == set(expected_dep_names)
 assert configured_agents["claude-code"].startswith("aqua:")
 assert configured_agents["antigravity-cli"].startswith("aqua:")
@@ -97,6 +102,10 @@ assert agent_rule["matchManagers"] == ["mise"]
 assert agent_rule["matchDepNames"] == expected_dep_names
 assert "fnox" not in agent_rule["matchDepNames"]
 assert agent_rule["minimumReleaseAge"] == "0 days"
+assert re.findall(r'"([^"]+)"', excludes_match.group("body")) == expected_dep_names, (
+    "minimum_release_age_excludes must mirror the day-zero group, or mise refuses to "
+    "install what Renovate pins"
+)
 assert mise_rule_index < agent_rule_index
 
 assert "matchPackageNames" not in agent_rule
@@ -109,64 +118,6 @@ python_pattern = codex_rule["extractVersion"].replace("(?<version>", "(?P<versio
 match = re.fullmatch(python_pattern, "rust-v0.146.0")
 assert match is not None
 assert match.group("version") == "0.146.0"
-PYTHON
-
-    [ "${status}" -eq 0 ]
-}
-
-@test "[common] mise exempts day-zero agent tooling from the release-age policy" {
-    run python3 - "${RENOVATE_CONFIG_PATH}" "${MISE_CONFIG_PATH}" << 'PYTHON'
-import json
-import re
-import sys
-from pathlib import Path
-
-renovate_path, mise_path = map(Path, sys.argv[1:])
-renovate = json.loads(renovate_path.read_text(encoding="utf-8"))
-mise_text = mise_path.read_text(encoding="utf-8")
-
-agent_rule = next(
-    rule
-    for rule in renovate["packageRules"]
-    if rule.get("groupName") == "agent tooling"
-)
-
-excludes_match = re.search(
-    r"^minimum_release_age_excludes\s*=\s*\[(?P<body>[^\]]*)\]",
-    mise_text,
-    re.MULTILINE,
-)
-mise_age_match = re.search(
-    r'^minimum_release_age\s*=\s*"(?P<value>[^"]+)"',
-    mise_text,
-    re.MULTILINE,
-)
-
-
-def to_days(value):
-    match = re.fullmatch(r"(?P<count>\d+)\s*(?P<unit>d|days?|w|weeks?)", value.strip())
-    assert match is not None, f"unsupported release-age duration: {value!r}"
-    count = int(match.group("count"))
-    return count * 7 if match.group("unit").startswith("w") else count
-
-
-assert agent_rule["minimumReleaseAge"] == "0 days"
-assert excludes_match is not None
-assert mise_age_match is not None
-assert re.findall(r'"([^"]+)"', excludes_match.group("body")) == (
-    agent_rule["matchDepNames"]
-), (
-    "minimum_release_age_excludes must mirror the Renovate agent tooling group; "
-    "otherwise mise refuses to install the day-zero versions Renovate pins"
-)
-
-# Renovate measures age from the release timestamp, mise from the packslip
-# transparency log entry, which is always later. Equal waits let Renovate pin a
-# version mise still refuses, so Renovate has to wait strictly longer.
-assert to_days(renovate["minimumReleaseAge"]) > to_days(mise_age_match.group("value")), (
-    "Renovate minimumReleaseAge must be strictly longer than the mise "
-    "minimum_release_age setting"
-)
 PYTHON
 
     [ "${status}" -eq 0 ]

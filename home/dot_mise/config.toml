@@ -75,11 +75,8 @@ idiomatic_version_file_enable_tools = ["python"]
 
 # Release policy: wait before adopting new releases, except for fast-moving agent CLIs.
 minimum_release_age = "7d"
-# Keep this list identical to the `agent tooling` group in `.github/renovate.json`:
-# that group pins on release day, so anything Renovate lists there but that is missing
-# here stays refused until the cutoff passes. `fnox` is intentionally absent — it stores
-# credentials, so it keeps the cooling-off period, which signature verification cannot
-# replace.
+# Keep identical to the `agent tooling` group in `.github/renovate.json`, which pins on
+# release day. `fnox` is absent on purpose: it stores credentials, so it keeps the wait.
 minimum_release_age_excludes = [
   "herdr",
   "aqua:anthropics/claude-code",

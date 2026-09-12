@@ -30,11 +30,11 @@ readonly COMMAND_PACKAGES=(
 )
 
 #
-# @description Run DNF as root or through sudo while preserving proxy variables.
+# @description Run DNF through sudo when available while preserving proxy variables.
 # @arg $@ string Arguments passed to DNF.
 #
 function run_dnf() {
-    if [ "${EUID}" -eq 0 ]; then
+    if ! command -v sudo > /dev/null 2>&1; then
         dnf "$@"
         return
     fi

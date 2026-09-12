@@ -258,7 +258,7 @@ jobs:
             dnf install -y epel-release
             dnf install -y 'dnf-command(config-manager)'
             dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
-            dnf install -y bats gh jq make parallel python3 ruby util-linux
+            dnf install -y bats gh jq make parallel python3 ruby sudo util-linux
             bash ./install/rocky/common/dependencies.sh
             rpm -q pinentry
             test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"

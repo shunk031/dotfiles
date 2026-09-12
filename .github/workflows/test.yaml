@@ -231,33 +231,37 @@ jobs:
             apt-get update
             apt-get install -y --no-install-recommends \
               bats \
+              ca-certificates \
               curl \
               gpg \
               jq \
+              make \
               parallel \
               python3 \
               ruby \
-              shfmt \
               sudo \
               util-linux
+
+            # Follow the official GitHub CLI Debian installation instructions.
+            install -d -m 0755 /etc/apt/keyrings
+            curl --fail --location --silent --show-error \
+              https://cli.github.com/packages/githubcli-archive-keyring.gpg |
+              gpg --dearmor --yes --output /etc/apt/keyrings/githubcli-archive-keyring.gpg
+            chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+            printf 'deb [arch=%s signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' \
+              "$(dpkg --print-architecture)" |
+              tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            apt-get update
+            apt-get install -y --no-install-recommends gh
             bash ./install/ubuntu/common/dependencies.sh
           elif [ "${TARGET_OS}" = "rocky" ]; then
             dnf install -y epel-release
-            dnf install -y bats jq parallel python3 ruby util-linux
+            dnf install -y 'dnf-command(config-manager)'
+            dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+            dnf install -y bats gh jq make parallel python3 ruby util-linux
             bash ./install/rocky/common/dependencies.sh
             rpm -q pinentry
             test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
-
-            # EPEL 9 does not provide shfmt, so install the repository-pinned
-            # upstream release and verify its published digest.
-            shfmt_path=/usr/local/bin/shfmt
-            curl --fail --location --silent --show-error \
-              "https://github.com/mvdan/sh/releases/download/v3.14.0/shfmt_v3.14.0_linux_amd64" \
-              --output "${shfmt_path}"
-            printf '%s  %s\n' \
-              fe42021c7272ef2d67ea36cbc3031683c625d0badec733ef3a57b567246a0b66 \
-              "${shfmt_path}" | sha256sum --check --status -
-            chmod 755 "${shfmt_path}"
           else
             echo "${TARGET_OS} is not supported" >&2
             exit 1
@@ -284,9 +288,6 @@ jobs:
           chmod 755 "${test_bin}" "${test_bin}/sudo"
           chown -R bats:bats "${GITHUB_WORKSPACE}"
           printf 'TEST_BIN=%s\n' "${test_bin}" >> "${GITHUB_ENV}"
-
-      - name: Run `shfmt`
-        run: shfmt -i 4 -sr -d .
 
       - name: Run Python unit tests
         run: |

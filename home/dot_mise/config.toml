@@ -73,7 +73,13 @@ sqlite = "3.53.4"
 idiomatic_version_file_enable_tools = ["python"]
 minimum_release_age = "7d"
 ruby.compile = false
+# Keep this list identical to the `agent tooling` group in `.github/renovate.json`.
+# That group carries `minimumReleaseAge: "0 days"`, so Renovate pins these tools on
+# release day; anything missing here is then refused by `minimum_release_age` until
+# the cutoff passes.
 minimum_release_age_excludes = [
+  "fnox",
+  "herdr",
   "aqua:anthropics/claude-code",
   "aqua:google-antigravity/antigravity-cli",
   "aqua:openai/codex",

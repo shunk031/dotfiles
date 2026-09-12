@@ -112,6 +112,43 @@ PYTHON
     [ "${status}" -eq 0 ]
 }
 
+@test "[common] mise exempts day-zero agent tooling from the release-age policy" {
+    run python3 - "${RENOVATE_CONFIG_PATH}" "${MISE_CONFIG_PATH}" << 'PYTHON'
+import json
+import re
+import sys
+from pathlib import Path
+
+renovate_path, mise_path = map(Path, sys.argv[1:])
+renovate = json.loads(renovate_path.read_text(encoding="utf-8"))
+mise_text = mise_path.read_text(encoding="utf-8")
+
+agent_rule = next(
+    rule
+    for rule in renovate["packageRules"]
+    if rule.get("groupName") == "agent tooling"
+)
+
+excludes_match = re.search(
+    r"^minimum_release_age_excludes\s*=\s*\[(?P<body>[^\]]*)\]",
+    mise_text,
+    re.MULTILINE,
+)
+
+assert re.search(r'^minimum_release_age\s*=\s*"', mise_text, re.MULTILINE)
+assert agent_rule["minimumReleaseAge"] == "0 days"
+assert excludes_match is not None
+assert re.findall(r'"([^"]+)"', excludes_match.group("body")) == (
+    agent_rule["matchDepNames"]
+), (
+    "minimum_release_age_excludes must mirror the Renovate agent tooling group; "
+    "otherwise mise refuses to install the day-zero versions Renovate pins"
+)
+PYTHON
+
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] Renovate does not raise the minimum compatible mise version" {
     run python3 - "${RENOVATE_CONFIG_PATH}" << 'PYTHON'
 import json

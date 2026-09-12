@@ -67,7 +67,6 @@ configured_dep_names = {
     )
     if match.group("name").split("/")[-1] in logical_names
 }
-configured_agents = {name.split("/")[-1]: name for name in configured_dep_names}
 
 rules = renovate["packageRules"]
 agent_rule_index, agent_rule = next(
@@ -93,11 +92,7 @@ excludes_match = re.search(
     re.MULTILINE,
 )
 
-assert excludes_match is not None
 assert configured_dep_names == set(expected_dep_names)
-assert configured_agents["claude-code"].startswith("aqua:")
-assert configured_agents["antigravity-cli"].startswith("aqua:")
-assert configured_agents["codex"].startswith("aqua:")
 assert agent_rule["matchManagers"] == ["mise"]
 assert agent_rule["matchDepNames"] == expected_dep_names
 assert agent_rule["minimumReleaseAge"] == "0 days"

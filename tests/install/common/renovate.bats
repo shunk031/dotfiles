@@ -49,8 +49,7 @@ renovate = json.loads(renovate_path.read_text(encoding="utf-8"))
 mise_text = mise_path.read_text(encoding="utf-8")
 renovate_text = json.dumps(renovate)
 
-# fnox is absent on purpose: it stores credentials, so it keeps the wait. mise.bats
-# covers that mise still pins it.
+# fnox is excluded on purpose; see the mise config. mise.bats covers that it stays pinned.
 expected_dep_names = [
     "herdr",
     "aqua:anthropics/claude-code",

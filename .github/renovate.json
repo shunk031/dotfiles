@@ -4,7 +4,11 @@
   "dependencyDashboard": true,
   "labels": ["dependencies"],
   "branchPrefix": "renovate/",
-  "minimumReleaseAge": "7 days",
+  "description": [
+    "Keep minimumReleaseAge strictly longer than minimum_release_age in home/dot_mise/config.toml.",
+    "Renovate measures age from the release timestamp while mise measures it from the packslip transparency log entry, which is always later, so equal values let Renovate pin a version mise still refuses to install."
+  ],
+  "minimumReleaseAge": "8 days",
   "internalChecksFilter": "strict",
   "mise": {
     "managerFilePatterns": [
@@ -40,8 +44,12 @@
     },
     {
       "matchManagers": ["mise"],
+      "description": [
+        "Tools whose newest release is time-sensitive enough to skip the cooling-off period.",
+        "Every entry must also appear in minimum_release_age_excludes in home/dot_mise/config.toml, or mise refuses to install what Renovate pins here.",
+        "fnox is deliberately absent: it stores credentials, so it keeps the cooling-off period that signature and transparency log verification cannot replace."
+      ],
       "matchDepNames": [
-        "fnox",
         "herdr",
         "aqua:anthropics/claude-code",
         "aqua:google-antigravity/antigravity-cli",

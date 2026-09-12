@@ -49,14 +49,22 @@ renovate = json.loads(renovate_path.read_text(encoding="utf-8"))
 mise_text = mise_path.read_text(encoding="utf-8")
 renovate_text = json.dumps(renovate)
 
-expected_dep_names = [
+tracked_dep_names = [
     "fnox",
     "herdr",
     "aqua:anthropics/claude-code",
     "aqua:google-antigravity/antigravity-cli",
     "aqua:openai/codex",
 ]
-logical_names = {name.split("/")[-1] for name in expected_dep_names}
+# fnox stores credentials, so it keeps the cooling-off period instead of taking the
+# day-zero updates the rest of the agent tooling gets.
+day_zero_dep_names = [
+    "herdr",
+    "aqua:anthropics/claude-code",
+    "aqua:google-antigravity/antigravity-cli",
+    "aqua:openai/codex",
+]
+logical_names = {name.split("/")[-1] for name in tracked_dep_names}
 configured_dep_names = {
     match.group("name")
     for match in re.finditer(
@@ -87,13 +95,14 @@ codex_rule = next(
     and "extractVersion" in rule
 )
 
-assert configured_dep_names == set(expected_dep_names)
+assert configured_dep_names == set(tracked_dep_names)
 assert configured_agents["fnox"] == "fnox"
 assert configured_agents["claude-code"].startswith("aqua:")
 assert configured_agents["antigravity-cli"].startswith("aqua:")
 assert configured_agents["codex"].startswith("aqua:")
 assert agent_rule["matchManagers"] == ["mise"]
-assert agent_rule["matchDepNames"] == expected_dep_names
+assert agent_rule["matchDepNames"] == day_zero_dep_names
+assert "fnox" not in agent_rule["matchDepNames"]
 assert agent_rule["minimumReleaseAge"] == "0 days"
 assert mise_rule_index < agent_rule_index
 
@@ -134,15 +143,36 @@ excludes_match = re.search(
     mise_text,
     re.MULTILINE,
 )
+mise_age_match = re.search(
+    r'^minimum_release_age\s*=\s*"(?P<value>[^"]+)"',
+    mise_text,
+    re.MULTILINE,
+)
 
-assert re.search(r'^minimum_release_age\s*=\s*"', mise_text, re.MULTILINE)
+
+def to_days(value):
+    match = re.fullmatch(r"(?P<count>\d+)\s*(?P<unit>d|days?|w|weeks?)", value.strip())
+    assert match is not None, f"unsupported release-age duration: {value!r}"
+    count = int(match.group("count"))
+    return count * 7 if match.group("unit").startswith("w") else count
+
+
 assert agent_rule["minimumReleaseAge"] == "0 days"
 assert excludes_match is not None
+assert mise_age_match is not None
 assert re.findall(r'"([^"]+)"', excludes_match.group("body")) == (
     agent_rule["matchDepNames"]
 ), (
     "minimum_release_age_excludes must mirror the Renovate agent tooling group; "
     "otherwise mise refuses to install the day-zero versions Renovate pins"
+)
+
+# Renovate measures age from the release timestamp, mise from the packslip
+# transparency log entry, which is always later. Equal waits let Renovate pin a
+# version mise still refuses, so Renovate has to wait strictly longer.
+assert to_days(renovate["minimumReleaseAge"]) > to_days(mise_age_match.group("value")), (
+    "Renovate minimumReleaseAge must be strictly longer than the mise "
+    "minimum_release_age setting"
 )
 PYTHON
 

@@ -49,25 +49,16 @@ renovate = json.loads(renovate_path.read_text(encoding="utf-8"))
 mise_text = mise_path.read_text(encoding="utf-8")
 renovate_text = json.dumps(renovate)
 
-# Agent tooling mise pins, and the identifier each one is pinned under. Renovate reads
-# these names from the mise config, so a backend-prefixed rewrite would silently change
-# what its rules match.
-tracked_dep_names = [
-    "fnox",
+# fnox is deliberately absent: it stores credentials, so it keeps the cooling-off period
+# instead of taking the day-zero updates the rest of the agent tooling gets. mise.bats
+# covers that mise still pins it.
+expected_dep_names = [
     "herdr",
     "aqua:anthropics/claude-code",
     "aqua:google-antigravity/antigravity-cli",
     "aqua:openai/codex",
 ]
-# The subset that skips the cooling-off period. fnox stores credentials, so it keeps the
-# wait instead of taking the day-zero updates the rest of the agent tooling gets.
-day_zero_dep_names = [
-    "herdr",
-    "aqua:anthropics/claude-code",
-    "aqua:google-antigravity/antigravity-cli",
-    "aqua:openai/codex",
-]
-logical_names = {name.split("/")[-1] for name in tracked_dep_names}
+logical_names = {name.split("/")[-1] for name in expected_dep_names}
 configured_dep_names = {
     match.group("name")
     for match in re.finditer(
@@ -98,13 +89,12 @@ codex_rule = next(
     and "extractVersion" in rule
 )
 
-assert configured_dep_names == set(tracked_dep_names)
-assert configured_agents["fnox"] == "fnox"
+assert configured_dep_names == set(expected_dep_names)
 assert configured_agents["claude-code"].startswith("aqua:")
 assert configured_agents["antigravity-cli"].startswith("aqua:")
 assert configured_agents["codex"].startswith("aqua:")
 assert agent_rule["matchManagers"] == ["mise"]
-assert agent_rule["matchDepNames"] == day_zero_dep_names
+assert agent_rule["matchDepNames"] == expected_dep_names
 assert "fnox" not in agent_rule["matchDepNames"]
 assert agent_rule["minimumReleaseAge"] == "0 days"
 assert mise_rule_index < agent_rule_index

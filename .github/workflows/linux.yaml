@@ -11,9 +11,12 @@ on:
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
       - "install/ubuntu/**"
+      - "install/rocky/**"
+      - "home/.chezmoiscripts/rocky/**"
       - ".chezmoiscripts/ubuntu/**"
       - "dot_tmux.conf.d/os/ubuntu.conf"
       - "tests/install/ubuntu/**"
+      - "tests/install/rocky/**"
 
   pull_request:
     branches: [main]
@@ -25,9 +28,12 @@ on:
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
       - "install/ubuntu/**"
+      - "install/rocky/**"
+      - "home/.chezmoiscripts/rocky/**"
       - ".chezmoiscripts/ubuntu/**"
       - "dot_tmux.conf.d/os/ubuntu.conf"
       - "tests/install/ubuntu/**"
+      - "tests/install/rocky/**"
 
 permissions:
   contents: read

@@ -80,6 +80,7 @@ jobs:
       # Export matrix values to shell scripts so existing test helpers can use
       # simple `OS`/`SYSTEM` checks without depending on GitHub expression syntax.
       OS: ${{ matrix.os }}
+      TARGET_OS: ${{ matrix.os }}
       SYSTEM: ${{ matrix.system }}
       # Keep Codecov naming deterministic per job. This makes it easy to trace
       # upload sessions in Codecov API/UI and avoids accidental session overlap.
@@ -192,27 +193,110 @@ jobs:
           name: ${{ env.CODECOV_NAME }}
           verbose: true
 
-  rocky:
+  container:
     needs: changes
     if: ${{ needs.changes.outputs.should_test == 'true' }}
+    strategy:
+      matrix:
+        include:
+          - target_os: ubuntu
+            image: ubuntu:26.04
+          - target_os: rocky
+            image: rockylinux/rockylinux:9
+
     runs-on: ubuntu-latest
     container:
-      image: rockylinux/rockylinux:9
+      image: ${{ matrix.image }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      OS: ${{ matrix.target_os }}
+      TARGET_OS: ${{ matrix.target_os }}
+      SYSTEM: server
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CODECOV_FLAGS: container-${{ matrix.target_os }}
+      CODECOV_NAME: codecov-dotfiles-container-${{ matrix.target_os }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Run Rocky Linux smoke tests
+      - name: Install test tools
         run: |
-          dnf install -y epel-release
-          dnf install -y bats
-          bash ./install/rocky/common/dependencies.sh
-          rpm -q pinentry
-          test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
-          useradd --create-home --shell /bin/bash bats
-          test_bin="$(mktemp -d)"
-          printf '%s\n' '#!/usr/bin/env bash' 'exec "$@"' > "${test_bin}/sudo"
-          chmod 755 "${test_bin}" "${test_bin}/sudo"
-          setpriv --reuid=bats --regid=bats --init-groups \
-            env "PATH=${test_bin}:${PATH}" bats -r tests/install/rocky
+          set -Eeuo pipefail
+
+          if [ "${TARGET_OS}" = "ubuntu" ]; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y --no-install-recommends \
+              bats \
+              ca-certificates \
+              curl \
+              gpg \
+              jq \
+              parallel \
+              python3 \
+              ruby \
+              sudo \
+              util-linux
+
+            # Follow the official GitHub CLI Debian installation instructions.
+            install -d -m 0755 /etc/apt/keyrings
+            curl --fail --location --silent --show-error \
+              https://cli.github.com/packages/githubcli-archive-keyring.gpg |
+              gpg --dearmor --yes --output /etc/apt/keyrings/githubcli-archive-keyring.gpg
+            chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+            printf 'deb [arch=%s signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' \
+              "$(dpkg --print-architecture)" |
+              tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            apt-get update
+            apt-get install -y --no-install-recommends gh
+            bash ./install/ubuntu/common/dependencies.sh
+          elif [ "${TARGET_OS}" = "rocky" ]; then
+            dnf install -y epel-release
+            dnf install -y 'dnf-command(config-manager)'
+            dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+            dnf install -y bats gh jq parallel python3 ruby sudo util-linux
+            bash ./install/rocky/common/dependencies.sh
+            rpm -q pinentry
+            test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
+          else
+            echo "${TARGET_OS} is not supported" >&2
+            exit 1
+          fi
+
+          gem install --no-document bashcov simplecov-cobertura
+
+      - name: Run Python unit tests
+        run: python3 -m unittest discover -s tests/python
+
+      - name: Run shell unit tests with coverage
+        run: |
+          BASHCOV_COMMAND_NAME="unit-test-container-${TARGET_OS}" \
+            bashcov --skip-uncovered --root . -- ./scripts/run_unit_test.sh
+
+      - name: Check coverage report
+        id: coverage-report
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        run: |
+          if [ -f ./coverage/coverage.xml ]; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+            echo "::warning::coverage/coverage.xml was not generated; skipping Codecov upload."
+          fi
+
+      - name: Upload coverage to Codecov
+        if: ${{ github.actor != 'dependabot[bot]' && steps.coverage-report.outputs.exists == 'true' }}
+        uses: codecov/codecov-action@v7
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: ./coverage/coverage.xml
+          disable_search: true
+          env_vars: OS,SYSTEM
+          fail_ci_if_error: true
+          flags: ${{ env.CODECOV_FLAGS }}
+          name: ${{ env.CODECOV_NAME }}
+          verbose: true

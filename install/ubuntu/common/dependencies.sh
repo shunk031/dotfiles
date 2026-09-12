@@ -16,11 +16,14 @@ readonly PACKAGES=(
     busybox
     cmake
     curl
+    gcc
+    g++
     git
     gpg
     htop
     iproute2
     iputils-ping
+    make
     sudo
     unzip
     vim

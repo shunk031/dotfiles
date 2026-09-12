@@ -100,7 +100,6 @@ assert configured_agents["antigravity-cli"].startswith("aqua:")
 assert configured_agents["codex"].startswith("aqua:")
 assert agent_rule["matchManagers"] == ["mise"]
 assert agent_rule["matchDepNames"] == expected_dep_names
-assert "fnox" not in agent_rule["matchDepNames"]
 assert agent_rule["minimumReleaseAge"] == "0 days"
 assert re.findall(r'"([^"]+)"', excludes_match.group("body")) == expected_dep_names, (
     "minimum_release_age_excludes must mirror the day-zero group, or mise refuses to "

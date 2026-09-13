@@ -52,10 +52,9 @@ jobs:
           set -Eeuo pipefail
           export DEBIAN_FRONTEND=noninteractive
 
-          # Install only tools needed to bootstrap setup.sh and reach the repository dependencies.
+          # These tools are present on a stock Ubuntu install but stripped from the slim image.
           apt-get update
           apt-get install -y --no-install-recommends \
-            bats \
             ca-certificates \
             curl \
             git \
@@ -124,10 +123,9 @@ jobs:
           set -Eeuo pipefail
           export DEBIAN_FRONTEND=noninteractive
 
-          # Install only tools needed to bootstrap setup.sh and reach the repository dependencies.
+          # These tools are present on a stock Ubuntu install but stripped from the slim image.
           apt-get update
           apt-get install -y --no-install-recommends \
-            bats \
             ca-certificates \
             curl \
             git \
@@ -195,11 +193,10 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          # Install only tools needed to bootstrap setup.sh and reach the repository dependencies.
-          dnf install -y epel-release
+          # These tools are present on a stock Rocky install but stripped from the slim image.
           dnf install -y \
-            bats \
             ca-certificates \
+            curl \
             git \
             openssh-clients \
             openssh-server \

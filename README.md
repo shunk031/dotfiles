@@ -49,25 +49,33 @@ Selecting `/docs` would stop serving the repository-root `setup.sh`.
 
 </details>
 
-### 💻 `MacOS` [![MacOS](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml)
+### 🖥️ `Ubuntu` [![Ubuntu](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml)
 
-- Configuration snippet of the Apple Silicon MacOS environment for client macnine:
-
-```console
-bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
-```
-
-![Screenshot of setup on MacOS Client machine](.github/screenshot-macos-client.png)
-
-### 🖥️ `Ubuntu / Rocky Linux` [![Linux](https://github.com/shunk031/dotfiles/actions/workflows/linux.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/linux.yaml)
-
-- Configuration snippet for Ubuntu client and server machines, and Rocky Linux server machines:
+- Configuration snippet for Ubuntu client and server machines:
 
 ```console
 bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 ```
 
 ![Screenshot of setup on Ubuntu Server machine](.github/screenshot-ubuntu-server.png)
+
+### 🪨 `Rocky Linux` [![Rocky Linux](https://github.com/shunk031/dotfiles/actions/workflows/rocky.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/rocky.yaml)
+
+- Configuration snippet for Rocky Linux server machines:
+
+```console
+bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
+```
+
+### 💻 `macOS` [![macOS](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml)
+
+- Configuration snippet of the Apple Silicon macOS environment for client machines:
+
+```console
+bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
+```
+
+![Screenshot of setup on macOS Client machine](.github/screenshot-macos-client.png)
 
 ### Minimal setup
 

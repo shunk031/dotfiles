@@ -66,11 +66,9 @@ export FZF_DEFAULT_OPTS="--reverse"
 # Keep PATH, environment, and mise hook registration synchronous so the first
 # prompt is ready for input. Defer only plugins that are safe to load later.
 # Syntax highlighting and autopairing affect the first keypress, while
-# autosuggestions and completions can initialize after the prompt.
-
-[plugins.zsh-syntax-highlighting]
-github = 'zsh-users/zsh-syntax-highlighting'
-apply = ['source']
+# autosuggestions and completions can initialize after the prompt. The syntax
+# highlighter is appended after every eager source plugin in the assembled
+# Sheldon template; deferred plugins are queued separately and run later.
 
 [plugins.zsh-autopair]
 github = 'hlissner/zsh-autopair'

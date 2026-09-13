@@ -3,10 +3,11 @@
 # @file home/dot_config/exact_shell/mise.zsh
 # @brief Expose mise shims and provide guarded Zsh activation.
 # @description
-#   Makes the standalone mise binary and mise shims available to every Zsh
-#   process, then provides system-specific activation for interactive startup.
-#   The activation guard uses the hook function or shim PATH as its source of
-#   truth so child Zsh processes do not inherit a stale exported marker.
+#   Makes the standalone mise binary available to every Zsh process and
+#   exposes mise shims to non-interactive Zsh, then provides system-specific
+#   activation for interactive startup. The activation guard uses the hook
+#   function or shim PATH as its source of truth so child Zsh processes do not
+#   inherit a stale exported marker.
 
 _mise_local_bin="${HOME%/}/.local/bin"
 _mise_bin="${_mise_local_bin}/mise"
@@ -18,10 +19,12 @@ if [[ -x "${_mise_bin}" ]]; then
     *) export PATH="${_mise_local_bin}:${PATH}" ;;
     esac
 
-    case ":${PATH}:" in
-    *:"${_mise_shims}":*) ;;
-    *) export PATH="${_mise_shims}:${PATH}" ;;
-    esac
+    if [[ ! -o interactive ]]; then
+        case ":${PATH}:" in
+        *:"${_mise_shims}":*) ;;
+        *) export PATH="${_mise_shims}:${PATH}" ;;
+        esac
+    fi
 fi
 
 # @description Activate mise once for the requested system startup mode.
@@ -32,6 +35,13 @@ function mise_zsh_activate() {
     local mode="${1:-}"
     local mise_bin="${HOME%/}/.local/bin/mise"
     local mise_shims="${HOME%/}/.local/share/mise/shims"
+
+    case "${mode}" in
+    client|server) ;;
+    *)
+        return 2
+        ;;
+    esac
 
     if [[ ! -x "${mise_bin}" ]]; then
         return 0
@@ -49,9 +59,6 @@ function mise_zsh_activate() {
             return 0
         fi
         eval "$(${mise_bin} activate zsh --shims)"
-        ;;
-    *)
-        return 2
         ;;
     esac
 }

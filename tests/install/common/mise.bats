@@ -11,6 +11,7 @@ readonly ZPROFILE_SOURCE="./home/dot_zprofile.tmpl"
 readonly SHELDON_COMMON_SOURCE="./home/dot_config/exact_sheldon/plugin_sources/common.toml"
 readonly SHELDON_CLIENT_SOURCE="./home/dot_config/exact_sheldon/plugin_sources/client/common.toml"
 readonly SHELDON_SERVER_SOURCE="./home/dot_config/exact_sheldon/plugin_sources/server.toml"
+readonly SHELDON_TEMPLATE_SOURCE="./home/dot_config/exact_sheldon/plugins.toml.tmpl"
 readonly MISE_SETUP_WORKFLOWS=(
     "./.github/workflows/e2e-ubuntu.yaml"
     "./.github/workflows/e2e-rockylinux.yaml"
@@ -247,6 +248,24 @@ function run_mise_zshenv_startup() {
     run env -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 ZDOTDIR="${HOME}" zsh -c "$1"
 }
 
+function render_sheldon_plugins() {
+    local system="$1"
+    local output_path="$2"
+
+    chezmoi --source "${PWD}" execute-template \
+        --override-data "{\"system\":\"${system}\"}" \
+        --file "${SHELDON_TEMPLATE_SOURCE}" > "${output_path}"
+}
+
+function render_zprofile() {
+    local system="$1"
+    local output_path="$2"
+
+    chezmoi --source "${PWD}" execute-template \
+        --override-data "{\"system\":\"${system}\"}" \
+        --file "${ZPROFILE_SOURCE}" > "${output_path}"
+}
+
 @test "[common] mise config declares a parseable top-level min_version" {
     run get_mise_min_version_from_config "${MISE_CONFIG_SOURCE}"
     [ "${status}" -eq 0 ]
@@ -365,7 +384,7 @@ function run_mise_zshenv_startup() {
     [ "${lines[1]}" = "1" ]
 }
 
-@test "[common] zshenv sources minimal mise startup after zshenv_private" {
+@test "[common] zshenv sources only the minimal mise startup" {
     write_mise_stub
     write_chezmoi_shim
     install_zshenv_sources
@@ -376,20 +395,35 @@ export PATH="${HOME}/private-bin:\${PATH}"
 EOF
 
     run_mise_zshenv_startup '
-        printf "%s\n" "${PATH}" | tr : "\n" | awk "NR <= 3"
+        printf "%s\n" "${PATH}" | tr : "\n" | awk "NR <= 2"
         command -v mise
         command -v chezmoi
         printf "%s\n" "${ZSHENV_PRIVATE_LOADED:-}"
-        printf "%s %s %s %s\n" "${+_zshenv_private}" "${+_zshenv_mise}" "${+_mise_bin}" "${+_mise_shims}"
+        printf "%s %s %s\n" "${+_zshenv_mise}" "${+_mise_bin}" "${+_mise_shims}"
     '
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "${HOME}/.local/share/mise/shims" ]
     [ "${lines[1]}" = "${HOME}/.local/bin" ]
-    [ "${lines[2]}" = "${HOME}/private-bin" ]
-    [ "${lines[3]}" = "${MISE_INSTALL_PATH}" ]
-    [ "${lines[4]}" = "${HOME}/.local/share/mise/shims/chezmoi" ]
-    [ "${lines[5]}" = "1" ]
-    [ "${lines[6]}" = "0 0 0 0" ]
+    [ "${lines[2]}" = "${MISE_INSTALL_PATH}" ]
+    [ "${lines[3]}" = "${HOME}/.local/share/mise/shims/chezmoi" ]
+    [ "${lines[4]}" = "" ]
+    [ "${lines[5]}" = "0 0 0" ]
+}
+
+@test "[common] invalid zsh activation mode fails before mise lookup" {
+    run_mise_zsh_startup '
+        source "'"${MISE_ZSH_SOURCE}"'"
+        mise_zsh_activate invalid
+    '
+    [ "${status}" -eq 2 ]
+
+    write_mise_stub
+    run_mise_zsh_startup '
+        source "'"${MISE_ZSH_SOURCE}"'"
+        mise_zsh_activate invalid
+    '
+    [ "${status}" -eq 2 ]
+    [ ! -s "${MISE_ZSH_CALLS_PATH}" ]
 }
 
 @test "[common] client mise activation is full, synchronous, and runs once" {
@@ -461,13 +495,46 @@ EOF
 }
 
 @test "[common] zsh startup keeps prompt-critical plugins eager" {
-    local content="$(< "${SHELDON_COMMON_SOURCE}")"
+    local content template
+
+    content="$(< "${SHELDON_COMMON_SOURCE}")"
+    template="$(< "${SHELDON_TEMPLATE_SOURCE}")"
 
     [[ "${content}" == *"Keep zle-critical plugins eager"* ]]
-    [[ "${content}" == *"zsh-syntax-highlighting"*"apply = ['source']"* ]]
+    [[ "${template}" == *"zsh-syntax-highlighting"*"apply = ['source']"* ]]
     [[ "${content}" == *"zsh-autopair"*"apply = ['source']"* ]]
     [[ "${content}" == *"zsh-autosuggestions"*"apply = ['defer']"* ]]
     [[ "${content}" == *"zsh-completions"*"apply = ['defer']"* ]]
+}
+
+@test "[common] syntax highlighting is the last eager plugin for client and server" {
+    local system rendered source_plugins last_index
+
+    for system in client server; do
+        rendered="${BATS_TEST_TMPDIR}/${system}-plugins.toml"
+        render_sheldon_plugins "${system}" "${rendered}"
+        mapfile -t source_plugins < <(
+            awk '
+                function emit() {
+                    if (plugin != "" && (apply == "" || apply ~ /source/)) {
+                        print plugin
+                    }
+                }
+                /^\[plugins\./ {
+                    emit()
+                    plugin = $0
+                    sub(/^\[plugins\./, "", plugin)
+                    sub(/\]$/, "", plugin)
+                    apply = ""
+                    next
+                }
+                /^apply[[:space:]]*=/ { apply = $0; next }
+                END { emit() }
+            ' "${rendered}"
+        )
+        last_index=$((${#source_plugins[@]} - 1))
+        [ "${source_plugins[$last_index]}" = "zsh-syntax-highlighting" ]
+    done
 }
 
 @test "[common] mise activation is split between client and server Sheldon sources" {
@@ -490,6 +557,37 @@ EOF
 
     run grep -F 'mise_zsh_activate client' "${ZPROFILE_SOURCE}"
     [ "${status}" -eq 0 ]
+}
+
+@test "[common] rendered zprofile and Sheldon inline activation run mise once" {
+    local system rendered mode expected expected_call
+
+    for system in client server; do
+        rendered="${HOME}/.zprofile"
+        render_zprofile "${system}" "${rendered}"
+        mkdir -p "${HOME}/.config/shell"
+        cp "${MISE_ZSH_SOURCE}" "${HOME}/.config/shell/mise.zsh"
+        rm -f "${MISE_ZSH_CALLS_PATH}"
+        write_mise_stub
+
+        if [ "${system}" = client ]; then
+            mode="client"
+            expected="full"
+            expected_call="activate zsh"
+        else
+            mode="server"
+            expected="shims"
+            expected_call="activate zsh --shims"
+        fi
+
+        run env -u ZDOTDIR -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 \
+            HOME="${HOME}" MISE_ZSH_CALLS_PATH="${MISE_ZSH_CALLS_PATH}" \
+            zsh -d -l -i -c "mise_zsh_activate ${mode}; print \"\${MISE_ACTIVATION_MODE}\""
+        [ "${status}" -eq 0 ]
+        [ "${output}" = "${expected}" ]
+        [ "$(wc -l < "${MISE_ZSH_CALLS_PATH}")" -eq 1 ]
+        [ "$(< "${MISE_ZSH_CALLS_PATH}")" = "${expected_call}" ]
+    done
 }
 
 @test "[common] get_mise_min_version_from_config reads top-level min_version" {

@@ -44,7 +44,7 @@ To set up the dotfiles run the appropriate snippet in the terminal.
 <summary>About the hosted <code>setup.sh</code> snippet</summary>
 
 The `curl` and `wget` snippets below download `setup.sh` from GitHub Pages.
-To keep `http://shunk031.me/dotfiles/setup.sh` and `https://shunk031.me/dotfiles/setup.sh` working, `Settings > Pages` must publish from the branch that contains `setup.sh` and use `/(root)` as the source folder.
+To keep `https://shunk031.me/dotfiles/setup.sh` working, `Settings > Pages` must publish from the branch that contains `setup.sh` and use `/(root)` as the source folder.
 Selecting `/docs` would stop serving the repository-root `setup.sh`.
 
 </details>
@@ -54,7 +54,7 @@ Selecting `/docs` would stop serving the repository-root `setup.sh`.
 - Configuration snippet of the Apple Silicon macOS environment for client machines:
 
 ```console
-bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
+bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 ```
 
 ![Screenshot of setup on macOS Client machine](.github/screenshot-macos-client.png)

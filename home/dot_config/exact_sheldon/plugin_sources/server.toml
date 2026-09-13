@@ -20,6 +20,15 @@ zsh-defer _server_path
 '''
 
 #
+# Mise for managing multiple versions of tools
+#
+
+[plugins.mise]
+# Servers use shims-only activation: measured full activation costs ~40 ms at startup and ~6-7 ms per prompt (same on starship and p10k), shims cost ~2 ms at startup and nothing per prompt.
+# The price is that mise's per-project [env] auto-export does not apply on servers.
+inline = 'mise_zsh_activate server'
+
+#
 # Prompt for Server Machine
 #
 

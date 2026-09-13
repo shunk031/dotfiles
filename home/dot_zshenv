@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+
+# @file home/dot_zshenv
+# @brief Load minimal mise startup for every Zsh process.
+# @description
+#   Exposes mise and its shims without loading private environment variables,
+#   interactive plugins, or prompt configuration.
+
+_zshenv_mise="${HOME}/.config/shell/mise.zsh"
+
+if [[ -r "${_zshenv_mise}" ]]; then
+    source "${_zshenv_mise}"
+fi
+
+unset _zshenv_mise

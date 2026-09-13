@@ -1,0 +1,6 @@
+# zsh-syntax-highlighting must be the last eagerly sourced plugin so it can
+# wrap every widget and hook defined by the eager plugins above. Deferred
+# plugins remain queued for later initialization by zsh-defer.
+[plugins.zsh-syntax-highlighting]
+github = 'zsh-users/zsh-syntax-highlighting'
+apply = ['source']

@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+
+# @file home/dot_zprofile.tmpl
+# @brief Select the server shim or client mise activation mode.
+
+if (( ! ${+functions[mise_zsh_activate]} )); then
+    _zprofile_mise="${HOME}/.config/shell/mise.zsh"
+    if [[ -r "${_zprofile_mise}" ]]; then
+        source "${_zprofile_mise}"
+    fi
+    unset _zprofile_mise
+fi
+
+{{- if eq .system "server" }}
+if (( ${+functions[mise_zsh_activate]} )); then
+    mise_zsh_activate server
+fi
+{{- else }}
+if (( ${+functions[mise_zsh_activate]} )); then
+    mise_zsh_activate client
+fi
+{{- end }}

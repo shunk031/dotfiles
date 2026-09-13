@@ -22,6 +22,10 @@ zsh-defer _client_path
 # Prompt for Client Machine
 #
 
+[plugins.mise]
+# Clients keep full activation so per-project [env] and exact PATH work; the ~6-7 ms per-prompt hook cost is accepted.
+inline = 'mise_zsh_activate client'
+
 [plugins.powerlevel10k]
 github = "romkatv/powerlevel10k"
 

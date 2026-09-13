@@ -128,6 +128,11 @@ jobs:
 
           # User gems keep bashcov available without modifying system Ruby.
           gem install --user-install --no-document bashcov simplecov-cobertura
+
+          # Template tests render with the same chezmoi version the dotfiles pin.
+          install -d "${HOME}/.local/bin"
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -t v2.72.1 -b "${HOME}/.local/bin"
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
           echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
 
       - name: Run Python unit tests
@@ -234,6 +239,11 @@ jobs:
           # Install bashcov and its Cobertura formatter for shell coverage.
           gem install --no-document bashcov simplecov-cobertura
 
+          # Template tests render with the same chezmoi version the dotfiles pin.
+          install -d "${HOME}/.local/bin"
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -t v2.72.1 -b "${HOME}/.local/bin"
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: python3 -m unittest discover -s tests/python
@@ -271,7 +281,11 @@ jobs:
     # Run Rocky Linux unit tests inside the official image so runner-
     # preinstalled tools cannot mask missing dependencies.
     runs-on: ubuntu-latest
-    container: rockylinux/rockylinux:9
+    # The Rocky image omits PATH from its image environment. The runner uses
+    # that value when adding GITHUB_PATH entries for later container steps.
+    container:
+      image: rockylinux/rockylinux:9
+      options: --env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     defaults:
       run:
         shell: bash
@@ -326,6 +340,11 @@ jobs:
 
           # Install bashcov and its Cobertura formatter for shell coverage.
           gem install --no-document bashcov simplecov-cobertura
+
+          # Template tests render with the same chezmoi version the dotfiles pin.
+          install -d "${HOME}/.local/bin"
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -t v2.72.1 -b "${HOME}/.local/bin"
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
 
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}

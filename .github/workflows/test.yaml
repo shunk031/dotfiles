@@ -62,6 +62,29 @@ jobs:
             echo "should_test=false" >> "${GITHUB_OUTPUT}"
           fi
 
+  # Formatting is distribution-independent, so run shfmt once on the runner.
+  shfmt:
+    needs: changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Skip full unit test run for unrelated changes
+        if: ${{ needs.changes.outputs.should_test != 'true' }}
+        run: |
+          # Keep this required job reporting a final status for every PR.
+          echo "No unit-test-relevant files changed."
+          echo "Compared diff range: ${{ needs.changes.outputs.diff_range }}"
+
+      - name: Run `shfmt`
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        uses: reviewdog/action-shfmt@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          shfmt_flags: -i 4 -sr -d
+
   macos:
     needs: changes
     # Run unit tests on the macOS runner because GitHub Actions does not
@@ -106,14 +129,6 @@ jobs:
           # User gems keep bashcov available without modifying system Ruby.
           gem install --user-install --no-document bashcov simplecov-cobertura
           echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
-
-      - name: Run `shfmt`
-        if: ${{ needs.changes.outputs.should_test == 'true' }}
-        uses: reviewdog/action-shfmt@v1
-        with:
-          # Run the distribution-independent formatter once on the runner.
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          shfmt_flags: -i 4 -sr -d
 
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}

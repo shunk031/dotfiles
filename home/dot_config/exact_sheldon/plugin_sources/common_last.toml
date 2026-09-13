@@ -1,16 +1,11 @@
-# Reuse a dump newer than one day; older dumps get a full security and freshness check.
+# Keep EXTENDED_GLOB local; no global setting exists in the managed Zsh config.
 [plugins.compinit]
 inline = '''
 () {
     setopt localoptions extendedglob
     autoload -Uz compinit
-    _compinit_dump="${ZDOTDIR:-$HOME}/.zcompdump"
-    if [[ -n ${_compinit_dump}(#qN.mh-24) ]]; then
-        compinit -C
-    else
-        compinit
-    fi
-    unset _compinit_dump
+    local dump="${ZDOTDIR:-$HOME}/.zcompdump"
+    [[ -n ${dump}(#qN.mh-24) ]] && compinit -C || compinit
 }
 '''
 

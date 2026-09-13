@@ -29,7 +29,7 @@ render_sheldon_plugins() {
         run grep -F "zsh-defer compinit" "${rendered}"
         [ "${status}" -ne 0 ]
 
-        run grep -c '^autoload -Uz compinit$' "${rendered}"
+        run grep -Ec '^[[:space:]]*autoload -Uz compinit$' "${rendered}"
         [ "${status}" -eq 0 ]
         [ "${output}" -eq 1 ]
 

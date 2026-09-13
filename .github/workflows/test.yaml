@@ -93,7 +93,6 @@ jobs:
     runs-on: macos-14
     env:
       # Keep the target label aligned with the existing macOS runner.
-      OS: macos-14
       TARGET_OS: macos-14
       CODECOV_FLAGS: macos
       CODECOV_NAME: codecov-dotfiles-macos
@@ -138,9 +137,12 @@ jobs:
       - name: Run shell unit tests with coverage
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          # Use Homebrew Bash for tracing on macOS and keep the coverage
-          # session name distinct from the Linux jobs.
-          bashcov_args=(--skip-uncovered --root . --bash-path /opt/homebrew/bin/bash)
+          # Keep the coverage session name distinct and skip files that are not
+          # reached by the selected Bats suites.
+          bashcov_args=(--skip-uncovered --root .)
+
+          # Use Homebrew Bash to avoid the system Bash 3.2 parser limitations.
+          bashcov_args+=(--bash-path /opt/homebrew/bin/bash)
           BASHCOV_COMMAND_NAME="unit-test-${TARGET_OS}" \
             bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
@@ -155,12 +157,11 @@ jobs:
           # Upload only the explicit report file generated in this workflow.
           # This prevents unexpected auto-discovery from old or temporary files.
           disable_search: true
-          env_vars: OS,TARGET_OS
+          env_vars: TARGET_OS
           fail_ci_if_error: true
           flags: ${{ env.CODECOV_FLAGS }}
           name: ${{ env.CODECOV_NAME }}
           verbose: true
-
   ubuntu:
     # Run after formatting so a failure stops all distribution test jobs.
     needs: [changes, shfmt]
@@ -173,7 +174,6 @@ jobs:
         shell: bash
     env:
       # Keep Codecov metadata tied to this distribution-specific job.
-      OS: ubuntu
       TARGET_OS: ubuntu
       CODECOV_FLAGS: ubuntu
       CODECOV_NAME: codecov-dotfiles-ubuntu
@@ -235,17 +235,16 @@ jobs:
 
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
-        run: |
-          # Keep Python coverage independent from the shell test harness.
-          python3 -m unittest discover -s tests/python
+        run: python3 -m unittest discover -s tests/python
 
       - name: Run shell unit tests with coverage
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
           # Keep the coverage session name distinct and skip files that are not
           # reached by the selected Bats suites.
+          bashcov_args=(--skip-uncovered --root .)
           BASHCOV_COMMAND_NAME="unit-test-${TARGET_OS}" \
-            bashcov --skip-uncovered --root . -- ./scripts/run_unit_test.sh
+            bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
       - name: Upload coverage to Codecov
         # A missing report skips this upload rather than failing the job.
@@ -258,12 +257,11 @@ jobs:
           # Upload only the explicit report file generated in this workflow.
           # This prevents unexpected auto-discovery from old or temporary files.
           disable_search: true
-          env_vars: OS,TARGET_OS
+          env_vars: TARGET_OS
           fail_ci_if_error: true
           flags: ${{ env.CODECOV_FLAGS }}
           name: ${{ env.CODECOV_NAME }}
           verbose: true
-
   rocky:
     # Run after formatting so a failure stops all distribution test jobs.
     needs: [changes, shfmt]
@@ -276,7 +274,6 @@ jobs:
         shell: bash
     env:
       # Keep Codecov metadata tied to this distribution-specific job.
-      OS: rocky
       TARGET_OS: rocky
       CODECOV_FLAGS: rocky
       CODECOV_NAME: codecov-dotfiles-rocky
@@ -329,16 +326,16 @@ jobs:
 
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
-        run: |
-          # Keep Python coverage independent from the shell test harness.
-          python3 -m unittest discover -s tests/python
+        run: python3 -m unittest discover -s tests/python
 
       - name: Run shell unit tests with coverage
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          # Keep the coverage session name distinct from the other OS jobs.
+          # Keep the coverage session name distinct and skip files that are not
+          # reached by the selected Bats suites.
+          bashcov_args=(--skip-uncovered --root .)
           BASHCOV_COMMAND_NAME="unit-test-${TARGET_OS}" \
-            bashcov --skip-uncovered --root . -- ./scripts/run_unit_test.sh
+            bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
       - name: Upload coverage to Codecov
         # A missing report skips this upload rather than failing the job.
@@ -351,7 +348,7 @@ jobs:
           # Upload only the explicit report file generated in this workflow.
           # This prevents unexpected auto-discovery from old or temporary files.
           disable_search: true
-          env_vars: OS,TARGET_OS
+          env_vars: TARGET_OS
           fail_ci_if_error: true
           flags: ${{ env.CODECOV_FLAGS }}
           name: ${{ env.CODECOV_NAME }}

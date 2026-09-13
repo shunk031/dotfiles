@@ -8,10 +8,15 @@ readonly SCRIPT_PATH="./install/rocky/server/setup_locale.sh"
 function run_setup_locale() {
     local initial_content="${1:-}"
     local available_locale="${2:-en_US.UTF-8}"
+    local config_state="${3:-present}"
 
     LOCALE_CONFIG_PATH="${BATS_TEST_TMPDIR}/locale.conf"
     CALLS_PATH="${BATS_TEST_TMPDIR}/setup_locale_calls.txt"
-    printf '%s' "${initial_content}" > "${LOCALE_CONFIG_PATH}"
+    if [ "${config_state}" = "missing" ]; then
+        rm -f "${LOCALE_CONFIG_PATH}"
+    else
+        printf '%s' "${initial_content}" > "${LOCALE_CONFIG_PATH}"
+    fi
     : > "${CALLS_PATH}"
 
     # shellcheck disable=SC2016
@@ -67,7 +72,7 @@ function run_setup_locale() {
 }
 
 @test "[rocky-server] setup_locale configures LANG when the locale already exists" {
-    run_setup_locale
+    run_setup_locale "" "en_US.UTF-8" "missing"
     [ "${status}" -eq 0 ]
 
     run cat "${CALLS_PATH}"

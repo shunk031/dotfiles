@@ -37,7 +37,7 @@ function mise_zsh_activate() {
     local mise_shims="${HOME%/}/.local/share/mise/shims"
 
     case "${mode}" in
-    client|server) ;;
+    client | server) ;;
     *)
         return 2
         ;;

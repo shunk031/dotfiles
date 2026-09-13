@@ -90,13 +90,12 @@ function configure_proxy_accept_env() {
     candidate_path="$(mktemp)"
     backup_path="${SSHD_CONFIG_PATH}.backup.$$"
     render_sshd_config > "${candidate_path}"
+    generate_host_keys
 
     if sudo cmp -s "${candidate_path}" "${SSHD_CONFIG_PATH}"; then
         rm -f "${candidate_path}"
         return 0
     fi
-
-    generate_host_keys
 
     if ! sudo "${SSHD_COMMAND}" -t -f "${candidate_path}"; then
         rm -f "${candidate_path}"

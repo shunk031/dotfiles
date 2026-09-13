@@ -35,32 +35,69 @@ function locale_is_configured() {
 }
 
 #
-# @description Write the target locale directly without requiring systemd.
+# @description Update only the LANG setting without requiring systemd.
 #
 function configure_locale() {
-    printf 'LANG=%s\n' "${TARGET}" | sudo tee "${LOCALE_CONFIG_PATH}" > /dev/null
+    local temporary_path
+
+    temporary_path="$(mktemp)"
+    if [ -f "${LOCALE_CONFIG_PATH}" ]; then
+        awk -v target="LANG=${TARGET}" '
+            /^LANG=/ {
+                if (!replaced) {
+                    print target
+                    replaced = 1
+                }
+                next
+            }
+
+            { print }
+
+            END {
+                if (!replaced) {
+                    print target
+                }
+            }
+        ' "${LOCALE_CONFIG_PATH}" > "${temporary_path}"
+    else
+        printf 'LANG=%s\n' "${TARGET}" > "${temporary_path}"
+    fi
+
+    sudo install -m 0644 "${temporary_path}" "${LOCALE_CONFIG_PATH}"
+    rm -f "${temporary_path}"
 }
 
 #
-# @description Install and select the target locale when it is unavailable.
+# @description Check whether the target locale is already generated.
+# @exitcode 0 When the target locale is available.
+# @exitcode 1 When the target locale is unavailable.
 #
-function main() {
+function locale_is_available() {
     local available_locale target_normalized
-
-    if locale_is_configured; then
-        return 0
-    fi
 
     target_normalized="$(normalize_locale "${TARGET}")"
     while IFS= read -r available_locale; do
         if [ "$(normalize_locale "${available_locale}")" = "${target_normalized}" ]; then
-            printf '%s already exists.\n' "${TARGET}"
             return 0
         fi
     done < <(locale -a 2> /dev/null)
 
-    sudo --preserve-env=http_proxy,https_proxy,no_proxy dnf install -y glibc-langpack-en
-    configure_locale
+    return 1
+}
+
+#
+# @description Install and configure the target locale when needed.
+#
+function main() {
+    if locale_is_available; then
+        printf '%s already exists.\n' "${TARGET}"
+    else
+        sudo --preserve-env=http_proxy,https_proxy,no_proxy dnf install -y glibc-langpack-en
+    fi
+
+    if ! locale_is_configured; then
+        configure_locale
+    fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

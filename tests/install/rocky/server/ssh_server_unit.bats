@@ -6,15 +6,18 @@ function setup() {
     export DOTFILES_SSHD_CONFIG_PATH="${BATS_TEST_TMPDIR}/sshd_config"
     export DOTFILES_SSHD_COMMAND=true
     export DOTFILES_SYSTEMCTL_COMMAND=true
+    export SSH_KEYGEN_CALLS_PATH="${BATS_TEST_TMPDIR}/ssh_keygen_calls.txt"
     printf '%s\n' \
         'Port 22' \
         'AcceptEnv LANG LC_*' \
         'Match User nobody' \
         '    X11Forwarding no' > "${DOTFILES_SSHD_CONFIG_PATH}"
+    : > "${SSH_KEYGEN_CALLS_PATH}"
 
     # shellcheck disable=SC2329
     function sudo() {
         if [ "$1" = "ssh-keygen" ]; then
+            printf '%s\n' "$*" >> "${SSH_KEYGEN_CALLS_PATH}"
             return 0
         fi
 
@@ -46,6 +49,10 @@ function setup() {
     ' _ "${SCRIPT_PATH}"
 
     [ "${status}" -eq 0 ]
+
+    run cat "${SSH_KEYGEN_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = $'ssh-keygen -A\nssh-keygen -A' ]
 }
 
 @test "[rocky-server] configure_proxy_accept_env leaves the original file when validation fails" {

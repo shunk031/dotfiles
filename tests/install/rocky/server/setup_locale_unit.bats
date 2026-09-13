@@ -52,16 +52,44 @@ function run_setup_locale() {
     [ "${output}" = "LANG=en_US.UTF-8" ]
 }
 
-@test "[rocky-server] setup_locale writes LANG when it is not configured" {
+@test "[rocky-server] setup_locale writes LANG when it generates the locale" {
     run_setup_locale "" "C"
     [ "${status}" -eq 0 ]
 
     run cat "${CALLS_PATH}"
     [ "${status}" -eq 0 ]
     [[ "${output}" == *"--preserve-env=http_proxy,https_proxy,no_proxy dnf install -y glibc-langpack-en"* ]]
-    [[ "${output}" == *"tee ${LOCALE_CONFIG_PATH}"* ]]
+    [[ "${output}" == *"install -m 0644 "* ]]
 
     run cat "${LOCALE_CONFIG_PATH}"
     [ "${status}" -eq 0 ]
     [ "${output}" = "LANG=en_US.UTF-8" ]
+}
+
+@test "[rocky-server] setup_locale configures LANG when the locale already exists" {
+    run_setup_locale
+    [ "${status}" -eq 0 ]
+
+    run cat "${CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [[ "${output}" != *"dnf install"* ]]
+    [[ "${output}" == *"install -m 0644 "* ]]
+
+    run cat "${LOCALE_CONFIG_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "LANG=en_US.UTF-8" ]
+}
+
+@test "[rocky-server] setup_locale preserves other locale settings when updating LANG" {
+    run_setup_locale $'LANG=C\nLC_TIME=ja_JP.UTF-8\n'
+    [ "${status}" -eq 0 ]
+
+    run cat "${CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [[ "${output}" != *"dnf install"* ]]
+    [[ "${output}" == *"install -m 0644 "* ]]
+
+    run cat "${LOCALE_CONFIG_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = $'LANG=en_US.UTF-8\nLC_TIME=ja_JP.UTF-8' ]
 }

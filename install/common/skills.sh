@@ -415,10 +415,49 @@ function skills_update_is_due() {
 }
 
 #
+# @description Remove skills named in the upstream-deletion warning from `skills update`.
+# @description
+#   Parse bullet lines only within the CLI's warning block. If the warning
+#   phrase is present but no skill names can be extracted, report the mismatch
+#   and continue without failing reconciliation. A failed removal is reported
+#   and does not stop later removals.
+# @arg $1 output string Complete output from `skills update`.
+# @stderr A warning when upstream deletions are advertised but none extracted,
+#   or when an individual removal fails.
+# @exitcode 0 Always; removal failures are reported and do not stop reconciliation.
+#
+function remove_upstream_deleted_skills() {
+    local output="$1" skill
+    local -a skills_to_remove=()
+
+    while IFS= read -r skill; do
+        [ -n "${skill}" ] || continue
+        skills_to_remove+=("${skill}")
+    done < <(
+        printf '%s\n' "${output}" |
+            sed -n '/^Warning: The following skills from .* appear to have been deleted upstream:$/,/^Skipping deletion in non-interactive mode\.$/s/^  • //p'
+    )
+
+    if [[ "${output}" == *"appear to have been deleted upstream"* ]] && [ "${#skills_to_remove[@]}" -eq 0 ]; then
+        echo "skills: upstream deletion warning found, but no skills could be extracted; check the skills CLI output" >&2
+    fi
+
+    [ "${#skills_to_remove[@]}" -gt 0 ] || return 0
+
+    for skill in "${skills_to_remove[@]}"; do
+        if ! skills_cli remove --skill "${skill}" --global --yes; then
+            echo "skills: could not remove ${skill}" >&2
+        fi
+    done
+}
+
+#
 # @description Rediscover repository subscriptions and update installed skills at most once per day.
 # @exitcode 0 Always; a failed update is reported and retried later.
 #
 function update_installed_skills() {
+    local output skill
+
     if ! skills_update_is_due; then
         return 0
     fi
@@ -428,10 +467,14 @@ function update_installed_skills() {
         return 0
     fi
 
-    if ! skills_cli update --global --yes; then
+    if ! output="$(NO_COLOR=1 skills_cli update --global --yes 2>&1)"; then
+        printf '%s\n' "${output}"
         echo "skills: update failed; the next apply retries" >&2
         return 0
     fi
+
+    printf '%s\n' "${output}"
+    remove_upstream_deleted_skills "${output}"
 
     mkdir -p "${SKILLS_STATE_DIR}"
     date +%s > "${SKILLS_UPDATE_STAMP}"

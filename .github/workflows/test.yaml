@@ -91,20 +91,23 @@ jobs:
       - name: Install tools
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          # Homebrew Bash avoids the system Bash 3.2 parser limitations.
-          brew install bash
-
-          # Bats and parallel are required by the shell test harness.
-          brew install bats-core parallel
+          # Homebrew Bash (>=5) avoids the system Bash 3.2 parser limitations
+          # that produced empty bashcov coverage; bats-core and parallel run
+          # the shell suite; gpg, jq, and curl are needed by codecov-action's
+          # uploader.
+          brew install \
+            bash \
+            bats-core \
+            parallel \
+            gpg \
+            jq \
+            curl
 
           # User gems keep bashcov available without modifying system Ruby.
           gem install --user-install --no-document bashcov simplecov-cobertura
 
           # Expose the user gem executables to later steps.
           echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
-
-          # Codecov uses these tools for uploader validation and signing.
-          brew install gpg jq curl
 
       - name: Run `shfmt`
         if: ${{ needs.changes.outputs.should_test == 'true' }}

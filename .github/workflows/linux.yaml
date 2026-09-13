@@ -162,10 +162,13 @@ jobs:
             source "${HOME}/.config/shell/mise.bash"
             cd "$(chezmoi source-path)/../"
             bats tests/files/common.bats
-            bats \
-              --filter-tags common,ubuntu:${SYSTEM} \
-              --print-output-on-failure \
-              tests/files/ubuntu.bats
+            # Ubuntu's package bats rejects empty suites; run the file when it has active tests.
+            if grep -qE "^[[:space:]]*@test[[:space:]]" tests/files/ubuntu.bats; then
+              bats \
+                --filter-tags common,ubuntu:${SYSTEM} \
+                --print-output-on-failure \
+                tests/files/ubuntu.bats
+            fi
           '
 
   ubuntu-server:
@@ -261,10 +264,13 @@ jobs:
             source "${HOME}/.config/shell/mise.bash"
             cd "$(chezmoi source-path)/../"
             bats tests/files/common.bats
-            bats \
-              --filter-tags common,ubuntu:${SYSTEM} \
-              --print-output-on-failure \
-              tests/files/ubuntu.bats
+            # Ubuntu's package bats rejects empty suites; run the file when it has active tests.
+            if grep -qE "^[[:space:]]*@test[[:space:]]" tests/files/ubuntu.bats; then
+              bats \
+                --filter-tags common,ubuntu:${SYSTEM} \
+                --print-output-on-failure \
+                tests/files/ubuntu.bats
+            fi
           '
 
   rocky-server:
@@ -349,7 +355,7 @@ jobs:
             HOME=/home/dotfiles \
             SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
             SYSTEM="${SYSTEM}" \
-            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - \"$1\")"' _ "${URL}"
+            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - "$1")"' _ "${URL}"
 
       - name: Test file existence
         env:

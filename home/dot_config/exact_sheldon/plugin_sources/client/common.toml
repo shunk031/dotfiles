@@ -23,6 +23,8 @@ zsh-defer _client_path
 #
 
 [plugins.mise]
+# Keep full activation on clients so per-project [env] and exact PATH work; accept the measured
+# 6-7 ms per-prompt hook cost on a Docker Ubuntu host on 2026-09-13.
 inline = 'mise_zsh_activate client'
 
 [plugins.powerlevel10k]

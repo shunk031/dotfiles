@@ -12,7 +12,12 @@ function setup() {
         'Match User nobody' \
         '    X11Forwarding no' > "${DOTFILES_SSHD_CONFIG_PATH}"
 
+    # shellcheck disable=SC2329
     function sudo() {
+        if [ "$1" = "ssh-keygen" ]; then
+            return 0
+        fi
+
         "$@"
     }
     export -f sudo

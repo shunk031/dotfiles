@@ -72,6 +72,13 @@ function render_sshd_config() {
 }
 
 #
+# @description Generate missing SSH host keys required by `sshd` validation.
+#
+function generate_host_keys() {
+    sudo ssh-keygen -A
+}
+
+#
 # @description Install, validate, and activate the proxy environment allowlist.
 # @stderr Validation or reload failures from sshd and systemctl.
 # @exitcode 0 When the active configuration contains the allowlist.
@@ -88,6 +95,8 @@ function configure_proxy_accept_env() {
         rm -f "${candidate_path}"
         return 0
     fi
+
+    generate_host_keys
 
     if ! sudo "${SSHD_COMMAND}" -t -f "${candidate_path}"; then
         rm -f "${candidate_path}"

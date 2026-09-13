@@ -193,6 +193,9 @@ jobs:
           apt-get install -y --no-install-recommends \
             bats \
             ca-certificates \
+            curl \
+            gpg \
+            jq \
             parallel \
             python3 \
             ruby \
@@ -202,11 +205,6 @@ jobs:
       - name: Install GitHub CLI
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          # Install the official repository prerequisites.
-          apt-get install -y --no-install-recommends \
-            curl \
-            gpg
-
           # Follow the official GitHub CLI Debian installation instructions.
           # The keyring lets APT verify packages from the GitHub CLI repository.
           install -d -m 0755 /etc/apt/keyrings
@@ -220,6 +218,8 @@ jobs:
             "$(dpkg --print-architecture)" |
             tee /etc/apt/sources.list.d/github-cli.list > /dev/null
           apt-get update
+
+          # Install the GitHub CLI after its repository is registered.
           apt-get install -y --no-install-recommends gh
 
       - name: Run the Ubuntu dependency script
@@ -231,9 +231,6 @@ jobs:
       - name: Install coverage tooling
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          # jq is required by Codecov uploader validation in this workflow.
-          apt-get install -y --no-install-recommends jq
-
           # Install bashcov and its Cobertura formatter for shell coverage.
           gem install --no-document bashcov simplecov-cobertura
 
@@ -319,33 +316,34 @@ jobs:
           echo "No unit-test-relevant files changed."
           echo "Compared diff range: ${{ needs.changes.outputs.diff_range }}"
 
-      - name: Install test tools
+      - name: Install EPEL and GitHub CLI repository
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
           set -Eeuo pipefail
 
-          # EPEL provides Bats and the parallel test runner.
+          # EPEL must be enabled before one transaction resolves Bats; the
+          # GitHub CLI repository must be present before that same transaction
+          # resolves gh.
           dnf install -y epel-release
-          dnf install -y bats
-          dnf install -y parallel
 
-          # Install the language and privilege tools used by the test harness.
-          dnf install -y python3
-          dnf install -y ruby
-          dnf install -y sudo
-          dnf install -y util-linux
+          # Download the official repository definition without another DNF transaction.
+          curl --fail --silent --show-error --location \
+            https://cli.github.com/packages/rpm/gh-cli.repo \
+            --output /etc/yum.repos.d/gh-cli.repo
 
-          # config-manager is required to register the official CLI repository.
-          dnf install -y 'dnf-command(config-manager)'
-
-      - name: Install GitHub CLI
+      - name: Install Rocky test tools
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          # Register the official GitHub CLI RPM repository.
-          dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
-
-          # Install the repository's GitHub API test dependency.
-          dnf install -y gh
+          # Install all image-missing test tools in one transaction.
+          dnf install -y \
+            bats \
+            gh \
+            jq \
+            parallel \
+            python3 \
+            ruby \
+            sudo \
+            util-linux
 
       - name: Run the Rocky Linux dependency script
         if: ${{ needs.changes.outputs.should_test == 'true' }}
@@ -363,9 +361,6 @@ jobs:
       - name: Install coverage tooling
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          # jq is required by Codecov uploader validation in this workflow.
-          dnf install -y jq
-
           # Install bashcov and its Cobertura formatter for shell coverage.
           gem install --no-document bashcov simplecov-cobertura
 

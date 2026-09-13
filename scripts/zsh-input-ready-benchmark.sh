@@ -8,6 +8,17 @@
 #   The compinit and dump-state options also provide controlled mechanism
 #   experiments for the first-prompt input delay. The input byte is written
 #   immediately after the prompt unless an experiment requests a settle delay.
+# @option --source DIR Chezmoi source directory.
+# @option --data-dir DIR Sheldon data directory.
+# @option --system NAME Benchmark the server, client, or both configurations.
+# @option --samples COUNT Number of PTY samples per configuration.
+# @option --compinit MODE Use the real block or a controlled compinit mode.
+# @option --dump-state STATE Use the host, absent, fresh, or stale dump state.
+# @option --settle-ms MS Delay before the first input byte.
+# @option --later-settle-ms MS Delay before the later-prompt input byte.
+# @option --trace Print deferred item execution traces.
+# @option -h | --help Print command usage.
+# @arg $@ string Command-line options and their values.
 # @example
 #   scripts/zsh-input-ready-benchmark.sh --system both --samples 20
 

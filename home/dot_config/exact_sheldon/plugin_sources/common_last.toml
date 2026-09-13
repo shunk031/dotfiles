@@ -1,15 +1,17 @@
 # Reuse a dump newer than one day; older dumps get a full security and freshness check.
 [plugins.compinit]
 inline = '''
-autoload -Uz compinit
-setopt extendedglob
-_compinit_dump="${ZDOTDIR:-$HOME}/.zcompdump"
-if [[ -n ${_compinit_dump}(#qN.mh-24) ]]; then
-    compinit -C
-else
-    compinit
-fi
-unset _compinit_dump
+() {
+    setopt localoptions extendedglob
+    autoload -Uz compinit
+    _compinit_dump="${ZDOTDIR:-$HOME}/.zcompdump"
+    if [[ -n ${_compinit_dump}(#qN.mh-24) ]]; then
+        compinit -C
+    else
+        compinit
+    fi
+    unset _compinit_dump
+}
 '''
 
 # zsh-syntax-highlighting must be the last eagerly sourced plugin so it can

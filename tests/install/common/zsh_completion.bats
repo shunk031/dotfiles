@@ -65,7 +65,8 @@ render_sheldon_plugins() {
                 '(( compinit_calls == 1 ))' \
                 "(( \${+functions[compdef]} ))" \
                 'autoload -Uz _files' \
-                "(( \${+functions[_files]} ))"
+                "(( \${+functions[_files]} ))" \
+                '[[ ! -o extendedglob ]]'
         } > "${inline_script}"
 
         mkdir -p "${BATS_TEST_TMPDIR}/home" "${BATS_TEST_TMPDIR}/zdotdir"

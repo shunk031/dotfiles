@@ -37,7 +37,7 @@ function run_os_specific_test() {
         bats -r "tests/install/rocky/"
         ;;
     *)
-        echo "${TARGET_OS:-<unset>} and ${SYSTEM:-<unset>} are not supported" >&2
+        echo "${TARGET_OS:-<unset>} are not supported" >&2
         exit 1
         ;;
     esac

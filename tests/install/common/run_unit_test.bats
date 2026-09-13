@@ -22,10 +22,9 @@ EOF
     run --separate-stderr env \
         PATH="${stub_bin}:${PATH}" \
         TARGET_OS=unsupported \
-        SYSTEM=server \
         bash "${SCRIPT_PATH}"
 
     [ "${status}" -eq 1 ]
     [ -z "${output}" ]
-    [[ "${stderr}" == *"unsupported and server are not supported"* ]]
+    [[ "${stderr}" == *"unsupported are not supported"* ]]
 }

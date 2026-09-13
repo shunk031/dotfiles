@@ -62,6 +62,9 @@ permissions:
   id-token: write
 
 jobs:
+  # Docker Hub has no Ubuntu Server image: Server and Desktop share one base and differ
+  # only by installed metapackages, so both jobs use the official ubuntu image. It is thinner
+  # than a real Server install (no systemd), which is what lets it expose missing dependencies.
   ubuntu-client:
     # Exercise the Ubuntu client path in a fresh job container.
     # Dependabot PRs and forked PRs do not receive required repository secrets.

@@ -30,6 +30,9 @@ jobs:
           #              │
           #              └─ Simulate inputting an email address into the chezmoi's config.
 
+  # Docker Hub has no Ubuntu Server image: Server and Desktop share one base and differ
+  # only by installed metapackages, so both jobs use the official ubuntu image. It is thinner
+  # than a real Server install (no systemd), which is what lets it expose missing dependencies.
   ubuntu-client:
     # Exercise the published Ubuntu client snippet in a fresh job container.
     # Skip known secret-less contexts to avoid failing at SSH key setup.

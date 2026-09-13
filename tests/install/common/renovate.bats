@@ -3,7 +3,10 @@
 readonly RENOVATE_CONFIG_PATH="./.github/renovate.json"
 readonly DEPENDABOT_CONFIG_PATH="./.github/dependabot.yaml"
 readonly MISE_CONFIG_PATH="./home/dot_mise/config.toml"
-readonly LINUX_WORKFLOW_PATH="./.github/workflows/linux.yaml"
+readonly E2E_WORKFLOW_PATHS=(
+    "./.github/workflows/ubuntu.yaml"
+    "./.github/workflows/rocky.yaml"
+)
 readonly MACOS_WORKFLOW_PATH="./.github/workflows/macos.yaml"
 
 @test "[common] Renovate exclusively manages GitHub Actions updates" {
@@ -138,7 +141,7 @@ PYTHON
 }
 
 @test "[common] mise changes trigger fresh-install workflows" {
-    run python3 - "${LINUX_WORKFLOW_PATH}" "${MACOS_WORKFLOW_PATH}" << 'PYTHON'
+    run python3 - "${E2E_WORKFLOW_PATHS[@]}" "${MACOS_WORKFLOW_PATH}" << 'PYTHON'
 import sys
 from pathlib import Path
 

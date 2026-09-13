@@ -20,7 +20,7 @@ shell = "zsh"
 defer = """
 {{ hooks?.pre | nl }}
 {% for file in files %}
-zsh-defer source "{{ file }}"
+zsh-defer -t 0.1 source "{{ file }}"
 {% endfor %}
 {{ hooks?.post | nl }}
 """
@@ -45,9 +45,6 @@ apply = ['source']
 #
 # Autoloading of Functions in Zsh
 #
-
-[plugins.compinit]
-inline = 'autoload -Uz compinit && zsh-defer compinit'
 
 [plugins.custom-commands]
 inline = 'autoload -Uz dev cdgwq cdw uv-format'

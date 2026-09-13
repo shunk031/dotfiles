@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       # Run this workflow when its definition changes.
-      - ".github/workflows/macos.yaml"
+      - ".github/workflows/e2e-macos.yaml"
 
       # Bootstrap changes affect setup behavior on macOS.
       - "setup.sh"
@@ -32,7 +32,7 @@ on:
     branches: [main]
     paths:
       # Run this workflow when its definition changes.
-      - ".github/workflows/macos.yaml"
+      - ".github/workflows/e2e-macos.yaml"
 
       # Bootstrap changes affect setup behavior on macOS.
       - "setup.sh"

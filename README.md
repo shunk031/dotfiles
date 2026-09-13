@@ -5,8 +5,8 @@
 
 <div align="center">
 
-[![Snippet install](https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/remote.yaml)
-[![Unit test](https://github.com/shunk031/dotfiles/actions/workflows/test.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/test.yaml)
+[![Snippet install](https://github.com/shunk031/dotfiles/actions/workflows/e2e-snippet.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/e2e-snippet.yaml)
+[![Unit test](https://github.com/shunk031/dotfiles/actions/workflows/unit-test.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/unit-test.yaml)
 [![codecov](https://codecov.io/gh/shunk031/dotfiles/graph/badge.svg?token=4VUJWKGAR7)](https://codecov.io/gh/shunk031/dotfiles)
 [![DeepWiki](https://img.shields.io/badge/DeepWiki-shunk031%2Fdotfiles-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAyCAYAAAAnWDnqAAAAAXNSR0IArs4c6QAAA05JREFUaEPtmUtyEzEQhtWTQyQLHNak2AB7ZnyXZMEjXMGeK/AIi+QuHrMnbChYY7MIh8g01fJoopFb0uhhEqqcbWTp06/uv1saEDv4O3n3dV60RfP947Mm9/SQc0ICFQgzfc4CYZoTPAswgSJCCUJUnAAoRHOAUOcATwbmVLWdGoH//PB8mnKqScAhsD0kYP3j/Yt5LPQe2KvcXmGvRHcDnpxfL2zOYJ1mFwrryWTz0advv1Ut4CJgf5uhDuDj5eUcAUoahrdY/56ebRWeraTjMt/00Sh3UDtjgHtQNHwcRGOC98BJEAEymycmYcWwOprTgcB6VZ5JK5TAJ+fXGLBm3FDAmn6oPPjR4rKCAoJCal2eAiQp2x0vxTPB3ALO2CRkwmDy5WohzBDwSEFKRwPbknEggCPB/imwrycgxX2NzoMCHhPkDwqYMr9tRcP5qNrMZHkVnOjRMWwLCcr8ohBVb1OMjxLwGCvjTikrsBOiA6fNyCrm8V1rP93iVPpwaE+gO0SsWmPiXB+jikdf6SizrT5qKasx5j8ABbHpFTx+vFXp9EnYQmLx02h1QTTrl6eDqxLnGjporxl3NL3agEvXdT0WmEost648sQOYAeJS9Q7bfUVoMGnjo4AZdUMQku50McDcMWcBPvr0SzbTAFDfvJqwLzgxwATnCgnp4wDl6Aa+Ax283gghmj+vj7feE2KBBRMW3FzOpLOADl0Isb5587h/U4gGvkt5v60Z1VLG8BhYjbzRwyQZemwAd6cCR5/XFWLYZRIMpX39AR0tjaGGiGzLVyhse5C9RKC6ai42ppWPKiBagOvaYk8lO7DajerabOZP46Lby5wKjw1HCRx7p9sVMOWGzb/vA1hwiWc6jm3MvQDTogQkiqIhJV0nBQBTU+3okKCFDy9WwferkHjtxib7t3xIUQtHxnIwtx4mpg26/HfwVNVDb4oI9RHmx5WGelRVlrtiw43zboCLaxv46AZeB3IlTkwouebTr1y2NjSpHz68WNFjHvupy3q8TFn3Hos2IAk4Ju5dCo8B3wP7VPr/FGaKiG+T+v+TQqIrOqMTL1VdWV1DdmcbO8KXBz6esmYWYKPwDL5b5FA1a0hwapHiom0r/cKaoqr+27/XcrS5UwSMbQAAAABJRU5ErkJggg==)](https://deepwiki.com/shunk031/dotfiles)
 
@@ -49,7 +49,7 @@ Selecting `/docs` would stop serving the repository-root `setup.sh`.
 
 </details>
 
-### 🖥️ `Ubuntu` [![Ubuntu](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/ubuntu.yaml)
+### 🖥️ `Ubuntu` [![Ubuntu](https://github.com/shunk031/dotfiles/actions/workflows/e2e-ubuntu.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/e2e-ubuntu.yaml)
 
 - Configuration snippet for Ubuntu client and server machines:
 
@@ -59,7 +59,7 @@ bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 
 ![Screenshot of setup on Ubuntu Server machine](.github/screenshot-ubuntu-server.png)
 
-### 🪨 `Rocky Linux` [![Rocky Linux](https://github.com/shunk031/dotfiles/actions/workflows/rocky.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/rocky.yaml)
+### 🪨 `Rocky Linux` [![Rocky Linux](https://github.com/shunk031/dotfiles/actions/workflows/e2e-rocky.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/e2e-rocky.yaml)
 
 - Configuration snippet for Rocky Linux server machines:
 
@@ -67,7 +67,7 @@ bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 ```
 
-### 💻 `MacOS` [![MacOS](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml)
+### 💻 `MacOS` [![MacOS](https://github.com/shunk031/dotfiles/actions/workflows/e2e-macos.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/e2e-macos.yaml)
 
 - Configuration snippet of the Apple Silicon macOS environment for client machines:
 
@@ -139,7 +139,7 @@ Run the [`chezmoi init --apply`](https://www.chezmoi.io/user-guide/setup/#use-a-
 shunk031@5f93d270cb51:~$ chezmoi init --apply
 ```
 
-### 🦇 Unit Test with [Bats](https://github.com/bats-core/bats-core) [![Unit test](https://github.com/shunk031/dotfiles/actions/workflows/test.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/test.yaml)
+### 🦇 Unit Test with [Bats](https://github.com/bats-core/bats-core) [![Unit test](https://github.com/shunk031/dotfiles/actions/workflows/unit-test.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/unit-test.yaml)
 
 Test the shellscript for setup with [Bash Automated Testing System (bats)](https://github.com/bats-core/bats-core).
 The scripts for the unit test can be found under [`./tests`](https://github.com/shunk031/dotfiles/tree/main/tests/install) directory.

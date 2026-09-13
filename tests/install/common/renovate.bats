@@ -4,10 +4,10 @@ readonly RENOVATE_CONFIG_PATH="./.github/renovate.json"
 readonly DEPENDABOT_CONFIG_PATH="./.github/dependabot.yaml"
 readonly MISE_CONFIG_PATH="./home/dot_mise/config.toml"
 readonly E2E_WORKFLOW_PATHS=(
-    "./.github/workflows/ubuntu.yaml"
-    "./.github/workflows/rocky.yaml"
+    "./.github/workflows/e2e-ubuntu.yaml"
+    "./.github/workflows/e2e-rocky.yaml"
 )
-readonly MACOS_WORKFLOW_PATH="./.github/workflows/macos.yaml"
+readonly MACOS_WORKFLOW_PATH="./.github/workflows/e2e-macos.yaml"
 
 @test "[common] Renovate exclusively manages GitHub Actions updates" {
     run python3 - "${RENOVATE_CONFIG_PATH}" "${DEPENDABOT_CONFIG_PATH}" << 'PYTHON'

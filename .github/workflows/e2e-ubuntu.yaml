@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       # Run this workflow when its definition changes.
-      - ".github/workflows/ubuntu.yaml"
+      - ".github/workflows/e2e-ubuntu.yaml"
 
       # Bootstrap changes affect setup behavior on Ubuntu.
       - "setup.sh"
@@ -33,7 +33,7 @@ on:
     branches: [main]
     paths:
       # Run this workflow when its definition changes.
-      - ".github/workflows/ubuntu.yaml"
+      - ".github/workflows/e2e-ubuntu.yaml"
 
       # Bootstrap changes affect setup behavior on Ubuntu.
       - "setup.sh"

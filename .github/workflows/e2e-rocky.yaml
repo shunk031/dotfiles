@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       # Run this workflow when its definition changes.
-      - ".github/workflows/rocky.yaml"
+      - ".github/workflows/e2e-rocky.yaml"
 
       # Bootstrap changes affect setup behavior on Rocky Linux.
       - "setup.sh"
@@ -35,7 +35,7 @@ on:
     branches: [main]
     paths:
       # Run this workflow when its definition changes.
-      - ".github/workflows/rocky.yaml"
+      - ".github/workflows/e2e-rocky.yaml"
 
       # Bootstrap changes affect setup behavior on Rocky Linux.
       - "setup.sh"

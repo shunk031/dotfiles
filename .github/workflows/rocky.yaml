@@ -89,6 +89,8 @@ jobs:
           set -Eeuo pipefail
 
           # These tools are present on a stock Rocky install but stripped from the slim image.
+          # EPEL supplies the htop package requested by install/rocky/common/dependencies.sh.
+          dnf install -y epel-release
           dnf install -y \
             ca-certificates \
             git \

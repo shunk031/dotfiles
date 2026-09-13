@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 
-# @file tests/install/rocky/common/setup_timezone_unit.bats
+# @file tests/install/rockylinux/common/setup_timezone_unit.bats
 # @brief Test the Rocky Linux timezone setup without systemd.
 
-readonly SCRIPT_PATH="./install/rocky/common/setup_timezone.sh"
+readonly SCRIPT_PATH="./install/rockylinux/common/setup_timezone.sh"
 
 function run_setup_timezone_with_stubs() {
     local timezone="${1:-Asia/Tokyo}"
@@ -56,7 +56,7 @@ function run_setup_timezone_with_stubs() {
         '
 }
 
-@test "[rocky-common] setup_timezone leaves the correct symlink unchanged" {
+@test "[rockylinux-common] setup_timezone leaves the correct symlink unchanged" {
     run_setup_timezone_with_stubs
     [ "${status}" -eq 0 ]
 
@@ -65,7 +65,7 @@ function run_setup_timezone_with_stubs() {
     [ -z "${output}" ]
 }
 
-@test "[rocky-common] setup_timezone replaces a different symlink" {
+@test "[rockylinux-common] setup_timezone replaces a different symlink" {
     CALLS_PATH="${BATS_TEST_TMPDIR}/setup_timezone_calls.txt"
     LOCALTIME_PATH="${BATS_TEST_TMPDIR}/localtime"
     : > "${CALLS_PATH}"
@@ -122,7 +122,7 @@ function run_setup_timezone_with_stubs() {
     [[ "${output}" != *timedatectl* ]]
 }
 
-@test "[rocky-common] setup_timezone resolves a copied timezone file" {
+@test "[rockylinux-common] setup_timezone resolves a copied timezone file" {
     CALLS_PATH="${BATS_TEST_TMPDIR}/setup_timezone_calls.txt"
     LOCALTIME_PATH="${BATS_TEST_TMPDIR}/localtime"
     : > "${CALLS_PATH}"

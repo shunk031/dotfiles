@@ -5,7 +5,7 @@ readonly DEPENDABOT_CONFIG_PATH="./.github/dependabot.yaml"
 readonly MISE_CONFIG_PATH="./home/dot_mise/config.toml"
 readonly E2E_WORKFLOW_PATHS=(
     "./.github/workflows/e2e-ubuntu.yaml"
-    "./.github/workflows/e2e-rocky.yaml"
+    "./.github/workflows/e2e-rockylinux.yaml"
 )
 readonly MACOS_WORKFLOW_PATH="./.github/workflows/e2e-macos.yaml"
 

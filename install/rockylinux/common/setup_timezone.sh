@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file install/rocky/common/setup_timezone.sh
+# @file install/rockylinux/common/setup_timezone.sh
 # @brief Configure the Rocky Linux timezone.
 
 set -Eeuo pipefail

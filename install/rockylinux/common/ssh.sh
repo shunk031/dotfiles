@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file install/rocky/common/ssh.sh
+# @file install/rockylinux/common/ssh.sh
 # @brief Install the OpenSSH client on Rocky Linux.
 
 set -Eeuo pipefail

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file install/rocky/common/tmux.sh
+# @file install/rockylinux/common/tmux.sh
 # @brief Install tmux on Rocky Linux.
 
 set -Eeuo pipefail

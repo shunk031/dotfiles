@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file install/rocky/server/misc.sh
+# @file install/rockylinux/server/misc.sh
 # @brief Install optional Rocky Linux server packages.
 # @description
 #   Installs the OpenGL runtime required by OpenCV-based server workloads.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file install/rocky/server/ssh_server.sh
+# @file install/rockylinux/server/ssh_server.sh
 # @brief Allow SSH clients to provide proxy environment variables.
 # @description
 #   Merges a narrow proxy-variable allowlist into the global Rocky Linux sshd

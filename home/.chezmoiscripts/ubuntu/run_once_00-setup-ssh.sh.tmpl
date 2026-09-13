@@ -2,7 +2,7 @@
 {{   if eq .chezmoi.osRelease.idLike "debian" -}}
 {{     include "../install/ubuntu/common/ssh.sh" }}
 {{   else if eq .chezmoi.osRelease.id "rocky" -}}
-{{     include "../install/rocky/common/ssh.sh" }}
+{{     include "../install/rockylinux/common/ssh.sh" }}
 {{   else -}}
 {{     fail (printf "Invalid linux distribution: %s" .chezmoi.osRelease.id) }}
 {{   end -}}

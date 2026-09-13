@@ -196,7 +196,6 @@ jobs:
           # These tools are present on a stock Rocky install but stripped from the slim image.
           dnf install -y \
             ca-certificates \
-            curl \
             git \
             openssh-clients \
             openssh-server \

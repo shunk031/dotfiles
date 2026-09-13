@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 
-# @file tests/install/rocky/server/setup_locale_unit.bats
+# @file tests/install/rockylinux/server/setup_locale_unit.bats
 # @brief Test Rocky Linux locale setup without systemd.
 
-readonly SCRIPT_PATH="./install/rocky/server/setup_locale.sh"
+readonly SCRIPT_PATH="./install/rockylinux/server/setup_locale.sh"
 
 function run_setup_locale() {
     local initial_content="${1:-}"
@@ -44,7 +44,7 @@ function run_setup_locale() {
         '
 }
 
-@test "[rocky-server] setup_locale leaves an existing LANG unchanged" {
+@test "[rockylinux-server] setup_locale leaves an existing LANG unchanged" {
     run_setup_locale $'LANG=en_US.UTF-8\n'
     [ "${status}" -eq 0 ]
 
@@ -57,7 +57,7 @@ function run_setup_locale() {
     [ "${output}" = "LANG=en_US.UTF-8" ]
 }
 
-@test "[rocky-server] setup_locale writes LANG when it generates the locale" {
+@test "[rockylinux-server] setup_locale writes LANG when it generates the locale" {
     run_setup_locale "" "C"
     [ "${status}" -eq 0 ]
 
@@ -71,7 +71,7 @@ function run_setup_locale() {
     [ "${output}" = "LANG=en_US.UTF-8" ]
 }
 
-@test "[rocky-server] setup_locale configures LANG when the locale already exists" {
+@test "[rockylinux-server] setup_locale configures LANG when the locale already exists" {
     run_setup_locale "" "en_US.UTF-8" "missing"
     [ "${status}" -eq 0 ]
 
@@ -85,7 +85,7 @@ function run_setup_locale() {
     [ "${output}" = "LANG=en_US.UTF-8" ]
 }
 
-@test "[rocky-server] setup_locale preserves other locale settings when updating LANG" {
+@test "[rockylinux-server] setup_locale preserves other locale settings when updating LANG" {
     run_setup_locale $'LANG=C\nLC_TIME=ja_JP.UTF-8\n'
     [ "${status}" -eq 0 ]
 

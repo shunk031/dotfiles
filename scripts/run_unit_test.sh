@@ -32,9 +32,9 @@ function run_os_specific_test() {
         # Ubuntu-only install tests.
         bats -r "tests/install/ubuntu/common/"
         ;;
-    rocky)
+    rockylinux)
         # Rocky Linux-only install tests.
-        bats -r "tests/install/rocky/"
+        bats -r "tests/install/rockylinux/"
         ;;
     *)
         echo "${TARGET_OS:-<unset>} are not supported" >&2

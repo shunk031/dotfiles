@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./install/rocky/server/ssh_server.sh"
+readonly SCRIPT_PATH="./install/rockylinux/server/ssh_server.sh"
 
 function setup() {
     export DOTFILES_SSHD_CONFIG_PATH="${BATS_TEST_TMPDIR}/sshd_config"
@@ -26,7 +26,7 @@ function setup() {
     export -f sudo
 }
 
-@test "[rocky-server] configure_proxy_accept_env preserves global names and adds proxies before Match" {
+@test "[rockylinux-server] configure_proxy_accept_env preserves global names and adds proxies before Match" {
     run bash -c '
         source "$1"
         configure_proxy_accept_env
@@ -38,7 +38,7 @@ function setup() {
     [ "${lines[1]}" = "Match User nobody" ]
 }
 
-@test "[rocky-server] configure_proxy_accept_env is idempotent" {
+@test "[rockylinux-server] configure_proxy_accept_env is idempotent" {
     run bash -c '
         source "$1"
         configure_proxy_accept_env
@@ -55,7 +55,7 @@ function setup() {
     [ "${output}" = $'ssh-keygen -A\nssh-keygen -A' ]
 }
 
-@test "[rocky-server] configure_proxy_accept_env leaves the original file when validation fails" {
+@test "[rockylinux-server] configure_proxy_accept_env leaves the original file when validation fails" {
     export DOTFILES_SSHD_COMMAND=false
 
     run bash -c '

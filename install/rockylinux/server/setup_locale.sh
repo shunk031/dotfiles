@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file install/rocky/server/setup_locale.sh
+# @file install/rockylinux/server/setup_locale.sh
 # @brief Ensure the preferred locale exists on Rocky Linux servers.
 # @description
 #   Installs the English locale package when needed and rewrites the system

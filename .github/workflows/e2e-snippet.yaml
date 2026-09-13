@@ -175,7 +175,7 @@ jobs:
             SYSTEM="${SYSTEM}" \
             bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"'
 
-  rocky-server:
+  rockylinux-server:
     # Exercise the published Rocky server snippet in a fresh job container.
     # Skip known secret-less contexts to avoid failing at SSH key setup.
     if: ${{ github.actor != 'dependabot[bot]' }}
@@ -197,7 +197,7 @@ jobs:
           set -Eeuo pipefail
 
           # These tools are present on a stock Rocky install but stripped from the slim image.
-          # EPEL supplies the htop package requested by install/rocky/common/dependencies.sh.
+          # EPEL supplies the htop package requested by install/rockylinux/common/dependencies.sh.
           dnf install -y epel-release
           dnf install -y \
             ca-certificates \

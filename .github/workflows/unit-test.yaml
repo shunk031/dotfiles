@@ -265,7 +265,7 @@ jobs:
           name: ${{ env.CODECOV_NAME }}
           verbose: true
 
-  rocky:
+  rockylinux:
     # Run after formatting so a failure stops all distribution test jobs.
     needs: [changes, shfmt]
     # Run Rocky Linux unit tests inside the official image so runner-
@@ -277,9 +277,9 @@ jobs:
         shell: bash
     env:
       # Keep Codecov metadata tied to this distribution-specific job.
-      TARGET_OS: rocky
-      CODECOV_FLAGS: rocky
-      CODECOV_NAME: codecov-dotfiles-rocky
+      TARGET_OS: rockylinux
+      CODECOV_FLAGS: rockylinux
+      CODECOV_NAME: codecov-dotfiles-rockylinux
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
@@ -318,7 +318,7 @@ jobs:
             util-linux
 
           # Exercise the same dependency path used by a real Rocky install.
-          bash ./install/rocky/common/dependencies.sh
+          bash ./install/rockylinux/common/dependencies.sh
 
           # The Rocky GPG tests require the terminal pinentry implementation.
           rpm -q pinentry

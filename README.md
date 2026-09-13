@@ -59,7 +59,7 @@ bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 
 ![Screenshot of setup on Ubuntu Server machine](.github/screenshot-ubuntu-server.png)
 
-### 🪨 `Rocky Linux` [![Rocky Linux](https://github.com/shunk031/dotfiles/actions/workflows/e2e-rocky.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/e2e-rocky.yaml)
+### 🪨 `Rocky Linux` [![Rocky Linux](https://github.com/shunk031/dotfiles/actions/workflows/e2e-rockylinux.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/e2e-rockylinux.yaml)
 
 - Configuration snippet for Rocky Linux server machines:
 

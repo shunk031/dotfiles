@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# @file install/rocky/common/dependencies.sh
+# @file install/rockylinux/common/dependencies.sh
 # @brief Install essential Rocky Linux packages.
 # @description
 #   Maps required commands to Rocky Linux package names and installs only the

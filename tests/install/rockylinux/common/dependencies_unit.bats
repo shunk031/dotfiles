@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
+readonly SCRIPT_PATH="./install/rockylinux/common/dependencies.sh"
 
-@test "[rocky-common] install_dnf_packages installs missing command packages as root" {
+@test "[rockylinux-common] install_dnf_packages installs missing command packages as root" {
     run bash -c '
         source "$1"
 
@@ -25,7 +25,7 @@ readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
     [ "${output}" = "dnf install -y cmake" ]
 }
 
-@test "[rocky-common] run_dnf uses sudo for non-root callers" {
+@test "[rockylinux-common] run_dnf uses sudo for non-root callers" {
     run setpriv --reuid 65534 --regid 65534 --clear-groups bash -c '
         source "$1"
 
@@ -45,7 +45,7 @@ readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
     [[ "${output}" != *"unexpected dnf call"* ]]
 }
 
-@test "[rocky-common] install_dnf_packages skips dnf when commands exist" {
+@test "[rockylinux-common] install_dnf_packages skips dnf when commands exist" {
     run bash -c '
         source "$1"
 
@@ -63,7 +63,7 @@ readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
     [ -z "${output}" ]
 }
 
-@test "[rocky-common] install_dnf_packages installs the terminal pinentry package when missing" {
+@test "[rockylinux-common] install_dnf_packages installs the terminal pinentry package when missing" {
     run bash -c '
         source "$1"
 
@@ -85,7 +85,7 @@ readonly SCRIPT_PATH="./install/rocky/common/dependencies.sh"
     [[ "${output}" == *"dnf install -y pinentry"* ]]
 }
 
-@test "[rocky-common] dependency packages use Rocky names" {
+@test "[rockylinux-common] dependency packages use Rocky names" {
     run grep -F 'ip:iproute' "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
 

@@ -67,7 +67,7 @@ bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 ```
 
-### 💻 `macOS` [![macOS](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml)
+### 💻 `MacOS` [![MacOS](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/macos.yaml)
 
 - Configuration snippet of the Apple Silicon macOS environment for client machines:
 

@@ -6,19 +6,12 @@ on:
     - cron: "0 0 * * 5"
 
 jobs:
-  build:
+  macos:
     # Snippet install also depends on private dotfiles repo credentials.
-    # Skip known secret-less contexts to avoid SSH key setup failures.
-    if: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-14]
-        system: [client, server]
-        exclude:
-          - os: macos-14
-            system: server
-
-    runs-on: ${{ matrix.os }}
+    # Skip known secret-less contexts to avoid failing at SSH key setup.
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 15
+    runs-on: macos-14
     env:
       # DOTFILES_DEBUG: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -32,21 +25,59 @@ jobs:
       - name: Setup dotfiles with snippet
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          OS: ${{ matrix.os }}
-          SYSTEM: ${{ matrix.system }}
         run: |
-          if [ "${OS}" == "macos-14" ]; then
-            printf "${EMAIL_ADDRESS}\n" | bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
-            #              │
-            #              └─ Simulate inputting an email address into the chezmoi's config.
+          printf "${EMAIL_ADDRESS}\n" | bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
+          #              │
+          #              └─ Simulate inputting an email address into the chezmoi's config.
 
-          elif [ "${OS}" == "ubuntu-latest" ]; then
-            printf "${EMAIL_ADDRESS}\n${SYSTEM}\n" | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"
-            #              │               │
-            #              │               └─ Simulate inputting an system arcitecture into the config.
-            #              └─ Simulate inputting an email address into the config.
+  ubuntu-client:
+    # Snippet install also depends on private dotfiles repo credentials.
+    # Skip known secret-less contexts to avoid failing at SSH key setup.
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    env:
+      # DOTFILES_DEBUG: 1
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          else
-            echo "${OS} is not supported" >&2
-            exit 1
-          fi
+    steps:
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+
+      - name: Setup dotfiles with snippet
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          SYSTEM: client
+        run: |
+          printf "${EMAIL_ADDRESS}\n${SYSTEM}\n" | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"
+          #              │               │
+          #              │               └─ Simulate inputting an system arcitecture into the config.
+          #              └─ Simulate inputting an email address into the config.
+
+  ubuntu-server:
+    # Snippet install also depends on private dotfiles repo credentials.
+    # Skip known secret-less contexts to avoid failing at SSH key setup.
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    env:
+      # DOTFILES_DEBUG: 1
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+
+      - name: Setup dotfiles with snippet
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          SYSTEM: server
+        run: |
+          printf "${EMAIL_ADDRESS}\n${SYSTEM}\n" | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"
+          #              │               │
+          #              │               └─ Simulate inputting an system arcitecture into the config.
+          #              └─ Simulate inputting an email address into the config.

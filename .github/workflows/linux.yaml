@@ -14,7 +14,7 @@ on:
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 
-      # Distribution install scripts are exercised by the build job.
+      # Distribution install scripts are exercised by the end-to-end jobs.
       - "install/ubuntu/**"
       - "install/rocky/**"
 
@@ -22,11 +22,11 @@ on:
       - "home/.chezmoiscripts/ubuntu/**"
       - "home/.chezmoiscripts/rocky/**"
 
-      # OS-specific tmux configuration is checked by the build job.
+      # OS-specific tmux configuration is checked by the end-to-end jobs.
       - "home/dot_tmux.conf.d/os/ubuntu_client.conf"
       - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
 
-      # Installation and file-existence tests define the build's assertions.
+      # Installation and file-existence tests define the end-to-end assertions.
       - "tests/install/ubuntu/**"
       - "tests/install/rocky/**"
       - "tests/files/**"
@@ -45,7 +45,7 @@ on:
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 
-      # Distribution install scripts are exercised by the build job.
+      # Distribution install scripts are exercised by the end-to-end jobs.
       - "install/ubuntu/**"
       - "install/rocky/**"
 
@@ -53,11 +53,11 @@ on:
       - "home/.chezmoiscripts/ubuntu/**"
       - "home/.chezmoiscripts/rocky/**"
 
-      # OS-specific tmux configuration is checked by the build job.
+      # OS-specific tmux configuration is checked by the end-to-end jobs.
       - "home/dot_tmux.conf.d/os/ubuntu_client.conf"
       - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
 
-      # Installation and file-existence tests define the build's assertions.
+      # Installation and file-existence tests define the end-to-end assertions.
       - "tests/install/ubuntu/**"
       - "tests/install/rocky/**"
       - "tests/files/**"
@@ -68,15 +68,11 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  ubuntu-client:
     # Dependabot PRs and forked PRs do not receive required repository secrets.
     # Skip this job early instead of failing at the SSH key setup step.
     if: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     timeout-minutes: 15
-    strategy:
-      matrix:
-        system: [server, client]
-
     runs-on: ubuntu-latest
     env:
       DOTFILES_DEBUG: 1
@@ -91,7 +87,7 @@ jobs:
       - name: Setup dotfiles
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          SYSTEM: ${{ matrix.system }}
+          SYSTEM: client
           EVENT_NAME: ${{ github.event_name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # for avoiding rate limit of GitHub API
         run: |
@@ -120,7 +116,7 @@ jobs:
 
       - name: Test file existence
         env:
-          SYSTEM: ${{ matrix.system }}
+          SYSTEM: client
         run: |
           source "${HOME}/.config/shell/mise.bash"
           cd $(chezmoi source-path)/../
@@ -129,3 +125,197 @@ jobs:
             --filter-tags common,ubuntu:${SYSTEM} \
             --print-output-on-failure \
             tests/files/ubuntu.bats
+
+  ubuntu-server:
+    # Dependabot PRs and forked PRs do not receive required repository secrets.
+    # Skip this job early instead of failing at the SSH key setup step.
+    if: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:26.04
+    defaults:
+      run:
+        shell: bash
+    env:
+      DOTFILES_SSH_SERVICE_COMMAND: true
+      DOTFILES_SYSTEMCTL_COMMAND: true
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Install container prerequisites
+        run: |
+          set -Eeuo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+
+          # Install only tools needed to bootstrap setup.sh and reach the repository dependencies.
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            bats \
+            ca-certificates \
+            curl \
+            git \
+            openssh-client \
+            sudo \
+            tzdata \
+            wget
+
+          # Keep the container timezone aligned with the repository test environment.
+          ln -snf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+          echo Asia/Tokyo > /etc/timezone
+
+          # Run setup.sh as a non-root user with passwordless sudo.
+          groupadd dotfiles
+          useradd --gid dotfiles --create-home --shell /bin/bash dotfiles
+          printf '%s\n' 'dotfiles ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/dotfiles
+          chmod 0440 /etc/sudoers.d/dotfiles
+
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+          ssh-auth-sock: /tmp/ssh-agent.sock
+
+      - name: Grant the setup user access to the SSH agent
+        run: |
+          # webfactory/ssh-agent leaves the socket owned by the action user.
+          chown dotfiles:dotfiles /tmp/ssh-agent.sock
+          chmod 0600 /tmp/ssh-agent.sock
+
+      - name: Setup dotfiles
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          SYSTEM: server
+          EVENT_NAME: ${{ github.event_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # for avoiding rate limit of GitHub API
+        run: |
+          if [ "${EVENT_NAME}" == "push" ]; then
+            BRANCH_NAME="${{ github.ref_name }}"
+          elif [ "${EVENT_NAME}" == "pull_request" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+          fi
+          export BRANCH_NAME
+
+          URL="https://raw.githubusercontent.com/shunk031/dotfiles/${BRANCH_NAME}/setup.sh"
+          echo "Download setup.sh from ${URL}"
+
+          sudo -u dotfiles env \
+            BRANCH_NAME="${BRANCH_NAME}" \
+            CI=true \
+            DOTFILES_SSH_SERVICE_COMMAND="${DOTFILES_SSH_SERVICE_COMMAND}" \
+            DOTFILES_SYSTEMCTL_COMMAND="${DOTFILES_SYSTEMCTL_COMMAND}" \
+            EMAIL_ADDRESS="${EMAIL_ADDRESS}" \
+            GITHUB_TOKEN="${GITHUB_TOKEN}" \
+            HOME=/home/dotfiles \
+            SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
+            SYSTEM="${SYSTEM}" \
+            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - \"$1\")"' _ "${URL}"
+
+      - name: Test file existence
+        env:
+          SYSTEM: server
+        run: |
+          sudo -u dotfiles env HOME=/home/dotfiles SYSTEM="${SYSTEM}" bash -c '
+            source "${HOME}/.config/shell/mise.bash"
+            cd "$(chezmoi source-path)/../"
+            bats tests/files/common.bats
+            bats --allow-empty-suite \
+              --filter-tags common,ubuntu:${SYSTEM} \
+              --print-output-on-failure \
+              tests/files/ubuntu.bats
+          '
+
+  rocky-server:
+    # Dependabot PRs and forked PRs do not receive required repository secrets.
+    # Skip this job early instead of failing at the SSH key setup step.
+    if: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    container:
+      image: rockylinux/rockylinux:9
+    defaults:
+      run:
+        shell: bash
+    env:
+      DOTFILES_SSH_SERVICE_COMMAND: true
+      DOTFILES_SYSTEMCTL_COMMAND: true
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Install container prerequisites
+        run: |
+          set -Eeuo pipefail
+
+          # Install only tools needed to bootstrap setup.sh and reach the repository dependencies.
+          dnf install -y epel-release
+          dnf install -y \
+            bats \
+            ca-certificates \
+            curl \
+            git \
+            openssh-clients \
+            openssh-server \
+            sudo \
+            tzdata \
+            wget
+
+          # Keep the container timezone aligned with the repository test environment.
+          ln -snf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+          echo Asia/Tokyo > /etc/timezone
+
+          # Run setup.sh as a non-root user with passwordless sudo.
+          groupadd dotfiles
+          useradd --gid dotfiles --create-home --shell /bin/bash dotfiles
+          printf '%s\n' 'dotfiles ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/dotfiles
+          chmod 0440 /etc/sudoers.d/dotfiles
+
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+          ssh-auth-sock: /tmp/ssh-agent.sock
+
+      - name: Grant the setup user access to the SSH agent
+        run: |
+          # webfactory/ssh-agent leaves the socket owned by the action user.
+          chown dotfiles:dotfiles /tmp/ssh-agent.sock
+          chmod 0600 /tmp/ssh-agent.sock
+
+      - name: Setup dotfiles
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          SYSTEM: server
+          EVENT_NAME: ${{ github.event_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # for avoiding rate limit of GitHub API
+        run: |
+          if [ "${EVENT_NAME}" == "push" ]; then
+            BRANCH_NAME="${{ github.ref_name }}"
+          elif [ "${EVENT_NAME}" == "pull_request" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+          fi
+          export BRANCH_NAME
+
+          URL="https://raw.githubusercontent.com/shunk031/dotfiles/${BRANCH_NAME}/setup.sh"
+          echo "Download setup.sh from ${URL}"
+
+          sudo -u dotfiles env \
+            BRANCH_NAME="${BRANCH_NAME}" \
+            CI=true \
+            DOTFILES_SSH_SERVICE_COMMAND="${DOTFILES_SSH_SERVICE_COMMAND}" \
+            DOTFILES_SYSTEMCTL_COMMAND="${DOTFILES_SYSTEMCTL_COMMAND}" \
+            EMAIL_ADDRESS="${EMAIL_ADDRESS}" \
+            GITHUB_TOKEN="${GITHUB_TOKEN}" \
+            HOME=/home/dotfiles \
+            SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
+            SYSTEM="${SYSTEM}" \
+            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - \"$1\")"' _ "${URL}"
+
+      - name: Test file existence
+        env:
+          SYSTEM: server
+        run: |
+          sudo -u dotfiles env HOME=/home/dotfiles SYSTEM="${SYSTEM}" bash -c '
+            source "${HOME}/.config/shell/mise.bash"
+            cd "$(chezmoi source-path)/../"
+            bats tests/files/common.bats
+          '

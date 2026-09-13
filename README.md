@@ -49,6 +49,16 @@ Selecting `/docs` would stop serving the repository-root `setup.sh`.
 
 </details>
 
+### 💻 `MacOS` [![MacOS](https://github.com/shunk031/dotfiles/actions/workflows/e2e-macos.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/e2e-macos.yaml)
+
+- Configuration snippet of the Apple Silicon macOS environment for client machines:
+
+```console
+bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
+```
+
+![Screenshot of setup on macOS Client machine](.github/screenshot-macos-client.png)
+
 ### 🖥️ `Ubuntu` [![Ubuntu](https://github.com/shunk031/dotfiles/actions/workflows/e2e-ubuntu.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/e2e-ubuntu.yaml)
 
 - Configuration snippet for Ubuntu client and server machines:
@@ -66,16 +76,6 @@ bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 ```console
 bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
 ```
-
-### 💻 `MacOS` [![MacOS](https://github.com/shunk031/dotfiles/actions/workflows/e2e-macos.yaml/badge.svg)](https://github.com/shunk031/dotfiles/actions/workflows/e2e-macos.yaml)
-
-- Configuration snippet of the Apple Silicon macOS environment for client machines:
-
-```console
-bash -c "$(curl -fsLS http://shunk031.me/dotfiles/setup.sh)"
-```
-
-![Screenshot of setup on macOS Client machine](.github/screenshot-macos-client.png)
 
 ### Minimal setup
 

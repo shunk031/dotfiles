@@ -44,6 +44,9 @@ printf '%s\n' "\$*" >> "\${MISE_CALLS_PATH}"
 if [ "\${1:-}" = "update" ] && [ -n "\${SKILLS_UPDATE_OUTPUT_PATH:-}" ]; then
     cat "\${SKILLS_UPDATE_OUTPUT_PATH}"
 fi
+if [ "\${1:-}" = "remove" ] && [ "\${SKILLS_REMOVE_FAIL_SKILL:-}" = "\${3:-}" ]; then
+    exit 1
+fi
 exit ${exit_code}
 EOF
     chmod +x "${stub_bin}/skills"
@@ -408,6 +411,7 @@ EOF
     cat > "${SKILLS_UPDATE_OUTPUT_PATH}" << 'EOF'
 Warning: The following skills from owner/repo appear to have been deleted upstream:
   • deleted-one
+  • deleted-two
 Skipping deletion in non-interactive mode.
 EOF
 
@@ -418,6 +422,67 @@ EOF
     run grep -c -- "^add shunk031/skills --skill \* --agent claude-code --agent codex --global --yes$" "${MISE_CALLS_PATH}"
     [ "${output}" = "1" ]
     run grep -Fx 'remove --skill deleted-one --global --yes' "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -Fx 'remove --skill deleted-two --global --yes' "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] an update without an upstream deletion warning does not remove skills" {
+    write_mise_stub
+    mkdir -p "${SKILLS_STATE_DIR}"
+    printf '%s\n' 1 > "${SKILLS_UPDATE_STAMP}"
+    SKILLS_UPDATE_OUTPUT_PATH="${BATS_TEST_TMPDIR}/update-output"
+    export SKILLS_UPDATE_OUTPUT_PATH
+    printf '%s\n' 'Updated 2 skills.' > "${SKILLS_UPDATE_OUTPUT_PATH}"
+
+    update_installed_skills
+
+    run grep -c -- '^remove --skill ' "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 1 ]
+    [ "${output}" = "0" ]
+}
+
+@test "[common] an unparseable upstream deletion warning is reported without removing skills" {
+    write_mise_stub
+    mkdir -p "${SKILLS_STATE_DIR}"
+    printf '%s\n' 1 > "${SKILLS_UPDATE_STAMP}"
+    SKILLS_UPDATE_OUTPUT_PATH="${BATS_TEST_TMPDIR}/update-output"
+    export SKILLS_UPDATE_OUTPUT_PATH
+    cat > "${SKILLS_UPDATE_OUTPUT_PATH}" << 'EOF'
+Warning: The following skills from owner/repo appear to have been deleted upstream:
+Skipping deletion in non-interactive mode.
+EOF
+
+    run update_installed_skills
+
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"skills: upstream deletion warning found, but no skills could be extracted"* ]]
+    run grep -c -- '^remove --skill ' "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 1 ]
+    [ "${output}" = "0" ]
+}
+
+@test "[common] a failed upstream deletion removal is reported and later removals continue" {
+    write_mise_stub
+    export SKILLS_REMOVE_FAIL_SKILL=deleted-one
+    mkdir -p "${SKILLS_STATE_DIR}"
+    printf '%s\n' 1 > "${SKILLS_UPDATE_STAMP}"
+    SKILLS_UPDATE_OUTPUT_PATH="${BATS_TEST_TMPDIR}/update-output"
+    export SKILLS_UPDATE_OUTPUT_PATH
+    cat > "${SKILLS_UPDATE_OUTPUT_PATH}" << 'EOF'
+Warning: The following skills from owner/repo appear to have been deleted upstream:
+  • deleted-one
+  • deleted-two
+Skipping deletion in non-interactive mode.
+EOF
+
+    run update_installed_skills
+
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"skills: could not remove deleted-one"* ]]
+    run grep -Fx 'remove --skill deleted-one --global --yes' "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -Fx 'remove --skill deleted-two --global --yes' "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
 }
 

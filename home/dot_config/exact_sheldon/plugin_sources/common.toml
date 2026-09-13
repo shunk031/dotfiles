@@ -62,6 +62,7 @@ export FZF_DEFAULT_OPTS="--reverse"
 #
 # Zsh-related Plugins
 #
+# Keep zle-critical plugins eager.
 # Keep PATH, environment, and mise hook registration synchronous so the first
 # prompt is ready for input. Defer only plugins that are safe to load later.
 # Syntax highlighting and autopairing affect the first keypress, while

@@ -12,6 +12,8 @@ readonly SHELDON_COMMON_SOURCE="./home/dot_config/exact_sheldon/plugin_sources/c
 readonly SHELDON_CLIENT_SOURCE="./home/dot_config/exact_sheldon/plugin_sources/client/common.toml"
 readonly SHELDON_SERVER_SOURCE="./home/dot_config/exact_sheldon/plugin_sources/server.toml"
 readonly SHELDON_TEMPLATE_SOURCE="./home/dot_config/exact_sheldon/plugins.toml.tmpl"
+# shellcheck disable=SC2155
+readonly CHEZMOI_BIN_DIR="$(dirname "$(command -v chezmoi 2> /dev/null || printf '/nonexistent/chezmoi')")"
 readonly MISE_SETUP_WORKFLOWS=(
     "./.github/workflows/e2e-ubuntu.yaml"
     "./.github/workflows/e2e-rockylinux.yaml"
@@ -37,7 +39,7 @@ function setup() {
     export MISE_CONFIG_PATH="${BATS_TEST_TMPDIR}/mise_config.toml"
     export RUN_AFTER_SCRIPT="${BATS_TEST_TMPDIR}/run_after_20-install-mise-tools.sh"
     export BATS_TEST_TMPDIR
-    PATH="${TEST_BIN_DIR}:${HOME}/.local/bin:$(getconf PATH)"
+    PATH="${TEST_BIN_DIR}:${HOME}/.local/bin:${CHEZMOI_BIN_DIR}:$(getconf PATH)"
     export PATH
 
     mkdir -p "${HOME}/.local/bin" "${TEST_BIN_DIR}"
@@ -252,6 +254,11 @@ function render_sheldon_plugins() {
     local system="$1"
     local output_path="$2"
 
+    if ! command -v chezmoi > /dev/null 2>&1; then
+        printf 'chezmoi is required to render Sheldon templates in this test.\n' >&2
+        return 127
+    fi
+
     chezmoi --source "${PWD}" execute-template \
         --override-data "{\"system\":\"${system}\"}" \
         --file "${SHELDON_TEMPLATE_SOURCE}" > "${output_path}"
@@ -260,6 +267,11 @@ function render_sheldon_plugins() {
 function render_zprofile() {
     local system="$1"
     local output_path="$2"
+
+    if ! command -v chezmoi > /dev/null 2>&1; then
+        printf 'chezmoi is required to render the zprofile template in this test.\n' >&2
+        return 127
+    fi
 
     chezmoi --source "${PWD}" execute-template \
         --override-data "{\"system\":\"${system}\"}" \
@@ -395,19 +407,19 @@ export PATH="${HOME}/private-bin:\${PATH}"
 EOF
 
     run_mise_zshenv_startup '
-        printf "%s\n" "${PATH}" | tr : "\n" | awk "NR <= 2"
+        [[ ":${PATH}:" == *":${HOME}/.local/bin:"* ]] || exit 1
+        [[ ":${PATH}:" == *":${HOME}/.local/share/mise/shims:"* ]] || exit 1
+        (( ${path[(Ie)${HOME}/.local/share/mise/shims]} < ${path[(Ie)${HOME}/.local/bin]} )) || exit 1
         command -v mise
         command -v chezmoi
         printf "private=%s\n" "${ZSHENV_PRIVATE_LOADED:-unset}"
         printf "%s %s %s\n" "${+_zshenv_mise}" "${+_mise_bin}" "${+_mise_shims}"
     '
     [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "${HOME}/.local/share/mise/shims" ]
-    [ "${lines[1]}" = "${HOME}/.local/bin" ]
-    [ "${lines[2]}" = "${MISE_INSTALL_PATH}" ]
-    [ "${lines[3]}" = "${HOME}/.local/share/mise/shims/chezmoi" ]
-    [ "${lines[4]}" = "private=unset" ]
-    [ "${lines[5]}" = "0 0 0" ]
+    [ "${lines[0]}" = "${MISE_INSTALL_PATH}" ]
+    [ "${lines[1]}" = "${HOME}/.local/share/mise/shims/chezmoi" ]
+    [ "${lines[2]}" = "private=unset" ]
+    [ "${lines[3]}" = "0 0 0" ]
 }
 
 @test "[common] invalid zsh activation mode fails before mise lookup" {

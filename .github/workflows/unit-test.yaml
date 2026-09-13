@@ -281,7 +281,11 @@ jobs:
     # Run Rocky Linux unit tests inside the official image so runner-
     # preinstalled tools cannot mask missing dependencies.
     runs-on: ubuntu-latest
-    container: rockylinux/rockylinux:9
+    # The Rocky image omits PATH from its image environment. The runner uses
+    # that value when adding GITHUB_PATH entries for later container steps.
+    container:
+      image: rockylinux/rockylinux:9
+      options: --env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     defaults:
       run:
         shell: bash

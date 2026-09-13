@@ -431,33 +431,15 @@ EOF
     write_mise_stub
     mkdir -p "${SKILLS_STATE_DIR}"
     printf '%s\n' 1 > "${SKILLS_UPDATE_STAMP}"
-    SKILLS_UPDATE_OUTPUT_PATH="${BATS_TEST_TMPDIR}/update-output"
-    export SKILLS_UPDATE_OUTPUT_PATH
-    {
-        printf '\033[38;5;102mWarning:\033[0m The following skills from \033[38;5;102mshunk031/skills\033[0m appear to have been deleted upstream:\n'
-        printf '  \033[38;5;102m•\033[0m shunk031-orchestrate-herdr-workers\n'
-        printf '  \033[38;5;102m•\033[0m shunk031-shdoc-shell-docs\n'
-        printf '  \033[38;5;102m•\033[0m shunk031-transformers-convert\n'
-        printf '  \033[38;5;102m•\033[0m shunk031-research-structured-bullet-writing\n'
-        printf '\033[38;5;102mSkipping deletion in non-interactive mode.\033[0m\n'
-        printf '\n'
-        printf '\033[38;5;102mWarning:\033[0m The following skills from \033[38;5;102mshunk031/skills-private\033[0m appear to have been deleted upstream:\n'
-        printf '  \033[38;5;102m•\033[0m shunk031-retry-provider-forbidden-research\n'
-        printf '\033[38;5;102mSkipping deletion in non-interactive mode.\033[0m\n'
-    } > "${SKILLS_UPDATE_OUTPUT_PATH}"
+    export SKILLS_UPDATE_OUTPUT_PATH="${BATS_TEST_TMPDIR}/update-output"
+    printf '\033[38;5;102mWarning:\033[0m The following skills from owner/repo appear to have been deleted upstream:\n  \033[38;5;102m•\033[0m deleted-one\n  \033[38;5;102m•\033[0m deleted-two\n\033[38;5;102mSkipping deletion in non-interactive mode.\033[0m\n' > "${SKILLS_UPDATE_OUTPUT_PATH}"
 
     update_installed_skills
 
-    local name
-    for name in \
-        shunk031-orchestrate-herdr-workers \
-        shunk031-shdoc-shell-docs \
-        shunk031-transformers-convert \
-        shunk031-research-structured-bullet-writing \
-        shunk031-retry-provider-forbidden-research; do
-        run grep -Fx "remove --skill ${name} --global --yes" "${MISE_CALLS_PATH}"
-        [ "${status}" -eq 0 ]
-    done
+    run grep -Fx 'remove --skill deleted-one --global --yes' "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -Fx 'remove --skill deleted-two --global --yes' "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] an update without an upstream deletion warning does not remove skills" {

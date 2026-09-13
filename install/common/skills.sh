@@ -417,11 +417,9 @@ function skills_update_is_due() {
 #
 # @description Remove skills named in the upstream-deletion warning from `skills update`.
 # @description
-#   Strip ANSI SGR sequences before parsing bullet lines within the CLI's
-#   warning blocks. The CLI emits colors even when called non-interactively.
-#   If the warning phrase is present but no skill names can be extracted,
-#   report the mismatch and continue without failing reconciliation. A failed
-#   removal is reported and does not stop later removals.
+#   Strip ANSI SGR sequences before parsing warning blocks because the CLI emits
+#   colors in non-interactive mode. Report an existing warning when no names
+#   are extracted and continue after individual removal failures.
 # @arg $1 output string Complete output from `skills update`.
 # @stderr A warning when upstream deletions are advertised but none extracted,
 #   or when an individual removal fails.
@@ -431,8 +429,6 @@ function remove_upstream_deleted_skills() {
     local output="$1" clean_output skill
     local -a skills_to_remove=()
 
-    # `skills` emits ANSI SGR sequences even for non-interactive output, so
-    # remove them before applying the warning-block parser.
     clean_output="$(printf '%s\n' "${output}" | sed -E $'s/\x1b\\[[0-9;]*m//g')"
 
     while IFS= read -r skill; do

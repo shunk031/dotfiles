@@ -69,20 +69,61 @@ permissions:
 
 jobs:
   ubuntu-client:
+    # Exercise the Ubuntu client path in a fresh job container.
     # Dependabot PRs and forked PRs do not receive required repository secrets.
     # Skip this job early instead of failing at the SSH key setup step.
     if: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:26.04
+    defaults:
+      run:
+        shell: bash
     env:
-      DOTFILES_DEBUG: 1
+      DOTFILES_SSH_SERVICE_COMMAND: true
+      DOTFILES_SYSTEMCTL_COMMAND: true
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
+      - name: Install container prerequisites
+        run: |
+          set -Eeuo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+
+          # Install only tools needed to bootstrap setup.sh and reach the repository dependencies.
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            bats \
+            ca-certificates \
+            curl \
+            git \
+            openssh-client \
+            sudo \
+            tzdata \
+            wget
+
+          # Keep the container timezone aligned with the repository test environment.
+          ln -snf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+          echo Asia/Tokyo > /etc/timezone
+
+          # Run setup.sh as a non-root user with passwordless sudo.
+          groupadd dotfiles
+          useradd --gid dotfiles --create-home --shell /bin/bash dotfiles
+          printf '%s\n' 'dotfiles ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/dotfiles
+          chmod 0440 /etc/sudoers.d/dotfiles
+
       - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
         uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+          ssh-auth-sock: /tmp/ssh-agent.sock
+
+      - name: Grant the setup user access to the SSH agent
+        run: |
+          # webfactory/ssh-agent leaves the socket owned by the action user.
+          chown dotfiles:dotfiles /tmp/ssh-agent.sock
+          chmod 0600 /tmp/ssh-agent.sock
 
       - name: Setup dotfiles
         env:
@@ -101,30 +142,31 @@ jobs:
           URL="https://raw.githubusercontent.com/shunk031/dotfiles/${BRANCH_NAME}/setup.sh"
           echo "Download setup.sh from ${URL}"
 
-          printf "${EMAIL_ADDRESS}\n${SYSTEM}\n" | bash -c "$(wget -qO - $URL)"
-          #              │               │
-          #              │               └─ Simulate inputting an system arcitecture into the config.
-          #              └─ Simulate inputting an email address into the config.
-
-      # - name: Install latest bats-core
-      #   run: |
-      #     tmp_dir=$(mktemp -d /tmp/bats-core-XXXXX)
-      #     git clone --depth 1 https://github.com/bats-core/bats-core.git "${tmp_dir}"
-      #     cd "${tmp_dir}"
-      #     sudo ./install.sh /usr/local
-      #     rm -rf "${tmp_dir}"
+          sudo -u dotfiles env \
+            BRANCH_NAME="${BRANCH_NAME}" \
+            CI=true \
+            DOTFILES_SSH_SERVICE_COMMAND="${DOTFILES_SSH_SERVICE_COMMAND}" \
+            DOTFILES_SYSTEMCTL_COMMAND="${DOTFILES_SYSTEMCTL_COMMAND}" \
+            EMAIL_ADDRESS="${EMAIL_ADDRESS}" \
+            GITHUB_TOKEN="${GITHUB_TOKEN}" \
+            HOME=/home/dotfiles \
+            SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
+            SYSTEM="${SYSTEM}" \
+            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - \"$1\")"' _ "${URL}"
 
       - name: Test file existence
         env:
           SYSTEM: client
         run: |
-          source "${HOME}/.config/shell/mise.bash"
-          cd $(chezmoi source-path)/../
-          bats tests/files/common.bats
-          bats --allow-empty-suite \
-            --filter-tags common,ubuntu:${SYSTEM} \
-            --print-output-on-failure \
-            tests/files/ubuntu.bats
+          sudo -u dotfiles env HOME=/home/dotfiles SYSTEM="${SYSTEM}" bash -c '
+            source "${HOME}/.config/shell/mise.bash"
+            cd "$(chezmoi source-path)/../"
+            bats tests/files/common.bats
+            bats --allow-empty-suite \
+              --filter-tags common,ubuntu:${SYSTEM} \
+              --print-output-on-failure \
+              tests/files/ubuntu.bats
+          '
 
   ubuntu-server:
     # Dependabot PRs and forked PRs do not receive required repository secrets.

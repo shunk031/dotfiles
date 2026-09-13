@@ -200,7 +200,6 @@ jobs:
           dnf install -y \
             bats \
             ca-certificates \
-            curl \
             git \
             openssh-clients \
             openssh-server \

@@ -152,7 +152,7 @@ jobs:
             HOME=/home/dotfiles \
             SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
             SYSTEM="${SYSTEM}" \
-            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - \"$1\")"' _ "${URL}"
+            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - "$1")"' _ "${URL}"
 
       - name: Test file existence
         env:
@@ -162,7 +162,7 @@ jobs:
             source "${HOME}/.config/shell/mise.bash"
             cd "$(chezmoi source-path)/../"
             bats tests/files/common.bats
-            bats --allow-empty-suite \
+            bats \
               --filter-tags common,ubuntu:${SYSTEM} \
               --print-output-on-failure \
               tests/files/ubuntu.bats
@@ -251,7 +251,7 @@ jobs:
             HOME=/home/dotfiles \
             SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
             SYSTEM="${SYSTEM}" \
-            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - \"$1\")"' _ "${URL}"
+            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - "$1")"' _ "${URL}"
 
       - name: Test file existence
         env:
@@ -261,7 +261,7 @@ jobs:
             source "${HOME}/.config/shell/mise.bash"
             cd "$(chezmoi source-path)/../"
             bats tests/files/common.bats
-            bats --allow-empty-suite \
+            bats \
               --filter-tags common,ubuntu:${SYSTEM} \
               --print-output-on-failure \
               tests/files/ubuntu.bats
@@ -293,7 +293,6 @@ jobs:
           dnf install -y \
             bats \
             ca-certificates \
-            curl \
             git \
             openssh-clients \
             openssh-server \

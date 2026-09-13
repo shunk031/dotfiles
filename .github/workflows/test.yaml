@@ -105,8 +105,6 @@ jobs:
 
           # User gems keep bashcov available without modifying system Ruby.
           gem install --user-install --no-document bashcov simplecov-cobertura
-
-          # Expose the user gem executables to later steps.
           echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
 
       - name: Run `shfmt`
@@ -124,10 +122,9 @@ jobs:
       - name: Run shell unit tests with coverage
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          # Force Homebrew Bash for tracing on macOS.
+          # Use Homebrew Bash for tracing on macOS and keep the coverage
+          # session name distinct from the Linux jobs.
           bashcov_args=(--skip-uncovered --root . --bash-path /opt/homebrew/bin/bash)
-
-          # Keep the coverage session name distinct from the Linux jobs.
           BASHCOV_COMMAND_NAME="unit-test-${TARGET_OS}" \
             bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
@@ -228,8 +225,8 @@ jobs:
       - name: Run shell unit tests with coverage
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          # Keep the coverage session name distinct from the other OS jobs.
-          # Skip files that are not reached by the selected Bats suites.
+          # Keep the coverage session name distinct and skip files that are not
+          # reached by the selected Bats suites.
           BASHCOV_COMMAND_NAME="unit-test-${TARGET_OS}" \
             bashcov --skip-uncovered --root . -- ./scripts/run_unit_test.sh
 

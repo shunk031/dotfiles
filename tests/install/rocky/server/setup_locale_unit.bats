@@ -7,6 +7,7 @@ readonly SCRIPT_PATH="./install/rocky/server/setup_locale.sh"
 
 function run_setup_locale() {
     local initial_content="${1:-}"
+    local available_locale="${2:-en_US.UTF-8}"
 
     LOCALE_CONFIG_PATH="${BATS_TEST_TMPDIR}/locale.conf"
     CALLS_PATH="${BATS_TEST_TMPDIR}/setup_locale_calls.txt"
@@ -16,13 +17,14 @@ function run_setup_locale() {
     # shellcheck disable=SC2016
     run env \
         CALLS_PATH="${CALLS_PATH}" \
+        AVAILABLE_LOCALE="${available_locale}" \
         DOTFILES_LOCALE_CONFIG_PATH="${LOCALE_CONFIG_PATH}" \
         SCRIPT_PATH="${SCRIPT_PATH}" \
         bash -c '
             source "${SCRIPT_PATH}"
 
             locale() {
-                printf "%s\n" "en_US.UTF-8"
+                printf "%s\n" "${AVAILABLE_LOCALE}"
             }
 
             sudo() {
@@ -51,7 +53,7 @@ function run_setup_locale() {
 }
 
 @test "[rocky-server] setup_locale writes LANG when it is not configured" {
-    run_setup_locale ""
+    run_setup_locale "" "C"
     [ "${status}" -eq 0 ]
 
     run cat "${CALLS_PATH}"

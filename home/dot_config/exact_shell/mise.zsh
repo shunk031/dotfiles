@@ -38,6 +38,8 @@ function mise_zsh_activate() {
 
     case "${mode}" in
     client | server) ;;
+    # An unknown mode is a caller error, not a missing activation; fail loudly
+    # so a typo cannot silently leave the requested startup mode inactive.
     *)
         return 2
         ;;
@@ -49,12 +51,18 @@ function mise_zsh_activate() {
 
     case "${mode}" in
     client)
+        # Full activation registers _mise_hook plus precmd/chpwd hooks. Function
+        # presence is this shell's source of truth: child shells re-activate,
+        # while an exported marker would wrongly make them skip the hooks.
         if ((${+functions[_mise_hook]})); then
             return 0
         fi
         eval "$(${mise_bin} activate zsh)"
         ;;
     server)
+        # Shims-only activation only exposes PATH, so inherited $path is the source
+        # of truth and child shells must not prepend it again. The top-level helper
+        # usually does this; this covers calls when .zshenv was not read.
         if ((${path[(Ie)${mise_shims}]})); then
             return 0
         fi

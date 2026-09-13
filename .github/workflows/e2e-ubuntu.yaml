@@ -99,9 +99,7 @@ jobs:
             tzdata \
             wget
 
-          # Keep the container timezone aligned with the repository test environment.
-          ln -snf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
-          echo Asia/Tokyo > /etc/timezone
+          # Keep tzdata installation non-interactive; setup_timezone.sh configures the timezone.
 
           # Run setup.sh as a non-root user with passwordless sudo.
           groupadd dotfiles
@@ -208,9 +206,7 @@ jobs:
             tzdata \
             wget
 
-          # Keep the container timezone aligned with the repository test environment.
-          ln -snf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
-          echo Asia/Tokyo > /etc/timezone
+          # Keep tzdata installation non-interactive; setup_timezone.sh configures the timezone.
 
           # Run setup.sh as a non-root user with passwordless sudo.
           groupadd dotfiles

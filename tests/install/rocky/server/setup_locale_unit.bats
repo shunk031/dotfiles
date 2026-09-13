@@ -64,7 +64,7 @@ function run_setup_locale() {
     run cat "${CALLS_PATH}"
     [ "${status}" -eq 0 ]
     [[ "${output}" == *"--preserve-env=http_proxy,https_proxy,no_proxy dnf install -y glibc-langpack-en"* ]]
-    [[ "${output}" == *"install -m 0644 "* ]]
+    [[ "${output}" == *"tee ${LOCALE_CONFIG_PATH}"* ]]
 
     run cat "${LOCALE_CONFIG_PATH}"
     [ "${status}" -eq 0 ]
@@ -78,7 +78,7 @@ function run_setup_locale() {
     run cat "${CALLS_PATH}"
     [ "${status}" -eq 0 ]
     [[ "${output}" != *"dnf install"* ]]
-    [[ "${output}" == *"install -m 0644 "* ]]
+    [[ "${output}" == *"tee ${LOCALE_CONFIG_PATH}"* ]]
 
     run cat "${LOCALE_CONFIG_PATH}"
     [ "${status}" -eq 0 ]
@@ -92,7 +92,7 @@ function run_setup_locale() {
     run cat "${CALLS_PATH}"
     [ "${status}" -eq 0 ]
     [[ "${output}" != *"dnf install"* ]]
-    [[ "${output}" == *"install -m 0644 "* ]]
+    [[ "${output}" == *"tee ${LOCALE_CONFIG_PATH}"* ]]
 
     run cat "${LOCALE_CONFIG_PATH}"
     [ "${status}" -eq 0 ]

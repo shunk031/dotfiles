@@ -3,8 +3,8 @@
 # @file install/rocky/server/setup_locale.sh
 # @brief Ensure the preferred locale exists on Rocky Linux servers.
 # @description
-#   Installs the English locale package when needed and writes the system locale
-#   configuration without requiring systemd's `localectl` service.
+#   Installs the English locale package when needed and rewrites the system
+#   locale configuration without requiring systemd's `localectl` service.
 
 set -Eeuo pipefail
 
@@ -35,15 +35,13 @@ function locale_is_configured() {
 }
 
 #
-# @description Update only the LANG setting without requiring systemd.
+# @description Rewrite the locale configuration with LANG replaced or appended while preserving other entries.
 #
 function configure_locale() {
-    local temporary_path
+    local content
 
-    temporary_path="$(mktemp)"
-    trap 'rm -f "${temporary_path}"' RETURN
     if [ -f "${LOCALE_CONFIG_PATH}" ]; then
-        awk -v target="LANG=${TARGET}" '
+        content="$(awk -v target="LANG=${TARGET}" '
             /^LANG=/ {
                 if (!replaced) {
                     print target
@@ -59,13 +57,12 @@ function configure_locale() {
                     print target
                 }
             }
-        ' "${LOCALE_CONFIG_PATH}" > "${temporary_path}"
+        ' "${LOCALE_CONFIG_PATH}")"
     else
-        printf 'LANG=%s\n' "${TARGET}" > "${temporary_path}"
+        content="LANG=${TARGET}"
     fi
 
-    sudo install -m 0644 "${temporary_path}" "${LOCALE_CONFIG_PATH}"
-    trap - RETURN
+    printf '%s\n' "${content}" | sudo tee "${LOCALE_CONFIG_PATH}" > /dev/null
 }
 
 #

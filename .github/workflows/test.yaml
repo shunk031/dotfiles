@@ -162,6 +162,7 @@ jobs:
           flags: ${{ env.CODECOV_FLAGS }}
           name: ${{ env.CODECOV_NAME }}
           verbose: true
+
   ubuntu:
     # Run after formatting so a failure stops all distribution test jobs.
     needs: [changes, shfmt]
@@ -243,6 +244,7 @@ jobs:
           # Keep the coverage session name distinct and skip files that are not
           # reached by the selected Bats suites.
           bashcov_args=(--skip-uncovered --root .)
+
           BASHCOV_COMMAND_NAME="unit-test-${TARGET_OS}" \
             bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
@@ -262,6 +264,7 @@ jobs:
           flags: ${{ env.CODECOV_FLAGS }}
           name: ${{ env.CODECOV_NAME }}
           verbose: true
+
   rocky:
     # Run after formatting so a failure stops all distribution test jobs.
     needs: [changes, shfmt]
@@ -334,6 +337,7 @@ jobs:
           # Keep the coverage session name distinct and skip files that are not
           # reached by the selected Bats suites.
           bashcov_args=(--skip-uncovered --root .)
+
           BASHCOV_COMMAND_NAME="unit-test-${TARGET_OS}" \
             bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 

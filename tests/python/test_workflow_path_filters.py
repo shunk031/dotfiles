@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from tempfile import TemporaryDirectory
 import unittest
 from pathlib import Path
 
@@ -35,42 +36,90 @@ def _workflow_paths(workflow: Path) -> dict[str, list[str]]:
         if event is None:
             continue
 
-        if line == "    paths:":
-            paths[event] = []
-            in_paths = True
-            continue
-        if line.startswith("    ") and not line.startswith("      - "):
-            in_paths = False
         if in_paths:
+            # Comments and blank lines do not end a YAML sequence.
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
             item = re.fullmatch(r"      - (.+)", line)
             if item:
                 value = item.group(1)
                 if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
                     value = value[1:-1]
                 paths[event].append(value)
+                continue
+
+            # A four-space key or an event-level key ends the paths sequence.
+            in_paths = False
+
+        if line == "    paths:":
+            paths[event] = []
+            in_paths = True
+            continue
 
     return paths
+
+
+def _workflow_path_errors(workflow: Path, repo_root: Path) -> list[str]:
+    """Return all path-filter violations found in one workflow."""
+    paths = _workflow_paths(workflow)
+    errors: list[str] = []
+
+    for event, entries in paths.items():
+        if not entries:
+            errors.append(f"{workflow.name} {event} paths list is empty")
+
+    if "push" in paths and "pull_request" in paths:
+        if paths["push"] != paths["pull_request"]:
+            errors.append(f"{workflow.name} push and pull_request paths differ")
+
+    for event, entries in paths.items():
+        for entry in entries:
+            prefix = GLOB_METACHARACTERS.split(entry, maxsplit=1)[0]
+            prefix = prefix.rstrip("/")
+            if not (repo_root / prefix).exists():
+                errors.append(
+                    f"{workflow.name} {event} path does not exist: {entry}"
+                )
+
+    return errors
 
 
 class WorkflowPathFiltersTest(unittest.TestCase):
     def test_push_and_pull_request_filters_match_and_point_to_real_paths(self) -> None:
         for workflow in sorted(WORKFLOWS.glob("*.yaml")):
-            paths = _workflow_paths(workflow)
-            if "push" in paths and "pull_request" in paths:
-                with self.subTest(workflow=workflow.name, check="event parity"):
-                    self.assertEqual(paths["push"], paths["pull_request"])
+            errors = _workflow_path_errors(workflow, REPO_ROOT)
+            with self.subTest(workflow=workflow.name):
+                self.assertEqual(errors, [])
 
-            for event, entries in paths.items():
-                for entry in entries:
-                    with self.subTest(
-                        workflow=workflow.name, event=event, entry=entry
-                    ):
-                        prefix = GLOB_METACHARACTERS.split(entry, maxsplit=1)[0]
-                        prefix = prefix.rstrip("/")
-                        self.assertTrue(
-                            (REPO_ROOT / prefix).exists(),
-                            f"{workflow.name} {event} path does not exist: {entry}",
-                        )
+    def test_fixture_reports_mismatch_and_missing_path(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            repo_root = Path(temporary_directory)
+            workflow = repo_root / ".github/workflows/fixture.yaml"
+            workflow.parent.mkdir(parents=True)
+            (repo_root / "existing").mkdir()
+            workflow.write_text(
+                """name: fixture
+on:
+  push:
+    paths:
+      # Comments and blank lines are valid inside a paths list.
+      - "existing/**"
+
+      - "does-not-exist/**"
+  pull_request:
+    paths:
+      - "existing/**"
+""",
+                encoding="utf-8",
+            )
+
+            self.assertEqual(
+                _workflow_path_errors(workflow, repo_root),
+                [
+                    "fixture.yaml push and pull_request paths differ",
+                    "fixture.yaml push path does not exist: does-not-exist/**",
+                ],
+            )
 
 
 if __name__ == "__main__":

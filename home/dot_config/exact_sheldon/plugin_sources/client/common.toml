@@ -22,6 +22,9 @@ zsh-defer _client_path
 # Prompt for Client Machine
 #
 
+[plugins.mise]
+inline = 'mise_zsh_activate client'
+
 [plugins.powerlevel10k]
 github = "romkatv/powerlevel10k"
 

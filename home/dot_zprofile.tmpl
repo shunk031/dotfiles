@@ -1,0 +1,10 @@
+#!/usr/bin/env zsh
+
+# @file home/dot_zprofile.tmpl
+# @brief Select the server shim or client mise activation mode.
+
+{{- if eq .system "server" }}
+mise_zsh_activate server
+{{- else }}
+mise_zsh_activate client
+{{- end }}

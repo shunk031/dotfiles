@@ -20,6 +20,13 @@ zsh-defer _server_path
 '''
 
 #
+# Mise for managing multiple versions of tools
+#
+
+[plugins.mise]
+inline = 'mise_zsh_activate server'
+
+#
 # Prompt for Server Machine
 #
 

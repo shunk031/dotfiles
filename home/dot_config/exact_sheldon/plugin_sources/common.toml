@@ -62,6 +62,18 @@ export FZF_DEFAULT_OPTS="--reverse"
 #
 # Zsh-related Plugins
 #
+# Keep PATH, environment, and mise hook registration synchronous so the first
+# prompt is ready for input. Defer only plugins that are safe to load later.
+# Syntax highlighting and autopairing affect the first keypress, while
+# autosuggestions and completions can initialize after the prompt.
+
+[plugins.zsh-syntax-highlighting]
+github = 'zsh-users/zsh-syntax-highlighting'
+apply = ['source']
+
+[plugins.zsh-autopair]
+github = 'hlissner/zsh-autopair'
+apply = ['source']
 
 [plugins.zsh-autosuggestions]
 github = 'zsh-users/zsh-autosuggestions'
@@ -69,14 +81,6 @@ apply = ['defer']
 
 [plugins.zsh-completions]
 github = 'zsh-users/zsh-completions'
-apply = ['defer']
-
-[plugins.zsh-syntax-highlighting]
-github = 'zsh-users/zsh-syntax-highlighting'
-apply = ['defer']
-
-[plugins.zsh-autopair]
-github = 'hlissner/zsh-autopair'
 apply = ['defer']
 
 [plugins.zsh-history-on-success]
@@ -106,13 +110,6 @@ inline = '''
 setopt INC_APPEND_HISTORY_TIME
 setopt INC_APPEND_HISTORY
 '''
-
-#
-# Mise for managing multiple versions of tools
-#
-
-[plugins.mise]
-inline = 'eval "$(~/.local/bin/mise activate zsh)"'
 
 #
 # Language-related plugins

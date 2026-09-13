@@ -398,7 +398,7 @@ EOF
         printf "%s\n" "${PATH}" | tr : "\n" | awk "NR <= 2"
         command -v mise
         command -v chezmoi
-        printf "%s\n" "${ZSHENV_PRIVATE_LOADED:-}"
+        printf "private=%s\n" "${ZSHENV_PRIVATE_LOADED:-unset}"
         printf "%s %s %s\n" "${+_zshenv_mise}" "${+_mise_bin}" "${+_mise_shims}"
     '
     [ "${status}" -eq 0 ]
@@ -406,7 +406,7 @@ EOF
     [ "${lines[1]}" = "${HOME}/.local/bin" ]
     [ "${lines[2]}" = "${MISE_INSTALL_PATH}" ]
     [ "${lines[3]}" = "${HOME}/.local/share/mise/shims/chezmoi" ]
-    [ "${lines[4]}" = "" ]
+    [ "${lines[4]}" = "private=unset" ]
     [ "${lines[5]}" = "0 0 0" ]
 }
 

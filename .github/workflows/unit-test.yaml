@@ -128,6 +128,11 @@ jobs:
 
           # User gems keep bashcov available without modifying system Ruby.
           gem install --user-install --no-document bashcov simplecov-cobertura
+
+          # Template tests render with the same chezmoi version the dotfiles pin.
+          install -d "${HOME}/.local/bin"
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -t v2.72.1 -b "${HOME}/.local/bin"
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
           echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
 
       - name: Run Python unit tests
@@ -234,6 +239,11 @@ jobs:
           # Install bashcov and its Cobertura formatter for shell coverage.
           gem install --no-document bashcov simplecov-cobertura
 
+          # Template tests render with the same chezmoi version the dotfiles pin.
+          install -d "${HOME}/.local/bin"
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -t v2.72.1 -b "${HOME}/.local/bin"
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: python3 -m unittest discover -s tests/python
@@ -326,6 +336,11 @@ jobs:
 
           # Install bashcov and its Cobertura formatter for shell coverage.
           gem install --no-document bashcov simplecov-cobertura
+
+          # Template tests render with the same chezmoi version the dotfiles pin.
+          install -d "${HOME}/.local/bin"
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -t v2.72.1 -b "${HOME}/.local/bin"
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
 
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}

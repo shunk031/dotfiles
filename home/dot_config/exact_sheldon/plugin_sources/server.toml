@@ -24,9 +24,8 @@ zsh-defer _server_path
 #
 
 [plugins.mise]
-# Keep servers on shims-only activation: this is a startup/input-ready trade-off, not a prompt-framework interaction.
-# Measured on a Docker Ubuntu host on 2026-09-13, full activation cost about 40 ms at startup and 6-7 ms per prompt versus about 2 ms at startup and none per prompt for shims; real server input became ready in about 386 ms because deferred compinit dominated.
-# Servers accept losing mise's per-project [env] auto-export; the measured delay was not mise placement.
+# Servers use shims-only activation: measured full activation costs ~40 ms at startup and ~6-7 ms per prompt (same on starship and p10k), shims cost ~2 ms at startup and nothing per prompt.
+# The price is that mise's per-project [env] auto-export does not apply on servers.
 inline = 'mise_zsh_activate server'
 
 #

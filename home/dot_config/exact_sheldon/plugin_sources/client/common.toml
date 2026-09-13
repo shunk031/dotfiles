@@ -23,8 +23,7 @@ zsh-defer _client_path
 #
 
 [plugins.mise]
-# Keep full activation on clients so per-project [env] and exact PATH work; measured on a Docker Ubuntu host on 2026-09-13, real client input was ready in about 2 ms after the first prompt.
-# Accept the measured 6-7 ms hook cost; p10k did not hide it (starship +6 ms, p10k +7 ms).
+# Clients keep full activation so per-project [env] and exact PATH work; the ~6-7 ms per-prompt hook cost is accepted.
 inline = 'mise_zsh_activate client'
 
 [plugins.powerlevel10k]

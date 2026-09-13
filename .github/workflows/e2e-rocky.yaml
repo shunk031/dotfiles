@@ -147,6 +147,16 @@ jobs:
             SYSTEM="${SYSTEM}" \
             bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - "$1")"' _ "${URL}"
 
+      - name: Verify system configuration
+        run: |
+          set -Eeuo pipefail
+          observed_timezone="$(readlink -f /etc/localtime)"
+          observed_locale="$(grep -m1 '^LANG=' /etc/locale.conf || true)"
+          printf 'Observed /etc/localtime: %s\n' "${observed_timezone}"
+          printf 'Observed LANG: %s\n' "${observed_locale}"
+          test "${observed_timezone}" = "/usr/share/zoneinfo/Asia/Tokyo"
+          grep -qx 'LANG=en_US.UTF-8' /etc/locale.conf
+
       - name: Test file existence
         run: |
           sudo -iu dotfiles env HOME=/home/dotfiles bash -lc '

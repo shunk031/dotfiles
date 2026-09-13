@@ -241,3 +241,13 @@ jobs:
             SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
             SYSTEM="${SYSTEM}" \
             bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"'
+
+      - name: Verify system configuration
+        run: |
+          set -Eeuo pipefail
+          observed_timezone="$(readlink -f /etc/localtime)"
+          observed_locale="$(grep -m1 '^LANG=' /etc/locale.conf || true)"
+          printf 'Observed /etc/localtime: %s\n' "${observed_timezone}"
+          printf 'Observed LANG: %s\n' "${observed_locale}"
+          test "${observed_timezone}" = "/usr/share/zoneinfo/Asia/Tokyo"
+          grep -qx 'LANG=en_US.UTF-8' /etc/locale.conf

@@ -150,6 +150,16 @@ jobs:
             SYSTEM="${SYSTEM}" \
             bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - "$1")"' _ "${URL}"
 
+      - name: Verify system configuration
+        run: |
+          set -Eeuo pipefail
+          observed_timezone="$(readlink -f /etc/localtime)"
+          observed_timezone_file="$(cat /etc/timezone)"
+          printf 'Observed /etc/localtime: %s\n' "${observed_timezone}"
+          printf 'Observed /etc/timezone: %s\n' "${observed_timezone_file}"
+          test "${observed_timezone}" = "/usr/share/zoneinfo/Asia/Tokyo"
+          test "${observed_timezone_file}" = "Asia/Tokyo"
+
       - name: Test file existence
         env:
           SYSTEM: client
@@ -248,6 +258,16 @@ jobs:
             SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
             SYSTEM="${SYSTEM}" \
             bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - "$1")"' _ "${URL}"
+
+      - name: Verify system configuration
+        run: |
+          set -Eeuo pipefail
+          observed_timezone="$(readlink -f /etc/localtime)"
+          observed_timezone_file="$(cat /etc/timezone)"
+          printf 'Observed /etc/localtime: %s\n' "${observed_timezone}"
+          printf 'Observed /etc/timezone: %s\n' "${observed_timezone_file}"
+          test "${observed_timezone}" = "/usr/share/zoneinfo/Asia/Tokyo"
+          test "${observed_timezone_file}" = "Asia/Tokyo"
 
       - name: Test file existence
         env:

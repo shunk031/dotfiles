@@ -41,6 +41,7 @@ function configure_locale() {
     local temporary_path
 
     temporary_path="$(mktemp)"
+    trap 'rm -f "${temporary_path}"' RETURN
     if [ -f "${LOCALE_CONFIG_PATH}" ]; then
         awk -v target="LANG=${TARGET}" '
             /^LANG=/ {
@@ -64,7 +65,7 @@ function configure_locale() {
     fi
 
     sudo install -m 0644 "${temporary_path}" "${LOCALE_CONFIG_PATH}"
-    rm -f "${temporary_path}"
+    trap - RETURN
 }
 
 #

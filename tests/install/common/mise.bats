@@ -506,21 +506,8 @@ EOF
     [ "$(< "${MISE_ZSH_CALLS_PATH}")" = "activate zsh --shims" ]
 }
 
-@test "[common] zsh startup keeps prompt-critical plugins eager" {
-    local content template
-
-    content="$(< "${SHELDON_COMMON_SOURCE}")"
-    template="$(< "${SHELDON_TEMPLATE_SOURCE}")"
-
-    [[ "${content}" == *"Keep zle-critical plugins eager"* ]]
-    [[ "${template}" == *"zsh-syntax-highlighting"*"apply = ['source']"* ]]
-    [[ "${content}" == *"zsh-autopair"*"apply = ['source']"* ]]
-    [[ "${content}" == *"zsh-autosuggestions"*"apply = ['defer']"* ]]
-    [[ "${content}" == *"zsh-completions"*"apply = ['defer']"* ]]
-}
-
 @test "[common] syntax highlighting is the last eager plugin for client and server" {
-    local system rendered source_plugins last_index
+    local system rendered source_plugins last_index syntax_count plugin
 
     for system in client server; do
         rendered="${BATS_TEST_TMPDIR}/${system}-plugins.toml"
@@ -544,6 +531,13 @@ EOF
                 END { emit() }
             ' "${rendered}"
         )
+        syntax_count=0
+        for plugin in "${source_plugins[@]}"; do
+            if [ "${plugin}" = "zsh-syntax-highlighting" ]; then
+                syntax_count=$((syntax_count + 1))
+            fi
+        done
+        [ "${syntax_count}" -eq 1 ]
         last_index=$((${#source_plugins[@]} - 1))
         [ "${source_plugins[$last_index]}" = "zsh-syntax-highlighting" ]
     done

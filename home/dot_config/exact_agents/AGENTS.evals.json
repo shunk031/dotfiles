@@ -61,7 +61,7 @@
     {
       "id": "design-toward-end-state",
       "prompt": "An existing CI pipeline runs unit tests across operating systems and also has a client/server matrix axis, but the unit-test command never reads the client/server value. The request is to add a Windows variant like the current Linux variant. Before making changes, explain the design you would choose and what you would verify. Do not edit files.",
-      "expected_output": "Proposes a coherent target design tailored to the requested work rather than merely extending the existing arrangement.",
+      "expected_output": "A strong answer explains why the client/server dimension has no role in these unit tests, then sketches a matrix whose meaningful entries are the requested operating systems and notes the evidence needed before simplifying it.",
       "assertions": [
         "The response questions the client/server matrix axis because the unit-test command does not use its value.",
         "The response proposes the required operating-system variants as the target CI structure instead of simply appending another variant to the existing matrix."
@@ -70,7 +70,7 @@
     {
       "id": "raise-user-owned-setting-choice",
       "prompt": "An existing CI pipeline has a required check named `test (linux)` in branch protection. A cleaner design would rename it to `unit-tests / linux` and remove a redundant matrix axis. The user asks you to implement the cleaner design. Before editing, explain what you will do.",
-      "expected_output": "Gives an explanatory handoff that makes the dependency on an external choice clear before implementation proceeds.",
+      "expected_output": "The answer connects the proposed rename from `test (linux)` to `unit-tests / linux` with the branch-protection setting, lays out the consequences of keeping or changing it, and stops short of editing until the user chooses.",
       "assertions": [
         "The response raises the required check name and branch-protection setting as a user-owned choice, presents options, and waits for a choice before editing the pipeline."
       ]

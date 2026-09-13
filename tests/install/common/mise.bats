@@ -37,7 +37,7 @@ function setup() {
     export MISE_CONFIG_PATH="${BATS_TEST_TMPDIR}/mise_config.toml"
     export RUN_AFTER_SCRIPT="${BATS_TEST_TMPDIR}/run_after_20-install-mise-tools.sh"
     export BATS_TEST_TMPDIR
-    PATH="${TEST_BIN_DIR}:$(getconf PATH)"
+    PATH="${TEST_BIN_DIR}:${HOME}/.local/bin:$(getconf PATH)"
     export PATH
 
     mkdir -p "${HOME}/.local/bin" "${TEST_BIN_DIR}"

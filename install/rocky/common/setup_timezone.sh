@@ -12,14 +12,14 @@ fi
 readonly TIMEZONE="${DOTFILES_TIMEZONE:-Asia/Tokyo}"
 
 #
-# @description Apply the repository's preferred timezone with systemd.
+# @description Apply the repository's preferred timezone without systemd.
 #
 function setup_timezone() {
-    if cmp -s /etc/localtime "/usr/share/zoneinfo/${TIMEZONE}"; then
+    if [ "$(readlink -f /etc/localtime)" = "/usr/share/zoneinfo/${TIMEZONE}" ]; then
         return 0
     fi
 
-    sudo timedatectl set-timezone "${TIMEZONE}"
+    sudo ln -snf "/usr/share/zoneinfo/${TIMEZONE}" /etc/localtime
 }
 
 #

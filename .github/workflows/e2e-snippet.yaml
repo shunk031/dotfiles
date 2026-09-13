@@ -1,0 +1,253 @@
+name: Snippet install
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 5"
+
+jobs:
+  macos:
+    # Snippet install also depends on private dotfiles repo credentials.
+    # Skip known secret-less contexts to avoid failing at SSH key setup.
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 15
+    runs-on: macos-14
+    env:
+      # DOTFILES_DEBUG: 1
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+
+      - name: Setup dotfiles with snippet
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+        run: |
+          printf "${EMAIL_ADDRESS}\n" | bash -c "$(curl -fsLS https://shunk031.me/dotfiles/setup.sh)"
+          #              │
+          #              └─ Simulate inputting an email address into the chezmoi's config.
+
+  # Docker Hub has no Ubuntu Server image: Server and Desktop share one base and differ
+  # only by installed metapackages, so both jobs use the official ubuntu image. It is thinner
+  # than a real Server install (no systemd), which is what lets it expose missing dependencies.
+  ubuntu-client:
+    # Exercise the published Ubuntu client snippet in a fresh job container.
+    # Skip known secret-less contexts to avoid failing at SSH key setup.
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:26.04
+    defaults:
+      run:
+        shell: bash
+    env:
+      DOTFILES_SSH_SERVICE_COMMAND: true
+      DOTFILES_SYSTEMCTL_COMMAND: true
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Install container prerequisites
+        run: |
+          set -Eeuo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+
+          # These tools are present on a stock Ubuntu install but stripped from the slim image.
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            git \
+            openssh-client \
+            sudo \
+            tzdata \
+            wget
+
+          # Keep the container timezone aligned with the repository test environment.
+          ln -snf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+          echo Asia/Tokyo > /etc/timezone
+
+          # Run setup.sh as a non-root user with passwordless sudo.
+          groupadd dotfiles
+          useradd --gid dotfiles --create-home --shell /bin/bash dotfiles
+          printf '%s\n' 'dotfiles ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/dotfiles
+          chmod 0440 /etc/sudoers.d/dotfiles
+
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+          ssh-auth-sock: /tmp/ssh-agent.sock
+
+      - name: Grant the setup user access to the SSH agent
+        run: |
+          # webfactory/ssh-agent leaves the socket owned by the action user.
+          chown dotfiles:dotfiles /tmp/ssh-agent.sock
+          chmod 0600 /tmp/ssh-agent.sock
+
+      - name: Setup dotfiles with snippet
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          SYSTEM: client
+        run: |
+          sudo -u dotfiles env \
+            CI=true \
+            DOTFILES_SSH_SERVICE_COMMAND="${DOTFILES_SSH_SERVICE_COMMAND}" \
+            DOTFILES_SYSTEMCTL_COMMAND="${DOTFILES_SYSTEMCTL_COMMAND}" \
+            EMAIL_ADDRESS="${EMAIL_ADDRESS}" \
+            GITHUB_TOKEN="${GITHUB_TOKEN}" \
+            HOME=/home/dotfiles \
+            SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
+            SYSTEM="${SYSTEM}" \
+            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"'
+
+  ubuntu-server:
+    # Exercise the published Ubuntu server snippet in a fresh job container.
+    # Skip known secret-less contexts to avoid failing at SSH key setup.
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:26.04
+    defaults:
+      run:
+        shell: bash
+    env:
+      DOTFILES_SSH_SERVICE_COMMAND: true
+      DOTFILES_SYSTEMCTL_COMMAND: true
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Install container prerequisites
+        run: |
+          set -Eeuo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+
+          # These tools are present on a stock Ubuntu install but stripped from the slim image.
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            git \
+            openssh-client \
+            sudo \
+            tzdata \
+            wget
+
+          # Keep the container timezone aligned with the repository test environment.
+          ln -snf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+          echo Asia/Tokyo > /etc/timezone
+
+          # Run setup.sh as a non-root user with passwordless sudo.
+          groupadd dotfiles
+          useradd --gid dotfiles --create-home --shell /bin/bash dotfiles
+          printf '%s\n' 'dotfiles ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/dotfiles
+          chmod 0440 /etc/sudoers.d/dotfiles
+
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+          ssh-auth-sock: /tmp/ssh-agent.sock
+
+      - name: Grant the setup user access to the SSH agent
+        run: |
+          # webfactory/ssh-agent leaves the socket owned by the action user.
+          chown dotfiles:dotfiles /tmp/ssh-agent.sock
+          chmod 0600 /tmp/ssh-agent.sock
+
+      - name: Setup dotfiles with snippet
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          SYSTEM: server
+        run: |
+          sudo -u dotfiles env \
+            CI=true \
+            DOTFILES_SSH_SERVICE_COMMAND="${DOTFILES_SSH_SERVICE_COMMAND}" \
+            DOTFILES_SYSTEMCTL_COMMAND="${DOTFILES_SYSTEMCTL_COMMAND}" \
+            EMAIL_ADDRESS="${EMAIL_ADDRESS}" \
+            GITHUB_TOKEN="${GITHUB_TOKEN}" \
+            HOME=/home/dotfiles \
+            SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
+            SYSTEM="${SYSTEM}" \
+            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"'
+
+  rocky-server:
+    # Exercise the published Rocky server snippet in a fresh job container.
+    # Skip known secret-less contexts to avoid failing at SSH key setup.
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    container:
+      image: rockylinux/rockylinux:9
+    defaults:
+      run:
+        shell: bash
+    env:
+      DOTFILES_SSH_SERVICE_COMMAND: true
+      DOTFILES_SYSTEMCTL_COMMAND: true
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Install container prerequisites
+        run: |
+          set -Eeuo pipefail
+
+          # These tools are present on a stock Rocky install but stripped from the slim image.
+          # EPEL supplies the htop package requested by install/rocky/common/dependencies.sh.
+          dnf install -y epel-release
+          dnf install -y \
+            ca-certificates \
+            git \
+            openssh-clients \
+            openssh-server \
+            sudo \
+            tzdata \
+            wget
+
+          # Run setup.sh as a non-root user with passwordless sudo.
+          groupadd dotfiles
+          useradd --gid dotfiles --create-home --shell /bin/bash dotfiles
+          printf '%s\n' 'dotfiles ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/dotfiles
+          chmod 0440 /etc/sudoers.d/dotfiles
+
+      - name: Set up SSH agent and add the private deploy key for the private dotfiles repo
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_DOTFILES_PRIVATE_DEPLOY_KEY }}
+          ssh-auth-sock: /tmp/ssh-agent.sock
+
+      - name: Grant the setup user access to the SSH agent
+        run: |
+          # webfactory/ssh-agent leaves the socket owned by the action user.
+          chown dotfiles:dotfiles /tmp/ssh-agent.sock
+          chmod 0600 /tmp/ssh-agent.sock
+
+      - name: Setup dotfiles with snippet
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          SYSTEM: server
+        run: |
+          sudo -u dotfiles env \
+            CI=true \
+            DOTFILES_SSH_SERVICE_COMMAND="${DOTFILES_SSH_SERVICE_COMMAND}" \
+            DOTFILES_SYSTEMCTL_COMMAND="${DOTFILES_SYSTEMCTL_COMMAND}" \
+            EMAIL_ADDRESS="${EMAIL_ADDRESS}" \
+            GITHUB_TOKEN="${GITHUB_TOKEN}" \
+            HOME=/home/dotfiles \
+            SSH_AUTH_SOCK=/tmp/ssh-agent.sock \
+            SYSTEM="${SYSTEM}" \
+            bash -c 'printf "%s\n%s\n" "$EMAIL_ADDRESS" "$SYSTEM" | bash -c "$(wget -qO - https://shunk031.me/dotfiles/setup.sh)"'
+
+      - name: Verify system configuration
+        run: |
+          set -Eeuo pipefail
+          observed_timezone="$(readlink -f /etc/localtime)"
+          observed_locale="$(grep -m1 '^LANG=' /etc/locale.conf || true)"
+          printf 'Observed /etc/localtime: %s\n' "${observed_timezone}"
+          printf 'Observed LANG: %s\n' "${observed_locale}"
+          test "${observed_timezone}" = "/usr/share/zoneinfo/Asia/Tokyo"
+          grep -qx 'LANG=en_US.UTF-8' /etc/locale.conf

@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       # Run this workflow when its definition changes.
-      - ".github/workflows/macos.yaml"
+      - ".github/workflows/e2e-macos.yaml"
 
       # Bootstrap changes affect setup behavior on macOS.
       - "setup.sh"
@@ -14,16 +14,16 @@ on:
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 
-      # macOS install scripts are exercised by the build job.
+      # macOS install scripts are exercised by the macOS job.
       - "install/macos/**"
 
       # macOS-specific chezmoi scripts are applied during setup.
       - "home/.chezmoiscripts/macos/**"
 
-      # OS-specific tmux configuration is checked by the build job.
+      # OS-specific tmux configuration is checked by the macOS job.
       - "home/dot_tmux.conf.d/os/macos.conf"
 
-      # Installation and file-existence tests define the build's assertions.
+      # Installation and file-existence tests define the macOS job's assertions.
       - "tests/install/macos/**"
       - "tests/files/**"
 
@@ -32,7 +32,7 @@ on:
     branches: [main]
     paths:
       # Run this workflow when its definition changes.
-      - ".github/workflows/macos.yaml"
+      - ".github/workflows/e2e-macos.yaml"
 
       # Bootstrap changes affect setup behavior on macOS.
       - "setup.sh"
@@ -41,24 +41,25 @@ on:
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 
-      # macOS install scripts are exercised by the build job.
+      # macOS install scripts are exercised by the macOS job.
       - "install/macos/**"
 
       # macOS-specific chezmoi scripts are applied during setup.
       - "home/.chezmoiscripts/macos/**"
 
-      # OS-specific tmux configuration is checked by the build job.
+      # OS-specific tmux configuration is checked by the macOS job.
       - "home/dot_tmux.conf.d/os/macos.conf"
 
-      # Installation and file-existence tests define the build's assertions.
+      # Installation and file-existence tests define the macOS job's assertions.
       - "tests/install/macos/**"
       - "tests/files/**"
 
 jobs:
-  build:
+  macos:
     # This workflow requires private repository access and benchmark token.
     # Skip known secret-less contexts to avoid failing at SSH setup.
     if: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    timeout-minutes: 15
     runs-on: macos-14 # M1 Mac
     env:
       # DOTFILES_DEBUG: 1

@@ -62,29 +62,40 @@ jobs:
             echo "should_test=false" >> "${GITHUB_OUTPUT}"
           fi
 
-  test:
+  # Formatting is distribution-independent, so run shfmt once on the runner.
+  shfmt:
     needs: changes
-    # Run the same test suite on each target OS/system pair.
-    # We intentionally keep macOS as `client` only because this repository
-    # does not define a macOS `server` test target.
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-14]
-        system: [client, server]
-        exclude:
-          - os: macos-14
-            system: server
+    runs-on: ubuntu-latest
 
-    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Skip full unit test run for unrelated changes
+        if: ${{ needs.changes.outputs.should_test != 'true' }}
+        run: |
+          # Keep this required job reporting a final status for every PR.
+          echo "No unit-test-relevant files changed."
+          echo "Compared diff range: ${{ needs.changes.outputs.diff_range }}"
+
+      - name: Run `shfmt`
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        uses: reviewdog/action-shfmt@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          shfmt_flags: -i 4 -sr -d
+
+  macos:
+    # Run after formatting so a failure stops all distribution test jobs.
+    needs: [changes, shfmt]
+    # Run unit tests on the macOS runner because GitHub Actions does not
+    # support macOS job containers.
+    runs-on: macos-14
     env:
-      # Export matrix values to shell scripts so existing test helpers can use
-      # simple `OS`/`SYSTEM` checks without depending on GitHub expression syntax.
-      OS: ${{ matrix.os }}
-      SYSTEM: ${{ matrix.system }}
-      # Keep Codecov naming deterministic per job. This makes it easy to trace
-      # upload sessions in Codecov API/UI and avoids accidental session overlap.
-      CODECOV_FLAGS: ${{ matrix.os }}-${{ matrix.system }}
-      CODECOV_NAME: codecov-dotfiles-${{ matrix.os }}-${{ matrix.system }}
+      # Keep the target label aligned with the existing macOS runner.
+      TARGET_OS: macos-14
+      CODECOV_FLAGS: macos
+      CODECOV_NAME: codecov-dotfiles-macos
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
@@ -96,123 +107,253 @@ jobs:
       - name: Skip full unit test run for unrelated changes
         if: ${{ needs.changes.outputs.should_test != 'true' }}
         run: |
+          # Keep this required job reporting a final status for every PR.
           echo "No unit-test-relevant files changed."
           echo "Compared diff range: ${{ needs.changes.outputs.diff_range }}"
 
       - name: Install tools
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          if [ "${OS}" == "macos-14" ]; then
-            # `bashcov` on macOS must use Homebrew Bash (>=5) to avoid the
-            # system Bash 3.2 parser limitations that produced empty coverage.
-            brew install bash bats-core parallel
+          # Homebrew Bash (>=5) avoids the system Bash 3.2 parser limitations
+          # that produced empty bashcov coverage; bats-core and parallel run
+          # the shell suite; gpg, jq, and curl are needed by codecov-action's
+          # uploader.
+          brew install \
+            bash \
+            bats-core \
+            parallel \
+            gpg \
+            jq \
+            curl
 
-          elif [ "${OS}" == "ubuntu-latest" ]; then
-            # Ruby is required for bashcov/simplecov formatters.
-            sudo apt-get update && sudo apt-get install -y bats parallel ruby
-
-          else
-            echo "${OS} and ${SYSTEM} are not supported" >&2
-            exit 1
-          fi
-
-          # Install coverage tooling as user gems and expose gem bin dir on PATH.
-          # `--no-document` keeps CI faster and deterministic.
+          # User gems keep bashcov available without modifying system Ruby.
           gem install --user-install --no-document bashcov simplecov-cobertura
           echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
-
-      - name: Run `shfmt`
-        if: ${{ needs.changes.outputs.should_test == 'true' }}
-        uses: reviewdog/action-shfmt@v1
-        with:
-          shfmt_flags: -i 4 -sr -d
 
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: python3 -m unittest discover -s tests/python
 
-      - name: Run unit test
+      - name: Run shell unit tests with coverage
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: |
-          # Shared bashcov defaults:
-          # - `--skip-uncovered`: limit report to executed files.
-          # - `--root .`: normalize paths relative to repository root.
+          # Keep the coverage session name distinct and skip files that are not
+          # reached by the selected Bats suites.
           bashcov_args=(--skip-uncovered --root .)
-          if [ "${OS}" == "macos-14" ]; then
-            # Force Homebrew Bash for tracing on macOS; this solved the
-            # previously observed `Line Coverage: 100.0% (0 / 0)` issue.
-            bashcov_args+=(--bash-path /opt/homebrew/bin/bash)
-          fi
 
-          # Use a unique command name per matrix job so SimpleCov keeps each
-          # session separated before Codecov merges by flag/name.
-          BASHCOV_COMMAND_NAME="unit-test-${OS}-${SYSTEM}" \
+          # Use Homebrew Bash to avoid the system Bash 3.2 parser limitations.
+          bashcov_args+=(--bash-path /opt/homebrew/bin/bash)
+          BASHCOV_COMMAND_NAME="unit-test-${TARGET_OS}" \
             bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
 
-      - name: Setup for codecov
-        if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' }}
-        run: |
-          # codecov-action requires these tools for uploader validation/signing
-          # in this repository setup.
-          if [ "${OS}" == "macos-14" ]; then
-            brew install gpg jq curl
-
-          elif [ "${OS}" == "ubuntu-latest" ]; then
-            sudo apt-get install -y gpg jq curl
-
-          else
-            echo "${OS} and ${SYSTEM} are not supported" >&2
-            exit 1
-          fi
-
-      - name: Check coverage report
-        id: coverage-report
-        if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' }}
-        run: |
-          if [ -f ./coverage/coverage.xml ]; then
-            echo "exists=true" >> "${GITHUB_OUTPUT}"
-          else
-            echo "exists=false" >> "${GITHUB_OUTPUT}"
-            echo "::warning::coverage/coverage.xml was not generated; skipping Codecov upload."
-          fi
-
       - name: Upload coverage to Codecov
-        if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' && steps.coverage-report.outputs.exists == 'true' }}
+        # A missing report skips this upload rather than failing the job.
+        if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' && hashFiles('coverage/coverage.xml') != '' }}
         uses: codecov/codecov-action@v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           files: ./coverage/coverage.xml
           # Upload only the explicit report file generated in this workflow.
-          # This prevents unexpected auto-discovery from old/temporary files.
+          # This prevents unexpected auto-discovery from old or temporary files.
           disable_search: true
-          env_vars: OS,SYSTEM
+          env_vars: TARGET_OS
+          fail_ci_if_error: true
+          flags: ${{ env.CODECOV_FLAGS }}
+          name: ${{ env.CODECOV_NAME }}
+          verbose: true
+
+  ubuntu:
+    # Run after formatting so a failure stops all distribution test jobs.
+    needs: [changes, shfmt]
+    # Run Ubuntu unit tests inside the official image so runner-preinstalled
+    # tools cannot mask missing dependencies.
+    runs-on: ubuntu-latest
+    container: ubuntu:26.04
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Keep Codecov metadata tied to this distribution-specific job.
+      TARGET_OS: ubuntu
+      CODECOV_FLAGS: ubuntu
+      CODECOV_NAME: codecov-dotfiles-ubuntu
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Skip full unit test run for unrelated changes
+        if: ${{ needs.changes.outputs.should_test != 'true' }}
+        run: |
+          # Keep this required job reporting a final status for every PR.
+          echo "No unit-test-relevant files changed."
+          echo "Compared diff range: ${{ needs.changes.outputs.diff_range }}"
+
+      - name: Install tools
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        run: |
+          set -Eeuo pipefail
+
+          # Noninteractive mode prevents package prompts from blocking CI.
+          export DEBIAN_FRONTEND=noninteractive
+
+          # Refresh the official image's package metadata before installing.
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            bats \
+            ca-certificates \
+            curl \
+            gpg \
+            jq \
+            parallel \
+            python3 \
+            ruby \
+            sudo \
+            util-linux
+
+          # Follow the official GitHub CLI Debian installation instructions.
+          # The keyring lets APT verify packages from the GitHub CLI repository.
+          install -d -m 0755 /etc/apt/keyrings
+          curl --fail --location --silent --show-error \
+            https://cli.github.com/packages/githubcli-archive-keyring.gpg |
+            gpg --dearmor --yes --output /etc/apt/keyrings/githubcli-archive-keyring.gpg
+          chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+
+          # Register the GitHub CLI package repository before installing gh.
+          printf 'deb [arch=%s signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' \
+            "$(dpkg --print-architecture)" |
+            tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          apt-get update
+          apt-get install -y --no-install-recommends gh
+
+          # Exercise the same dependency path used by a real Ubuntu install.
+          bash ./install/ubuntu/common/dependencies.sh
+
+          # Install bashcov and its Cobertura formatter for shell coverage.
+          gem install --no-document bashcov simplecov-cobertura
+
+      - name: Run Python unit tests
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        run: python3 -m unittest discover -s tests/python
+
+      - name: Run shell unit tests with coverage
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        run: |
+          # Keep the coverage session name distinct and skip files that are not
+          # reached by the selected Bats suites.
+          bashcov_args=(--skip-uncovered --root .)
+
+          BASHCOV_COMMAND_NAME="unit-test-${TARGET_OS}" \
+            bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
+
+      - name: Upload coverage to Codecov
+        # A missing report skips this upload rather than failing the job.
+        if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' && hashFiles('coverage/coverage.xml') != '' }}
+        uses: codecov/codecov-action@v7
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: ./coverage/coverage.xml
+          # Upload only the explicit report file generated in this workflow.
+          # This prevents unexpected auto-discovery from old or temporary files.
+          disable_search: true
+          env_vars: TARGET_OS
           fail_ci_if_error: true
           flags: ${{ env.CODECOV_FLAGS }}
           name: ${{ env.CODECOV_NAME }}
           verbose: true
 
   rocky:
-    needs: changes
-    if: ${{ needs.changes.outputs.should_test == 'true' }}
+    # Run after formatting so a failure stops all distribution test jobs.
+    needs: [changes, shfmt]
+    # Run Rocky Linux unit tests inside the official image so runner-
+    # preinstalled tools cannot mask missing dependencies.
     runs-on: ubuntu-latest
-    container:
-      image: rockylinux/rockylinux:9
+    container: rockylinux/rockylinux:9
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Keep Codecov metadata tied to this distribution-specific job.
+      TARGET_OS: rocky
+      CODECOV_FLAGS: rocky
+      CODECOV_NAME: codecov-dotfiles-rocky
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Run Rocky Linux smoke tests
+      - name: Skip full unit test run for unrelated changes
+        if: ${{ needs.changes.outputs.should_test != 'true' }}
         run: |
+          # Keep this required job reporting a final status for every PR.
+          echo "No unit-test-relevant files changed."
+          echo "Compared diff range: ${{ needs.changes.outputs.diff_range }}"
+
+      - name: Install tools
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        run: |
+          set -Eeuo pipefail
+
+          # EPEL must be enabled before one transaction resolves Bats; the
+          # GitHub CLI repository must be present before that same transaction
+          # resolves gh.
           dnf install -y epel-release
-          dnf install -y bats
+          curl --fail --silent --show-error --location \
+            https://cli.github.com/packages/rpm/gh-cli.repo \
+            --output /etc/yum.repos.d/gh-cli.repo
+
+          # Install all image-missing test tools in one transaction.
+          dnf install -y \
+            bats \
+            gh \
+            jq \
+            parallel \
+            python3 \
+            ruby \
+            sudo \
+            util-linux
+
+          # Exercise the same dependency path used by a real Rocky install.
           bash ./install/rocky/common/dependencies.sh
+
+          # The Rocky GPG tests require the terminal pinentry implementation.
           rpm -q pinentry
           test "$(command -v pinentry-curses)" = "/usr/bin/pinentry-curses"
-          useradd --create-home --shell /bin/bash bats
-          test_bin="$(mktemp -d)"
-          printf '%s\n' '#!/usr/bin/env bash' 'exec "$@"' > "${test_bin}/sudo"
-          chmod 755 "${test_bin}" "${test_bin}/sudo"
-          setpriv --reuid=bats --regid=bats --init-groups \
-            env "PATH=${test_bin}:${PATH}" bats -r tests/install/rocky
+
+          # Install bashcov and its Cobertura formatter for shell coverage.
+          gem install --no-document bashcov simplecov-cobertura
+
+      - name: Run Python unit tests
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        run: python3 -m unittest discover -s tests/python
+
+      - name: Run shell unit tests with coverage
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        run: |
+          # Keep the coverage session name distinct and skip files that are not
+          # reached by the selected Bats suites.
+          bashcov_args=(--skip-uncovered --root .)
+
+          BASHCOV_COMMAND_NAME="unit-test-${TARGET_OS}" \
+            bashcov "${bashcov_args[@]}" -- ./scripts/run_unit_test.sh
+
+      - name: Upload coverage to Codecov
+        # A missing report skips this upload rather than failing the job.
+        if: ${{ needs.changes.outputs.should_test == 'true' && github.actor != 'dependabot[bot]' && hashFiles('coverage/coverage.xml') != '' }}
+        uses: codecov/codecov-action@v7
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: ./coverage/coverage.xml
+          # Upload only the explicit report file generated in this workflow.
+          # This prevents unexpected auto-discovery from old or temporary files.
+          disable_search: true
+          env_vars: TARGET_OS
+          fail_ci_if_error: true
+          flags: ${{ env.CODECOV_FLAGS }}
+          name: ${{ env.CODECOV_NAME }}
+          verbose: true

@@ -4,30 +4,55 @@ on:
   push:
     branches: [main]
     paths:
+      # Run this workflow when its definition changes.
       - ".github/workflows/macos.yaml"
+
+      # Bootstrap changes affect setup behavior on macOS.
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
-      - "install/macos/**"
-      - "home/.chezmoiscripts/macos/**"
-      - "home/dot_tmux.conf.d/os/macos.conf"
-      - "tests/install/macos/**"
 
+      # macOS install scripts are exercised by the build job.
+      - "install/macos/**"
+
+      # macOS-specific chezmoi scripts are applied during setup.
+      - "home/.chezmoiscripts/macos/**"
+
+      # OS-specific tmux configuration is checked by the build job.
+      - "home/dot_tmux.conf.d/os/macos.conf"
+
+      # Installation and file-existence tests define the build's assertions.
+      - "tests/install/macos/**"
+      - "tests/files/**"
+
+  # GitHub Actions does not support YAML anchors, so keep these lists identical.
   pull_request:
     branches: [main]
     paths:
+      # Run this workflow when its definition changes.
       - ".github/workflows/macos.yaml"
+
+      # Bootstrap changes affect setup behavior on macOS.
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
+
+      # macOS install scripts are exercised by the build job.
       - "install/macos/**"
+
+      # macOS-specific chezmoi scripts are applied during setup.
       - "home/.chezmoiscripts/macos/**"
+
+      # OS-specific tmux configuration is checked by the build job.
       - "home/dot_tmux.conf.d/os/macos.conf"
+
+      # Installation and file-existence tests define the build's assertions.
       - "tests/install/macos/**"
+      - "tests/files/**"
 
 jobs:
   build:

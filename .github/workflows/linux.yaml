@@ -4,36 +4,63 @@ on:
   push:
     branches: [main]
     paths:
+      # Run this workflow when its definition changes.
       - ".github/workflows/linux.yaml"
+
+      # Bootstrap changes affect setup behavior on both Linux distributions.
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
+
+      # Distribution install scripts are exercised by the build job.
       - "install/ubuntu/**"
       - "install/rocky/**"
+
+      # Distribution-specific chezmoi scripts are applied during setup.
+      - "home/.chezmoiscripts/ubuntu/**"
       - "home/.chezmoiscripts/rocky/**"
-      - ".chezmoiscripts/ubuntu/**"
-      - "dot_tmux.conf.d/os/ubuntu.conf"
+
+      # OS-specific tmux configuration is checked by the build job.
+      - "home/dot_tmux.conf.d/os/ubuntu_client.conf"
+      - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
+
+      # Installation and file-existence tests define the build's assertions.
       - "tests/install/ubuntu/**"
       - "tests/install/rocky/**"
+      - "tests/files/**"
 
+  # GitHub Actions does not support YAML anchors, so keep these lists identical.
   pull_request:
     branches: [main]
     paths:
+      # Run this workflow when its definition changes.
       - ".github/workflows/linux.yaml"
+
+      # Bootstrap changes affect setup behavior on both Linux distributions.
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
+
+      # Distribution install scripts are exercised by the build job.
       - "install/ubuntu/**"
       - "install/rocky/**"
+
+      # Distribution-specific chezmoi scripts are applied during setup.
+      - "home/.chezmoiscripts/ubuntu/**"
       - "home/.chezmoiscripts/rocky/**"
-      - ".chezmoiscripts/ubuntu/**"
-      - "dot_tmux.conf.d/os/ubuntu.conf"
+
+      # OS-specific tmux configuration is checked by the build job.
+      - "home/dot_tmux.conf.d/os/ubuntu_client.conf"
+      - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
+
+      # Installation and file-existence tests define the build's assertions.
       - "tests/install/ubuntu/**"
       - "tests/install/rocky/**"
+      - "tests/files/**"
 
 permissions:
   contents: read

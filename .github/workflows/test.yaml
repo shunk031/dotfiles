@@ -86,7 +86,8 @@ jobs:
           shfmt_flags: -i 4 -sr -d
 
   macos:
-    needs: changes
+    # Run after formatting so a failure stops all distribution test jobs.
+    needs: [changes, shfmt]
     # Run unit tests on the macOS runner because GitHub Actions does not
     # support macOS job containers.
     runs-on: macos-14
@@ -161,7 +162,8 @@ jobs:
           verbose: true
 
   ubuntu:
-    needs: changes
+    # Run after formatting so a failure stops all distribution test jobs.
+    needs: [changes, shfmt]
     # Run Ubuntu unit tests inside the official image so runner-preinstalled
     # tools cannot mask missing dependencies.
     runs-on: ubuntu-latest
@@ -263,7 +265,8 @@ jobs:
           verbose: true
 
   rocky:
-    needs: changes
+    # Run after formatting so a failure stops all distribution test jobs.
+    needs: [changes, shfmt]
     # Run Rocky Linux unit tests inside the official image so runner-
     # preinstalled tools cannot mask missing dependencies.
     runs-on: ubuntu-latest

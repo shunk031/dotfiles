@@ -5,7 +5,7 @@ inline = '''
     setopt localoptions extendedglob
     autoload -Uz compinit
     local dump="${ZDOTDIR:-$HOME}/.zcompdump"
-    [[ -n ${dump}(#qN.mh-24) ]] && compinit -C || compinit
+    if [[ -n ${dump}(#qN.mh-24) ]]; then compinit -C; else compinit; fi
 }
 '''
 

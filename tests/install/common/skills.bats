@@ -427,6 +427,21 @@ EOF
     [ "${status}" -eq 0 ]
 }
 
+@test "[common] a colored upstream deletion warning removes each listed skill" {
+    write_mise_stub
+    mkdir -p "${SKILLS_STATE_DIR}"
+    printf '%s\n' 1 > "${SKILLS_UPDATE_STAMP}"
+    export SKILLS_UPDATE_OUTPUT_PATH="${BATS_TEST_TMPDIR}/update-output"
+    printf '\033[38;5;102mWarning:\033[0m The following skills from \033[38;5;102mowner/repo\033[0m appear to have been deleted upstream:\n  \033[38;5;102m•\033[0m deleted-one\n  \033[38;5;102m•\033[0m deleted-two\n\033[38;5;102mSkipping deletion in non-interactive mode.\033[0m\n' > "${SKILLS_UPDATE_OUTPUT_PATH}"
+
+    update_installed_skills
+
+    run grep -Fx 'remove --skill deleted-one --global --yes' "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -Fx 'remove --skill deleted-two --global --yes' "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] an update without an upstream deletion warning does not remove skills" {
     write_mise_stub
     mkdir -p "${SKILLS_STATE_DIR}"

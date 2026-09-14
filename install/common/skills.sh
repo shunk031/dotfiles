@@ -417,28 +417,29 @@ function skills_update_is_due() {
 #
 # @description Remove skills named in the upstream-deletion warning from `skills update`.
 # @description
-#   Parse bullet lines only within the CLI's warning block. If the warning
-#   phrase is present but no skill names can be extracted, report the mismatch
-#   and continue without failing reconciliation. A failed removal is reported
-#   and does not stop later removals.
+#   Strip ANSI SGR sequences before parsing warning blocks because the CLI emits
+#   colors in non-interactive mode. Report an existing warning when no names
+#   are extracted and continue after individual removal failures.
 # @arg $1 output string Complete output from `skills update`.
 # @stderr A warning when upstream deletions are advertised but none extracted,
 #   or when an individual removal fails.
 # @exitcode 0 Always; removal failures are reported and do not stop reconciliation.
 #
 function remove_upstream_deleted_skills() {
-    local output="$1" skill
+    local output="$1" clean_output skill
     local -a skills_to_remove=()
+
+    clean_output="$(printf '%s\n' "${output}" | sed -E $'s/\x1b\\[[0-9;]*m//g')"
 
     while IFS= read -r skill; do
         [ -n "${skill}" ] || continue
         skills_to_remove+=("${skill}")
     done < <(
-        printf '%s\n' "${output}" |
+        printf '%s\n' "${clean_output}" |
             sed -n '/^Warning: The following skills from .* appear to have been deleted upstream:$/,/^Skipping deletion in non-interactive mode\.$/s/^  • //p'
     )
 
-    if [[ "${output}" == *"appear to have been deleted upstream"* ]] && [ "${#skills_to_remove[@]}" -eq 0 ]; then
+    if [[ "${clean_output}" == *"appear to have been deleted upstream"* ]] && [ "${#skills_to_remove[@]}" -eq 0 ]; then
         echo "skills: upstream deletion warning found, but no skills could be extracted; check the skills CLI output" >&2
     fi
 

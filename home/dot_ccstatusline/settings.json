@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "lines": [
     [
       {
@@ -8,6 +8,14 @@
         "color": "white",
         "commandPath": "npx -y ccusage@latest statusline",
         "timeout": 50000
+      },
+      {
+        "id": "aa75696c-a94c-49bc-ae11-5e8f7e3269ed",
+        "type": "separator"
+      },
+      {
+        "id": "2ee158d1-3893-4d7f-a9d4-6333d4b777d9",
+        "type": "claude-account-email"
       }
     ],
     [

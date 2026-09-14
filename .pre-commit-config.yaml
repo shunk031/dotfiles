@@ -21,13 +21,14 @@ repos:
         files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json)$
 
       - id: textlint-markdown
-        name: fix hard-wrapped Markdown prose
-        entry: textlint --fix --config home/dot_config/textlint/config.json
+        name: format and lint Markdown prose
+        entry: bash -c 'textlint --fix "$@"; textlint "$@"' --
         language: node
         additional_dependencies:
           - textlint@15.8.0
           - '@cffnpwr/textlint-rule-no-arbitrary-line-break@1.1.0'
           - textlint-rule-ja-space-between-half-and-full-width@3.0.3
+          - textlint-rule-preset-ai-words-ja@1.2.0
         types: [markdown]
         # Test fixtures are frozen inputs whose exact bytes are the contract the
         # tests assert against. Auto-fixing them rewrites the very prose a

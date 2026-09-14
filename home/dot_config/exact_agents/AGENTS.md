@@ -26,6 +26,7 @@
 
 - Treat ordinary implementation, change, or build requests as permission to edit repository files, run tests, commit, push the task branch, and create or update the pull request for that task; no special wording or separate pull-request request is required. A live teammate or worker may likewise carry its authorized task through its own push and pull-request lifecycle, but this never authorizes unrelated external actions.
 - Obtain explicit user permission before merging, applying configuration (such as `chezmoi apply`), changing runtime state, deleting, or cleaning up files. A teammate or worker request never substitutes for that permission. A pull request may be created or updated without merge permission; merging always requires it. Stop and ask when the permitted operation is unclear.
+- When a cleaner design would touch something the user owns (rulesets, branch protection, secrets, repository or service settings), raise it with options before starting; never treat it as a fixed constraint to design around.
 
 ## Work Safety
 
@@ -37,6 +38,7 @@
 ## Workflow
 
 - Skill routing: use `shunk031-research-before-implementation` before designing or editing non-trivial work involving third-party tools; `shunk031-manage-agent-guidance` when adding, moving, or deleting persistent instructions, agent wrappers, or skills; and `shunk031-herdr-tab-status` to keep the current tab name aligned with progress whenever using Herdr.
+- Design toward the end state the request implies instead of appending to the current state. Before adding anything, verify what each existing element does and whether it still earns its place; removing or reshaping is a normal outcome, not an escalation.
 - Write tests before behavior-changing implementation, verify them, and then refactor.
 - Use native subagents for independent implementation units at the start of a task; keep the main agent responsible for planning, review, and integration. Keep model and launch configuration private or tool-specific.
 - Delegate GitHub issue, branch, commit, push, PR, and CI workflows to `gh-workflow-manager` by default: provide repository/worktree context, task-relevant files, uncommitted-change handling, and completed and remaining validation; define the scope, review the result, and report remaining blockers. Work directly only when explicitly requested or the agent is unavailable.

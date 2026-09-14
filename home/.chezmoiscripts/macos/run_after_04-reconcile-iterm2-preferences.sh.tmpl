@@ -1,0 +1,13 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+
+# @file home/.chezmoiscripts/macos/run_after_04-reconcile-iterm2-preferences.sh.tmpl
+# @brief Reconcile iTerm2's custom preferences source after `chezmoi apply`.
+
+set -Eeuo pipefail
+
+# shellcheck source=/dev/null
+source "{{ .chezmoi.sourceDir }}/../install/macos/common/iterm2.sh"
+
+reconcile_iterm2_preferences_source
+{{- end }}

@@ -43,18 +43,20 @@ EOF
     [ "${CODEX_PLUGINS_TEST_MISE_ACTIVATED}" = "1" ]
 }
 
-@test "[common] install_ars_codex_plugin adds the marketplace before the plugin" {
+@test "[common] install_codex_plugins adds each marketplace before its plugin" {
     MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
     export MISE_CALLS_PATH
     write_mise_logger
 
-    install_ars_codex_plugin
+    install_codex_plugins
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "exec -- codex plugin marketplace add Imbad0202/academic-research-skills-codex --ref main" ]
     [ "${lines[1]}" = "exec -- codex plugin add ars-codex@ars-codex" ]
-    [ "${#lines[@]}" -eq 2 ]
+    [ "${lines[2]}" = "exec -- codex plugin marketplace add DietrichGebert/ponytail --ref main" ]
+    [ "${lines[3]}" = "exec -- codex plugin add ponytail@ponytail" ]
+    [ "${#lines[@]}" -eq 4 ]
 }
 
 @test "[common] codex plugins script runs the activated installation workflow" {
@@ -94,11 +96,15 @@ EOF
     [ "${lines[0]}" = "activate bash" ]
     [ "${lines[1]}" = "exec -- codex plugin marketplace add Imbad0202/academic-research-skills-codex --ref main" ]
     [ "${lines[2]}" = "exec -- codex plugin add ars-codex@ars-codex" ]
-    [ "${#lines[@]}" -eq 3 ]
+    [ "${lines[3]}" = "exec -- codex plugin marketplace add DietrichGebert/ponytail --ref main" ]
+    [ "${lines[4]}" = "exec -- codex plugin add ponytail@ponytail" ]
+    [ "${#lines[@]}" -eq 5 ]
 
     run cat "${BATS_TEST_TMPDIR}/codex_args.txt"
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "1|plugin marketplace add Imbad0202/academic-research-skills-codex --ref main" ]
     [ "${lines[1]}" = "1|plugin add ars-codex@ars-codex" ]
-    [ "${#lines[@]}" -eq 2 ]
+    [ "${lines[2]}" = "1|plugin marketplace add DietrichGebert/ponytail --ref main" ]
+    [ "${lines[3]}" = "1|plugin add ponytail@ponytail" ]
+    [ "${#lines[@]}" -eq 4 ]
 }

@@ -3,8 +3,8 @@
 # @file install/common/codex-plugins.sh
 # @brief Install Codex native plugins.
 # @description
-#   Activates `mise`, registers the ARS-Codex marketplace, and installs the
-#   ARS-Codex plugin.
+#   Activates `mise`, registers Codex plugin marketplaces, and installs their
+#   plugins.
 
 set -Eeuo pipefail
 
@@ -24,14 +24,20 @@ function activate_mise() {
 }
 
 #
-# @description Register the ARS-Codex marketplace and install its native plugin.
+# @description Register Codex plugin marketplaces and install their native plugins.
 #
-function install_ars_codex_plugin() {
+function install_codex_plugins() {
     "${MISE_BIN}" exec -- codex plugin marketplace add \
         Imbad0202/academic-research-skills-codex \
         --ref main
     "${MISE_BIN}" exec -- codex plugin add \
         ars-codex@ars-codex
+
+    "${MISE_BIN}" exec -- codex plugin marketplace add \
+        DietrichGebert/ponytail \
+        --ref main
+    "${MISE_BIN}" exec -- codex plugin add \
+        ponytail@ponytail
 }
 
 #
@@ -39,7 +45,7 @@ function install_ars_codex_plugin() {
 #
 function main() {
     activate_mise
-    install_ars_codex_plugin
+    install_codex_plugins
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

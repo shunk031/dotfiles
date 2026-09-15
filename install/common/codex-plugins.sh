@@ -38,6 +38,7 @@ function ensure_codex_plugin() {
         return
     fi
 
+    "${MISE_BIN}" exec -- codex plugin marketplace remove "${plugin_id#*@}" > /dev/null 2>&1 || true
     "${MISE_BIN}" exec -- codex plugin marketplace add \
         "${source}" \
         --ref main

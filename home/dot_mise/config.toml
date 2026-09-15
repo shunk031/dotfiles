@@ -55,6 +55,7 @@ sqlite = "3.53.4"
 "go:github.com/shunk031/shuhari/cmd/shuhari" = "0.0.0-20260824171335-deb972da670a"
 
 # GitHub release tools
+"github:alphaXiv/OpenResearch" = "0.2.2"
 "github:d-kuro/gwq" = "0.1.1"
 "github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }
 

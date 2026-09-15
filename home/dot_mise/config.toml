@@ -62,7 +62,7 @@ sqlite = "3.53.4"
 "npm:bash-language-server" = "5.6.0"
 "npm:fast-cli" = "5.2.0"
 "npm:pyright" = "1.1.413"
-"npm:skills" = "1.5.23"
+"npm:skills" = "1.5.24"
 
 [settings]
 # Version files: honor idiomatic files such as `.python-version`.

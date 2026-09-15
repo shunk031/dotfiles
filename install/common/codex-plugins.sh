@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 # @file install/common/codex-plugins.sh
-# @brief Install Codex native plugins.
+# @brief Ensure Codex native plugins are installed and enabled.
 # @description
-#   Activates `mise`, registers Codex plugin marketplaces, and installs their
-#   plugins.
+#   Activates `mise`, inspects the installed plugins once, and installs only
+#   missing or disabled plugins.
 
 set -Eeuo pipefail
 
@@ -24,19 +24,41 @@ function activate_mise() {
 }
 
 #
-# @description Register Codex plugin marketplaces and install their native plugins.
+# @description Install a Codex plugin when it is missing or disabled.
+# @arg $1 installed_json JSON returned by `codex plugin list --json`.
+# @arg $2 source GitHub repository used as the plugin marketplace source.
+# @arg $3 plugin_id Plugin identifier in `plugin@marketplace` form.
 #
-function install_codex_plugins() {
-    "${MISE_BIN}" exec -- codex plugin marketplace add \
-        Imbad0202/academic-research-skills-codex \
-        --ref main
-    "${MISE_BIN}" exec -- codex plugin add \
-        ars-codex@ars-codex
+function ensure_codex_plugin() {
+    local installed_json="$1"
+    local source="$2"
+    local plugin_id="$3"
+
+    if jq -e --arg plugin_id "${plugin_id}" 'any(.installed[]; .pluginId == $plugin_id and .enabled)' <<< "${installed_json}" > /dev/null; then
+        return
+    fi
 
     "${MISE_BIN}" exec -- codex plugin marketplace add \
-        DietrichGebert/ponytail \
+        "${source}" \
         --ref main
     "${MISE_BIN}" exec -- codex plugin add \
+        "${plugin_id}"
+}
+
+#
+# @description Ensure all managed Codex native plugins are installed and enabled.
+#
+function install_codex_plugins() {
+    local installed_json
+
+    installed_json="$("${MISE_BIN}" exec -- codex plugin list --json)"
+    ensure_codex_plugin \
+        "${installed_json}" \
+        Imbad0202/academic-research-skills-codex \
+        ars-codex@ars-codex
+    ensure_codex_plugin \
+        "${installed_json}" \
+        DietrichGebert/ponytail \
         ponytail@ponytail
 }
 

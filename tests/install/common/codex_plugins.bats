@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./install/common/codex-plugins.sh"
-readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_05-install-codex-plugins.sh.tmpl"
+readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_after_05-install-codex-plugins.sh.tmpl"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
@@ -23,7 +23,7 @@ EOF
     chmod +x "${MISE_BIN}"
 }
 
-@test "[common] codex plugins run-after template includes the installer" {
+@test "[common] codex plugins run-once template includes the installer" {
     run cat "${TMPL_SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
     [ "${output}" = '{{ include "../install/common/codex-plugins.sh" }}' ]

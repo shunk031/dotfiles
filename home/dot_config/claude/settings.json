@@ -1,5 +1,5 @@
 {
-  "model": "opusplan",
+  "model": "opus",
   "alwaysThinkingEnabled": true,
   "autoMemoryEnabled": false,
   "disableClaudeAiConnectors": true,

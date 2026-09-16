@@ -28,7 +28,13 @@ repos:
           - textlint@15.8.0
           - '@cffnpwr/textlint-rule-no-arbitrary-line-break@1.1.0'
           - textlint-rule-ja-space-between-half-and-full-width@3.0.3
-          - textlint-rule-preset-ai-words-ja@1.2.0
+          # textlint-rule-preset-ai-words-ja is held back by this machine's own
+          # npm policy, not by a version problem. min-release-age=7 refuses any
+          # release younger than a week, and every version of this package was
+          # published on or after 2026-09-12, so none of them resolve -- including
+          # the one this list pinned. prek installs every hook before running any,
+          # so that single failure aborted the whole pre-commit run and no commit
+          # could be made at all. Restore the line once 1.2.0 is a week old.
         types: [markdown]
         # Test fixtures are frozen inputs whose exact bytes are the contract the
         # tests assert against. Auto-fixing them rewrites the very prose a

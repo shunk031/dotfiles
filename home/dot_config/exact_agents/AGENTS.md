@@ -37,7 +37,7 @@
 
 ## Workflow
 
-- Skill routing: use `shunk031-research-before-implementation` before designing or editing non-trivial work involving third-party tools; `shunk031-manage-agent-guidance` when adding, moving, or deleting persistent instructions, agent wrappers, or skills; and `shunk031-herdr-tab-status` to keep the current tab name aligned with progress whenever using Herdr.
+- Skill routing: use `shunk031-research-before-implementation` before the first edit and the first experiment in any work touching a third-party tool, library, API, or platform — you do not get to judge the work trivial enough to skip it; `shunk031-manage-agent-guidance` when adding, moving, or deleting persistent instructions, agent wrappers, or skills; and `shunk031-herdr-tab-status` to keep the current tab name aligned with progress whenever using Herdr.
 - Design toward the end state the request implies instead of appending to the current state. Before adding anything, verify what each existing element does and whether it still earns its place; removing or reshaping is a normal outcome, not an escalation.
 - Write tests before behavior-changing implementation, verify them, and then refactor.
 - Run `date` and print its output in every report on work in progress, alongside how long that work has been running. Never write a time you did not just read.

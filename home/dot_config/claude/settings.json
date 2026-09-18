@@ -1,5 +1,5 @@
 {
-  "model": "opusplan",
+  "model": "opus",
   "alwaysThinkingEnabled": true,
   "autoMemoryEnabled": false,
   "disableClaudeAiConnectors": true,
@@ -7,7 +7,8 @@
     "DISABLE_AUTOUPDATER": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
-    "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3"
+    "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
   },
   "plansDirectory": "./.agents/worklog/claude",
   "permissions": {

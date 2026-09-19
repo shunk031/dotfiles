@@ -19,6 +19,11 @@
     },
     {
       "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor"],
+      "automerge": true
+    },
+    {
+      "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["patch"],
       "enabled": false
     },

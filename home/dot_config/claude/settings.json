@@ -10,7 +10,6 @@
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
     "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
   },
-  "plansDirectory": "./.agents/worklog/claude",
   "permissions": {
     "deny": [
       "Bash(sudo:*)",

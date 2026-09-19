@@ -51,8 +51,8 @@ sqlite = "3.53.4"
 #
 # Shuhari ships no git tags, so its module version list is empty and mise
 # cannot resolve `latest`. This pins the module-proxy pseudo-version of a
-# specific `main` commit; replace it with a semantic version once one exists.
-"go:github.com/shunk031/shuhari/cmd/shuhari" = "0.0.0-20260824171335-deb972da670a"
+# specific commit; replace it with a semantic version once one exists.
+"go:github.com/shunk031/shuhari/cmd/shuhari" = "0.0.0-20260919020752-14853fe08bc9"
 
 # GitHub release tools
 "github:d-kuro/gwq" = "0.1.1"

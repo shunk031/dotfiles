@@ -11,6 +11,8 @@
 #
 #   This wrapper owns target selection and policy; Shuhari owns the evaluation
 #   mechanism, per the Shuhari development architecture contract.
+#   Local mise config discovery is pinned to the repository source so an
+#   applied home-directory config cannot override the tool version under test.
 #
 #   The execution environment can be adjusted with `SHUHARI_SANDBOX` and
 #   `SHUHARI_AGENT_EXECUTABLE`. Each adds its corresponding flag, and an
@@ -88,7 +90,7 @@ function declared_environment_flags() {
 # @exitcode 1 When the schema is invalid.
 function run_validate() {
     env -u SHUHARI_SANDBOX -u SHUHARI_I_UNDERSTAND_NO_CREDENTIAL_BOUNDARY \
-        MISE_CONFIG_FILE="${MISE_CONFIG}" mise exec -- \
+        MISE_OVERRIDE_CONFIG_FILENAMES="${MISE_CONFIG}" mise exec -- \
         shuhari eval instructions "${GUIDANCE}" \
         --evals "${GUIDANCE_EVALS}" \
         --validate-only
@@ -102,7 +104,7 @@ function run_eval() {
 
     # Bash 3.2 treats expanding an empty array as an unbound variable under
     # `set -u`, so the expansion is guarded.
-    MISE_CONFIG_FILE="${MISE_CONFIG}" mise exec -- \
+    MISE_OVERRIDE_CONFIG_FILENAMES="${MISE_CONFIG}" mise exec -- \
         shuhari eval instructions "${GUIDANCE}" \
         --evals "${GUIDANCE_EVALS}" \
         ${environment_flags[@]+"${environment_flags[@]}"} \

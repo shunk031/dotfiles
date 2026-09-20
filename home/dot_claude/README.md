@@ -13,7 +13,10 @@
 | `~/.claude/commands` | [dotfiles/home/dot_config/claude/commands/](../dot_config/claude/commands/) |
 | `~/.claude/hooks` | [dotfiles/home/dot_config/claude/hooks/](../dot_config/claude/hooks/) |
 | `~/.claude/rules` | [dotfiles/home/dot_config/claude/rules/](../dot_config/claude/rules/) |
-| `~/.claude/settings.json` | [dotfiles/home/dot_config/claude/settings.json](../dot_config/claude/settings.json) |
+
+## Generated settings
+
+`~/.claude/settings.json` is a regular file rendered from [the settings source](../dot_config/claude/settings.json). After apply, Herdr registers its hook in that file without changing the source. Keep Herdr's generated registration out of the source.
 
 ## Skills
 

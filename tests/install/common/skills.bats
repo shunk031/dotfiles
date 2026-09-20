@@ -100,6 +100,7 @@ EOF
     printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^anthropics/skills:'
     printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^cursor/plugins:unslop$'
     printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^mattpocock/skills:grilling$'
+    printf '%s\n' "${SKILLS_ALLOWLIST[@]}" | grep -q '^Shubhamsaboo/awesome-llm-apps:first-reader$'
     [[ "$(printf '%s\n' "${SKILLS_ALLOWLIST[@]}")" != *"mattpocock/skills:grill-me"* ]]
 }
 

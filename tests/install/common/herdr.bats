@@ -2,7 +2,6 @@
 
 readonly SCRIPT_PATH="./install/common/herdr.sh"
 readonly MISE_HELPERS_PATH="./tests/install/common/mise_helpers.bash"
-readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_after_03-install-herdr.sh.tmpl"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
@@ -28,10 +27,6 @@ function write_mise_logger() {
 printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
 EOF
     chmod +x "${MISE_BIN}"
-}
-
-@test "[common] herdr run-once template exists" {
-    [ -f "${TMPL_SCRIPT_PATH}" ]
 }
 
 @test "[common] sync_herdr_skill succeeds when the named npm runner is stale" {

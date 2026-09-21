@@ -2,11 +2,12 @@
 
 readonly SCRIPT_PATH="./install/common/herdr.sh"
 readonly MISE_HELPERS_PATH="./tests/install/common/mise_helpers.bash"
-readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_once_after_03-install-herdr.sh.tmpl"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
     mkdir -p "${HOME}/.local/bin"
+    export CLAUDE_CONFIG_DIR="$HOME/.claude"
+    export CODEX_HOME="$HOME/.codex"
     OBSERVER_PID=''
 
     source "${SCRIPT_PATH}"
@@ -20,18 +21,6 @@ function teardown() {
     fi
     PATH=$(getconf PATH)
     export PATH
-}
-
-function write_mise_logger() {
-    cat > "${MISE_BIN}" << 'EOF'
-#!/usr/bin/env bash
-printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
-EOF
-    chmod +x "${MISE_BIN}"
-}
-
-@test "[common] herdr run-once template exists" {
-    [ -f "${TMPL_SCRIPT_PATH}" ]
 }
 
 @test "[common] sync_herdr_skill succeeds when the named npm runner is stale" {
@@ -64,45 +53,6 @@ EOF
     [ "${output}" = "generated Herdr skill" ]
 }
 
-@test "[common] activate_mise evaluates mise activation output" {
-    cat > "${MISE_BIN}" << 'EOF'
-#!/usr/bin/env bash
-if [ "$*" = "activate bash" ]; then
-    printf '%s\n' 'export HERDR_TEST_MISE_ACTIVATED=1'
-fi
-EOF
-    chmod +x "${MISE_BIN}"
-
-    activate_mise
-
-    [ "${HERDR_TEST_MISE_ACTIVATED}" = "1" ]
-}
-
-@test "[common] install_herdr installs herdr with mise" {
-    MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
-    export MISE_CALLS_PATH
-    write_mise_logger
-
-    install_herdr
-
-    run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
-    [ "${status}" -eq 0 ]
-    [ "${output}" = "install herdr" ]
-}
-
-@test "[common] install_herdr_integrations installs configured integrations" {
-    MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
-    export MISE_CALLS_PATH
-    write_mise_logger
-
-    install_herdr_integrations
-
-    run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
-    [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "exec -- herdr integration install claude" ]
-    [ "${lines[1]}" = "exec -- herdr integration install codex" ]
-}
-
 @test "[common] sync_herdr_skill writes the shared skill from Herdr" {
     MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
     export MISE_CALLS_PATH
@@ -126,57 +76,105 @@ EOF
     [ "${output}" = "generated Herdr skill" ]
 }
 
-@test "[common] herdr script runs full installation workflow" {
-    mkdir -p "${BATS_TEST_TMPDIR}/bin"
+@test "[common] sync_herdr_integrations refuses the old source-directory symlink" {
+    mkdir -p "${HOME}/.claude" "${BATS_TEST_TMPDIR}/source-hooks"
+    ln -s "${BATS_TEST_TMPDIR}/source-hooks" "${HOME}/.claude/hooks"
 
-    cat > "${MISE_BIN}" << 'EOF'
-#!/usr/bin/env bash
-printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
-if [ "$*" = "activate bash" ]; then
-    printf '%s\n' 'export HERDR_TEST_MISE_ACTIVATED=1'
-    printf '%s\n' "export PATH=\"${HOME}/.local/bin:${PATH}\""
-fi
-if [ "$1" = "exec" ]; then
-    [ "${2:-}" = "--" ] || exit 1
-    shift 2
-    "$@"
-fi
-EOF
-    chmod +x "${MISE_BIN}"
+    run sync_herdr_integrations false
 
-    cat > "${BATS_TEST_TMPDIR}/bin/herdr" << 'EOF'
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *'chezmoi apply'* ]]
+    [ ! -e "${BATS_TEST_TMPDIR}/source-hooks/herdr-agent-state.sh" ]
+}
+
+@test "[common] sync targets stale integrations and restores settings after failure" {
+    local herdr_bin="${BATS_TEST_TMPDIR}/herdr"
+    local codex_settings_source="${BATS_TEST_TMPDIR}/codex-hooks.json"
+
+    cat > "${herdr_bin}" << 'EOF'
 #!/usr/bin/env bash
+set -eu
 printf '%s\n' "$*" >> "${HERDR_CALLS_PATH}"
-if [ "$*" = "--skill" ]; then
-    printf '%s\n' "$*"
-fi
+case "$*" in
+    'integration status')
+        printf '%s\n' "${HERDR_STATUS}"
+        ;;
+    'integration install codex')
+        printf '%s\n' 'installer hooks' > "${CODEX_HOME}/hooks.json"
+        printf '%s\n' 'installer config' > "${CODEX_HOME}/config.toml"
+        printf '%s\n' 'new Codex hook' > "${CODEX_HOME}/herdr-agent-state.sh"
+        exit 23
+        ;;
+    'integration install claude')
+        exit 99
+        ;;
+    *) exit 1 ;;
+esac
 EOF
-    chmod +x "${BATS_TEST_TMPDIR}/bin/herdr"
+    chmod +x "${herdr_bin}"
+    mkdir -p "${HOME}/.codex"
+    printf '%s\n' 'source-owned hooks' > "${codex_settings_source}"
+    ln -s "${codex_settings_source}" "${HOME}/.codex/hooks.json"
+    export HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_calls.txt"
+    export HERDR_STATUS=$'claude: current (v1)\ncodex: needs repair'
 
-    run env \
-        DOTFILES_DEBUG=1 \
-        HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_args.txt" \
-        HOME="${HOME}" \
-        MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt" \
-        PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" \
-        bash "${SCRIPT_PATH}"
-    [ "${status}" -eq 0 ]
+    run sync_herdr_integrations "${herdr_bin}"
 
-    run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
-    [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "activate bash" ]
-    [ "${lines[1]}" = "install herdr" ]
-    [ "${lines[2]}" = "exec -- herdr integration install claude" ]
-    [ "${lines[3]}" = "exec -- herdr integration install codex" ]
-    [ "${lines[4]}" = "exec -- herdr --skill" ]
+    [ "${status}" -ne 0 ]
+    [ -L "${HOME}/.codex/hooks.json" ]
+    [ "$(readlink "${HOME}/.codex/hooks.json")" = "${codex_settings_source}" ]
+    [ "$(< "${codex_settings_source}")" = 'source-owned hooks' ]
+    [ ! -e "${HOME}/.codex/config.toml" ]
+    [ "$(< "${HERDR_CALLS_PATH}")" = $'integration status\nintegration install codex' ]
 
-    run cat "${BATS_TEST_TMPDIR}/herdr_args.txt"
-    [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "integration install claude" ]
-    [ "${lines[1]}" = "integration install codex" ]
-    [ "${lines[2]}" = "--skill" ]
+    : > "${HERDR_CALLS_PATH}"
+    export HERDR_STATUS=$'claude: current (v1)\ncodex: current (v2)'
+    run sync_herdr_integrations "${herdr_bin}"
 
-    run cat "${HOME}/.agents/skills/herdr/SKILL.md"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "--skill" ]
+    [ "$(< "${HERDR_CALLS_PATH}")" = 'integration status' ]
+}
+
+@test "[common] sync finishes restoring settings despite repeated signals" {
+    local herdr_bin="${BATS_TEST_TMPDIR}/herdr"
+    local codex_settings_source="${BATS_TEST_TMPDIR}/codex-hooks.json"
+
+    cat > "${herdr_bin}" << 'EOF'
+#!/usr/bin/env bash
+set -eu
+printf '%s\n' "$*" >> "${HERDR_CALLS_PATH}"
+case "$*" in
+    'integration status')
+        printf '%s\n' 'claude: current (v1)' 'codex: needs repair'
+        ;;
+    'integration install codex')
+        printf '%s\n' 'installer hooks' > "${CODEX_HOME}/hooks.json"
+        printf '%s\n' 'installer config' > "${CODEX_HOME}/config.toml"
+        kill -TERM "$$"
+        ;;
+    *) exit 1 ;;
+esac
+EOF
+    chmod +x "${herdr_bin}"
+    mkdir -p "${BATS_TEST_TMPDIR}/bin"
+    cat > "${BATS_TEST_TMPDIR}/bin/cp" << 'EOF'
+#!/usr/bin/env bash
+if [ "$1" = -p ]; then
+    kill -TERM "$PPID"
+fi
+/bin/cp "$@"
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/bin/cp"
+    mkdir -p "${HOME}/.codex"
+    printf '%s\n' 'source-owned hooks' > "${codex_settings_source}"
+    ln -s "${codex_settings_source}" "${HOME}/.codex/hooks.json"
+    export HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_signal_calls.txt"
+
+    PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" run sync_herdr_integrations "${herdr_bin}"
+
+    [ "${status}" -eq 143 ]
+    [ -L "${HOME}/.codex/hooks.json" ]
+    [ "$(readlink "${HOME}/.codex/hooks.json")" = "${codex_settings_source}" ]
+    [ "$(< "${codex_settings_source}")" = 'source-owned hooks' ]
+    [ ! -e "${HOME}/.codex/config.toml" ]
 }

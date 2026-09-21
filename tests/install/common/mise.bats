@@ -32,6 +32,8 @@ EOF
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
+    export CLAUDE_CONFIG_DIR="${HOME}/.claude"
+    export CODEX_HOME="${HOME}/.codex"
     export TEST_BIN_DIR="${BATS_TEST_TMPDIR}/bin"
     export MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_calls.txt"
     export MISE_ZSH_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_zsh_calls.txt"
@@ -85,6 +87,19 @@ case "$*" in
         ;;
     --skill)
         printf '%s\n' 'generated Herdr skill'
+        ;;
+    'integration status')
+        printf '%s\n' 'claude: not installed' 'codex: outdated (v1 < v2)'
+        ;;
+    'integration install claude')
+        CLAUDE_CONFIG_DIR="${CLAUDE_CONFIG_DIR:-${HOME}/.claude}"
+        mkdir -p "${CLAUDE_CONFIG_DIR}/hooks"
+        printf '%s\n' '# HERDR_INTEGRATION_ID=claude' > "${CLAUDE_CONFIG_DIR}/hooks/herdr-agent-state.sh"
+        ;;
+    'integration install codex')
+        CODEX_HOME="${CODEX_HOME:-${HOME}/.codex}"
+        mkdir -p "${CODEX_HOME}"
+        printf '%s\n' '# HERDR_INTEGRATION_ID=codex' > "${CODEX_HOME}/herdr-agent-state.sh"
         ;;
 esac
 EOF
@@ -715,7 +730,7 @@ EOF
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] run_after template installs pinned mise tools and syncs Herdr skill after apply" {
+@test "[common] run_after template checks integrations after mise install and syncs the skill" {
     write_mise_stub
     write_herdr_stub
     export HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_calls.txt"
@@ -725,11 +740,14 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version\nexec -- herdr --skill' ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version\nexec -- herdr integration status\nexec -- herdr integration install claude\nexec -- herdr integration install codex\nexec -- herdr --skill' ]
 
     run cat "${HERDR_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'--version\n--skill' ]
+    [ "${output}" = $'--version\nintegration status\nintegration install claude\nintegration install codex\n--skill' ]
+
+    [ -f "${HOME}/.claude/hooks/herdr-agent-state.sh" ]
+    [ -f "${HOME}/.codex/herdr-agent-state.sh" ]
 
     run cat "${HOME}/.agents/skills/herdr/SKILL.md"
     [ "${status}" -eq 0 ]

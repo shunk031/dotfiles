@@ -73,3 +73,53 @@ EOF
     [ "${status}" -eq 0 ]
     [ "${output}" = "generated Herdr skill" ]
 }
+
+@test "[common] sync_herdr_integrations refuses the old source-directory symlink" {
+    mkdir -p "${HOME}/.claude" "${BATS_TEST_TMPDIR}/source-hooks"
+    ln -s "${BATS_TEST_TMPDIR}/source-hooks" "${HOME}/.claude/hooks"
+
+    run sync_herdr_integrations false
+
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *'chezmoi apply'* ]]
+    [ ! -e "${BATS_TEST_TMPDIR}/source-hooks/herdr-agent-state.sh" ]
+}
+
+@test "[common] standalone sync replaces stale assets without editing settings" {
+    local herdr_bin="${BATS_TEST_TMPDIR}/herdr"
+    cat > "${herdr_bin}" << 'EOF'
+#!/usr/bin/env bash
+set -eu
+case "$*" in
+    'integration install claude')
+        mkdir -p "${CLAUDE_CONFIG_DIR}/hooks"
+        printf '%s\n' 'new Claude hook' > "${CLAUDE_CONFIG_DIR}/hooks/herdr-agent-state.sh"
+        printf '%s\n' '{}' > "${CLAUDE_CONFIG_DIR}/settings.json"
+        ;;
+    'integration install codex')
+        printf '%s\n' 'new Codex hook' > "${CODEX_HOME}/herdr-agent-state.sh"
+        printf '%s\n' '{}' > "${CODEX_HOME}/hooks.json"
+        printf '%s\n' '[features]' > "${CODEX_HOME}/config.toml"
+        ;;
+    *) exit 1 ;;
+esac
+EOF
+    chmod +x "${herdr_bin}"
+    mkdir -p "${HOME}/.claude/hooks" "${HOME}/.codex"
+    printf '%s\n' 'old Claude hook' > "${HOME}/.claude/hooks/herdr-agent-state.sh"
+    printf '%s\n' 'old Codex hook' > "${HOME}/.codex/herdr-agent-state.sh"
+    printf '%s\n' 'source settings' > "${BATS_TEST_TMPDIR}/settings.json"
+    ln -s "${BATS_TEST_TMPDIR}/settings.json" "${HOME}/.claude/settings.json"
+    printf '%s\n' 'Codex hooks' > "${HOME}/.codex/hooks.json"
+    printf '%s\n' 'Codex config' > "${HOME}/.codex/config.toml"
+
+    run bash "${SCRIPT_PATH}" "${herdr_bin}"
+
+    [ "${status}" -eq 0 ]
+    [ "$(< "${HOME}/.claude/hooks/herdr-agent-state.sh")" = 'new Claude hook' ]
+    [ "$(< "${HOME}/.codex/herdr-agent-state.sh")" = 'new Codex hook' ]
+    [ -L "${HOME}/.claude/settings.json" ]
+    [ "$(< "${HOME}/.claude/settings.json")" = 'source settings' ]
+    [ "$(< "${HOME}/.codex/hooks.json")" = 'Codex hooks' ]
+    [ "$(< "${HOME}/.codex/config.toml")" = 'Codex config' ]
+}

@@ -18,13 +18,13 @@ on:
       - "install/rockylinux/**"
 
       # Linux dispatch templates select Rocky install scripts during setup.
-      - "home/.chezmoiscripts/ubuntu/**"
+      - "home/.chezmoiscripts/linux/**"
 
       # Rocky-specific chezmoi scripts are applied during setup.
       - "home/.chezmoiscripts/rockylinux/**"
 
-      # Rocky uses the shared Ubuntu server tmux configuration.
-      - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
+      # Rocky uses the shared Linux server tmux configuration.
+      - "home/dot_tmux.conf.d/os/linux_server.conf"
 
       # Installation and file-existence tests define the end-to-end assertions.
       - "tests/install/rockylinux/**"
@@ -48,13 +48,13 @@ on:
       - "install/rockylinux/**"
 
       # Linux dispatch templates select Rocky install scripts during setup.
-      - "home/.chezmoiscripts/ubuntu/**"
+      - "home/.chezmoiscripts/linux/**"
 
       # Rocky-specific chezmoi scripts are applied during setup.
       - "home/.chezmoiscripts/rockylinux/**"
 
-      # Rocky uses the shared Ubuntu server tmux configuration.
-      - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
+      # Rocky uses the shared Linux server tmux configuration.
+      - "home/dot_tmux.conf.d/os/linux_server.conf"
 
       # Installation and file-existence tests define the end-to-end assertions.
       - "tests/install/rockylinux/**"

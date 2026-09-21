@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_TEMPLATE_DIR="./home/.chezmoiscripts/ubuntu"
+readonly SCRIPT_TEMPLATE_DIR="./home/.chezmoiscripts/linux"
 readonly EXTERNAL_TEMPLATE="./home/.chezmoiexternal.yaml.tmpl"
 readonly TMUX_TEMPLATE="./home/dot_tmux.conf.tmpl"
 
@@ -45,7 +45,7 @@ readonly TMUX_TEMPLATE="./home/dot_tmux.conf.tmpl"
 @test "[rockylinux-server] tmux template accepts Rocky Linux" {
     run grep -F 'eq .chezmoi.osRelease.id "rocky"' "${TMUX_TEMPLATE}"
     [ "${status}" -eq 0 ]
-    run grep -F 'include "dot_tmux.conf.d/os/ubuntu_server.conf"' "${TMUX_TEMPLATE}"
+    run grep -F 'include "dot_tmux.conf.d/os/linux_server.conf"' "${TMUX_TEMPLATE}"
     [ "${status}" -eq 0 ]
 }
 

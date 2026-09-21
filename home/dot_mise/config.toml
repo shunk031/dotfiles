@@ -1,6 +1,7 @@
 # Minimum mise version compatible with this dotfiles configuration.
 # Raise this only when a configuration or tool change requires newer mise behavior.
 # Declarative system bootstrap and automatic dangling npm install repair require mise 2026.8.15 or newer.
+# Herdr's postinstall also needs MISE_CONFIG_FILE, available since 2026.8.15.
 min_version = "2026.8.15"
 
 [tools]
@@ -18,7 +19,7 @@ bun = "1.4.2"
 eza = "0.23.5"
 fnox = "1.35.1"
 gcloud = "575.0.0"
-herdr = "0.9.1"
+herdr = { version = "0.9.1", postinstall = 'bash "$(dirname "$(realpath "$MISE_CONFIG_FILE")")/../../install/common/herdr.sh" herdr' }
 sqlite = "3.53.4"
 
 # Aqua tools

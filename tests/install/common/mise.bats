@@ -86,6 +86,13 @@ case "$*" in
     --skill)
         printf '%s\n' 'generated Herdr skill'
         ;;
+    'integration install claude')
+        mkdir -p "${CLAUDE_CONFIG_DIR}/hooks"
+        printf '%s\n' '# HERDR_INTEGRATION_ID=claude' > "${CLAUDE_CONFIG_DIR}/hooks/herdr-agent-state.sh"
+        ;;
+    'integration install codex')
+        printf '%s\n' '# HERDR_INTEGRATION_ID=codex' > "${CODEX_HOME}/herdr-agent-state.sh"
+        ;;
 esac
 EOF
 
@@ -715,7 +722,7 @@ EOF
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] run_after template syncs Herdr skill without editing agent settings" {
+@test "[common] run_after template syncs Herdr assets and skill without editing agent settings" {
     write_mise_stub
     write_herdr_stub
     export HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_calls.txt"
@@ -725,11 +732,14 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version\nexec -- herdr --skill' ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version\nexec -- herdr integration install claude\nexec -- herdr integration install codex\nexec -- herdr --skill' ]
 
     run cat "${HERDR_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'--version\n--skill' ]
+    [ "${output}" = $'--version\nintegration install claude\nintegration install codex\n--skill' ]
+
+    [ -f "${HOME}/.claude/hooks/herdr-agent-state.sh" ]
+    [ -f "${HOME}/.codex/herdr-agent-state.sh" ]
 
     run cat "${HOME}/.agents/skills/herdr/SKILL.md"
     [ "${status}" -eq 0 ]

@@ -73,9 +73,3 @@ EOF
     [ "${status}" -eq 0 ]
     [ "${output}" = "generated Herdr skill" ]
 }
-
-@test "[common] Herdr config editors are not part of dotfiles setup" {
-    [ ! -e home/.chezmoiscripts/common/run_once_after_03-install-herdr.sh.tmpl ]
-    run grep -RE 'integration[[:space:]]+install|install_herdr_integrations' install/common/herdr.sh home/.chezmoiscripts
-    [ "${status}" -eq 1 ]
-}

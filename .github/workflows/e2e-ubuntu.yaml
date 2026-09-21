@@ -11,6 +11,8 @@ on:
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
+      - "install/common/herdr.sh"
+      - "tests/python/test_herdr_integration.py"
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 
@@ -39,6 +41,8 @@ on:
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
+      - "install/common/herdr.sh"
+      - "tests/python/test_herdr_integration.py"
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 

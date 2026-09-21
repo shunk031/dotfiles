@@ -1,8 +1,0 @@
-{{ $version := (include "dot_mise/config.toml" | fromToml).tools.herdr -}}
-"claude-agent-state.sh":
-  type: "file"
-  url: "https://raw.githubusercontent.com/herdrdev/herdr/v{{ $version }}/src/integration/assets/claude/herdr-agent-state.sh"
-
-"codex-agent-state.sh":
-  type: "file"
-  url: "https://raw.githubusercontent.com/herdrdev/herdr/v{{ $version }}/src/integration/assets/codex/herdr-agent-state.sh"

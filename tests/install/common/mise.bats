@@ -715,7 +715,7 @@ EOF
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] run_after template refreshes Herdr integrations and skill after apply" {
+@test "[common] run_after template syncs Herdr skill without editing agent settings" {
     write_mise_stub
     write_herdr_stub
     export HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_calls.txt"
@@ -725,11 +725,11 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version\nexec -- herdr integration install claude\nexec -- herdr integration install codex\nexec -- herdr --skill' ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version\nexec -- herdr --skill' ]
 
     run cat "${HERDR_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'--version\nintegration install claude\nintegration install codex\n--skill' ]
+    [ "${output}" = $'--version\n--skill' ]
 
     run cat "${HOME}/.agents/skills/herdr/SKILL.md"
     [ "${status}" -eq 0 ]

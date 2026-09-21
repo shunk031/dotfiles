@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
 # @file install/common/herdr.sh
-# @brief Install Herdr integrations and skill assets.
+# @brief Sync skill instructions from the installed Herdr binary.
 # @description
-#   Activates `mise` when available, installs Herdr integrations for configured
-#   coding agents, and syncs the shared Herdr skill from the installed binary.
+#   Agent hooks are managed by chezmoi without invoking Herdr's config editor.
 
 set -Eeuo pipefail
 
@@ -14,36 +13,6 @@ fi
 
 readonly MISE_BIN="${HOME}/.local/bin/mise"
 readonly HERDR_SKILL_PATH="${HOME}/.agents/skills/herdr/SKILL.md"
-
-readonly HERDR_INTEGRATIONS=(
-    claude
-    codex
-)
-
-#
-# @description Activate `mise` so Herdr and skills resolve from the configured toolchain.
-#
-function activate_mise() {
-    if [ -x "${MISE_BIN}" ]; then
-        eval "$("${MISE_BIN}" activate bash)"
-    fi
-}
-
-#
-# @description Install Herdr with `mise`.
-#
-function install_herdr() {
-    "${MISE_BIN}" install herdr
-}
-
-#
-# @description Install Herdr integrations for every configured coding agent.
-#
-function install_herdr_integrations() {
-    for integration in "${HERDR_INTEGRATIONS[@]}"; do
-        "${MISE_BIN}" exec -- herdr integration install "${integration}"
-    done
-}
 
 #
 # @description Sync the shared Herdr skill from the installed Herdr binary.
@@ -62,17 +31,3 @@ function sync_herdr_skill() {
 
     mv "${temp}" "${HERDR_SKILL_PATH}"
 }
-
-#
-# @description Run the Herdr installation workflow.
-#
-function main() {
-    activate_mise
-    install_herdr
-    install_herdr_integrations
-    sync_herdr_skill
-}
-
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main
-fi

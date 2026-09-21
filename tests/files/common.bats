@@ -1,20 +1,22 @@
 #!/usr/bin/env bats
 
 # bats file_tags=common
-@test "[common] Herdr owns one Claude hook without modifying the settings source" {
-    local settings source_settings original
+@test "[common] dotfiles own Herdr hooks and preserve the Claude settings symlink" {
+    local settings source_settings original agent
     settings="${HOME}/.claude/settings.json"
     source_settings="${BATS_TEST_DIRNAME}/../../home/dot_config/claude/settings.json"
     original="$(< "${source_settings}")"
 
-    [ ! -L "${settings}" ]
-    run jq -e '[.. | objects | .command? // empty | select(contains("herdr-agent-state.sh"))] | length == 0' "${source_settings}"
+    [ -L "${settings}" ]
+    [ "${settings}" -ef "${source_settings}" ]
+    run jq -e --arg command 'bash "$HOME/.local/share/herdr/hooks/claude-agent-state.sh" session' \
+        '[.hooks.SessionStart[].hooks[] | select(.command == $command)] | length == 1' "${settings}"
     [ "${status}" -eq 0 ]
 
-    for attempt in 1 2; do
-        run "${HOME}/.local/bin/mise" exec -- herdr integration install claude
+    for agent in claude codex; do
+        run grep -Fx "# HERDR_INTEGRATION_ID=${agent}" "${HOME}/.local/share/herdr/hooks/${agent}-agent-state.sh"
         [ "${status}" -eq 0 ]
-        run jq -e '[.. | objects | .command? // empty | select(contains("herdr-agent-state.sh"))] | length == 1' "${settings}"
+        run env HERDR_ENV=0 bash "${HOME}/.local/share/herdr/hooks/${agent}-agent-state.sh" session <<< '{}'
         [ "${status}" -eq 0 ]
         [ "$(< "${source_settings}")" = "${original}" ]
     done

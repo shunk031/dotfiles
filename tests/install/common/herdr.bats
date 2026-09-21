@@ -21,14 +21,6 @@ function teardown() {
     export PATH
 }
 
-function write_mise_logger() {
-    cat > "${MISE_BIN}" << 'EOF'
-#!/usr/bin/env bash
-printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
-EOF
-    chmod +x "${MISE_BIN}"
-}
-
 @test "[common] sync_herdr_skill succeeds when the named npm runner is stale" {
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
     MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
@@ -59,45 +51,6 @@ EOF
     [ "${output}" = "generated Herdr skill" ]
 }
 
-@test "[common] activate_mise evaluates mise activation output" {
-    cat > "${MISE_BIN}" << 'EOF'
-#!/usr/bin/env bash
-if [ "$*" = "activate bash" ]; then
-    printf '%s\n' 'export HERDR_TEST_MISE_ACTIVATED=1'
-fi
-EOF
-    chmod +x "${MISE_BIN}"
-
-    activate_mise
-
-    [ "${HERDR_TEST_MISE_ACTIVATED}" = "1" ]
-}
-
-@test "[common] install_herdr installs herdr with mise" {
-    MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
-    export MISE_CALLS_PATH
-    write_mise_logger
-
-    install_herdr
-
-    run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
-    [ "${status}" -eq 0 ]
-    [ "${output}" = "install herdr" ]
-}
-
-@test "[common] install_herdr_integrations installs configured integrations" {
-    MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
-    export MISE_CALLS_PATH
-    write_mise_logger
-
-    install_herdr_integrations
-
-    run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
-    [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "exec -- herdr integration install claude" ]
-    [ "${lines[1]}" = "exec -- herdr integration install codex" ]
-}
-
 @test "[common] sync_herdr_skill writes the shared skill from Herdr" {
     MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
     export MISE_CALLS_PATH
@@ -121,57 +74,8 @@ EOF
     [ "${output}" = "generated Herdr skill" ]
 }
 
-@test "[common] herdr script runs full installation workflow" {
-    mkdir -p "${BATS_TEST_TMPDIR}/bin"
-
-    cat > "${MISE_BIN}" << 'EOF'
-#!/usr/bin/env bash
-printf '%s\n' "$*" >> "${MISE_CALLS_PATH}"
-if [ "$*" = "activate bash" ]; then
-    printf '%s\n' 'export HERDR_TEST_MISE_ACTIVATED=1'
-    printf '%s\n' "export PATH=\"${HOME}/.local/bin:${PATH}\""
-fi
-if [ "$1" = "exec" ]; then
-    [ "${2:-}" = "--" ] || exit 1
-    shift 2
-    "$@"
-fi
-EOF
-    chmod +x "${MISE_BIN}"
-
-    cat > "${BATS_TEST_TMPDIR}/bin/herdr" << 'EOF'
-#!/usr/bin/env bash
-printf '%s\n' "$*" >> "${HERDR_CALLS_PATH}"
-if [ "$*" = "--skill" ]; then
-    printf '%s\n' "$*"
-fi
-EOF
-    chmod +x "${BATS_TEST_TMPDIR}/bin/herdr"
-
-    run env \
-        DOTFILES_DEBUG=1 \
-        HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_args.txt" \
-        HOME="${HOME}" \
-        MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt" \
-        PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" \
-        bash "${SCRIPT_PATH}"
-    [ "${status}" -eq 0 ]
-
-    run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
-    [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "activate bash" ]
-    [ "${lines[1]}" = "install herdr" ]
-    [ "${lines[2]}" = "exec -- herdr integration install claude" ]
-    [ "${lines[3]}" = "exec -- herdr integration install codex" ]
-    [ "${lines[4]}" = "exec -- herdr --skill" ]
-
-    run cat "${BATS_TEST_TMPDIR}/herdr_args.txt"
-    [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "integration install claude" ]
-    [ "${lines[1]}" = "integration install codex" ]
-    [ "${lines[2]}" = "--skill" ]
-
-    run cat "${HOME}/.agents/skills/herdr/SKILL.md"
-    [ "${status}" -eq 0 ]
-    [ "${output}" = "--skill" ]
+@test "[common] Herdr config editors are not part of dotfiles setup" {
+    [ ! -e home/.chezmoiscripts/common/run_once_after_03-install-herdr.sh.tmpl ]
+    run grep -RE 'integration[[:space:]]+install|install_herdr_integrations' install/common/herdr.sh home/.chezmoiscripts
+    [ "${status}" -eq 1 ]
 }

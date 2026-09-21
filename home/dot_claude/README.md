@@ -6,17 +6,18 @@
 
 ### Public dotfiles
 
-| Applied path | Canonical source |
-| --- | --- |
-| `~/.claude/CLAUDE.md` | [dotfiles/home/dot_config/claude/CLAUDE.md](../dot_config/claude/CLAUDE.md) |
-| `~/.claude/agents` | [dotfiles/home/dot_config/claude/agents/](../dot_config/claude/agents/) |
-| `~/.claude/commands` | [dotfiles/home/dot_config/claude/commands/](../dot_config/claude/commands/) |
-| `~/.claude/hooks` | [dotfiles/home/dot_config/claude/hooks/](../dot_config/claude/hooks/) |
-| `~/.claude/rules` | [dotfiles/home/dot_config/claude/rules/](../dot_config/claude/rules/) |
+| Applied path              | Canonical source                                                                    |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| `~/.claude/CLAUDE.md`     | [dotfiles/home/dot_config/claude/CLAUDE.md](../dot_config/claude/CLAUDE.md)         |
+| `~/.claude/agents`        | [dotfiles/home/dot_config/claude/agents/](../dot_config/claude/agents/)             |
+| `~/.claude/commands`      | [dotfiles/home/dot_config/claude/commands/](../dot_config/claude/commands/)         |
+| `~/.claude/hooks`         | [dotfiles/home/dot_config/claude/hooks/](../dot_config/claude/hooks/)               |
+| `~/.claude/rules`         | [dotfiles/home/dot_config/claude/rules/](../dot_config/claude/rules/)               |
+| `~/.claude/settings.json` | [dotfiles/home/dot_config/claude/settings.json](../dot_config/claude/settings.json) |
 
-## Generated settings
+## Herdr hooks
 
-`~/.claude/settings.json` is a regular file rendered from [the settings source](../dot_config/claude/settings.json). After apply, Herdr registers its hook in that file without changing the source. Keep Herdr's generated registration out of the source.
+Dotfiles owns the hook registration. Chezmoi downloads the official Claude and Codex scripts into `~/.local/share/herdr/hooks/`, using the Herdr version pinned in `home/dot_mise/config.toml`. Check the upstream registration requirements when updating that version. Do not run `herdr integration install` over these managed settings; it edits them and can add duplicate registrations.
 
 ## Skills
 

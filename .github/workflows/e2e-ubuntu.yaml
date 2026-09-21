@@ -17,12 +17,12 @@ on:
       # Ubuntu install scripts are exercised by the end-to-end jobs.
       - "install/ubuntu/**"
 
-      # Ubuntu chezmoi scripts are applied during setup.
-      - "home/.chezmoiscripts/ubuntu/**"
+      # Linux dispatch templates are applied during setup.
+      - "home/.chezmoiscripts/linux/**"
 
       # OS-specific tmux configuration is checked by the end-to-end jobs.
       - "home/dot_tmux.conf.d/os/ubuntu_client.conf"
-      - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
+      - "home/dot_tmux.conf.d/os/linux_server.conf"
 
       # Installation and file-existence tests define the end-to-end assertions.
       - "tests/install/ubuntu/**"
@@ -45,12 +45,12 @@ on:
       # Ubuntu install scripts are exercised by the end-to-end jobs.
       - "install/ubuntu/**"
 
-      # Ubuntu chezmoi scripts are applied during setup.
-      - "home/.chezmoiscripts/ubuntu/**"
+      # Linux dispatch templates are applied during setup.
+      - "home/.chezmoiscripts/linux/**"
 
       # OS-specific tmux configuration is checked by the end-to-end jobs.
       - "home/dot_tmux.conf.d/os/ubuntu_client.conf"
-      - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
+      - "home/dot_tmux.conf.d/os/linux_server.conf"
 
       # Installation and file-existence tests define the end-to-end assertions.
       - "tests/install/ubuntu/**"

@@ -8,3 +8,5 @@
 .zsh/server/zprofile
 
 .bash/server/bashrc
+
+.config/nvtop/interface.ini

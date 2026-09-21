@@ -17,13 +17,8 @@
 
 ## Herdr hooks
 
-Dotfiles owns the hook registration. The mise Herdr postinstall hook syncs the scripts bundled with the newly installed binary into `~/.claude/hooks/herdr-agent-state.sh` and `~/.codex/herdr-agent-state.sh`. These are the paths Herdr checks for integration status. Every public `chezmoi apply` also repairs missing or outdated scripts, including when the binary is already installed.
-
-Apply the public dotfiles before the private Codex registration. The first public apply changes `~/.claude/hooks` from a source-directory symlink to a real directory, with a link for `enforce-uv.sh`. Until that migration is applied, the updater refuses to write through the old symlink. Later mise upgrades sync the assets without another apply.
-
-The updater runs `herdr integration install` only against temporary configurations and copies the generated scripts. It never edits the real agent settings. Do not run the installer directly against these managed settings; its absolute-path command can add a duplicate registration.
-
-When updating the Herdr pin, run `python3 -m unittest discover -s tests/python -p test_herdr_integration.py` with the new binary on `PATH`. It compares the upstream registration contract with the managed registration, checks integration status and repeated synchronization, and receives `startup` and `resume` session reports on an isolated socket. If the registration contract changes, update the source-owned settings in the public and private repositories together. The end-to-end CI jobs run this check with the installed binary.
+- mise updates the Claude and Codex hook scripts when it installs a new Herdr version; public `chezmoi apply` also syncs them.
+- Dotfiles manages hook registration. Do not run `herdr integration install` against the managed settings, as it can add duplicate hooks.
 
 ## Skills
 

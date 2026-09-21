@@ -83,6 +83,7 @@ readonly SKILLS_ALLOWLIST=(
     "coji/natural-japanese:natural-japanese"
     "cursor/plugins:unslop"
     "mattpocock/skills:grilling"
+    "Shubhamsaboo/awesome-llm-apps:first-reader"
 )
 
 # Private subscriptions, applied by the private dotfiles source. Absent on a

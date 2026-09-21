@@ -17,7 +17,7 @@
 
 ## Herdr hooks
 
-- mise updates the Claude and Codex hook scripts when it installs a new Herdr version; public `chezmoi apply` also syncs them.
+- Public `chezmoi apply` runs `mise install`, repairs outdated or missing Herdr integrations, and restores the agent settings changed by the installer.
 - Dotfiles manages hook registration. Do not run `herdr integration install` against the managed settings, as it can add duplicate hooks.
 
 ## Skills

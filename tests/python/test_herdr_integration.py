@@ -43,13 +43,18 @@ class HerdrIntegrationTest(unittest.TestCase):
 
     def run_sync(self, check=True):
         return subprocess.run(
-            ["bash", str(SYNC_SCRIPT), HERDR], env=self.env,
+            [
+                "bash", "-c",
+                'source "$1"; shift; sync_herdr_integrations "$@"',
+                "herdr-test", str(SYNC_SCRIPT), HERDR,
+            ],
+            env=self.env,
             text=True, capture_output=True, check=check,
         )
 
     def test_binary_matches_mise_pin(self):
         config = (REPO_ROOT / "home" / "dot_mise" / "config.toml").read_text()
-        version = re.search(r'^herdr = \{ version = "([^"]+)"', config, re.MULTILINE)[1]
+        version = re.search(r'^herdr = "([^"]+)"', config, re.MULTILINE)[1]
         result = subprocess.run([HERDR, "--version"], env=self.env, check=True,
                                 capture_output=True, text=True)
         self.assertEqual(result.stdout.strip(), f"herdr {version}")
@@ -59,9 +64,9 @@ class HerdrIntegrationTest(unittest.TestCase):
         source_settings.write_text('{"hooks": {}, "sentinel": true}\n')
         settings = self.claude / "settings.json"
         settings.symlink_to(source_settings)
-        configs = [source_settings, self.codex / "hooks.json", self.codex / "config.toml"]
+        codex_config = self.codex / "config.toml"
+        configs = [source_settings, self.codex / "hooks.json"]
         configs[1].write_text('{"hooks": {}}\n')
-        configs[2].write_text('[features]\nmemories = false\n')
         originals = {path: path.read_bytes() for path in configs}
         for asset in self.assets.values():
             asset.parent.mkdir(exist_ok=True)
@@ -77,7 +82,13 @@ class HerdrIntegrationTest(unittest.TestCase):
         self.run_sync()
         self.assertTrue(settings.is_symlink())
         self.assertEqual(originals, {path: path.read_bytes() for path in configs})
+        self.assertFalse(codex_config.exists())
         self.assertEqual(installed, {agent: path.read_bytes() for agent, path in self.assets.items()})
+        codex_config.write_text('[features]\nmemories = false\n')
+        original_config = codex_config.read_bytes()
+        self.assets["codex"].unlink()
+        self.run_sync()
+        self.assertEqual(codex_config.read_bytes(), original_config)
         status = subprocess.run(
             [HERDR, "integration", "status"], env=self.env,
             text=True, capture_output=True, check=True,
@@ -93,6 +104,18 @@ class HerdrIntegrationTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("chezmoi apply", result.stderr)
         self.assertEqual(list(source.iterdir()), [])
+
+    def test_installer_failure_restores_settings(self):
+        hooks = self.codex / "hooks.json"
+        config = self.codex / "config.toml"
+        hooks.write_text('{"hooks": {}}\n')
+        config.write_bytes(b"\xff")  # Herdr fails to read TOML after updating hooks.json.
+        original_hooks = hooks.read_bytes()
+        result = self.run_sync(check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(hooks.read_bytes(), original_hooks)
+        self.assertEqual(config.read_bytes(), b"\xff")
+        self.assertFalse((self.claude / "settings.json").exists())
 
     @unittest.skipUnless(shutil.which("chezmoi"), "requires chezmoi")
     def test_apply_migrates_source_symlink_without_changing_its_target(self):
@@ -119,17 +142,11 @@ class HerdrIntegrationTest(unittest.TestCase):
         self.run_sync()
         self.assertEqual(original.read_text(), "old source-owned hook\n")
 
-    def test_mise_postinstall_resolves_symlinked_config_from_another_directory(self):
+    def test_mise_herdr_pin_has_no_postinstall(self):
         config = REPO_ROOT / "home" / "dot_mise" / "config.toml"
-        hook = re.search(r"^herdr = .*postinstall = '([^']+)'", config.read_text(), re.MULTILINE)
-        self.assertIsNotNone(hook, "Herdr upgrades must sync their bundled assets")
-        linked_config = self.root / "config.toml"
-        linked_config.symlink_to(config)
-        env = dict(self.env, MISE_CONFIG_FILE=str(linked_config))
-        subprocess.run(["bash", "-c", hook[1]], cwd=self.root, env=env, check=True,
-                       capture_output=True, text=True)
-        for agent, asset in self.assets.items():
-            self.assertIn(f"HERDR_INTEGRATION_ID={agent}", asset.read_text())
+        self.assertNotRegex(
+            config.read_text(), re.compile(r"^herdr = .*postinstall", re.MULTILINE)
+        )
 
     def test_official_registration_matches_managed_contract(self):
         for agent in self.assets:

@@ -4,8 +4,8 @@
 # @brief Install pinned mise tools after `chezmoi apply`.
 # @description
 #   Keeps mise itself and mise-managed tools aligned with the applied pinned
-#   versions after every `chezmoi apply`, then syncs release-matched Herdr
-#   hook assets and skill instructions when Herdr is installed.
+#   versions after every `chezmoi apply`, then repairs Herdr integrations
+#   while restoring agent settings and syncs Herdr skill instructions.
 
 set -Eeuo pipefail
 

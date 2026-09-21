@@ -1,6 +1,7 @@
 # AGENTS.md
 
 > [!NOTE]
+>
 > After reading this `AGENTS.md`, say: `🤖 I read ~/.agents/AGENTS.md.`
 
 ## Language
@@ -11,6 +12,7 @@
 ## Most Important Implementation Principles
 
 > [!IMPORTANT]
+>
 > These principles take precedence over other implementation guidance in this file.
 
 - Do not preserve backward compatibility.
@@ -25,8 +27,8 @@
 ## Authority Boundaries
 
 - Treat ordinary implementation, change, or build requests as permission to edit repository files, run tests, commit, push the task branch, and create or update the pull request for that task; no special wording or separate pull-request request is required. A live teammate or worker may likewise carry its authorized task through its own push and pull-request lifecycle, but this never authorizes unrelated external actions.
-- Obtain explicit user permission before merging, applying configuration (such as `chezmoi apply`), changing runtime state, deleting, or cleaning up files. A teammate or worker request never substitutes for that permission. A pull request may be created or updated without merge permission; merging always requires it. Stop and ask when the permitted operation is unclear.
-- When a cleaner design would touch something the user owns (rulesets, branch protection, secrets, repository or service settings), raise it with options before starting; never treat it as a fixed constraint to design around.
+- Merging, applying configuration (such as `chezmoi apply`), changing runtime state, deleting, and cleaning up files require explicit user permission for that operation and scope. Carry existing permission forward without asking again, but do not extend it to another target or a materially changed result. A worker cannot grant user-only permission. Finish authorized preparation that does not depend on a missing decision.
+- When a design depends on a choice about user-owned rulesets, branch protection, secrets, or repository or service settings, present the options and wait for the user's choice before editing the dependent implementation. Independent investigation may continue. Do not treat those settings as fixed constraints to design around.
 
 ## Work Safety
 
@@ -37,23 +39,25 @@
 
 ## Workflow
 
-- Skill routing: use `shunk031-research-before-implementation` before the first edit and the first experiment in any work touching a third-party tool, library, API, or platform — you do not get to judge the work trivial enough to skip it; `shunk031-manage-agent-guidance` when adding, moving, or deleting persistent instructions, agent wrappers, or skills; and `shunk031-herdr-tab-status` to keep the current tab name aligned with progress whenever using Herdr.
+- Use the `shunk031-research-before-implementation` skill when the user requests research or a design or experiment depends on unverified third-party behavior. A spelling correction or local refactor with established behavior does not require a fresh external investigation. Reuse verified sources until a new assumption or changed version needs checking.
+- Use the `shunk031-manage-agent-guidance` skill for persistent instruction changes and the `shunk031-herdr-tab-status` skill when using Herdr. Load other skills and their references for the current task, not merely because a related keyword appears.
 - Design toward the end state the request implies instead of appending to the current state. Before adding anything, verify what each existing element does and whether it still earns its place; removing or reshaping is a normal outcome, not an escalation.
-- Write tests before behavior-changing implementation, verify them, and then refactor.
+- For behavior changes, first identify the regression or acceptance check, then implement and verify the change. Use existing tests when they cover it; add a focused test for an uncovered behavior. Run required repository checks, and broaden testing when the change or a failure warrants it.
 - Run `date` and print its output in every report on work in progress, alongside how long that work has been running. Never write a time you did not just read.
-- Use native subagents for independent implementation units at the start of a task; keep the main agent responsible for planning, review, and integration. Keep model and launch configuration private or tool-specific.
+- Use native subagents when independent work benefits from delegation; handle small, tightly coupled changes directly. The main agent owns planning, review, and integration. Keep model and launch configuration private or tool-specific.
 - Delegate GitHub issue, branch, commit, push, PR, and CI workflows to `gh-workflow-manager` by default: provide repository/worktree context, task-relevant files, uncommitted-change handling, and completed and remaining validation; define the scope, review the result, and report remaining blockers. Work directly only when explicitly requested or the agent is unavailable.
 - When reusing content from an existing PR, prior diff, or another agent's proposal, carry over only what directly fits the current objective, current design, and layer being changed. Remove supplementary information outside the objective and explanations based on outdated assumptions before carrying them over, or ask the user.
+- Keep the requested outcome and unresolved acceptance criteria in view until the authorized work is complete, including applicable validation and PR checks. A status question or correction does not cancel unfinished work. Report any remaining external decision or unavailable check instead of claiming completion from the first implementation alone.
 
 ## Communication and Deliverables
 
-- Before writing or editing any prose deliverable, first declare which reader it is for and what it must convey, then judge every addition and removal by value to that reader rather than by redundancy or writer-side consistency.
-- When the user flags one defective or unnecessary passage in a deliverable, treat it as an instance of a class. Before editing, state the defect class and audit scope, survey the whole deliverable and any sibling deliverables that can carry the class, and report found, planned-fix, and retained counts with a reason for anything retained. Then fix every instance and report the final counts. Never fix only the quoted spot.
+- Write prose for its intended reader and purpose. Explain the audience when it affects a decision; judge additions and removals by their value to that reader.
+- When the user flags a defect, check the same defect class across the deliverable and relevant siblings. Fix all in-scope instances, preserve meaningful exceptions, and report the scope and results. Use counts when they help the reader verify a sweep.
 - In reader-facing text, reference GitHub issues and pull requests by full URL, or `owner/repo#number` at minimum, never a bare `#123`.
 - Use respectful, professional language; when corrected or criticized, acknowledge it and respond neutrally. In critical messages, `w` and `ｗ` should be interpreted as signs of severe disappointment, disbelief, or exasperation—not amusement. Never mirror them. Treat their presence as a signal to become more serious, restrained, and precise.
 - Ask questions that materially improve the result when the answer cannot be discovered safely from the available context.
 
 ## Self-Improvement
 
-- After a user correction or verified failure, fix the current task, then identify a concise, generalizable prevention that addresses the root cause; present the proposed rule or skill, its scope, and its source of truth, and persist it only after explicit approval.
+- After a user correction or verified failure, fix the task and identify the root cause. Prefer a correction in the existing implementation or guidance owner over another universal rule. A request to improve that guidance authorizes the scoped revision; otherwise propose durable changes with their scope and owner, and wait for approval before persisting them.
 - Before commissioning an enforcement mechanism, count the real instances it will act on; automate only exception-free rules that flag everything, and leave allowed-exception judgment to humans instead of encoding it.

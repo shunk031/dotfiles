@@ -23,7 +23,7 @@ if [ "${1:-}" = "exec" ] && [ "${2:-}" = "--" ]; then
     shift 2
     printf '%s\n' "$@" > "${SHUHARI_ARGV_LOG}"
     {
-        printf 'MISE_CONFIG_FILE=%s\n' "${MISE_CONFIG_FILE-<unset>}"
+        printf 'MISE_OVERRIDE_CONFIG_FILENAMES=%s\n' "${MISE_OVERRIDE_CONFIG_FILENAMES-<unset>}"
         printf 'SHUHARI_SANDBOX=%s\n' "${SHUHARI_SANDBOX-<unset>}"
         printf 'SHUHARI_I_UNDERSTAND_NO_CREDENTIAL_BOUNDARY=%s\n' \
             "${SHUHARI_I_UNDERSTAND_NO_CREDENTIAL_BOUNDARY-<unset>}"
@@ -88,15 +88,17 @@ function run_without_overrides() {
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] both modes pin the mise configuration file" {
+@test "[common] both modes pin local mise config discovery" {
+    export MISE_OVERRIDE_CONFIG_FILENAMES="inherited.toml"
+
     run_without_overrides validate
     [ "${status}" -eq 0 ]
-    run grep -Fx 'MISE_CONFIG_FILE=home/dot_mise/config.toml' "${SHUHARI_ENV_LOG}"
+    run grep -Fx 'MISE_OVERRIDE_CONFIG_FILENAMES=home/dot_mise/config.toml' "${SHUHARI_ENV_LOG}"
     [ "${status}" -eq 0 ]
 
     run_without_overrides eval
     [ "${status}" -eq 0 ]
-    run grep -Fx 'MISE_CONFIG_FILE=home/dot_mise/config.toml' "${SHUHARI_ENV_LOG}"
+    run grep -Fx 'MISE_OVERRIDE_CONFIG_FILENAMES=home/dot_mise/config.toml' "${SHUHARI_ENV_LOG}"
     [ "${status}" -eq 0 ]
 }
 

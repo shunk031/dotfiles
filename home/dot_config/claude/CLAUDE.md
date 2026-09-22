@@ -1,4 +1,5 @@
 @~/.agents/AGENTS.md
+@~/.agents/AGENTS-private.md
 
 > [!NOTE]
 > After reading this `CLAUDE.md`, say: `🤖 I read ~/.claude/CLAUDE.md.`

@@ -78,11 +78,13 @@ The following is a minimal setup command to install chezmoi and my dotfiles from
 ## ⚙️ Install & Setup Application Individually
 
 This repository provides for the installation and setup of each application individually.
-The desired application can be installed as follows (e.g., docker installation on MacOS):
+The desired application can be installed as follows (e.g., Apple Container and Socktainer installation on MacOS):
 
 ```shell
-bash install/macos/common/docker.sh
+bash install/macos/common/container.sh
 ```
+
+On macOS, `DOCKER_HOST` defaults to `unix://${HOME}/.socktainer/container.sock` so Docker-compatible clients can talk to Socktainer.
 
 Each installation script can be found under the [`./install`](https://github.com/shunk031/dotfiles/tree/main/install) directory.
 
@@ -96,10 +98,10 @@ To verify that the updated scripts work correctly, run the scripts on the actual
 The setup scripts are stored as shellscripts in an appropriate location under the [`./install`](https://github.com/shunk031/dotfiles/tree/main/install) directory.
 After verifying that the shellscript works, store the [chezmoi template](https://www.chezmoi.io/user-guide/templating/)-based file, which is based on the shellscript, in an appropriate location under the [`./home/.chezmoiscripts`](https://github.com/shunk031/dotfiles/tree/main/home/.chezmoiscripts) directory.
 
-Below is the correspondence between shellscript and template for docker installation on MacOS.
+Below is the correspondence between shellscript and template for Apple Container and Socktainer installation on MacOS.
 
-- The shellscript for docker: [`install/macos/common/docker.sh`](https://github.com/shunk031/dotfiles/blob/main/install/macos/common/docker.sh)
-- The chezmoi template for docker: [`home/.chezmoiscripts/macos/run_once_10-install-docker.sh.tmpl`](https://github.com/shunk031/dotfiles/blob/main/home/.chezmoiscripts/macos/run_once_10-install-docker.sh.tmpl)
+- The shellscript for Apple Container and Socktainer: [`install/macos/common/container.sh`](https://github.com/shunk031/dotfiles/blob/main/install/macos/common/container.sh)
+- The chezmoi template for Apple Container and Socktainer: [`home/.chezmoiscripts/macos/run_once_12-install-container.sh.tmpl`](https://github.com/shunk031/dotfiles/blob/main/home/.chezmoiscripts/macos/run_once_12-install-container.sh.tmpl)
 
 ### 💾 Test on the Local Machine
 

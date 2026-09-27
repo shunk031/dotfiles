@@ -4,7 +4,8 @@
 # @brief Install the standalone Codex package required by remote control.
 # @description
 #   Keeps the user-facing Codex CLI managed by mise while provisioning the
-#   matching standalone package that the remote-control daemon executes.
+#   matching standalone package that the remote-control daemon executes. Set
+#   `CODEX_REMOTE_CONTROL_ENABLED=1` only on hosts that should receive it.
 
 set -Eeuo pipefail
 
@@ -131,6 +132,8 @@ function install_codex_daemon() {
 #
 function install_codex_remote_control() {
     local version
+
+    [ "${CODEX_REMOTE_CONTROL_ENABLED:-}" = "1" ] || return 0
 
     version="$(get_mise_codex_version)" || {
         printf '%s\n' 'unable to read the mise-managed Codex version' >&2

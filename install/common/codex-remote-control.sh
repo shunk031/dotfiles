@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # @file install/common/codex-remote-control.sh
-# @brief Install the standalone Codex package required by remote control.
+# @brief Install and start the Codex daemon required by remote control.
 # @description
 #   Keeps the user-facing Codex CLI managed by mise while provisioning the
 #   matching standalone package that the remote-control daemon executes. Set
@@ -128,6 +128,20 @@ function install_codex_daemon() {
 }
 
 #
+# @description Enable remote control for future starts and the running daemon.
+#
+function enable_remote_control() {
+    "${MISE_BIN}" exec -- codex app-server daemon enable-remote-control
+}
+
+#
+# @description Start the local app-server daemon when it is not running.
+#
+function start_codex_daemon() {
+    "${MISE_BIN}" exec -- codex app-server daemon start
+}
+
+#
 # @description Ensure remote control has a matching standalone Codex daemon.
 #
 function install_codex_remote_control() {
@@ -142,10 +156,12 @@ function install_codex_remote_control() {
 
     if daemon_matches_codex "${version}"; then
         remove_standalone_aliases
-        return 0
+    else
+        install_codex_daemon "${version}"
     fi
 
-    install_codex_daemon "${version}"
+    enable_remote_control
+    start_codex_daemon
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

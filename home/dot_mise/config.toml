@@ -65,6 +65,9 @@ sqlite = "3.53.4"
 "npm:pyright" = "1.1.413"
 "npm:skills" = "1.5.23"
 
+# pipx tools
+"pipx:google-colab-cli" = "0.7.2"
+
 [settings]
 # Version files: honor idiomatic files such as `.python-version`.
 idiomatic_version_file_enable_tools = ["python"]

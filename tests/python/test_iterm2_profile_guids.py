@@ -48,7 +48,7 @@ class Iterm2ProfileGuidTest(unittest.TestCase):
             profile for profile in profiles if profile["Name"] == "Hotkey Window"
         )
 
-        self.assertTrue(hotkey_profile["Rewritable"])
+        self.assertFalse(hotkey_profile["Rewritable"])
         self.assertTrue(hotkey_profile["Has Hotkey"])
         self.assertEqual(hotkey_profile["HotKey Characters"], "\u0014")
         self.assertNotIn("Dynamic Profile Filename", hotkey_profile)

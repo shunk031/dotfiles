@@ -731,16 +731,30 @@ EOF
 }
 
 @test "[common] run_after template checks integrations after mise install and syncs the skill" {
+    local expected_calls
+
     write_mise_stub
     write_herdr_stub
     export HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_calls.txt"
+    export CODEX_MODEL_CATALOG_CALLS_PATH="${BATS_TEST_TMPDIR}/codex_model_catalog_calls.txt"
+    cat > "${HOME}/.local/bin/codex-model-catalog" << 'EOF'
+#!/usr/bin/env bash
+
+printf '%s\n' refreshed >> "${CODEX_MODEL_CATALOG_CALLS_PATH}"
+EOF
+    chmod +x "${HOME}/.local/bin/codex-model-catalog"
 
     run bash "${RUN_AFTER_SCRIPT}"
     [ "${status}" -eq 0 ]
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version\nexec -- herdr integration status\nexec -- herdr integration install claude\nexec -- herdr integration install codex\nexec -- herdr --skill' ]
+    expected_calls="$(printf 'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- %s\nexec -- herdr --version\nexec -- herdr integration status\nexec -- herdr integration install claude\nexec -- herdr integration install codex\nexec -- herdr --skill' "${HOME}/.local/bin/codex-model-catalog")"
+    [ "${output}" = "${expected_calls}" ]
+
+    run cat "${CODEX_MODEL_CATALOG_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "refreshed" ]
 
     run cat "${HERDR_CALLS_PATH}"
     [ "${status}" -eq 0 ]

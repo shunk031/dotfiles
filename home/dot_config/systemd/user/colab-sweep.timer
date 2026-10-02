@@ -1,0 +1,10 @@
+# Enable with `systemctl --user enable --now colab-sweep.timer`.
+[Unit]
+Description=Sweep leaked Google Colab runtimes every 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+
+[Install]
+WantedBy=timers.target

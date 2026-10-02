@@ -10,3 +10,5 @@
 .bash/server/bashrc
 
 .config/nvtop/interface.ini
+
+.config/systemd

@@ -1,0 +1,10 @@
+# Stops leaked or lease-expired Google Colab runtimes; see `colab-sweep --help`.
+[Unit]
+Description=Sweep leaked Google Colab runtimes
+
+[Service]
+Type=oneshot
+# `colab-sweep` finds the colab CLI through `mise`, installed in ~/.local/bin.
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/.local/bin/common/colab-sweep
+TimeoutStartSec=10min

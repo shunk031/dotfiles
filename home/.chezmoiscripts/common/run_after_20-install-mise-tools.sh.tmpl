@@ -26,6 +26,10 @@ fi
 
 run_mise_install
 
+if [ -x "${HOME}/.local/bin/codex-model-catalog" ]; then
+    MISE_CONFIG_FILE="${MISE_CONFIG_PATH}" "${MISE_INSTALL_PATH}" exec -- "${HOME}/.local/bin/codex-model-catalog"
+fi
+
 if "${MISE_BIN}" exec -- herdr --version > /dev/null 2>&1; then
     sync_herdr_integrations "${MISE_BIN}" exec -- herdr
     sync_herdr_skill

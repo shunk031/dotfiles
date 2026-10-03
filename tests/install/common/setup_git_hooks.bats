@@ -15,6 +15,7 @@ readonly SCRIPT_PATH="${BATS_TEST_DIRNAME}/../../../scripts/setup_git_hooks.sh"
     local prek_calls="${BATS_TEST_TMPDIR}/prek-calls"
     local hook_runs="${BATS_TEST_TMPDIR}/hook-runs"
     local hook_snapshot="${BATS_TEST_TMPDIR}/pre-commit.before"
+    local other_hook_snapshot="${BATS_TEST_TMPDIR}/other-pre-commit.before"
     local hooks_dir
     local linked_hooks_dir
 
@@ -96,4 +97,14 @@ EOF
     [ "$(grep -c '^install$' "${prek_calls}")" -eq 1 ]
     [ "$(grep -c '^hook-impl ' "${prek_calls}")" -eq 1 ]
     cmp -s "${hook_snapshot}" "${hooks_dir}/pre-commit"
+
+    printf '#!/bin/sh\nexit 0\n' > "${hooks_dir}/pre-commit"
+    chmod +x "${hooks_dir}/pre-commit"
+    cp "${hooks_dir}/pre-commit" "${other_hook_snapshot}"
+    run bash -c 'cd "$1" && PATH="$2:$PATH" PREK_CALLS="$3" PREK_RUNS="$4" bash "$5"' \
+        bash "${linked_root}" "${stub_bin}" "${prek_calls}" "${hook_runs}" "${SCRIPT_PATH}"
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"existing pre-commit hook would be changed"* ]]
+    [ "$(grep -c '^install$' "${prek_calls}")" -eq 1 ]
+    cmp -s "${other_hook_snapshot}" "${hooks_dir}/pre-commit"
 }

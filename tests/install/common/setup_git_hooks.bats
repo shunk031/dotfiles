@@ -134,8 +134,38 @@ EOF
 
     run bash -c 'cd "$1" && bash "$2"' bash "${linked_root}" "${SCRIPT_PATH}"
     [ "${status}" -eq 1 ]
-    [[ "${output}" == *"core.hooksPath is configured at global scope"* ]]
-    [[ "${output}" == *"Unset that setting or move it to repository scope"* ]]
-    [[ "${output}" == *"prek install --force would install into the repository default hooks directory"* ]]
+    [[ "${output}" == *"core.hooksPath is configured at global scope; resolve that setting or the conflicting hook before running make setup from the main checkout."* ]]
+    cmp -s "${hook_snapshot}" "${hooks_dir}/pre-commit"
+}
+
+@test "[common] setup_git_hooks gives neutral guidance for command-scope hooksPath" {
+    local repo_root="${BATS_TEST_TMPDIR}/repo"
+    local linked_root="${BATS_TEST_TMPDIR}/linked"
+    local hooks_dir="${BATS_TEST_TMPDIR}/command-hooks"
+    local hook_snapshot="${BATS_TEST_TMPDIR}/command-pre-commit.before"
+
+    export GIT_CONFIG_GLOBAL="${BATS_TEST_TMPDIR}/global.gitconfig"
+    export GIT_CONFIG_NOSYSTEM=1
+    : > "${GIT_CONFIG_GLOBAL}"
+
+    mkdir -p "${repo_root}"
+    git -C "${repo_root}" init -q
+    git -C "${repo_root}" config user.name "Test User"
+    git -C "${repo_root}" config user.email "test@example.invalid"
+    printf 'initial\n' > "${repo_root}/tracked.txt"
+    git -C "${repo_root}" add tracked.txt
+    git -C "${repo_root}" commit -m "Initial commit"
+    git -C "${repo_root}" worktree add --quiet -b linked "${linked_root}"
+
+    mkdir -p "${hooks_dir}"
+    printf '#!/bin/sh\nexit 0\n' > "${hooks_dir}/pre-commit"
+    chmod +x "${hooks_dir}/pre-commit"
+    cp "${hooks_dir}/pre-commit" "${hook_snapshot}"
+
+    # shellcheck disable=SC2016 # Expand these positional parameters in the child shell.
+    run env GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0="${hooks_dir}" \
+        bash -c 'cd "$1" && bash "$2"' bash "${linked_root}" "${SCRIPT_PATH}"
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"core.hooksPath is configured at command scope; resolve that setting or the conflicting hook before running make setup from the main checkout."* ]]
     cmp -s "${hook_snapshot}" "${hooks_dir}/pre-commit"
 }

@@ -37,7 +37,20 @@ if [[ -e "${pre_commit_hook}" || -L "${pre_commit_hook}" ]]; then
     fi
 
     printf 'Cannot install prek from a linked worktree because an existing pre-commit hook would be changed.\n' >&2
-    printf 'The hook was left unchanged. Run make setup from the main checkout first.\n' >&2
+    hooks_path_scope="$(git config --show-scope --get core.hooksPath 2> /dev/null | cut -f1 || true)"
+    case "${hooks_path_scope}" in
+    global | system)
+        printf 'The hook was left unchanged. core.hooksPath is configured at %s scope, which prek refuses to manage by default.\n' "${hooks_path_scope}" >&2
+        printf 'Unset that setting or move it to repository scope, or resolve the hook conflict yourself, before running make setup from the main checkout.\n' >&2
+        printf 'prek install --force would install into the repository default hooks directory while Git keeps using core.hooksPath.\n' >&2
+        ;;
+    worktree)
+        printf 'The hook was left unchanged. core.hooksPath is worktree-scoped; resolve this worktree-specific hook before retrying setup.\n' >&2
+        ;;
+    *)
+        printf 'The hook was left unchanged. Run make setup from the main checkout; prek can preserve the existing hook as .legacy and run it alongside its shim.\n' >&2
+        ;;
+    esac
     exit 1
 fi
 

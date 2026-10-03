@@ -10,7 +10,7 @@ DOKCER_RAM_GB=4
 .PHONY: setup
 setup:
 	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise install
-	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise exec -- prek install
+	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise exec -- bash scripts/setup_git_hooks.sh
 
 .PHONY: eval-guidance
 eval-guidance:

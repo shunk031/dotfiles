@@ -26,6 +26,7 @@ readonly SCRIPT_PATH="${BATS_TEST_DIRNAME}/../../../scripts/setup_git_hooks.sh"
     git -C "${repo_root}" init -q
     git -C "${repo_root}" config user.name "Test User"
     git -C "${repo_root}" config user.email "test@example.invalid"
+    git -C "${repo_root}" config core.hooksPath "$(git -C "${repo_root}" rev-parse --absolute-git-dir)/hooks"
     printf 'initial\n' > "${repo_root}/tracked.txt"
     git -C "${repo_root}" add tracked.txt
     git -C "${repo_root}" commit -m "Initial commit"

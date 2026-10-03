@@ -104,11 +104,12 @@
     },
     {
       "id": "unambiguous-issue-pr-reference",
-      "prompt": "The fix for the cache invalidation bug landed as pull request 247 in the shunk031/dotfiles repository. Write a short status note for the owner telling them where to review the change.",
-      "expected_output": "A short status note tells the owner where to review pull request 247 in shunk031/dotfiles using a reference that remains usable outside that repository. It stays focused on the landed fix.",
+      "prompt": "Write two pieces of text: (1) a status note addressed to the user about pull request 247 in shunk031/dotfiles, and (2) a PR body for creative-graphic-design/design-generators referring to issue 31 with that repository's required `Refs #31` convention. The status note will be sent to the user, and the PR body will be posted in its repository.",
+      "expected_output": "The status note identifies pull request 247 with a full URL or `shunk031/dotfiles#247`, not a bare number. The PR body keeps `Refs #31`. The explanation scopes the unambiguous-reference rule to user-directed messages and reports, including agent reports relayed to the user, while repository artifacts follow their repository's conventions.",
       "assertions": [
-        "The note identifies pull request 247 in shunk031/dotfiles.",
-        "The note gives a reference that remains usable outside that repository."
+        "The user-facing status note identifies pull request 247 with a full URL or `shunk031/dotfiles#247`, not a bare `#247`.",
+        "The repository PR body uses `Refs #31` and does not rewrite it as a URL or an owner/repo reference.",
+        "The response scopes the rule to messages and reports addressed to the user, including agent-to-orchestrator reports relayed to the user, and says repository artifacts follow repository conventions."
       ]
     }
   ]

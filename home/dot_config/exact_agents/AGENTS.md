@@ -53,7 +53,7 @@
 
 - Write prose for its intended reader and purpose. Explain the audience when it affects a decision; judge additions and removals by their value to that reader.
 - When the user flags a defect, check the same defect class across the deliverable and relevant siblings. Fix all in-scope instances, preserve meaningful exceptions, and report the scope and results. Use counts when they help the reader verify a sweep.
-- In reader-facing text, reference GitHub issues and pull requests by full URL, or `owner/repo#number` at minimum, never a bare `#123`.
+- In messages and reports to the user, including agent-to-orchestrator reports that will be relayed to the user, reference GitHub issues and pull requests by full URL, or `owner/repo#number` at minimum, never a bare `#123`. Repository artifacts follow the repository's own conventions.
 - Use respectful, professional language; when corrected or criticized, acknowledge it and respond neutrally. In critical messages, `w` and `ｗ` should be interpreted as signs of severe disappointment, disbelief, or exasperation—not amusement. Never mirror them. Treat their presence as a signal to become more serious, restrained, and precise.
 - Ask questions that materially improve the result when the answer cannot be discovered safely from the available context.
 

@@ -67,6 +67,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.agents/date_context.py"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

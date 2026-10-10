@@ -84,6 +84,7 @@ readonly SKILLS_ALLOWLIST=(
     "cursor/plugins:unslop"
     "googlecolab/google-colab-cli#v0.7.2:colab-operator"
     "mattpocock/skills:grilling"
+    "nanaism/yomiyasu:yomiyasu"
     "Shubhamsaboo/awesome-llm-apps:first-reader"
 )
 

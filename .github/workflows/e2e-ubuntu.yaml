@@ -11,18 +11,20 @@ on:
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
+      - "install/common/herdr.sh"
+      - "tests/python/test_herdr_integration.py"
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 
       # Ubuntu install scripts are exercised by the end-to-end jobs.
       - "install/ubuntu/**"
 
-      # Ubuntu chezmoi scripts are applied during setup.
-      - "home/.chezmoiscripts/ubuntu/**"
+      # Linux dispatch templates are applied during setup.
+      - "home/.chezmoiscripts/linux/**"
 
       # OS-specific tmux configuration is checked by the end-to-end jobs.
       - "home/dot_tmux.conf.d/os/ubuntu_client.conf"
-      - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
+      - "home/dot_tmux.conf.d/os/linux_server.conf"
 
       # Installation and file-existence tests define the end-to-end assertions.
       - "tests/install/ubuntu/**"
@@ -39,18 +41,20 @@ on:
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
+      - "install/common/herdr.sh"
+      - "tests/python/test_herdr_integration.py"
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 
       # Ubuntu install scripts are exercised by the end-to-end jobs.
       - "install/ubuntu/**"
 
-      # Ubuntu chezmoi scripts are applied during setup.
-      - "home/.chezmoiscripts/ubuntu/**"
+      # Linux dispatch templates are applied during setup.
+      - "home/.chezmoiscripts/linux/**"
 
       # OS-specific tmux configuration is checked by the end-to-end jobs.
       - "home/dot_tmux.conf.d/os/ubuntu_client.conf"
-      - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
+      - "home/dot_tmux.conf.d/os/linux_server.conf"
 
       # Installation and file-existence tests define the end-to-end assertions.
       - "tests/install/ubuntu/**"

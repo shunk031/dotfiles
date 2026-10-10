@@ -23,7 +23,7 @@
 {{   include "dot_tmux.conf.d/system/server.conf" }}
 {{   if eq .chezmoi.os "linux" -}}
 {{     if or (eq .chezmoi.osRelease.idLike "debian") (eq .chezmoi.osRelease.id "rocky") -}}
-{{       include "dot_tmux.conf.d/os/ubuntu_server.conf" }}
+{{       include "dot_tmux.conf.d/os/linux_server.conf" }}
 {{     else -}}
 {{       fail (printf "Unknown Linux OS: %s" .chezmoi.osRelease.idLike) }}
 {{     end -}}

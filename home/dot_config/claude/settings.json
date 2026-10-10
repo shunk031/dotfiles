@@ -10,7 +10,6 @@
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
     "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
   },
-  "plansDirectory": "./.agents/worklog/claude",
   "permissions": {
     "deny": [
       "Bash(sudo:*)",
@@ -59,11 +58,11 @@
     ],
     "SessionStart": [
       {
-        "matcher": "*",
+        "matcher": "^(startup|resume|clear|compact|fork)$",
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/herdr-agent-state.sh session",
+            "command": "bash \"$HOME/.claude/hooks/herdr-agent-state.sh\" session",
             "timeout": 10
           }
         ]
@@ -76,6 +75,7 @@
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
-    "claude-mem@thedotmack": false
+    "claude-mem@thedotmack": false,
+    "ponytail@ponytail": true
   }
 }

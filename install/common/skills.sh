@@ -82,7 +82,9 @@ readonly SKILLS_ALLOWLIST=(
     "anthropics/skills:skill-creator"
     "coji/natural-japanese:natural-japanese"
     "cursor/plugins:unslop"
+    "googlecolab/google-colab-cli#v0.7.2:colab-operator"
     "mattpocock/skills:grilling"
+    "Shubhamsaboo/awesome-llm-apps:first-reader"
 )
 
 # Private subscriptions, applied by the private dotfiles source. Absent on a

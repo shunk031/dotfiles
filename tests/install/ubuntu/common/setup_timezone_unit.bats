@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./install/ubuntu/common/setup_timezone.sh"
-readonly SETUP_TIMEZONE_TEMPLATE="./home/.chezmoiscripts/ubuntu/run_once_before_40-setup-timezone.sh.tmpl"
-readonly DEPENDENCIES_TEMPLATE="./home/.chezmoiscripts/ubuntu/run_once_before_50-common-dependencies.sh.tmpl"
+readonly SETUP_TIMEZONE_TEMPLATE="./home/.chezmoiscripts/linux/run_once_before_40-setup-timezone.sh.tmpl"
+readonly DEPENDENCIES_TEMPLATE="./home/.chezmoiscripts/linux/run_once_before_50-common-dependencies.sh.tmpl"
 
 function run_setup_timezone_with_stubs() {
     local timezone="${1:-Asia/Tokyo}"

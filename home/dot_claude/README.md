@@ -6,14 +6,19 @@
 
 ### Public dotfiles
 
-| Applied path | Canonical source |
-| --- | --- |
-| `~/.claude/CLAUDE.md` | [dotfiles/home/dot_config/claude/CLAUDE.md](../dot_config/claude/CLAUDE.md) |
-| `~/.claude/agents` | [dotfiles/home/dot_config/claude/agents/](../dot_config/claude/agents/) |
-| `~/.claude/commands` | [dotfiles/home/dot_config/claude/commands/](../dot_config/claude/commands/) |
-| `~/.claude/hooks` | [dotfiles/home/dot_config/claude/hooks/](../dot_config/claude/hooks/) |
-| `~/.claude/rules` | [dotfiles/home/dot_config/claude/rules/](../dot_config/claude/rules/) |
-| `~/.claude/settings.json` | [dotfiles/home/dot_config/claude/settings.json](../dot_config/claude/settings.json) |
+| Applied path                    | Canonical source                                                                                |
+| ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `~/.claude/CLAUDE.md`           | [dotfiles/home/dot_config/claude/CLAUDE.md](../dot_config/claude/CLAUDE.md)                     |
+| `~/.claude/agents`              | [dotfiles/home/dot_config/claude/agents/](../dot_config/claude/agents/)                         |
+| `~/.claude/commands`            | [dotfiles/home/dot_config/claude/commands/](../dot_config/claude/commands/)                     |
+| `~/.claude/hooks/enforce-uv.sh` | [dotfiles/home/dot_config/claude/hooks/enforce-uv.sh](../dot_config/claude/hooks/enforce-uv.sh) |
+| `~/.claude/rules`               | [dotfiles/home/dot_config/claude/rules/](../dot_config/claude/rules/)                           |
+| `~/.claude/settings.json`       | [dotfiles/home/dot_config/claude/settings.json](../dot_config/claude/settings.json)             |
+
+## Herdr hooks
+
+- Public `chezmoi apply` runs `mise install`, repairs outdated or missing Herdr integrations, and restores the agent settings changed by the installer.
+- Dotfiles manages hook registration. Do not run `herdr integration install` against the managed settings, as it can add duplicate hooks.
 
 ## Skills
 

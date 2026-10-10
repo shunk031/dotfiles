@@ -2,10 +2,10 @@
 {{ if eq .chezmoi.os "darwin" -}}
 {{   template "chezmoiignore.d/macos" . }}
 {{ else if eq .chezmoi.os "linux" -}}
-{{   template "chezmoiignore.d/ubuntu/common" . }}
+{{   template "chezmoiignore.d/linux/common" . }}
 {{   if eq .system "client" -}}
-{{     template "chezmoiignore.d/ubuntu/client" . }}
+{{     template "chezmoiignore.d/linux/client" . }}
 {{   else if eq .system "server" -}}
-{{     template "chezmoiignore.d/ubuntu/server" . }}
+{{     template "chezmoiignore.d/linux/server" . }}
 {{   end -}}
 {{ end -}}

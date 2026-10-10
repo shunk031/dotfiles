@@ -23,12 +23,12 @@ sqlite = "3.53.4"
 
 # Aqua tools
 "aqua:FiloSottile/age" = "1.3.2"
-"aqua:google-antigravity/antigravity-cli" = "1.2.4"
+"aqua:google-antigravity/antigravity-cli" = "1.2.11"
 "aqua:aws/aws-cli" = "2.36.40"
 "aqua:bats-core/bats-core" = "1.14.0"
 "aqua:twpayne/chezmoi" = "2.72.1"
-"aqua:anthropics/claude-code" = "2.1.273"
-"aqua:openai/codex" = "0.154.0"
+"aqua:anthropics/claude-code" = "2.1.283"
+"aqua:openai/codex" = "0.157.1"
 "aqua:dotenvx/dotenvx" = "2.23.0"
 "aqua:bootandy/dust" = "1.2.5"
 "aqua:sharkdp/fd" = "10.5.0"
@@ -51,11 +51,12 @@ sqlite = "3.53.4"
 #
 # Shuhari ships no git tags, so its module version list is empty and mise
 # cannot resolve `latest`. This pins the module-proxy pseudo-version of a
-# specific `main` commit; replace it with a semantic version once one exists.
-"go:github.com/shunk031/shuhari/cmd/shuhari" = "0.0.0-20260824171335-deb972da670a"
+# specific commit; replace it with a semantic version once one exists.
+"go:github.com/shunk031/shuhari/cmd/shuhari" = "0.0.0-20260919020752-14853fe08bc9"
 
 # GitHub release tools
 "github:d-kuro/gwq" = "0.1.1"
+"github:microsoft/apm" = "0.31.0"
 "github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }
 
 # npm tools
@@ -63,6 +64,9 @@ sqlite = "3.53.4"
 "npm:fast-cli" = "5.2.0"
 "npm:pyright" = "1.1.413"
 "npm:skills" = "1.5.24"
+
+# pipx tools
+"pipx:google-colab-cli" = "0.7.2"
 
 [settings]
 # Version files: honor idiomatic files such as `.python-version`.

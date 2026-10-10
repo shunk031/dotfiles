@@ -11,6 +11,8 @@ on:
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
+      - "install/common/herdr.sh"
+      - "tests/python/test_herdr_integration.py"
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 
@@ -18,13 +20,13 @@ on:
       - "install/rockylinux/**"
 
       # Linux dispatch templates select Rocky install scripts during setup.
-      - "home/.chezmoiscripts/ubuntu/**"
+      - "home/.chezmoiscripts/linux/**"
 
       # Rocky-specific chezmoi scripts are applied during setup.
       - "home/.chezmoiscripts/rockylinux/**"
 
-      # Rocky uses the shared Ubuntu server tmux configuration.
-      - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
+      # Rocky uses the shared Linux server tmux configuration.
+      - "home/dot_tmux.conf.d/os/linux_server.conf"
 
       # Installation and file-existence tests define the end-to-end assertions.
       - "tests/install/rockylinux/**"
@@ -41,6 +43,8 @@ on:
       - "setup.sh"
       - "home/dot_mise/config.toml"
       - "install/common/mise.sh"
+      - "install/common/herdr.sh"
+      - "tests/python/test_herdr_integration.py"
       - "home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl"
       - "home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 
@@ -48,13 +52,13 @@ on:
       - "install/rockylinux/**"
 
       # Linux dispatch templates select Rocky install scripts during setup.
-      - "home/.chezmoiscripts/ubuntu/**"
+      - "home/.chezmoiscripts/linux/**"
 
       # Rocky-specific chezmoi scripts are applied during setup.
       - "home/.chezmoiscripts/rockylinux/**"
 
-      # Rocky uses the shared Ubuntu server tmux configuration.
-      - "home/dot_tmux.conf.d/os/ubuntu_server.conf"
+      # Rocky uses the shared Linux server tmux configuration.
+      - "home/dot_tmux.conf.d/os/linux_server.conf"
 
       # Installation and file-existence tests define the end-to-end assertions.
       - "tests/install/rockylinux/**"

@@ -13,9 +13,11 @@ function setup() {
 
 function write_claude_workflow_mocks() {
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
+    export CLAUDE_PLUGINS_MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_calls.txt"
 
     cat > "${MISE_BIN}" << 'EOF'
 #!/usr/bin/env bash
+printf '%s\n' "$*" >> "${CLAUDE_PLUGINS_MISE_CALLS_PATH}"
 if [ "$1" = "exec" ]; then
     [ "${2:-}" = "--" ] || exit 1
     shift 2
@@ -60,6 +62,10 @@ EOF
     [ "${lines[4]}" = "plugin marketplace add petekp/inbox" ]
     [ "${lines[5]}" = "plugin install --scope user --yes inbox@inbox" ]
     [ "${#lines[@]}" -eq 6 ]
+
+    run grep -c '^exec -- jq ' "${CLAUDE_PLUGINS_MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "6" ]
 }
 
 @test "[common] Claude plugins script rejects invalid plugin list JSON" {

@@ -33,6 +33,10 @@ function ensure_claude_plugin() {
     local installed_json
 
     installed_json="$(run_claude_plugin list --json)"
+    if ! jq -e 'type == "array"' <<< "${installed_json}" > /dev/null; then
+        printf 'Claude plugin list did not return a JSON array\n' >&2
+        return 1
+    fi
 
     if jq -e --arg plugin_id "${plugin_id}" \
         'any(.[]; .id == $plugin_id and .enabled)' \

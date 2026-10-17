@@ -62,6 +62,22 @@ EOF
     [ "${#lines[@]}" -eq 6 ]
 }
 
+@test "[common] Claude plugins script rejects invalid plugin list JSON" {
+    write_claude_workflow_mocks
+
+    run env \
+        CLAUDE_PLUGINS_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_args.txt" \
+        CLAUDE_PLUGIN_LIST_JSON='[{"id":' \
+        HOME="${HOME}" \
+        bash "${SCRIPT_PATH}"
+    [ "${status}" -ne 0 ]
+
+    run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "plugin list --json" ]
+    [ "${#lines[@]}" -eq 1 ]
+}
+
 @test "[common] Claude plugins script skips enabled plugins" {
     write_claude_workflow_mocks
 

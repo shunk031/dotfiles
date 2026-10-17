@@ -23,6 +23,14 @@ function run_claude_plugin() {
 }
 
 #
+# @description Run jq with the configured mise tools.
+# @arg $@ jq Arguments to `jq`.
+#
+function run_mise_jq() {
+    "${MISE_BIN}" exec -- jq "$@"
+}
+
+#
 # @description Install or enable a Claude Code plugin when it is not already enabled.
 # @arg $1 plugin_id Plugin id in `plugin@marketplace` form.
 # @arg $2 marketplace_repo GitHub repository that provides the marketplace.
@@ -33,19 +41,19 @@ function ensure_claude_plugin() {
     local installed_json
 
     installed_json="$(run_claude_plugin list --json)"
-    if ! jq -e 'type == "array"' <<< "${installed_json}" > /dev/null; then
+    if ! run_mise_jq -e 'type == "array"' <<< "${installed_json}" > /dev/null; then
         printf 'Claude plugin list did not return a JSON array\n' >&2
         return 1
     fi
 
-    if jq -e --arg plugin_id "${plugin_id}" \
-        'any(.[]; .id == $plugin_id and .enabled)' \
+    if run_mise_jq -e --arg plugin_id "${plugin_id}" \
+        "any(.[]; .id == \$plugin_id and .enabled)" \
         <<< "${installed_json}" > /dev/null; then
         return
     fi
 
-    if jq -e --arg plugin_id "${plugin_id}" \
-        'any(.[]; .id == $plugin_id)' \
+    if run_mise_jq -e --arg plugin_id "${plugin_id}" \
+        "any(.[]; .id == \$plugin_id)" \
         <<< "${installed_json}" > /dev/null; then
         run_claude_plugin enable "${plugin_id}"
         return

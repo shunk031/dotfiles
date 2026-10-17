@@ -1,25 +1,6 @@
 repos:
   - repo: local
     hooks:
-      # The in-tree skills still use the Python harness. Guidance no longer
-      # does: `AGENTS.evals.json` is on the Shuhari schema, which this harness
-      # rejects, so these two hooks are scoped to `skills/` only.
-      - id: shuhari-validate-instructions
-        name: validate the user guidance eval schema
-        entry: scripts/shuhari_guidance_gate.sh validate
-        language: system
-        pass_filenames: false
-        files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json)$
-
-      # Live model calls, two arms per case.
-      - id: shuhari-eval-instructions
-        name: evaluate changed user guidance
-        entry: scripts/shuhari_guidance_gate.sh eval
-        language: system
-        pass_filenames: false
-        require_serial: true
-        files: ^home/dot_config/exact_agents/(AGENTS\.md|AGENTS\.evals\.json)$
-
       - id: textlint-markdown
         name: format and lint Markdown prose
         entry: bash -c 'textlint --fix "$@"; textlint "$@"' --

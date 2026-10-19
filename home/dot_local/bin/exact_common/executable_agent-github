@@ -25,7 +25,7 @@ function fail() {
 function check_dependencies() {
     local cmd
     for cmd in curl jq gh; do
-        command -v "$cmd" >/dev/null 2>&1 || fail "missing dependency: $cmd"
+        command -v "$cmd" > /dev/null 2>&1 || fail "missing dependency: $cmd"
     done
 }
 
@@ -44,8 +44,8 @@ function lock_state() {
     mkdir -p -m 700 "$STATE_DIR"
     chmod 700 "$STATE_DIR"
     for ((attempt = 0; attempt < 30; attempt++)); do
-        if mkdir "$LOCK_DIR" 2>/dev/null; then
-            trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
+        if mkdir "$LOCK_DIR" 2> /dev/null; then
+            trap 'rmdir "$LOCK_DIR" 2> /dev/null || true' EXIT
             return
         fi
         sleep 1
@@ -98,15 +98,15 @@ function get_token() {
             fail 'refresh token expired; authorize again using agent-github login'
         fi
         response="$(printf 'client_id=%s&grant_type=refresh_token&refresh_token=%s' \
-            "$client_id" "$refresh_token" | post_form 'https://github.com/login/oauth/access_token')" \
-            || fail 'token refresh HTTP request failed'
+            "$client_id" "$refresh_token" | post_form 'https://github.com/login/oauth/access_token')" ||
+             fail 'token refresh HTTP request failed'
         error="$(jq -r '.error // empty' <<< "$response")"
         [[ -z "$error" ]] || fail "token refresh denied by GitHub ($error)"
         save_response "$client_id" "$response"
         state="$(read_state)"
     fi
-    token="$(jq -er '.access_token | select(type=="string" and startswith("ghu_"))' <<< "$state")" \
-        || fail 'invalid stored user token'
+    token="$(jq -er '.access_token | select(type=="string" and startswith("ghu_"))' <<< "$state")" ||
+         fail 'invalid stored user token'
     printf '%s\n' "$token"
 }
 
@@ -114,8 +114,8 @@ function get_token() {
 # @arg $1 token GitHub App user access token.
 function verify_user() {
     local user
-    user="$(GH_HOST=github.com GH_TOKEN="$1" gh api user --jq '.login')" \
-        || fail 'GitHub API user verification failed'
+    user="$(GH_HOST=github.com GH_TOKEN="$1" gh api user --jq '.login')" ||
+         fail 'GitHub API user verification failed'
     [[ "$user" == "$EXPECTED_USER" ]] || fail "expected GitHub account $EXPECTED_USER, got $user"
 }
 
@@ -134,8 +134,8 @@ function login() {
     done
     client_id="${client_id:-${SHUNK031_AGENT_BOT_CLIENT_ID:-}}"
     [[ -n "$client_id" ]] || fail 'pass --client-id (Client ID, not App ID)'
-    response="$(printf 'client_id=%s' "$client_id" | post_form 'https://github.com/login/device/code')" \
-        || fail 'could not request a GitHub device code'
+    response="$(printf 'client_id=%s' "$client_id" | post_form 'https://github.com/login/device/code')" ||
+         fail 'could not request a GitHub device code'
     device_code="$(jq -er '.device_code' <<< "$response")" || fail 'device code missing'
     user_code="$(jq -er '.user_code' <<< "$response")" || fail 'user code missing'
     uri="$(jq -r '.verification_uri // "https://github.com/login/device"' <<< "$response")"
@@ -145,13 +145,13 @@ function login() {
     while (($(date +%s) < deadline)); do
         sleep "$interval"
         response="$(printf 'client_id=%s&device_code=%s&grant_type=urn:ietf:params:oauth:grant-type:device_code' \
-            "$client_id" "$device_code" | post_form 'https://github.com/login/oauth/access_token')" \
-            || fail 'device authorization polling failed'
+            "$client_id" "$device_code" | post_form 'https://github.com/login/oauth/access_token')" ||
+             fail 'device authorization polling failed'
         error="$(jq -r '.error // empty' <<< "$response")"
         case "$error" in
         '')
-            token="$(jq -er '.access_token | select(type=="string" and startswith("ghu_"))' <<< "$response")" \
-                || fail 'device authorization returned no App user token'
+            token="$(jq -er '.access_token | select(type=="string" and startswith("ghu_"))' <<< "$response")" ||
+                 fail 'device authorization returned no App user token'
             verify_user "$token"
             lock_state
             save_response "$client_id" "$response"

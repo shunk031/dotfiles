@@ -106,3 +106,17 @@ function logged_in() {
     [[ "$output" == *'no refresh token'* ]]
     ! grep -Fq 'gh:' "$TEST_LOG"
 }
+
+@test "[common] agent-github logout removes credentials and subsequent status fails" {
+    logged_in
+    local state="$XDG_CONFIG_HOME/shunk031-agent-bot/auth.json"
+    [ -f "$state" ]
+
+    run bash "$SCRIPT_PATH" logout
+    [ "$status" -eq 0 ]
+    [ ! -e "$state" ]
+
+    run bash "$SCRIPT_PATH" status
+    [ "$status" -ne 0 ]
+    [[ "$output" == *'not logged in'* ]]
+}

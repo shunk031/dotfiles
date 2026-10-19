@@ -60,7 +60,7 @@ function logged_in() {
     run logged_in
     [ "$status" -eq 0 ]
     [[ "$output" == *'Authenticated as shunk031'* ]]
-    [ "$(stat -c %a "$XDG_CONFIG_HOME/shunk031-agent-bot/auth.json" 2>/dev/null || stat -f %Lp "$XDG_CONFIG_HOME/shunk031-agent-bot/auth.json")" = '600' ]
+    [ "$(stat -c %a "$XDG_CONFIG_HOME/shunk031-agent-bot/auth.json" 2> /dev/null || stat -f %Lp "$XDG_CONFIG_HOME/shunk031-agent-bot/auth.json")" = '600' ]
     run bash "$SCRIPT_PATH" status
     [ "$status" -eq 0 ]
     [[ "$output" == *'App client ID: Iv1.test'* ]]

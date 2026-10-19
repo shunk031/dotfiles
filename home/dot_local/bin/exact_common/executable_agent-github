@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+
+# @file home/dot_local/bin/exact_common/executable_agent-github
+# @brief Use shunk031-agent-bot's user access token for individual gh calls.
+# @description
+#   Authorize using GitHub Device Flow, refresh tokens, and leave normal
+#   GitHub CLI authentication untouched.
+
+set -Eeuo pipefail
+umask 077
+
+readonly EXPECTED_USER="shunk031"
+readonly STATE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/shunk031-agent-bot"
+readonly STATE_FILE="$STATE_DIR/auth.json"
+readonly LOCK_DIR="$STATE_DIR/auth.lock"
+readonly TOKEN_SKEW=300
+
+# @description Fail without logging secret token response contents.
+function fail() {
+    printf 'agent-github: %s\n' "$*" >&2
+    exit 1
+}
+
+# @description Check the minimum command dependencies.
+function check_dependencies() {
+    local cmd
+    for cmd in curl jq gh; do
+        command -v "$cmd" >/dev/null 2>&1 || fail "missing dependency: $cmd"
+    done
+}
+
+# @description POST form data from stdin to keep credentials out of argv.
+# @arg $1 url GitHub OAuth endpoint.
+function post_form() {
+    curl --fail --silent --show-error --connect-timeout 10 --max-time 30 \
+        --header 'Accept: application/json' \
+        --header 'Content-Type: application/x-www-form-urlencoded' \
+        --data-binary @- "$1"
+}
+
+# @description Lock stored credentials across concurrent agent processes.
+function lock_state() {
+    local attempt
+    mkdir -p -m 700 "$STATE_DIR"
+    chmod 700 "$STATE_DIR"
+    for ((attempt = 0; attempt < 30; attempt++)); do
+        if mkdir "$LOCK_DIR" 2>/dev/null; then
+            trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
+            return
+        fi
+        sleep 1
+    done
+    fail "credential lock timed out: $LOCK_DIR"
+}
+
+# @description Atomically save an OAuth token response with mode 0600.
+# @arg $1 client_id GitHub App Client ID.
+# @arg $2 response JSON OAuth token response.
+function save_response() {
+    local client_id="$1"
+    local response="$2"
+    local tmp
+    tmp="$(mktemp "$STATE_FILE.XXXXXX")"
+    if ! printf '%s\n' "$response" | jq -e --arg cid "$client_id" \
+        --argjson now "$(date +%s)" '
+        select(.access_token | type == "string" and startswith("ghu_")) |
+        {client_id:$cid, access_token:.access_token,
+         expires_at:(if (.expires_in|type)=="number" then $now+.expires_in else null end),
+         refresh_token:(.refresh_token//null),
+         refresh_expires_at:(if (.refresh_token_expires_in|type)=="number" then $now+.refresh_token_expires_in else null end)}
+    ' > "$tmp"; then
+        rm -f "$tmp"
+        fail 'no valid GitHub App user access token in OAuth response'
+    fi
+    chmod 600 "$tmp"
+    mv -f "$tmp" "$STATE_FILE"
+}
+
+# @description Load locally saved credentials or require authorization.
+function read_state() {
+    [[ -r "$STATE_FILE" ]] || fail 'not logged in; run agent-github login --client-id <CLIENT_ID>'
+    cat "$STATE_FILE"
+}
+
+# @description Read and refresh a valid GitHub App user access token.
+function get_token() {
+    local state now expires refresh_expires refresh_token client_id response error token
+    lock_state
+    state="$(read_state)"
+    now="$(date +%s)"
+    expires="$(jq -r '.expires_at // empty' <<< "$state")"
+    if [[ -n "$expires" ]] && ((expires <= now + TOKEN_SKEW)); then
+        client_id="$(jq -er '.client_id' <<< "$state")"
+        refresh_token="$(jq -r '.refresh_token // empty' <<< "$state")"
+        refresh_expires="$(jq -r '.refresh_expires_at // empty' <<< "$state")"
+        [[ -n "$refresh_token" ]] || fail 'no refresh token; authorize again using agent-github login'
+        if [[ -n "$refresh_expires" ]] && ((refresh_expires <= now)); then
+            fail 'refresh token expired; authorize again using agent-github login'
+        fi
+        response="$(printf 'client_id=%s&grant_type=refresh_token&refresh_token=%s' \
+            "$client_id" "$refresh_token" | post_form 'https://github.com/login/oauth/access_token')" \
+            || fail 'token refresh HTTP request failed'
+        error="$(jq -r '.error // empty' <<< "$response")"
+        [[ -z "$error" ]] || fail "token refresh denied by GitHub ($error)"
+        save_response "$client_id" "$response"
+        state="$(read_state)"
+    fi
+    token="$(jq -er '.access_token | select(type=="string" and startswith("ghu_"))' <<< "$state")" \
+        || fail 'invalid stored user token'
+    printf '%s\n' "$token"
+}
+
+# @description Confirm the human account without using stored gh credentials.
+# @arg $1 token GitHub App user access token.
+function verify_user() {
+    local user
+    user="$(GH_HOST=github.com GH_TOKEN="$1" gh api user --jq '.login')" \
+        || fail 'GitHub API user verification failed'
+    [[ "$user" == "$EXPECTED_USER" ]] || fail "expected GitHub account $EXPECTED_USER, got $user"
+}
+
+# @description Complete the OAuth Device Flow (no Client Secret needed).
+function login() {
+    local client_id="" response device_code user_code uri interval deadline error token
+    while (($#)); do
+        case "$1" in
+        --client-id)
+            (($# >= 2)) || fail '--client-id needs a value'
+            client_id="$2"
+            shift 2
+            ;;
+        *) fail "unsupported login argument: $1" ;;
+        esac
+    done
+    client_id="${client_id:-${SHUNK031_AGENT_BOT_CLIENT_ID:-}}"
+    [[ -n "$client_id" ]] || fail 'pass --client-id (Client ID, not App ID)'
+    response="$(printf 'client_id=%s' "$client_id" | post_form 'https://github.com/login/device/code')" \
+        || fail 'could not request a GitHub device code'
+    device_code="$(jq -er '.device_code' <<< "$response")" || fail 'device code missing'
+    user_code="$(jq -er '.user_code' <<< "$response")" || fail 'user code missing'
+    uri="$(jq -r '.verification_uri // "https://github.com/login/device"' <<< "$response")"
+    interval="$(jq -r '.interval // 5' <<< "$response")"
+    deadline="$(($(date +%s) + $(jq -r '.expires_in' <<< "$response")))"
+    printf 'Visit: %s\nEnter code: %s\n' "$uri" "$user_code" >&2
+    while (($(date +%s) < deadline)); do
+        sleep "$interval"
+        response="$(printf 'client_id=%s&device_code=%s&grant_type=urn:ietf:params:oauth:grant-type:device_code' \
+            "$client_id" "$device_code" | post_form 'https://github.com/login/oauth/access_token')" \
+            || fail 'device authorization polling failed'
+        error="$(jq -r '.error // empty' <<< "$response")"
+        case "$error" in
+        '')
+            token="$(jq -er '.access_token | select(type=="string" and startswith("ghu_"))' <<< "$response")" \
+                || fail 'device authorization returned no App user token'
+            verify_user "$token"
+            lock_state
+            save_response "$client_id" "$response"
+            printf 'Authenticated as %s through GitHub App.\n' "$EXPECTED_USER"
+            return
+            ;;
+        authorization_pending) ;;
+        slow_down)
+            interval="$(jq -r --argjson next "$((interval + 5))" '.interval // $next' <<< "$response")"
+            ;;
+        *) fail "device authorization failed ($error)" ;;
+        esac
+    done
+    fail 'device code expired; run login again'
+}
+
+# @description Report verified user identity without disclosing tokens.
+function status() {
+    local token state
+    token="$(get_token)"
+    verify_user "$token"
+    state="$(read_state)"
+    printf 'GitHub user: %s\nApp client ID: %s\n' "$EXPECTED_USER" \
+        "$(jq -r '.client_id' <<< "$state")"
+}
+
+# @description Run gh with an App token only for the current process.
+function run_gh() {
+    local token
+    (($# > 0)) || fail 'usage: agent-github gh <gh arguments...>'
+    token="$(get_token)"
+    verify_user "$token"
+    export GH_TOKEN="$token"
+    export GH_HOST=github.com
+    exec gh "$@"
+}
+
+# @description Forget local credentials; GitHub authorization remains active.
+function logout() {
+    lock_state
+    rm -f "$STATE_FILE"
+    printf 'Local App credentials removed; revoke the App authorization separately if needed.\n'
+}
+
+# @description Dispatch CLI commands.
+function main() {
+    local command="${1:-}"
+    [[ -n "$command" ]] || fail 'usage: agent-github {login|status|token|gh|logout} ...'
+    shift
+    check_dependencies
+    case "$command" in
+    login) login "$@" ;;
+    status) status ;;
+    token) get_token ;;
+    gh) run_gh "$@" ;;
+    logout) logout ;;
+    *) fail "unknown command: $command" ;;
+    esac
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

@@ -92,5 +92,6 @@
         "repo": "petekp/inbox"
       }
     }
-  }
+  },
+  "tui": "fullscreen"
 }

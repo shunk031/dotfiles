@@ -11,7 +11,7 @@ jobs:
     # Skip known secret-less contexts to avoid failing at SSH key setup.
     if: ${{ github.actor != 'dependabot[bot]' }}
     timeout-minutes: 15
-    runs-on: macos-14
+    runs-on: macos-26
     env:
       # DOTFILES_DEBUG: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -182,7 +182,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     container:
-      image: rockylinux/rockylinux:9
+      image: rockylinux/rockylinux:10
     defaults:
       run:
         shell: bash

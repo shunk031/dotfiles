@@ -19,7 +19,7 @@
       "Read(id_ed25519*)",
       "Edit(.env*)"
     ],
-    "defaultMode": "plan"
+    "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PreToolUse": [

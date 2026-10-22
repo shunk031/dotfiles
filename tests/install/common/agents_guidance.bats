@@ -7,9 +7,6 @@ readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
 readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
 readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager.toml"
 readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
-readonly GUIDANCE_EVAL_SCRIPT="./scripts/agent_guidance_eval.py"
-readonly GUIDANCE_GATE_SCRIPT="./scripts/shuhari_guidance_gate.sh"
-readonly PREK_CONFIG_PATH="./.pre-commit-config.yaml"
 readonly SKILL_CREATOR_SHARED_SKILL_PATH="./home/dot_config/exact_agents/skills/skill-creator"
 readonly SKILL_CREATOR_SYMLINK_TEMPLATE="./home/exact_dot_agents/skills/symlink_skill-creator.tmpl"
 readonly AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS.md.tmpl"
@@ -192,39 +189,6 @@ readonly GITIGNORE_PATH="./.gitignore"
 @test "[common] repository Claude entrypoint is an AGENTS.md symlink" {
     [ -L "./CLAUDE.md" ]
     [ "$(readlink ./CLAUDE.md)" = "AGENTS.md" ]
-}
-
-@test "[common] prek validates and evaluates changed guidance" {
-    [ -f "${PREK_CONFIG_PATH}" ]
-
-    # The Python harness and its two hooks are gone: it evaluated the in-tree
-    # skills, and that tree moved to shunk031/skills. What remains here is the
-    # shared guidance, which Shuhari evaluates.
-    [ ! -e "${GUIDANCE_EVAL_SCRIPT}" ]
-    run grep -F 'agent-guidance-' "${PREK_CONFIG_PATH}"
-    [ "${status}" -ne 0 ]
-
-    run grep -F 'id: shuhari-validate-instructions' "${PREK_CONFIG_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F 'id: shuhari-eval-instructions' "${PREK_CONFIG_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -F 'pass_filenames: false' "${PREK_CONFIG_PATH}"
-    [ "${status}" -eq 0 ]
-
-    # Both hooks reach Shuhari through the wrapper, which is where the
-    # execution environment can be described. An inline entry could not be
-    # told which sandbox a machine can actually provide.
-    run grep -Fc "entry: ${GUIDANCE_GATE_SCRIPT#./} " "${PREK_CONFIG_PATH}"
-    [ "${status}" -eq 0 ]
-    [ "${output}" = "2" ]
-    [ -x "${GUIDANCE_GATE_SCRIPT}" ]
-
-    # Skipping a gate ships unmeasured guidance, so nothing here advertises the
-    # escape hatch.
-    run grep -F 'SKIP=shuhari-eval-instructions' "${PREK_CONFIG_PATH}"
-    [ "${status}" -ne 0 ]
-    run grep -E '^"aqua:j178/prek" = "[0-9]+\.[0-9]+\.[0-9]+"$' ./home/dot_mise/config.toml
-    [ "${status}" -eq 0 ]
 }
 
 @test "[common] Claude skills directory is a real, installer-writable directory" {

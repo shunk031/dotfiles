@@ -233,7 +233,7 @@ delivery = "system"
 # wins) to survive idle network/NAT timeouts. Set false to run plain ssh against
 # your ssh config unchanged — this does not force keepalive off, it only stops
 # herdr from adding its own.
-# manage_ssh_config = true
+manage_ssh_config = false
 
 [experimental]
 # Allow launching herdr from inside a herdr-managed pane.

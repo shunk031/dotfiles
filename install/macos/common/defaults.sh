@@ -165,8 +165,12 @@ function defaults_input_sources() {
 
 #
 # @description Configure Finder defaults and file visibility preferences.
+#   Prefer tabs over new windows systemwide; open folders in Finder tabs.
 #
 function defaults_finder() {
+
+    defaults write -g AppleWindowTabbingMode -string "always"
+    defaults write com.apple.finder FinderSpawnTab -bool true
 
     # Set Home directory as the default location for new Finder windows
     defaults write com.apple.finder NewWindowTarget -string "PfHm"

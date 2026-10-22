@@ -2,6 +2,7 @@
 
 readonly SCRIPT_PATH="./install/common/claude-plugins.sh"
 readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_25-install-claude-plugins.sh.tmpl"
+readonly CLAUDE_SETTINGS_PATH="./home/dot_config/claude/settings.json"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
@@ -12,9 +13,11 @@ function setup() {
 
 function write_claude_workflow_mocks() {
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
+    export CLAUDE_PLUGINS_MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_calls.txt"
 
     cat > "${MISE_BIN}" << 'EOF'
 #!/usr/bin/env bash
+printf '%s\n' "$*" >> "${CLAUDE_PLUGINS_MISE_CALLS_PATH}"
 if [ "$1" = "exec" ]; then
     [ "${2:-}" = "--" ] || exit 1
     shift 2
@@ -40,7 +43,7 @@ EOF
     [ "${output}" = '{{ include "../install/common/claude-plugins.sh" }}' ]
 }
 
-@test "[common] Claude plugins script installs missing ponytail" {
+@test "[common] Claude plugins script installs missing plugins" {
     write_claude_workflow_mocks
 
     run env \
@@ -55,18 +58,25 @@ EOF
     [ "${lines[0]}" = "plugin list --json" ]
     [ "${lines[1]}" = "plugin marketplace add DietrichGebert/ponytail" ]
     [ "${lines[2]}" = "plugin install --scope user --yes ponytail@ponytail" ]
-    [ "${#lines[@]}" -eq 3 ]
+    [ "${lines[3]}" = "plugin list --json" ]
+    [ "${lines[4]}" = "plugin marketplace add petekp/inbox" ]
+    [ "${lines[5]}" = "plugin install --scope user --yes inbox@inbox" ]
+    [ "${#lines[@]}" -eq 6 ]
+
+    run grep -c '^exec -- jq ' "${CLAUDE_PLUGINS_MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "6" ]
 }
 
-@test "[common] Claude plugins script skips enabled ponytail" {
+@test "[common] Claude plugins script rejects invalid plugin list JSON" {
     write_claude_workflow_mocks
 
     run env \
         CLAUDE_PLUGINS_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_args.txt" \
-        CLAUDE_PLUGIN_LIST_JSON='[{"id":"ponytail@ponytail","enabled":true}]' \
+        CLAUDE_PLUGIN_LIST_JSON='[{"id":' \
         HOME="${HOME}" \
         bash "${SCRIPT_PATH}"
-    [ "${status}" -eq 0 ]
+    [ "${status}" -ne 0 ]
 
     run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
     [ "${status}" -eq 0 ]
@@ -74,12 +84,29 @@ EOF
     [ "${#lines[@]}" -eq 1 ]
 }
 
-@test "[common] Claude plugins script enables disabled ponytail" {
+@test "[common] Claude plugins script skips enabled plugins" {
     write_claude_workflow_mocks
 
     run env \
         CLAUDE_PLUGINS_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_args.txt" \
-        CLAUDE_PLUGIN_LIST_JSON='[{"id":"ponytail@ponytail","enabled":false}]' \
+        CLAUDE_PLUGIN_LIST_JSON='[{"id":"ponytail@ponytail","enabled":true},{"id":"inbox@inbox","enabled":true}]' \
+        HOME="${HOME}" \
+        bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "plugin list --json" ]
+    [ "${lines[1]}" = "plugin list --json" ]
+    [ "${#lines[@]}" -eq 2 ]
+}
+
+@test "[common] Claude plugins script enables disabled plugins" {
+    write_claude_workflow_mocks
+
+    run env \
+        CLAUDE_PLUGINS_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_args.txt" \
+        CLAUDE_PLUGIN_LIST_JSON='[{"id":"ponytail@ponytail","enabled":false},{"id":"inbox@inbox","enabled":false}]' \
         HOME="${HOME}" \
         bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
@@ -88,5 +115,12 @@ EOF
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "plugin list --json" ]
     [ "${lines[1]}" = "plugin enable ponytail@ponytail" ]
-    [ "${#lines[@]}" -eq 2 ]
+    [ "${lines[2]}" = "plugin list --json" ]
+    [ "${lines[3]}" = "plugin enable inbox@inbox" ]
+    [ "${#lines[@]}" -eq 4 ]
+}
+
+@test "[common] Claude settings enable inbox and register its GitHub marketplace" {
+    run jq -e '.enabledPlugins["inbox@inbox"] == true and .extraKnownMarketplaces.inbox.source.source == "github" and .extraKnownMarketplaces.inbox.source.repo == "petekp/inbox"' "${CLAUDE_SETTINGS_PATH}"
+    [ "${status}" -eq 0 ]
 }

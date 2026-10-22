@@ -78,7 +78,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     container:
-      image: rockylinux/rockylinux:9
+      image: rockylinux/rockylinux:10
     defaults:
       run:
         shell: bash

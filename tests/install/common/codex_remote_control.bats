@@ -11,12 +11,13 @@ readonly SCRIPT_PATH="${BATS_TEST_DIRNAME}/../../../install/common/codex-remote-
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
     export CODEX_REMOTE_CONTROL_ENABLED=1
-    export MISE_VERSION=0.157.1
+    export MISE_VERSION=0.163.0
     export MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise-calls"
     export CURL_CALLS_PATH="${BATS_TEST_TMPDIR}/curl-calls"
     export CURL_OUTPUT_PATH="${BATS_TEST_TMPDIR}/curl-output"
     export INSTALLER_SOURCE_PATH="${BATS_TEST_TMPDIR}/installer.sh"
     export INSTALLER_RELEASE_PATH="${BATS_TEST_TMPDIR}/installer-release"
+    export INSTALLER_TARGET_PATH="${BATS_TEST_TMPDIR}/installer-target"
     unset CODEX_HOME DOTFILES_DEBUG
 
     mkdir -p "${HOME}/.local/bin" "${BATS_TEST_TMPDIR}/bin"
@@ -51,9 +52,15 @@ EOF
     cat > "${INSTALLER_SOURCE_PATH}" << 'EOF'
 #!/bin/sh
 set -eu
-daemon="${CODEX_HOME}/packages/standalone/current/codex"
+if [ "${CODEX_INSTALL_DAEMON_ONLY:-0}" = 1 ]; then
+    package=app-server-daemon
+else
+    package=standalone
+fi
+daemon="${CODEX_HOME}/packages/${package}/current/codex"
 mkdir -p "$(dirname "${daemon}")" "${CODEX_INSTALL_DIR}" "${HOME}/.local/bin"
 printf '%s\n' "${CODEX_RELEASE}" > "${INSTALLER_RELEASE_PATH}"
+printf '%s\n' "${package}" > "${INSTALLER_TARGET_PATH}"
 cat > "${daemon}" <<DAEMON
 #!/bin/sh
 printf 'codex-cli %s\\n' '${CODEX_RELEASE}'
@@ -74,6 +81,20 @@ EOF
 function write_installed_daemon() {
     local version="$1"
     local daemon="${HOME}/.codex/packages/standalone/current/codex"
+    local legacy_state="${HOME}/.codex/app-server-daemon"
+
+    mkdir -p "$(dirname "${daemon}")" "${legacy_state}"
+    : > "${legacy_state}/app-server.stderr.log"
+    cat > "${daemon}" << DAEMON
+#!/bin/sh
+printf 'codex-cli %s\\n' '${version}'
+DAEMON
+    chmod +x "${daemon}"
+}
+
+function write_installed_app_server_daemon() {
+    local version="$1"
+    local daemon="${HOME}/.codex/packages/app-server-daemon/current/codex"
 
     mkdir -p "$(dirname "${daemon}")"
     cat > "${daemon}" << DAEMON
@@ -120,6 +141,7 @@ DAEMON
 
     [ "${status}" -eq 0 ]
     [ "$(cat "${INSTALLER_RELEASE_PATH}")" = "${MISE_VERSION}" ]
+    [ "$(cat "${INSTALLER_TARGET_PATH}")" = standalone ]
     run env -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 \
         "${HOME}/.codex/packages/standalone/current/codex" --version
     [ "${status}" -eq 0 ]
@@ -131,6 +153,26 @@ DAEMON
     grep -Fxq 'exec -- codex --version' "${MISE_CALLS_PATH}"
     grep -Fxq 'exec -- codex app-server daemon enable-remote-control' "${MISE_CALLS_PATH}"
     grep -Fxq 'exec -- codex app-server daemon start' "${MISE_CALLS_PATH}"
+}
+
+@test "[common] codex remote control updates the selected app-server daemon package" {
+    local standalone="${HOME}/.codex/packages/standalone/current/codex"
+    local daemon="${HOME}/.codex/packages/app-server-daemon/current/codex"
+
+    write_installed_daemon "${MISE_VERSION}"
+    write_installed_app_server_daemon 0.156.0
+
+    run bash "${SCRIPT_PATH}"
+
+    [ "${status}" -eq 0 ]
+    [ "$(cat "${INSTALLER_RELEASE_PATH}")" = "${MISE_VERSION}" ]
+    [ "$(cat "${INSTALLER_TARGET_PATH}")" = app-server-daemon ]
+    run env -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 "${daemon}" --version
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "codex-cli ${MISE_VERSION}" ]
+    run env -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 "${standalone}" --version
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "codex-cli ${MISE_VERSION}" ]
 }
 
 @test "[common] codex remote control cleans failed installer aliases and keeps unrelated aliases" {
@@ -145,6 +187,7 @@ DAEMON
     [ "${status}" -eq 1 ]
     [ -f "${INSTALLER_RELEASE_PATH}" ]
     [ "$(cat "${INSTALLER_RELEASE_PATH}")" = "${MISE_VERSION}" ]
+    [ "$(cat "${INSTALLER_TARGET_PATH}")" = app-server-daemon ]
     [ ! -e "${HOME}/.codex/daemon-bin/codex" ]
     [ -L "${HOME}/.local/bin/codex" ]
     [ "$(readlink "${HOME}/.local/bin/codex")" = "${unrelated_alias}" ]

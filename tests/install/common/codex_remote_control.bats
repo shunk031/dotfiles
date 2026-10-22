@@ -120,7 +120,8 @@ DAEMON
 
     [ "${status}" -eq 0 ]
     [ "$(cat "${INSTALLER_RELEASE_PATH}")" = "${MISE_VERSION}" ]
-    run "${HOME}/.codex/packages/standalone/current/codex" --version
+    run env -u BASH_ENV -u BASH_XTRACEFD -u SHELLOPTS -u PS4 \
+        "${HOME}/.codex/packages/standalone/current/codex" --version
     [ "${status}" -eq 0 ]
     [ "${output}" = "codex-cli ${MISE_VERSION}" ]
     [[ "$(cat "${CURL_CALLS_PATH}")" == "-fsSL https://chatgpt.com/codex/install.sh -o "* ]]

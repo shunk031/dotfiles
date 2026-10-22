@@ -120,11 +120,101 @@ function get_token() {
     printf '%s\n' "$token"
 }
 
+function require_github_com_host() {
+    [[ "$1" == github.com ]] || fail 'agent-github only supports github.com targets'
+}
+
+function require_github_com_repo() {
+    local target="$1" host
+    case "$target" in
+    http://* | https://*)
+        host="${target#*://}"
+        host="${host%%/*}"
+        require_github_com_host "$host"
+        ;;
+    */*/*)
+        host="${target%%/*}"
+        require_github_com_host "$host"
+        ;;
+    esac
+}
+
+function require_github_com_url() {
+    case "$1" in
+    http://* | https://*) require_github_com_repo "$1" ;;
+    esac
+}
+
+#
+# @description Reject inferred and explicit non-GitHub.com targets before using the App token.
+#
+function ensure_github_com_target() {
+    local host remote_url arg expecting=""
+    [[ -z "${GH_HOST:-}" ]] || require_github_com_host "$GH_HOST"
+    [[ -z "${GH_REPO:-}" ]] || require_github_com_repo "$GH_REPO"
+
+    if command -v git > /dev/null 2>&1 && git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+        while read -r _ remote_url _; do
+            host=""
+            case "$remote_url" in
+            *://*)
+                host="${remote_url#*://}"
+                host="${host#*@}"
+                host="${host%%/*}"
+                host="${host%%:*}"
+                ;;
+            *:*)
+                [[ "$remote_url" == /* || "$remote_url" == ./* || "$remote_url" == ../* ]] && continue
+                host="${remote_url#*@}"
+                host="${host%%:*}"
+                ;;
+            esac
+            [[ -z "$host" ]] || require_github_com_host "$host"
+        done < <(git remote -v)
+    fi
+
+    case "${1:-}:${2:-}" in
+    repo:*)
+        if [[ -n "${3:-}" && "${3:0:1}" != - ]]; then
+            require_github_com_repo "$3"
+        fi
+        ;;
+    pr:* | issue:*) require_github_com_url "${3:-}" ;;
+    api:*) require_github_com_url "${2:-}" ;;
+    esac
+
+    for arg in "$@"; do
+        case "$expecting" in
+        repo)
+            require_github_com_repo "$arg"
+            expecting=""
+            continue
+            ;;
+        host)
+            require_github_com_host "$arg"
+            expecting=""
+            continue
+            ;;
+        esac
+        case "$arg" in
+        --repo | -R) expecting=repo ;;
+        --repo=* | -R=*) require_github_com_repo "${arg#*=}" ;;
+        -R?*) require_github_com_repo "${arg#-R}" ;;
+        --hostname) expecting=host ;;
+        --hostname=*) require_github_com_host "${arg#*=}" ;;
+        --) break ;;
+        esac
+    done
+    [[ -z "$expecting" ]] || fail 'missing GitHub target value'
+}
+
 # @description Confirm the human account without using stored gh credentials.
 # @arg $1 token GitHub App user access token.
 function verify_user() {
     local user
-    user="$(GH_HOST=github.com GH_TOKEN="$1" GH_ENTERPRISE_TOKEN="$1" gh api user --jq '.login')" ||
+    ensure_github_com_target
+    unset GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN
+    user="$(GH_HOST=github.com GH_TOKEN="$1" gh api user --jq '.login')" ||
         fail 'GitHub API user verification failed'
     [[ "$user" == "$EXPECTED_USER" ]] || fail "expected GitHub account $EXPECTED_USER, got $user"
 }
@@ -193,11 +283,12 @@ function status() {
 function run_gh() {
     local token
     (($# > 0)) || fail 'usage: agent-github gh <gh arguments...>'
+    ensure_github_com_target "$@"
     lock_state
     token="$(get_token)"
     verify_user "$token"
+    unset GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN
     export GH_TOKEN="$token"
-    export GH_ENTERPRISE_TOKEN="$token"
     export GH_HOST=github.com
     gh "$@"
 }

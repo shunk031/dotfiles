@@ -12,6 +12,7 @@ function setup() {
     mkdir -p "$TEST_BIN_DIR" "$HOME"
     PATH="$TEST_BIN_DIR:$PATH"
     export PATH
+    unset GH_HOST GH_REPO GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN TEST_GH_CALLS
 
     cat > "$TEST_BIN_DIR/curl" << 'SH'
 #!/usr/bin/env bash
@@ -67,9 +68,8 @@ SH
     cat > "$TEST_BIN_DIR/gh" << 'SH'
 #!/usr/bin/env bash
 set -euo pipefail
-if [[ "${TEST_EXPECT_APP_TOKEN_FOR_ENTERPRISE:-0}" == 1 ]]; then
-    [[ "${GH_REPO:-}" == enterprise.example/* ]] || exit 1
-    [[ "${GH_TOKEN:-}" == ghu_* && "${GH_ENTERPRISE_TOKEN:-}" == "$GH_TOKEN" ]] || exit 1
+if [[ -n "${TEST_GH_CALLS:-}" ]]; then
+    printf '%s\n' "$*" >> "$TEST_GH_CALLS"
 fi
 case "$*" in
     'api user --jq .login')
@@ -105,13 +105,45 @@ function logged_in() {
     bash "$SCRIPT_PATH" login --client-id Iv1.test
 }
 
-@test "[common] agent-github applies the App token when gh infers an Enterprise host" {
+@test "[common] agent-github rejects Enterprise targets before passing the token to gh" {
     logged_in
+    local gh_calls="$BATS_TEST_TMPDIR/gh-calls"
+    local enterprise_repo="$BATS_TEST_TMPDIR/enterprise-repo"
+    local script_path="$PWD/${SCRIPT_PATH#./}"
 
-    run env GH_REPO='enterprise.example/owner/repo' TEST_EXPECT_APP_TOKEN_FOR_ENTERPRISE=1 \
+    run env GH_HOST=github.com GH_REPO='enterprise.example/owner/repo' TEST_GH_CALLS="$gh_calls" \
         bash "$SCRIPT_PATH" gh issue view 1
-    [ "$status" -eq 0 ]
-    grep -Fqx 'gh:ghu_initial:issue view 1' "$TEST_LOG"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *'only supports github.com targets'* ]]
+    [ ! -e "$gh_calls" ]
+
+    run env GH_HOST=github.com GH_REPO= TEST_GH_CALLS="$gh_calls" \
+        bash "$SCRIPT_PATH" gh pr view https://enterprise.example/owner/repo/pull/1
+    [ "$status" -ne 0 ]
+    [[ "$output" == *'only supports github.com targets'* ]]
+    [ ! -e "$gh_calls" ]
+
+    run env GH_HOST=github.com GH_REPO= TEST_GH_CALLS="$gh_calls" \
+        bash "$SCRIPT_PATH" gh issue view --repo=enterprise.example/owner/repo
+    [ "$status" -ne 0 ]
+    [[ "$output" == *'only supports github.com targets'* ]]
+    [ ! -e "$gh_calls" ]
+
+    run env GH_HOST=github.com GH_REPO='enterprise.example/owner/repo' TEST_GH_CALLS="$gh_calls" \
+        bash "$SCRIPT_PATH" status
+    [ "$status" -ne 0 ]
+    [[ "$output" == *'only supports github.com targets'* ]]
+    [ ! -e "$gh_calls" ]
+
+    mkdir -p "$enterprise_repo"
+    git -C "$enterprise_repo" init -q
+    git -C "$enterprise_repo" remote add origin https://enterprise.example/owner/repo.git
+    run env GH_HOST=github.com GH_REPO= TEST_GH_CALLS="$gh_calls" \
+        ENTERPRISE_REPO="$enterprise_repo" AGENT_GITHUB_SCRIPT="$script_path" \
+        bash -c 'cd "$ENTERPRISE_REPO" && bash "$AGENT_GITHUB_SCRIPT" gh issue view 1'
+    [ "$status" -ne 0 ]
+    [[ "$output" == *'only supports github.com targets'* ]]
+    [ ! -e "$gh_calls" ]
 }
 
 @test "[common] agent-github increases the next Device Flow poll delay after slow_down" {

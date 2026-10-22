@@ -90,7 +90,7 @@ jobs:
     needs: [changes, shfmt]
     # Run unit tests on the macOS runner because GitHub Actions does not
     # support macOS job containers.
-    runs-on: macos-14
+    runs-on: macos-26
     env:
       # Keep the target label aligned with the existing macOS runner.
       TARGET_OS: macos-14
@@ -284,7 +284,7 @@ jobs:
     # The Rocky image omits PATH from its image environment. The runner uses
     # that value when adding GITHUB_PATH entries for later container steps.
     container:
-      image: rockylinux/rockylinux:9
+      image: rockylinux/rockylinux:10
       options: --env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     defaults:
       run:

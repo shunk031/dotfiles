@@ -1,5 +1,10 @@
 {
   "model": "opus",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
   "alwaysThinkingEnabled": true,
   "autoMemoryEnabled": false,
   "disableClaudeAiConnectors": true,
@@ -19,8 +24,9 @@
       "Read(id_ed25519*)",
       "Edit(.env*)"
     ],
-    "defaultMode": "plan"
+    "defaultMode": "bypassPermissions"
   },
+  "skipDangerousModePermissionPrompt": true,
   "hooks": {
     "PreToolUse": [
       {
@@ -67,11 +73,22 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.agents/date_context.py"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
     "type": "command",
-    "command": "npx ccstatusline@latest"
+    "command": "ccstatusline"
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
@@ -92,5 +109,6 @@
         "repo": "petekp/inbox"
       }
     }
-  }
+  },
+  "tui": "fullscreen"
 }

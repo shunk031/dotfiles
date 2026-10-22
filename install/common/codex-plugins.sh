@@ -62,6 +62,51 @@ function install_codex_plugins() {
     fi
     if [ -f "${codex_home}/config.toml" ]; then
         printf 'config.toml present under Codex home: yes (%s)\n' "${codex_home}"
+        "${MISE_BIN}" exec -- python3 - "${codex_home}/config.toml" << 'PY'
+import os
+import re
+import sys
+import tomllib
+from pathlib import Path
+
+config_path = Path(sys.argv[1])
+try:
+    with config_path.open("rb") as config_file:
+        config = tomllib.load(config_file)
+except Exception as error:
+    print(f"config.toml path scan failed: {type(error).__name__}")
+    raise SystemExit(0)
+
+path_key = re.compile(r"(?:^|_)(?:path|file|dir|catalog|instructions|hooks?)(?:$|_)", re.I)
+path_suffixes = (".toml", ".json", ".md", ".yaml", ".yml", ".txt", ".log")
+
+def report_paths(value, parts=()):
+    if isinstance(value, dict):
+        for key, child in value.items():
+            report_paths(child, (*parts, str(key)))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            report_paths(child, (*parts, str(index)))
+    elif isinstance(value, str):
+        key = ".".join(parts)
+        if key == "profile":
+            candidate = config_path.parent / f"{value}.config.toml"
+            print(f"config profile: {value!r} -> {candidate}; exists={'yes' if candidate.exists() else 'no'}")
+            return
+        looks_like_path = (
+            value.startswith(("/", "~/", "./", "../", "$"))
+            or value.endswith(path_suffixes)
+            or path_key.search(key)
+        )
+        if looks_like_path:
+            expanded = os.path.expandvars(os.path.expanduser(value))
+            candidate = Path(expanded)
+            if not candidate.is_absolute():
+                candidate = config_path.parent / candidate
+            print(f"config path: {key} = {value!r}; exists={'yes' if candidate.exists() else 'no'}")
+
+report_paths(config)
+PY
     else
         printf 'config.toml present under Codex home: no (%s)\n' "${codex_home}"
     fi

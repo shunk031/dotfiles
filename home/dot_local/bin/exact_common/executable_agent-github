@@ -149,7 +149,10 @@ function require_github_com_url() {
 # @description Reject inferred and explicit non-GitHub.com targets before using the App token.
 #
 function ensure_github_com_target() {
-    local host remote_url arg expecting=""
+    local host remote_url arg expecting="" auth_login=0
+    if [[ "${1:-}:${2:-}" == auth:login ]]; then
+        auth_login=1
+    fi
     [[ -z "${GH_HOST:-}" ]] || require_github_com_host "$GH_HOST"
     [[ -z "${GH_REPO:-}" ]] || require_github_com_repo "$GH_REPO"
 
@@ -202,6 +205,21 @@ function ensure_github_com_target() {
         -R?*) require_github_com_repo "${arg#-R}" ;;
         --hostname) expecting=host ;;
         --hostname=*) require_github_com_host "${arg#*=}" ;;
+        -h)
+            if ((auth_login)); then
+                expecting=host
+            fi
+            ;;
+        -h=*)
+            if ((auth_login)); then
+                require_github_com_host "${arg#*=}"
+            fi
+            ;;
+        -h?*)
+            if ((auth_login)); then
+                require_github_com_host "${arg#-h}"
+            fi
+            ;;
         --) break ;;
         esac
     done

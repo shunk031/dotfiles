@@ -118,6 +118,12 @@ function logged_in() {
     [ ! -e "$gh_calls" ]
 
     run env GH_HOST=github.com GH_REPO= TEST_GH_CALLS="$gh_calls" \
+        bash "$SCRIPT_PATH" gh auth login -h enterprise.example
+    [ "$status" -ne 0 ]
+    [[ "$output" == *'only supports github.com targets'* ]]
+    [ ! -e "$gh_calls" ]
+
+    run env GH_HOST=github.com GH_REPO= TEST_GH_CALLS="$gh_calls" \
         bash "$SCRIPT_PATH" gh pr view https://enterprise.example/owner/repo/pull/1
     [ "$status" -ne 0 ]
     [[ "$output" == *'only supports github.com targets'* ]]

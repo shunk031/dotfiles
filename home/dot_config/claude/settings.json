@@ -71,7 +71,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "npx ccstatusline@latest"
+    "command": "ccstatusline"
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,

@@ -124,7 +124,7 @@ function get_token() {
 # @arg $1 token GitHub App user access token.
 function verify_user() {
     local user
-    user="$(GH_HOST=github.com GH_TOKEN="$1" gh api user --jq '.login')" ||
+    user="$(GH_HOST=github.com GH_TOKEN="$1" GH_ENTERPRISE_TOKEN="$1" gh api user --jq '.login')" ||
         fail 'GitHub API user verification failed'
     [[ "$user" == "$EXPECTED_USER" ]] || fail "expected GitHub account $EXPECTED_USER, got $user"
 }
@@ -197,6 +197,7 @@ function run_gh() {
     token="$(get_token)"
     verify_user "$token"
     export GH_TOKEN="$token"
+    export GH_ENTERPRISE_TOKEN="$token"
     export GH_HOST=github.com
     gh "$@"
 }

@@ -44,8 +44,21 @@ case "$*" in
                 printf '%s\n' '{"access_token":"ghu_refreshed","expires_in":28800,"refresh_token":"ghr_next","refresh_token_expires_in":15897600}'
             fi
         else
-            printf '%s\n' 'device' >> "$TEST_LOG"
-            printf '%s\n' "$TEST_DEVICE_TOKEN_RESPONSE"
+            if [[ "${TEST_DEVICE_SLOW_DOWN:-0}" == 1 ]]; then
+                poll_count=0
+                [[ ! -f "$TEST_DEVICE_POLL_COUNT" ]] || read -r poll_count < "$TEST_DEVICE_POLL_COUNT"
+                poll_count=$((poll_count + 1))
+                printf '%s\n' "$poll_count" > "$TEST_DEVICE_POLL_COUNT"
+                printf 'device-poll:%s\n' "$poll_count" >> "$TEST_LOG"
+                if ((poll_count == 1)); then
+                    printf '%s\n' '{"error":"slow_down"}'
+                else
+                    printf '%s\n' "$TEST_DEVICE_TOKEN_RESPONSE"
+                fi
+            else
+                printf '%s\n' 'device' >> "$TEST_LOG"
+                printf '%s\n' "$TEST_DEVICE_TOKEN_RESPONSE"
+            fi
         fi
         ;;
     *) exit 1 ;;
@@ -54,6 +67,10 @@ SH
     cat > "$TEST_BIN_DIR/gh" << 'SH'
 #!/usr/bin/env bash
 set -euo pipefail
+if [[ "${TEST_EXPECT_APP_TOKEN_FOR_ENTERPRISE:-0}" == 1 ]]; then
+    [[ "${GH_REPO:-}" == enterprise.example/* ]] || exit 1
+    [[ "${GH_TOKEN:-}" == ghu_* && "${GH_ENTERPRISE_TOKEN:-}" == "$GH_TOKEN" ]] || exit 1
+fi
 case "$*" in
     'api user --jq .login')
         [[ "${GH_TOKEN:-}" == ghu_* ]] || exit 1
@@ -73,6 +90,9 @@ esac
 SH
     cat > "$TEST_BIN_DIR/sleep" << 'SH'
 #!/usr/bin/env bash
+if [[ "${TEST_DEVICE_SLOW_DOWN:-0}" == 1 ]]; then
+    printf 'device-sleep:%s\n' "$1" >> "$TEST_LOG"
+fi
 if [[ "${TEST_PROCESS:-}" == second ]]; then
     printf '%s\n' 'second-wait' >> "$TEST_LOG"
     /bin/sleep 0.05
@@ -83,6 +103,35 @@ SH
 
 function logged_in() {
     bash "$SCRIPT_PATH" login --client-id Iv1.test
+}
+
+@test "[common] agent-github applies the App token when gh infers an Enterprise host" {
+    logged_in
+
+    run env GH_REPO='enterprise.example/owner/repo' TEST_EXPECT_APP_TOKEN_FOR_ENTERPRISE=1 \
+        bash "$SCRIPT_PATH" gh issue view 1
+    [ "$status" -eq 0 ]
+    grep -Fqx 'gh:ghu_initial:issue view 1' "$TEST_LOG"
+}
+
+@test "[common] agent-github increases the next Device Flow poll delay after slow_down" {
+    local poll_count="$BATS_TEST_TMPDIR/device-poll-count"
+    local expected="$BATS_TEST_TMPDIR/device-poll-order.expected"
+    local actual="$BATS_TEST_TMPDIR/device-poll-order.actual"
+
+    run env TEST_DEVICE_SLOW_DOWN=1 TEST_DEVICE_POLL_COUNT="$poll_count" \
+        bash "$SCRIPT_PATH" login --client-id Iv1.test
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'Authenticated as shunk031'* ]]
+
+    cat > "$expected" << 'EOF'
+device-sleep:1
+device-poll:1
+device-sleep:6
+device-poll:2
+EOF
+    grep -E '^(device-sleep|device-poll):' "$TEST_LOG" > "$actual"
+    diff -u "$expected" "$actual"
 }
 
 @test "[common] agent-github Device Flow authenticates shunk031 and scopes the gh token" {

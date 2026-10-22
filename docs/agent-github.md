@@ -1,6 +1,6 @@
 # GitHub App attribution for coding agents
 
-`agent-github` is a Bash 3.2 CLI that uses a GitHub App **user access token** for individual `gh` invocations. It is managed by chezmoi as `~/.local/bin/common/agent-github`, and requires `curl`, `jq`, and `gh` (all already managed or available in this dotfiles setup).
+`agent-github` is a Bash 3.2 CLI that uses a GitHub App **user access token** for individual `gh` invocations. It is managed by chezmoi as `~/.local/bin/common/agent-github`. The `login`, `status`, and `gh` commands require `curl`, `jq`, and `gh` (all already managed or available in this dotfiles setup); `logout` does not require them.
 
 ## One-time setup
 

@@ -60,8 +60,27 @@ function install_codex_plugins() {
     else
         printf '%s\n' 'missing'
     fi
-    if [ -f "${codex_home}/config.toml" ]; then
+    if [ -e "${codex_home}/config.toml" ] || [ -L "${codex_home}/config.toml" ]; then
         printf 'config.toml present under Codex home: yes (%s)\n' "${codex_home}"
+        if [ -L "${codex_home}/config.toml" ]; then
+            local config_link_target
+            local config_link_path
+            config_link_target="$(readlink "${codex_home}/config.toml")"
+            if [[ "${config_link_target}" = /* ]]; then
+                config_link_path="${config_link_target}"
+            else
+                config_link_path="${codex_home}/${config_link_target}"
+            fi
+            local config_link_display="${config_link_target}"
+            case "${config_link_path}" in
+            "${HOME}/"*) config_link_display="~/${config_link_path#"${HOME}"/}" ;;
+            esac
+            printf 'config.toml symlink target: %s; target exists: %s\n' \
+                "${config_link_display}" \
+                "$(if [ -e "${config_link_path}" ]; then printf yes; else printf no; fi)"
+        else
+            printf '%s\n' 'config.toml symlink: no'
+        fi
         "${MISE_BIN}" exec -- python3 - "${codex_home}/config.toml" << 'PY'
 import os
 import re
@@ -91,7 +110,7 @@ def report_paths(value, parts=()):
         key = ".".join(parts)
         if key == "profile":
             candidate = config_path.parent / f"{value}.config.toml"
-            print(f"config profile: {value!r} -> {candidate}; exists={'yes' if candidate.exists() else 'no'}")
+            print(f"config path: profile -> {candidate}; exists={'yes' if candidate.exists() else 'no'}")
             return
         looks_like_path = (
             value.startswith(("/", "~/", "./", "../", "$"))

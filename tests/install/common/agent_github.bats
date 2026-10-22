@@ -152,6 +152,17 @@ function logged_in() {
     [ ! -e "$gh_calls" ]
 }
 
+@test "[common] agent-github rejects Enterprise auth status hosts before child gh calls" {
+    logged_in
+    local gh_calls="$BATS_TEST_TMPDIR/gh-calls"
+
+    run env GH_HOST=github.com GH_REPO= TEST_GH_CALLS="$gh_calls" \
+        bash "$SCRIPT_PATH" gh auth status -h enterprise.example
+    [ "$status" -ne 0 ]
+    [[ "$output" == *'only supports github.com targets'* ]]
+    [ ! -e "$gh_calls" ]
+}
+
 @test "[common] agent-github increases the next Device Flow poll delay after slow_down" {
     local poll_count="$BATS_TEST_TMPDIR/device-poll-count"
     local expected="$BATS_TEST_TMPDIR/device-poll-order.expected"

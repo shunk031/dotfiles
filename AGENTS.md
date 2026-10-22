@@ -24,6 +24,8 @@
 ## Development Setup
 
 - In every new clone or worktree, run `make setup` before editing or committing.
+- In linked worktrees, setup reuses an existing `prek` hook without changing it; if another hook exists, only an unset/default or repo-local `core.hooksPath` supports running setup from the main checkout so `prek` can preserve it as `.legacy` and run it alongside its shim, while any other scope requires resolving the setting or conflict before main-checkout setup.
+- When the user asks to install a tool for this repository, the agent must first check whether mise can manage its official distribution. If it can, the agent must declare it in `home/dot_mise/config.toml` and use the existing mise install flow. The agent may use another installer only when mise cannot manage it or the user explicitly chooses another source.
 - mise compatibility changes: When a tool or configuration change requires newer mise behavior, determine the minimum mise release that supports the change, raise `min_version` in the same pull request, and record the requirement in the pull request description.
 
 ## Test Policy

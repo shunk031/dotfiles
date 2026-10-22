@@ -339,7 +339,7 @@
       "Mouse Reporting": true,
       "Name": "Hotkey Window",
       "Non Ascii Font": "Monaco 12",
-      "Rewritable": true,
+      "Rewritable": false,
       "Non-ASCII Anti Aliased": true,
       "Normal Font": "HackNFM-Regular 12",
       "Only The Default BG Color Uses Transparency": true,

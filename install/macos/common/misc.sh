@@ -35,7 +35,6 @@ readonly CASK_PACKAGES=(
     ngrok
     slack
     rectangle
-    spotify
     vlc
     visual-studio-code
     zotero

@@ -82,7 +82,10 @@ readonly SKILLS_ALLOWLIST=(
     "anthropics/skills:skill-creator"
     "coji/natural-japanese:natural-japanese"
     "cursor/plugins:unslop"
+    "googlecolab/google-colab-cli#v0.7.2:colab-operator"
+    "iwasa-kosui/tanteki:tanteki"
     "mattpocock/skills:grilling"
+    "nanaism/yomiyasu:yomiyasu"
     "Shubhamsaboo/awesome-llm-apps:first-reader"
 )
 

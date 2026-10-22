@@ -10,11 +10,7 @@ DOKCER_RAM_GB=4
 .PHONY: setup
 setup:
 	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise install
-	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise exec -- prek install
-
-.PHONY: eval-guidance
-eval-guidance:
-	./scripts/shuhari_guidance_gate.sh eval
+	MISE_CONFIG_FILE="$(CURDIR)/home/dot_mise/config.toml" mise exec -- bash scripts/setup_git_hooks.sh
 
 # Reconciliation throttles `skills update` to once a day so that `make watch`
 # does not fetch on every file save. This forces the update now.

@@ -8,6 +8,7 @@ function setup() {
     export TEST_BIN_DIR="${BATS_TEST_TMPDIR}/bin"
     export TEST_LOG="${BATS_TEST_TMPDIR}/calls.txt"
     export TEST_GH_USER="shunk031"
+    export TEST_DEVICE_TOKEN_RESPONSE='{"access_token":"ghu_initial","expires_in":28800,"refresh_token":"ghr_initial","refresh_token_expires_in":15897600}'
     mkdir -p "$TEST_BIN_DIR" "$HOME"
     PATH="$TEST_BIN_DIR:$PATH"
     export PATH
@@ -18,6 +19,7 @@ set -euo pipefail
 body="$(cat)"
 case "$*" in
     *https://github.com/login/device/code*)
+        [[ "$body" == *'scope=offline_access'* ]] || exit 1
         printf '%s\n' '{"device_code":"device-test","user_code":"TEST-1234","verification_uri":"https://github.com/login/device","expires_in":300,"interval":1}'
         ;;
     *https://github.com/login/oauth/access_token*)
@@ -40,7 +42,7 @@ case "$*" in
             fi
         else
             printf '%s\n' 'device' >> "$TEST_LOG"
-            printf '%s\n' '{"access_token":"ghu_initial","expires_in":28800,"refresh_token":"ghr_initial","refresh_token_expires_in":15897600}'
+            printf '%s\n' "$TEST_DEVICE_TOKEN_RESPONSE"
         fi
         ;;
     *) exit 1 ;;
@@ -93,6 +95,39 @@ function logged_in() {
     run env GH_TOKEN='human-token' bash "$SCRIPT_PATH" gh pr create --fill
     [ "$status" -eq 0 ]
     grep -Fqx 'gh:ghu_initial:pr create --fill' "$TEST_LOG"
+}
+
+@test "[common] agent-github does not expose a raw token command" {
+    logged_in
+
+    run bash "$SCRIPT_PATH" token
+    [ "$status" -ne 0 ]
+    [[ "$output" == *'unknown command: token'* ]]
+    [[ "$output" != *'ghu_initial'* ]]
+}
+
+@test "[common] agent-github rejects incomplete Device Flow metadata without replacing credentials" {
+    logged_in
+    local state="$XDG_CONFIG_HOME/shunk031-agent-bot/auth.json"
+    local original_state="$BATS_TEST_TMPDIR/auth.json.original" response
+    cp "$state" "$original_state"
+
+    for response in \
+        '{"access_token":"ghu_candidate","refresh_token":"ghr_candidate","refresh_token_expires_in":60}' \
+        '{"access_token":"ghu_candidate","expires_in":"60","refresh_token":"ghr_candidate","refresh_token_expires_in":60}' \
+        '{"access_token":"ghu_candidate","expires_in":60,"refresh_token":null,"refresh_token_expires_in":60}' \
+        '{"access_token":"ghu_candidate","expires_in":60,"refresh_token":"","refresh_token_expires_in":60}' \
+        '{"access_token":"ghu_candidate","expires_in":60,"refresh_token_expires_in":60}' \
+        '{"access_token":"ghu_candidate","expires_in":60,"refresh_token":"ghr_candidate"}' \
+        '{"access_token":"ghu_candidate","expires_in":60,"refresh_token":"ghr_candidate","refresh_token_expires_in":"60"}' \
+        '{"access_token":"ghu_candidate","expires_in":0,"refresh_token":"ghr_candidate","refresh_token_expires_in":60}' \
+        '{"access_token":"not-an-app-user-token","expires_in":60,"refresh_token":"ghr_candidate","refresh_token_expires_in":60}'; do
+        run env TEST_DEVICE_TOKEN_RESPONSE="$response" bash "$SCRIPT_PATH" login --client-id Iv1.test
+        [ "$status" -ne 0 ]
+        [[ "$output" == *'expiration/refresh metadata'* || "$output" == *'no App user token'* ]]
+        [[ "$output" != *'ghu_candidate'* && "$output" != *'ghr_candidate'* ]]
+        cmp -s "$state" "$original_state"
+    done
 }
 
 @test "[common] agent-github refreshes its token before a GitHub write" {

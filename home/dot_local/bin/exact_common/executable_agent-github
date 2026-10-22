@@ -53,7 +53,7 @@ function lock_state() {
     fail "credential lock timed out: $LOCK_DIR"
 }
 
-# @description Atomically save an OAuth token response with mode 0600.
+# @description Atomically save a complete OAuth token response with mode 0600.
 # @arg $1 client_id GitHub App Client ID.
 # @arg $2 response JSON OAuth token response.
 function save_response() {
@@ -63,14 +63,19 @@ function save_response() {
     tmp="$(mktemp "$STATE_FILE.XXXXXX")"
     if ! printf '%s\n' "$response" | jq -e --arg cid "$client_id" \
         --argjson now "$(date +%s)" '
-        select(.access_token | type == "string" and startswith("ghu_")) |
+        select(
+          (.access_token | type == "string" and startswith("ghu_") and length > 4) and
+          (.expires_in | type == "number" and . > 0) and
+          (.refresh_token | type == "string" and length > 0) and
+          (.refresh_token_expires_in | type == "number" and . > 0)
+        ) |
         {client_id:$cid, access_token:.access_token,
-         expires_at:(if (.expires_in|type)=="number" then $now+.expires_in else null end),
-         refresh_token:(.refresh_token//null),
-         refresh_expires_at:(if (.refresh_token_expires_in|type)=="number" then $now+.refresh_token_expires_in else null end)}
+         expires_at:($now + .expires_in | floor),
+         refresh_token:.refresh_token,
+         refresh_expires_at:($now + .refresh_token_expires_in | floor)}
     ' > "$tmp"; then
         rm -f "$tmp"
-        fail 'no valid GitHub App user access token in OAuth response'
+        fail 'OAuth response lacks a valid App user token or expiration/refresh metadata'
     fi
     chmod 600 "$tmp"
     mv -f "$tmp" "$STATE_FILE"
@@ -133,7 +138,7 @@ function login() {
     done
     client_id="${client_id:-${SHUNK031_AGENT_BOT_CLIENT_ID:-}}"
     [[ -n "$client_id" ]] || fail 'pass --client-id (Client ID, not App ID)'
-    response="$(printf 'client_id=%s' "$client_id" | post_form 'https://github.com/login/device/code')" ||
+    response="$(printf 'client_id=%s&scope=offline_access' "$client_id" | post_form 'https://github.com/login/device/code')" ||
         fail 'could not request a GitHub device code'
     device_code="$(jq -er '.device_code' <<< "$response")" || fail 'device code missing'
     user_code="$(jq -er '.user_code' <<< "$response")" || fail 'user code missing'
@@ -200,16 +205,12 @@ function logout() {
 # @description Dispatch CLI commands.
 function main() {
     local command="${1:-}"
-    [[ -n "$command" ]] || fail 'usage: agent-github {login|status|token|gh|logout} ...'
+    [[ -n "$command" ]] || fail 'usage: agent-github {login|status|gh|logout} ...'
     shift
     check_dependencies
     case "$command" in
     login) login "$@" ;;
     status) status ;;
-    token)
-        lock_state
-        get_token
-        ;;
     gh) run_gh "$@" ;;
     logout) logout ;;
     *) fail "unknown command: $command" ;;

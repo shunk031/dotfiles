@@ -22,8 +22,22 @@ case "$*" in
         ;;
     *https://github.com/login/oauth/access_token*)
         if [[ "$body" == *'grant_type=refresh_token'* ]]; then
-            printf '%s\n' 'refresh' >> "$TEST_LOG"
-            printf '%s\n' '{"access_token":"ghu_refreshed","expires_in":28800,"refresh_token":"ghr_next","refresh_token_expires_in":15897600}'
+            if [[ "${TEST_ROTATING_TOKENS:-0}" == 1 ]]; then
+                token_count=0
+                [[ ! -f "$TEST_TOKEN_COUNT" ]] || read -r token_count < "$TEST_TOKEN_COUNT"
+                token_count=$((token_count + 1))
+                printf '%s\n' "$token_count" > "$TEST_TOKEN_COUNT"
+                printf 'refresh:%s\n' "$token_count" >> "$TEST_LOG"
+                if ((token_count == 1)); then
+                    printf '%s\n' '{"access_token":"ghu_first","expires_in":60,"refresh_token":"ghr_next","refresh_token_expires_in":15897600}'
+                else
+                    : > "$TEST_TOKEN_INVALIDATED"
+                    printf '%s\n' '{"access_token":"ghu_second","expires_in":28800,"refresh_token":"ghr_next","refresh_token_expires_in":15897600}'
+                fi
+            else
+                printf '%s\n' 'refresh' >> "$TEST_LOG"
+                printf '%s\n' '{"access_token":"ghu_refreshed","expires_in":28800,"refresh_token":"ghr_next","refresh_token_expires_in":15897600}'
+            fi
         else
             printf '%s\n' 'device' >> "$TEST_LOG"
             printf '%s\n' '{"access_token":"ghu_initial","expires_in":28800,"refresh_token":"ghr_initial","refresh_token_expires_in":15897600}'
@@ -41,13 +55,23 @@ case "$*" in
         printf '%s\n' "$TEST_GH_USER"
         ;;
     *)
+        if [[ "${TEST_PROCESS:-}" == first && "${TEST_PAUSE_FIRST_GH:-0}" == 1 ]]; then
+            : > "$TEST_FIRST_GH_ENTERED"
+            while [[ ! -e "$TEST_RELEASE_FIRST_GH" ]]; do /bin/sleep 0.05; done
+        fi
+        if [[ "${GH_TOKEN:-}" == ghu_first && -n "${TEST_TOKEN_INVALIDATED:-}" && -e "$TEST_TOKEN_INVALIDATED" ]]; then
+            exit 1
+        fi
         printf 'gh:%s:%s\n' "${GH_TOKEN:-unset}" "$*" >> "$TEST_LOG"
         ;;
 esac
 SH
     cat > "$TEST_BIN_DIR/sleep" << 'SH'
 #!/usr/bin/env bash
-exit 0
+if [[ "${TEST_PROCESS:-}" == second ]]; then
+    printf '%s\n' 'second-wait' >> "$TEST_LOG"
+    /bin/sleep 0.05
+fi
 SH
     chmod +x "$TEST_BIN_DIR/curl" "$TEST_BIN_DIR/gh" "$TEST_BIN_DIR/sleep"
 }
@@ -82,6 +106,61 @@ function logged_in() {
     grep -Fqx 'refresh' "$TEST_LOG"
     grep -Fqx 'gh:ghu_refreshed:issue create --title Test' "$TEST_LOG"
     [ "$(jq -r '.refresh_token' "$state")" = 'ghr_next' ]
+}
+
+@test "[common] agent-github holds the lock until an active gh command finishes" {
+    logged_in
+    local state="$XDG_CONFIG_HOME/shunk031-agent-bot/auth.json"
+    local first_pid second_pid first_status=0 second_status=0
+    local attempt=0 invalidated_before_release=0 second_wait_observed=0
+    local invalidated="$BATS_TEST_TMPDIR/token-invalidated"
+    local token_count="$BATS_TEST_TMPDIR/token-count"
+    local entered="$BATS_TEST_TMPDIR/first-gh-entered"
+    local release="$BATS_TEST_TMPDIR/release-first-gh"
+    jq '.expires_at = 1' "$state" > "$state.new"
+    mv "$state.new" "$state"
+
+    env TEST_ROTATING_TOKENS=1 TEST_PROCESS=first TEST_PAUSE_FIRST_GH=1 \
+        TEST_TOKEN_COUNT="$token_count" TEST_TOKEN_INVALIDATED="$invalidated" \
+        TEST_FIRST_GH_ENTERED="$entered" TEST_RELEASE_FIRST_GH="$release" \
+        bash "$SCRIPT_PATH" gh issue create --title first &
+    first_pid=$!
+    while [[ ! -e "$entered" ]] && ((attempt < 100)); do
+        /bin/sleep 0.05
+        attempt=$((attempt + 1))
+    done
+    if [[ ! -e "$entered" ]]; then
+        : > "$release"
+        wait "$first_pid" || true
+        return 1
+    fi
+
+    env TEST_ROTATING_TOKENS=1 TEST_PROCESS=second \
+        TEST_TOKEN_COUNT="$token_count" TEST_TOKEN_INVALIDATED="$invalidated" \
+        TEST_FIRST_GH_ENTERED="$entered" TEST_RELEASE_FIRST_GH="$release" \
+        bash "$SCRIPT_PATH" gh issue create --title second &
+    second_pid=$!
+    attempt=0
+    while ! grep -Fqx 'second-wait' "$TEST_LOG" && [[ ! -e "$invalidated" ]] && ((attempt < 100)); do
+        /bin/sleep 0.05
+        attempt=$((attempt + 1))
+    done
+    if grep -Fqx 'second-wait' "$TEST_LOG"; then
+        second_wait_observed=1
+    fi
+    [[ ! -e "$invalidated" ]] || invalidated_before_release=1
+    : > "$release"
+    wait "$first_pid" || first_status=$?
+    wait "$second_pid" || second_status=$?
+
+    [ "$second_wait_observed" -eq 1 ]
+    [ "$invalidated_before_release" -eq 0 ]
+    [ "$first_status" -eq 0 ]
+    [ "$second_status" -eq 0 ]
+    grep -Fqx 'gh:ghu_first:issue create --title first' "$TEST_LOG"
+    grep -Fqx 'gh:ghu_second:issue create --title second' "$TEST_LOG"
+    grep -Fqx 'refresh:1' "$TEST_LOG"
+    grep -Fqx 'refresh:2' "$TEST_LOG"
 }
 
 @test "[common] agent-github fails closed for a different GitHub user" {

@@ -4,7 +4,7 @@
 
 ## One-time setup
 
-1. Create a GitHub App named `shunk031-agent-bot` at [GitHub Developer settings](https://github.com/settings/apps/new). Enable **Device Flow** and expiring user access tokens; grant **Pull requests: read/write** and **Issues: read/write** plus other permissions only if necessary.
+1. Create a GitHub App named `shunk031-agent-bot` at [GitHub Developer settings](https://github.com/settings/apps/new). For its Homepage URL, use `https://github.com/shunk031/dotfiles`. Enable **Device Flow** and expiring user access tokens; grant **Pull requests: read/write** and **Issues: read/write** plus other permissions only if necessary.
 2. Install the App on the intended user/repositories; installing an App and authorizing a user are separate steps.
 3. Copy the App **Client ID**, not the App ID or Client Secret, and run:
 
@@ -26,9 +26,9 @@ agent-github gh issue create --title 'Title' --body 'Body'
 agent-github logout
 ```
 
-Use the companion `shunk031-github-agent-identity` skill in `shunk031/skills` for agent-specific GitHub API write guidance. Codex and Claude Code keep their normal launch commands. Ordinary `gh` remains authenticated using the user's existing selected account; `agent-github gh` injects the App user token into only the child `gh` process.
+Codex and Claude Code keep their normal launch commands. Ordinary `gh` remains authenticated using the user's existing selected account; `agent-github gh` injects the App user token into only the child `gh` process.
 
-Credentials are stored in `${XDG_CONFIG_HOME:-$HOME/.config}/shunk031-agent-bot/auth.json` with restrictive permissions. Automatic refresh replaces tokens atomically under a directory lock. If a process was killed while holding the lock, check for active sessions before manually removing `auth.lock`. `agent-github logout` deletes the local state but does not revoke GitHub authorization. `agent-github token` prints a **secret** and should never be included in logs.
+Credentials are stored in `${XDG_CONFIG_HOME:-$HOME/.config}/shunk031-agent-bot/auth.json` with restrictive permissions. Automatic refresh replaces tokens atomically under a directory lock, which remains held until each protected `gh` command finishes so a refresh cannot invalidate its token mid-command. If a process was killed while holding the lock, check for active sessions before manually removing `auth.lock`. `agent-github logout` deletes the local state but does not revoke GitHub authorization. `agent-github token` prints a **secret** and should never be included in logs.
 
 ## Semantics and limitations
 

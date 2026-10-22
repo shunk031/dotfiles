@@ -24,6 +24,9 @@ case "$*" in
         ;;
     *https://github.com/login/oauth/access_token*)
         if [[ "$body" == *'grant_type=refresh_token'* ]]; then
+            if [[ -n "${TEST_EXPECTED_REFRESH_BODY:-}" ]]; then
+                [[ "$body" == "$TEST_EXPECTED_REFRESH_BODY" ]] || exit 1
+            fi
             if [[ "${TEST_ROTATING_TOKENS:-0}" == 1 ]]; then
                 token_count=0
                 [[ ! -f "$TEST_TOKEN_COUNT" ]] || read -r token_count < "$TEST_TOKEN_COUNT"
@@ -121,13 +124,29 @@ function logged_in() {
         '{"access_token":"ghu_candidate","expires_in":60,"refresh_token":"ghr_candidate"}' \
         '{"access_token":"ghu_candidate","expires_in":60,"refresh_token":"ghr_candidate","refresh_token_expires_in":"60"}' \
         '{"access_token":"ghu_candidate","expires_in":0,"refresh_token":"ghr_candidate","refresh_token_expires_in":60}' \
+        '{"access_token":"ghu_candidate","expires_in":1.5,"refresh_token":"ghr_candidate","refresh_token_expires_in":60}' \
+        '{"access_token":"ghu_candidate","expires_in":60,"refresh_token":"wrong_candidate","refresh_token_expires_in":60}' \
         '{"access_token":"not-an-app-user-token","expires_in":60,"refresh_token":"ghr_candidate","refresh_token_expires_in":60}'; do
         run env TEST_DEVICE_TOKEN_RESPONSE="$response" bash "$SCRIPT_PATH" login --client-id Iv1.test
         [ "$status" -ne 0 ]
         [[ "$output" == *'expiration/refresh metadata'* || "$output" == *'no App user token'* ]]
-        [[ "$output" != *'ghu_candidate'* && "$output" != *'ghr_candidate'* ]]
+        [[ "$output" != *'ghu_candidate'* && "$output" != *'ghr_candidate'* && "$output" != *'wrong_candidate'* ]]
         cmp -s "$state" "$original_state"
     done
+}
+
+@test "[common] agent-github URL-encodes dynamic refresh request values" {
+    logged_in
+    local state="$XDG_CONFIG_HOME/shunk031-agent-bot/auth.json"
+    jq '.expires_at = 1 | .client_id = "Iv1.test&scope=repo +%" | .refresh_token = "ghr_a+b/c=d%"' \
+        "$state" > "$state.new"
+    mv "$state.new" "$state"
+
+    run env TEST_EXPECTED_REFRESH_BODY='client_id=Iv1.test%26scope%3Drepo%20%2B%25&grant_type=refresh_token&refresh_token=ghr_a%2Bb%2Fc%3Dd%25' \
+        bash "$SCRIPT_PATH" gh issue view 1
+    [ "$status" -eq 0 ]
+    grep -Fqx 'refresh' "$TEST_LOG"
+    grep -Fqx 'gh:ghu_refreshed:issue view 1' "$TEST_LOG"
 }
 
 @test "[common] agent-github refreshes its token before a GitHub write" {

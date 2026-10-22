@@ -26,7 +26,7 @@ fi
 
 run_mise_install
 
-if [ -x "${HOME}/.local/bin/codex-model-catalog" ]; then
+if [ "${GITHUB_ACTIONS:-}" != "true" ] && [ -x "${HOME}/.local/bin/codex-model-catalog" ]; then
     MISE_CONFIG_FILE="${MISE_CONFIG_PATH}" "${MISE_INSTALL_PATH}" exec -- "${HOME}/.local/bin/codex-model-catalog"
 fi
 

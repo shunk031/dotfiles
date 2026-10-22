@@ -100,6 +100,15 @@ function logged_in() {
     grep -Fqx 'gh:ghu_initial:pr create --fill' "$TEST_LOG"
 }
 
+@test "[common] agent-github does not store credentials under the repository for relative XDG_CONFIG_HOME" {
+    local repository_state="$PWD/.config/shunk031-agent-bot/auth.json"
+
+    run env XDG_CONFIG_HOME='.config' bash "$SCRIPT_PATH" login --client-id Iv1.test
+    [ "$status" -eq 0 ]
+    [ -f "$HOME/.config/shunk031-agent-bot/auth.json" ]
+    [ ! -e "$repository_state" ]
+}
+
 @test "[common] agent-github does not expose a raw token command" {
     logged_in
 
@@ -252,4 +261,20 @@ function logged_in() {
     run bash "$SCRIPT_PATH" status
     [ "$status" -ne 0 ]
     [[ "$output" == *'not logged in'* ]]
+}
+
+@test "[common] agent-github logout works without GitHub command dependencies" {
+    logged_in
+    local state="$XDG_CONFIG_HOME/shunk031-agent-bot/auth.json"
+    local no_dependencies_bin="$BATS_TEST_TMPDIR/no-dependencies-bin"
+    local bash_path utility
+    bash_path="$(command -v bash)"
+    mkdir -p "$no_dependencies_bin"
+    for utility in chmod mkdir rm rmdir; do
+        ln -s "$(command -v "$utility")" "$no_dependencies_bin/$utility"
+    done
+
+    run env PATH="$no_dependencies_bin" "$bash_path" "$SCRIPT_PATH" logout
+    [ "$status" -eq 0 ]
+    [ ! -e "$state" ]
 }

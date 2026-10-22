@@ -10,7 +10,11 @@ set -Eeuo pipefail
 umask 077
 
 readonly EXPECTED_USER="shunk031"
-readonly STATE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/shunk031-agent-bot"
+if [[ "${XDG_CONFIG_HOME:-}" == /* ]]; then
+    readonly STATE_DIR="$XDG_CONFIG_HOME/shunk031-agent-bot"
+else
+    readonly STATE_DIR="$HOME/.config/shunk031-agent-bot"
+fi
 readonly STATE_FILE="$STATE_DIR/auth.json"
 readonly LOCK_DIR="$STATE_DIR/auth.lock"
 readonly TOKEN_SKEW=300
@@ -209,11 +213,19 @@ function main() {
     local command="${1:-}"
     [[ -n "$command" ]] || fail 'usage: agent-github {login|status|gh|logout} ...'
     shift
-    check_dependencies
     case "$command" in
-    login) login "$@" ;;
-    status) status ;;
-    gh) run_gh "$@" ;;
+    login)
+        check_dependencies
+        login "$@"
+        ;;
+    status)
+        check_dependencies
+        status
+        ;;
+    gh)
+        check_dependencies
+        run_gh "$@"
+        ;;
     logout) logout ;;
     *) fail "unknown command: $command" ;;
     esac

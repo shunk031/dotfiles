@@ -28,7 +28,7 @@ agent-github logout
 
 Codex and Claude Code keep their normal launch commands. Ordinary `gh` remains authenticated using the user's existing selected account; `agent-github gh` injects the App user token into only the child `gh` process.
 
-Credentials are stored in `${XDG_CONFIG_HOME:-$HOME/.config}/shunk031-agent-bot/auth.json` with restrictive permissions. Automatic refresh replaces tokens atomically under a directory lock, which remains held until each protected `gh` command finishes so a refresh cannot invalidate its token mid-command. If a process was killed while holding the lock, check for active sessions before manually removing `auth.lock`. `agent-github logout` deletes the local state but does not revoke GitHub authorization.
+Credentials are stored at `$XDG_CONFIG_HOME/shunk031-agent-bot/auth.json` when `XDG_CONFIG_HOME` is absolute, or `$HOME/.config/shunk031-agent-bot/auth.json` otherwise, with restrictive permissions. Automatic refresh replaces tokens atomically under a directory lock, which remains held until each protected `gh` command finishes so a refresh cannot invalidate its token mid-command. If a process was killed while holding the lock, check for active sessions before manually removing `auth.lock`. `agent-github logout` deletes the local state but does not revoke GitHub authorization.
 
 ## Semantics and limitations
 

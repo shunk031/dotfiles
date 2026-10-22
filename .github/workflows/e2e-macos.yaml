@@ -6,6 +6,7 @@ on:
     paths:
       # Run this workflow when its definition changes.
       - ".github/workflows/e2e-macos.yaml"
+      # Temporary path trigger for the Codex plugin setup diagnostic.
 
       # Bootstrap changes affect setup behavior on macOS.
       - "setup.sh"
@@ -35,6 +36,7 @@ on:
     paths:
       # Run this workflow when its definition changes.
       - ".github/workflows/e2e-macos.yaml"
+      # Temporary path trigger for the Codex plugin setup diagnostic.
 
       # Bootstrap changes affect setup behavior on macOS.
       - "setup.sh"

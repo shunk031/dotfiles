@@ -51,6 +51,24 @@ function ensure_codex_plugin() {
 #
 function install_codex_plugins() {
     local installed_json
+    local codex_home="${CODEX_HOME:-${HOME}/.codex}"
+
+    printf 'HOME=%s\nCODEX_HOME=%s\n' "${HOME}" "${CODEX_HOME:-<unset>}"
+    printf '%s\n' "Entries in ${HOME}/.codex:"
+    if [ -d "${HOME}/.codex" ]; then
+        ls -la "${HOME}/.codex"
+    else
+        printf '%s\n' 'missing'
+    fi
+    if [ -f "${codex_home}/config.toml" ]; then
+        printf 'config.toml present under Codex home: yes (%s)\n' "${codex_home}"
+    else
+        printf 'config.toml present under Codex home: no (%s)\n' "${codex_home}"
+    fi
+    printf 'codex version: '
+    "${MISE_BIN}" exec -- codex --version
+    printf '%s\n' '--- RUST_LOG=debug codex plugin list ---'
+    RUST_LOG=debug "${MISE_BIN}" exec -- codex plugin list || true
 
     installed_json="$("${MISE_BIN}" exec -- codex plugin list --json)"
     ensure_codex_plugin \

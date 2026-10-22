@@ -1,5 +1,10 @@
 {
   "model": "opus",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
   "alwaysThinkingEnabled": true,
   "autoMemoryEnabled": false,
   "disableClaudeAiConnectors": true,
@@ -19,8 +24,9 @@
       "Read(id_ed25519*)",
       "Edit(.env*)"
     ],
-    "defaultMode": "plan"
+    "defaultMode": "bypassPermissions"
   },
+  "skipDangerousModePermissionPrompt": true,
   "hooks": {
     "PreToolUse": [
       {

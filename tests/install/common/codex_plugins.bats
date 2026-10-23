@@ -139,6 +139,8 @@ EOF
 }
 
 @test "[common] codex plugins script skips CI setup" {
+    write_codex_workflow_mocks
+
     export CI=true
     export CODEX_CALLS_PATH="${BATS_TEST_TMPDIR}/codex_args.txt"
     export MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"

@@ -9,6 +9,16 @@ function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
     mkdir -p "${HOME}/.local/bin"
 
+    CHEZMOI_TEMPLATE_SOURCE="${BATS_TEST_TMPDIR}/chezmoi-source"
+    CHEZMOI_TEMPLATE_DESTINATION="${BATS_TEST_TMPDIR}/chezmoi-destination"
+    mkdir -p "${CHEZMOI_TEMPLATE_SOURCE}" "${CHEZMOI_TEMPLATE_DESTINATION}"
+    CHEZMOI_TEMPLATE_ARGS=(
+        --source "${CHEZMOI_TEMPLATE_SOURCE}"
+        --destination "${CHEZMOI_TEMPLATE_DESTINATION}"
+        --config /dev/null
+        --config-format toml
+    )
+
     source "${SCRIPT_PATH}"
 }
 
@@ -127,7 +137,7 @@ EOF
 }
 
 @test "[common] Claude settings modifier creates initial managed settings without a model" {
-    run sh "${CLAUDE_SETTINGS_MODIFIER_PATH}" < /dev/null
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < /dev/null
     [ "${status}" -eq 0 ]
 
     run jq -e 'type == "object" and (has("model") | not) and .alwaysThinkingEnabled == true and .enabledPlugins["inbox@inbox"] == true' <<< "${output}"
@@ -135,7 +145,7 @@ EOF
 }
 
 @test "[common] Claude settings modifier retains all current shared values" {
-    run sh "${CLAUDE_SETTINGS_MODIFIER_PATH}" < "${CLAUDE_SETTINGS_PATH}"
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < "${CLAUDE_SETTINGS_PATH}"
     [ "${status}" -eq 0 ]
 
     local actual expected
@@ -145,7 +155,7 @@ EOF
 }
 
 @test "[common] Claude settings modifier preserves user state and overrides managed keys" {
-    run sh "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"model":"sonnet","runtimeOnly":{"enabled":true},"env":{"USER_VALUE":"keep"},"alwaysThinkingEnabled":false}'
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"model":"sonnet","runtimeOnly":{"enabled":true},"env":{"USER_VALUE":"keep"},"alwaysThinkingEnabled":false}'
     [ "${status}" -eq 0 ]
 
     run jq -e '.model == "sonnet" and .runtimeOnly.enabled == true and .env.USER_VALUE == "keep" and .alwaysThinkingEnabled == true' <<< "${output}"
@@ -153,9 +163,7 @@ EOF
 }
 
 @test "[common] Claude settings modifier rejects invalid JSON without output" {
-    local output_file="${BATS_TEST_TMPDIR}/settings-output.json"
-
-    run bash -c 'sh "$1" > "$2"' _ "${CLAUDE_SETTINGS_MODIFIER_PATH}" "${output_file}" <<< '{"model":'
+    run --separate-stderr chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"model":'
     [ "${status}" -ne 0 ]
-    [ ! -s "${output_file}" ]
+    [ -z "${output}" ]
 }

@@ -67,6 +67,11 @@ function install_codex_plugins() {
 # @description Run the Codex native plugin installation workflow.
 #
 function main() {
+    if [ "${CI:-}" = "true" ]; then
+        echo "Skipping Codex plugin setup in CI."
+        return
+    fi
+
     activate_mise
     install_codex_plugins
 }

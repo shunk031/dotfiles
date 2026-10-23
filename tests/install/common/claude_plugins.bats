@@ -3,6 +3,7 @@
 readonly SCRIPT_PATH="./install/common/claude-plugins.sh"
 readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_25-install-claude-plugins.sh.tmpl"
 readonly CLAUDE_SETTINGS_PATH="./home/dot_config/claude/settings.json"
+readonly CLAUDE_SETTINGS_MODIFIER_PATH="./home/dot_claude/modify_settings.json"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
@@ -123,4 +124,38 @@ EOF
 @test "[common] Claude settings enable inbox and register its GitHub marketplace" {
     run jq -e '.enabledPlugins["inbox@inbox"] == true and .extraKnownMarketplaces.inbox.source.source == "github" and .extraKnownMarketplaces.inbox.source.repo == "petekp/inbox"' "${CLAUDE_SETTINGS_PATH}"
     [ "${status}" -eq 0 ]
+}
+
+@test "[common] Claude settings modifier creates initial managed settings without a model" {
+    run sh "${CLAUDE_SETTINGS_MODIFIER_PATH}" < /dev/null
+    [ "${status}" -eq 0 ]
+
+    run jq -e 'type == "object" and (has("model") | not) and .alwaysThinkingEnabled == true and .enabledPlugins["inbox@inbox"] == true' <<< "${output}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] Claude settings modifier retains all current shared values" {
+    run sh "${CLAUDE_SETTINGS_MODIFIER_PATH}" < "${CLAUDE_SETTINGS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    local actual expected
+    actual="$(jq -S . <<< "${output}")"
+    expected="$(jq -S . "${CLAUDE_SETTINGS_PATH}")"
+    [ "${actual}" = "${expected}" ]
+}
+
+@test "[common] Claude settings modifier preserves user state and overrides managed keys" {
+    run sh "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"model":"sonnet","runtimeOnly":{"enabled":true},"env":{"USER_VALUE":"keep"},"alwaysThinkingEnabled":false}'
+    [ "${status}" -eq 0 ]
+
+    run jq -e '.model == "sonnet" and .runtimeOnly.enabled == true and .env.USER_VALUE == "keep" and .alwaysThinkingEnabled == true' <<< "${output}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] Claude settings modifier rejects invalid JSON without output" {
+    local output_file="${BATS_TEST_TMPDIR}/settings-output.json"
+
+    run bash -c 'sh "$1" > "$2"' _ "${CLAUDE_SETTINGS_MODIFIER_PATH}" "${output_file}" <<< '{"model":'
+    [ "${status}" -ne 0 ]
+    [ ! -s "${output_file}" ]
 }

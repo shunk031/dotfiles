@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./install/common/codex-plugins.sh"
+readonly TMPL_MISE_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
 readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_30-install-codex-plugins.sh.tmpl"
 
 function setup() {
@@ -51,6 +52,14 @@ EOF
     run cat "${TMPL_SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
     [ "${output}" = '{{ include "../install/common/codex-plugins.sh" }}' ]
+}
+
+@test "[common] codex plugins run-after template follows mise tool setup" {
+    run bash -c 'printf "%s\n" "$@" | sort | head -n 1' _ \
+        "${TMPL_MISE_SCRIPT_PATH}" \
+        "${TMPL_SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "${TMPL_MISE_SCRIPT_PATH}" ]
 }
 
 @test "[common] activate_mise evaluates mise activation output" {

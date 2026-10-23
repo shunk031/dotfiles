@@ -730,17 +730,32 @@ EOF
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] run_after template checks integrations after mise install and syncs the skill" {
+@test "[common] run_after refreshes catalog locally and keeps Herdr repair in GitHub Actions" {
+    local expected_calls
+
     write_mise_stub
     write_herdr_stub
     export HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_calls.txt"
+    export CODEX_MODEL_CATALOG_CALLS_PATH="${BATS_TEST_TMPDIR}/codex_model_catalog_calls.txt"
+    cat > "${HOME}/.local/bin/codex-model-catalog" << 'EOF'
+#!/usr/bin/env bash
+
+printf '%s\n' refreshed >> "${CODEX_MODEL_CATALOG_CALLS_PATH}"
+EOF
+    chmod +x "${HOME}/.local/bin/codex-model-catalog"
+    unset GITHUB_ACTIONS
 
     run bash "${RUN_AFTER_SCRIPT}"
     [ "${status}" -eq 0 ]
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version\nexec -- herdr integration status\nexec -- herdr integration install claude\nexec -- herdr integration install codex\nexec -- herdr --skill' ]
+    expected_calls="$(printf 'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- %s\nexec -- herdr --version\nexec -- herdr integration status\nexec -- herdr integration install claude\nexec -- herdr integration install codex\nexec -- herdr --skill' "${HOME}/.local/bin/codex-model-catalog")"
+    [ "${output}" = "${expected_calls}" ]
+
+    run cat "${CODEX_MODEL_CATALOG_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "refreshed" ]
 
     run cat "${HERDR_CALLS_PATH}"
     [ "${status}" -eq 0 ]
@@ -752,6 +767,21 @@ EOF
     run cat "${HOME}/.agents/skills/herdr/SKILL.md"
     [ "${status}" -eq 0 ]
     [ "${output}" = "generated Herdr skill" ]
+
+    rm -f "${MISE_CALLS_PATH}" "${HERDR_CALLS_PATH}" "${CODEX_MODEL_CATALOG_CALLS_PATH}"
+    export GITHUB_ACTIONS=true
+
+    run bash "${RUN_AFTER_SCRIPT}"
+    [ "${status}" -eq 0 ]
+
+    run cat "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version\nexec -- herdr integration status\nexec -- herdr integration install claude\nexec -- herdr integration install codex\nexec -- herdr --skill' ]
+    [ ! -e "${CODEX_MODEL_CATALOG_CALLS_PATH}" ]
+
+    run cat "${HERDR_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = $'--version\nintegration status\nintegration install claude\nintegration install codex\n--skill' ]
 }
 
 @test "[common] run_after template skips Herdr skill sync when Herdr is unavailable" {

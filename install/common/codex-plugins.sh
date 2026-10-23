@@ -67,8 +67,8 @@ function install_codex_plugins() {
 # @description Run the Codex native plugin installation workflow.
 #
 function main() {
-    if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
-        echo "Skipping Codex plugin setup in GitHub Actions."
+    if [ "${CI:-}" = "true" ]; then
+        echo "Skipping Codex plugin setup in CI."
         return
     fi
 

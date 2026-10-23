@@ -7,6 +7,7 @@ readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_30-install-co
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
     mkdir -p "${HOME}/.local/bin"
+    unset CI
     unset GITHUB_ACTIONS
 
     source "${SCRIPT_PATH}"
@@ -137,14 +138,14 @@ EOF
     [ "${#lines[@]}" -eq 1 ]
 }
 
-@test "[common] codex plugins script skips GitHub Actions setup" {
-    export GITHUB_ACTIONS=true
+@test "[common] codex plugins script skips CI setup" {
+    export CI=true
     export CODEX_CALLS_PATH="${BATS_TEST_TMPDIR}/codex_args.txt"
     export MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
 
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "Skipping Codex plugin setup in GitHub Actions." ]
+    [ "${output}" = "Skipping Codex plugin setup in CI." ]
     [ ! -e "${CODEX_CALLS_PATH}" ]
     [ ! -e "${MISE_CALLS_PATH}" ]
 }

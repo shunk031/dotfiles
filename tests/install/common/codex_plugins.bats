@@ -1,11 +1,12 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./install/common/codex-plugins.sh"
-readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_05-install-codex-plugins.sh.tmpl"
+readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_30-install-codex-plugins.sh.tmpl"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
     mkdir -p "${HOME}/.local/bin"
+    unset GITHUB_ACTIONS
 
     source "${SCRIPT_PATH}"
 }
@@ -125,4 +126,16 @@ EOF
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "1|plugin list --json" ]
     [ "${#lines[@]}" -eq 1 ]
+}
+
+@test "[common] codex plugins script skips GitHub Actions setup" {
+    export GITHUB_ACTIONS=true
+    export CODEX_CALLS_PATH="${BATS_TEST_TMPDIR}/codex_args.txt"
+    export MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "Skipping Codex plugin setup in GitHub Actions." ]
+    [ ! -e "${CODEX_CALLS_PATH}" ]
+    [ ! -e "${MISE_CALLS_PATH}" ]
 }

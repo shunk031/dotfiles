@@ -6,7 +6,8 @@ readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_30-install-co
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
-    mkdir -p "${HOME}/.local/bin"
+    mkdir -p "${HOME}/.codex" "${HOME}/.local/bin"
+    : > "${HOME}/.codex/models.json"
     unset CI
     unset GITHUB_ACTIONS
 
@@ -89,6 +90,7 @@ EOF
         MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt" \
         bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
 
     run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
     [ "${status}" -eq 0 ]
@@ -112,6 +114,27 @@ EOF
     [ "${lines[5]}" = "1|plugin marketplace add DietrichGebert/ponytail --ref main" ]
     [ "${lines[6]}" = "1|plugin add ponytail@ponytail" ]
     [ "${#lines[@]}" -eq 7 ]
+}
+
+@test "[common] codex plugins script skips when the configured model catalog is missing" {
+    write_codex_workflow_mocks
+    rm "${HOME}/.codex/models.json"
+
+    run --separate-stderr env \
+        CODEX_CALLS_PATH="${BATS_TEST_TMPDIR}/codex_args.txt" \
+        CODEX_PLUGINS_TEST_BIN="${BATS_TEST_TMPDIR}/bin" \
+        CODEX_PLUGIN_LIST_JSON='{"installed":[]}' \
+        HOME="${HOME}" \
+        MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt" \
+        bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [[ "${stderr}" == *"Warning: skipping Codex plugin setup because the configured model catalog is missing"* ]]
+    [ ! -e "${BATS_TEST_TMPDIR}/codex_args.txt" ]
+
+    run cat "${BATS_TEST_TMPDIR}/mise_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "activate bash" ]
+    [ "${#lines[@]}" -eq 1 ]
 }
 
 @test "[common] codex plugins script skips installed and enabled plugins" {

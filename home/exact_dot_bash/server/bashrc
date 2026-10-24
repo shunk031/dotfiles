@@ -6,6 +6,10 @@ if [ -f "${HOME%/}/.config/shell/mise.bash" ]; then
     source "${HOME%/}/.config/shell/mise.bash"
 fi
 
+if [ -r "${HOME%/}/.config/alias/private.bash" ]; then
+    source "${HOME%/}/.config/alias/private.bash"
+fi
+
 if [ "$TERM" = "dumb" ]; then
     echo -n
 else

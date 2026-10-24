@@ -61,4 +61,5 @@
 ## Self-Improvement
 
 - After a user correction or verified failure, fix the task and identify the root cause. Prefer a correction in the existing implementation or guidance owner over another universal rule. A request to improve that guidance authorizes the scoped revision; otherwise propose durable changes with their scope and owner, and wait for approval before persisting them.
+- When you notice the same improvised procedure or knowledge being reused, treat it as a persistence candidate and propose updating its owner (a skill or guidance) before relying on it again.
 - Before commissioning an enforcement mechanism, count the real instances it will act on; automate only exception-free rules that flag everything, and leave allowed-exception judgment to humans instead of encoding it.

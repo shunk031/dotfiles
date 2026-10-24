@@ -51,6 +51,12 @@ function ensure_codex_plugin() {
 #
 function install_codex_plugins() {
     local installed_json
+    local catalog_path="${HOME}/.codex/models.json"
+
+    if [[ ! -f "${catalog_path}" ]]; then
+        printf 'Warning: skipping Codex plugin setup because the configured model catalog is missing: %s\n' "${catalog_path}" >&2
+        return 0
+    fi
 
     installed_json="$("${MISE_BIN}" exec -- codex plugin list --json)"
     ensure_codex_plugin \

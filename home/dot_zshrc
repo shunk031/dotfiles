@@ -18,4 +18,4 @@ fpath=(
 #
 # sheldon initialization
 #
-eval "$(sheldon source)"
+eval "$(sheldon --quiet source)"

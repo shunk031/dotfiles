@@ -30,9 +30,12 @@ EOF
 
     for startup_file in home/exact_dot_bash/client/bashrc home/exact_dot_bash/server/bashrc; do
         run env HOME="${temp_home}" PATH="/usr/bin:/bin" TERM=dumb \
-            /bin/bash --noprofile --norc -c \
-            'set -i; source "$1"; [[ ":${PATH}:" == *":${HOME}/.flava/bin:"* ]]' \
+            /bin/bash --noprofile --norc -i -c \
+            'source "$1"; [[ ":${PATH}:" == *":${HOME}/.flava/bin:"* ]]' \
             bash "${PUBLIC_DOTFILES_ROOT}/${startup_file}"
-        [ "${status}" -eq 0 ]
+        if [ "${status}" -ne 0 ]; then
+            printf 'Bash startup failed for %s (status %s):\n%s\n' "${startup_file}" "${status}" "${output}" >&2
+            return 1
+        fi
     done
 }

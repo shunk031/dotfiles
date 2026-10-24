@@ -167,3 +167,36 @@ EOF
     [ "${status}" -ne 0 ]
     [ -z "${output}" ]
 }
+
+@test "[common] Claude settings apply replaces an existing symlink without changing its source" {
+    local apply_source="${BATS_TEST_TMPDIR}/apply-source"
+    local source_settings="${apply_source}/dot_config/claude/settings.json"
+    local source_settings_before="${BATS_TEST_TMPDIR}/source-settings.before.json"
+    local old_link_target="${HOME}/.config/claude/settings.json"
+    local settings="${HOME}/.claude/settings.json"
+
+    mkdir -p "${apply_source}/dot_claude" "${apply_source}/dot_config/claude" "${HOME}/.config/claude" "${HOME}/.claude"
+    cp "${CLAUDE_SETTINGS_MODIFIER_PATH}" "${apply_source}/dot_claude/modify_settings.json"
+    jq '.model = "sonnet" | .runtimeOnly.enabled = true' "${CLAUDE_SETTINGS_PATH}" > "${source_settings}"
+    cp "${source_settings}" "${source_settings_before}"
+    ln -s "${source_settings}" "${old_link_target}"
+    ln -s "${old_link_target}" "${settings}"
+
+    run chezmoi \
+        --source "${apply_source}" \
+        --destination "${HOME}" \
+        --config /dev/null \
+        --config-format toml \
+        --cache "${BATS_TEST_TMPDIR}/cache" \
+        --persistent-state "${BATS_TEST_TMPDIR}/state" \
+        apply --force "${settings}"
+    [ "${status}" -eq 0 ]
+    [ -f "${settings}" ]
+    [ ! -L "${settings}" ]
+
+    run jq -e '.model == "sonnet" and .runtimeOnly.enabled == true' "${settings}"
+    [ "${status}" -eq 0 ]
+
+    run cmp "${source_settings_before}" "${source_settings}"
+    [ "${status}" -eq 0 ]
+}

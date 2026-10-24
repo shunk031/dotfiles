@@ -13,7 +13,11 @@
 | `~/.claude/commands`            | [dotfiles/home/dot_config/claude/commands/](../dot_config/claude/commands/)                     |
 | `~/.claude/hooks/enforce-uv.sh` | [dotfiles/home/dot_config/claude/hooks/enforce-uv.sh](../dot_config/claude/hooks/enforce-uv.sh) |
 | `~/.claude/rules`               | [dotfiles/home/dot_config/claude/rules/](../dot_config/claude/rules/)                           |
-| `~/.claude/settings.json`       | [dotfiles/home/dot_config/claude/settings.json](../dot_config/claude/settings.json)             |
+| `~/.claude/settings.json`       | [dotfiles/home/dot_claude/modify_settings.json](modify_settings.json)                           |
+
+`settings.json` is a regular file managed by a `modify_` template. It uses ChezMoi's JSON parser and recursive merge functions to preserve `model` and other unmanaged object keys; conflicting managed values win. Empty input creates the full initial settings file, and invalid JSON fails before chezmoi changes the target.
+
+The old source JSON stays in place as an ignored migration referent for existing symlinks. The existing ignore rule excludes its `.config/claude` destination, so it is not a second managed target. Chezmoi reads the live symlink's referent before replacing it with a regular file. Review `chezmoi diff` and get the machine user's approval before the first apply; this change does not migrate any machine.
 
 ## Herdr hooks
 

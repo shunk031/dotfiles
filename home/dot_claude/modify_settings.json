@@ -1,0 +1,122 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- $current := dict -}}
+{{- if ne .chezmoi.stdin "" -}}
+  {{- $current = mustFromJson .chezmoi.stdin -}}
+{{- end -}}
+{{- if not (kindIs "map" $current) -}}
+  {{- fail "Claude Code settings must be a JSON object" -}}
+{{- end -}}
+{{- $managed := mustFromJson `{
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
+  "alwaysThinkingEnabled": true,
+  "autoMemoryEnabled": false,
+  "disableClaudeAiConnectors": true,
+  "env": {
+    "DISABLE_AUTOUPDATER": "1",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
+    "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
+  },
+  "permissions": {
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm -rf:*)",
+      "Read(.env.*)",
+      "Read(id_rsa*)",
+      "Read(id_ed25519*)",
+      "Edit(.env*)"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/enforce-uv.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uvx ruff format"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uvx ruff check --fix"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".py\"))' | xargs -r uvx mypy"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".md\"))' | xargs -r npx prettier@2 --write"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "^(startup|resume|clear|compact|fork)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/herdr-agent-state.sh\" session",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f \"$HOME/.agents/date_context.py\" ] && command -v python3 >/dev/null 2>&1; then python3 \"$HOME/.agents/date_context.py\"; else exit 0; fi"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "ccstatusline"
+  },
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true,
+    "claude-mem@thedotmack": false,
+    "ponytail@ponytail": true,
+    "inbox@inbox": true
+  },
+  "extraKnownMarketplaces": {
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
+    },
+    "inbox": {
+      "source": {
+        "source": "github",
+        "repo": "petekp/inbox"
+      }
+    }
+  },
+  "tui": "fullscreen"
+}` -}}
+{{- mergeOverwrite $current $managed | toPrettyJson -}}

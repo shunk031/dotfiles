@@ -53,3 +53,46 @@
         [ -d "${directory}" ]
     done
 }
+
+@test "[common] server bashrc leaves non-interactive commands in Bash" {
+    local bashrc
+    bashrc="${BATS_TEST_DIRNAME}/../../home/exact_dot_bash/server/bashrc"
+    mkdir -p "${BATS_TEST_TMPDIR}/bin"
+    printf '#!/bin/sh\nprintf "zsh\\n"\n' > "${BATS_TEST_TMPDIR}/bin/zsh"
+    chmod +x "${BATS_TEST_TMPDIR}/bin/zsh"
+
+    run env \
+        HOME="${BATS_TEST_TMPDIR}" \
+        PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" \
+        TERM=xterm \
+        BASH_ENV="${bashrc}" \
+        bash -c 'echo ok'
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "ok" ]
+}
+
+@test "[common] server bashrc switches interactive Bash to zsh" {
+    local bashrc
+    bashrc="${BATS_TEST_DIRNAME}/../../home/exact_dot_bash/server/bashrc"
+    mkdir -p "${BATS_TEST_TMPDIR}/bin"
+    printf '#!/bin/sh\nprintf "zsh\\n"\n' > "${BATS_TEST_TMPDIR}/bin/zsh"
+    chmod +x "${BATS_TEST_TMPDIR}/bin/zsh"
+
+    run env \
+        HOME="${BATS_TEST_TMPDIR}" \
+        PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" \
+        TERM=xterm \
+        bash --noprofile --rcfile "${bashrc}" -i -c 'echo after-bash'
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *zsh* ]]
+    [[ "${output}" != *after-bash* ]]
+
+    run env \
+        HOME="${BATS_TEST_TMPDIR}" \
+        PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" \
+        TERM=dumb \
+        bash --noprofile --rcfile "${bashrc}" -i -c 'echo after-bash'
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *after-bash* ]]
+    [[ "${output}" != *zsh* ]]
+}

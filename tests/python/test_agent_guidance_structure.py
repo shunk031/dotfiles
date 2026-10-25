@@ -4,12 +4,12 @@ import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-GUIDANCE_SOURCE = "home/dot_config/exact_agents/AGENTS.md"
+GUIDANCE_SOURCE = "home/private_dot_config/exact_agents/AGENTS.md"
 
 
 class AgentGuidanceStructureTest(unittest.TestCase):
     def _guidance_paths(self) -> list[Path]:
-        exact_agents = REPO_ROOT / "home/dot_config/exact_agents"
+        exact_agents = REPO_ROOT / "home/private_dot_config/exact_agents"
         return [
             REPO_ROOT / "AGENTS.md",
             exact_agents / "AGENTS.md",

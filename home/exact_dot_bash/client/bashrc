@@ -15,7 +15,7 @@ if [ -r "${HOME%/}/.config/alias/private.bash" ]; then
 fi
 
 # for mise shims
-# shellcheck source=../../dot_config/exact_shell/mise.bash
+# shellcheck source=../../private_dot_config/exact_shell/mise.bash
 if [ -f "${HOME%/}/.config/shell/mise.bash" ]; then
     source "${HOME%/}/.config/shell/mise.bash"
 fi
@@ -118,7 +118,7 @@ if [ -f ~/.bash_aliases ]; then
 fi
 
 # for npm guard
-# shellcheck source=../../dot_config/exact_shell/npm-guard.sh
+# shellcheck source=../../private_dot_config/exact_shell/npm-guard.sh
 if [ -f "${HOME%/}/.config/shell/npm-guard.sh" ]; then
     source "${HOME%/}/.config/shell/npm-guard.sh"
 fi
@@ -135,49 +135,49 @@ if ! shopt -oq posix; then
 fi
 
 # # for CUDA
-# # shellcheck source=../../dot_local/bin/exact_server/cuda.sh
+# # shellcheck source=../../private_dot_local/private_bin/exact_server/cuda.sh
 # source "${HOME%/}/.local/bin/server/cuda.sh"
 
 # for prompt
-# shellcheck source=../../dot_local/bin/server/prompt.sh
+# shellcheck source=../../private_dot_local/private_bin/server/prompt.sh
 source "${HOME%/}/.local/bin/server/prompt.sh"
 
 # for sharing history between panes/windiws in tmux session
-# shellcheck source=../../dot_local/bin/exact_server/history.sh
+# shellcheck source=../../private_dot_local/private_bin/exact_server/history.sh
 source "${HOME%/}/.local/bin/server/history.sh"
 
 # # for ssh agent
-# # shellcheck source=../../dot_local/bin/exact_server/ssh_agent.sh
+# # shellcheck source=../../private_dot_local/private_bin/exact_server/ssh_agent.sh
 # source "${HOME%/}/.local/bin/server/ssh_agent.sh"
 
 # # for golang
-# # shellcheck source=../../dot_local/bin/server/golang.sh
+# # shellcheck source=../../private_dot_local/private_bin/server/golang.sh
 # source "${HOME%/}/.local/bin/server/golang.sh"
 
 # for aliases
-# shellcheck source=../../dot_local/bin/server/aliases.sh
+# shellcheck source=../../private_dot_local/private_bin/server/aliases.sh
 source "${HOME%/}/.local/bin/server/aliases.sh"
 
 # for secrets (e.g., slack, wandb, zenodo API)
-# shellcheck source=../../dot_local/bin/exact_server/secrets.sh
+# shellcheck source=../../private_dot_local/private_bin/exact_server/secrets.sh
 source "${HOME%/}/.local/bin/server/secrets.sh"
 
 # for cache directories
-# shellcheck source=../../dot_local/bin/exact_server/cache.sh
+# shellcheck source=../../private_dot_local/private_bin/exact_server/cache.sh
 source "${HOME%/}/.local/bin/server/cache.sh"
 
 # for dev command
-# shellcheck source=../../dot_local/bin/exact_common/executable_dev
+# shellcheck source=../../private_dot_local/private_bin/exact_common/executable_dev
 source "${HOME%/}/.local/bin/common/dev"
 
 # for git-delete-merged-branches command
-# shellcheck source=../../dot_local/bin/exact_common/executable_git-delete-merged-branches
+# shellcheck source=../../private_dot_local/private_bin/exact_common/executable_git-delete-merged-branches
 source "${HOME%/}/.local/bin/common/git-delete-merged-branches"
 
 # # for gpg
-# # shellcheck source=../../dot_local/bin/exact_common/gpg.sh
+# # shellcheck source=../../private_dot_local/private_bin/exact_common/gpg.sh
 # source "${HOME%/}/.local/bin/common/gpg.sh"
 
 # # for fzf
-# # shellcheck source=../../dot_config/fzf/config.bash
+# # shellcheck source=../../private_dot_config/fzf/config.bash
 # source "${HOME%/}/.config/fzf/config.bash"

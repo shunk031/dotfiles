@@ -17,8 +17,8 @@ readonly ITERM2_CONFIG_DIR="${HOME%/}/Library/Application Support/iTerm2/Dynamic
 readonly ITERM2_PREFERENCES_DOMAIN="com.googlecode.iterm2"
 # iTerm2 expands this tilde when it reads the custom preferences setting.
 # shellcheck disable=SC2088
-readonly ITERM2_PREFERENCES_SOURCE="~/.local/share/chezmoi/home/dot_config/iterm2/"
-readonly ITERM2_PREFERENCES_SOURCE_PATH="${HOME%/}/.local/share/chezmoi/home/dot_config/iterm2"
+readonly ITERM2_PREFERENCES_SOURCE="~/.local/share/chezmoi/home/private_dot_config/iterm2/"
+readonly ITERM2_PREFERENCES_SOURCE_PATH="${HOME%/}/.local/share/chezmoi/home/private_dot_config/iterm2"
 
 #
 # @description Install the iTerm2 Homebrew cask.

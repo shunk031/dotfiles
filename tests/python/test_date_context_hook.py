@@ -10,8 +10,8 @@ import unittest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SETTINGS_PATH = REPO_ROOT / "home" / "dot_config" / "claude" / "settings.json"
-SCRIPT_PATH = REPO_ROOT / "home" / "dot_config" / "exact_agents" / "date_context.py"
+SETTINGS_PATH = REPO_ROOT / "home" / "private_dot_config" / "claude" / "settings.json"
+SCRIPT_PATH = REPO_ROOT / "home" / "private_dot_config" / "exact_agents" / "date_context.py"
 
 
 class DateContextHookTests(unittest.TestCase):

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# @file home/private_dot_local/private_bin/exact_client/executable_disconnect-vpn
+# @brief Disconnect the active Cisco AnyConnect VPN session.
+# @description
+#   Calls the Cisco AnyConnect CLI to disconnect the current VPN session.
+
+# @description Disconnect the active VPN session through Cisco AnyConnect.
+function disconnect-vpn() {
+    /opt/cisco/anyconnect/bin/vpn disconnect
+}
+
+disconnect-vpn

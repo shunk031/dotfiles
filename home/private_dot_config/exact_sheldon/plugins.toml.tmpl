@@ -1,0 +1,16 @@
+{{ include "private_dot_config/exact_sheldon/plugin_sources/common.toml" }}
+{{- if eq .system "client" }}
+{{- include "private_dot_config/exact_sheldon/plugin_sources/client/common.toml" }}
+{{-   if eq .chezmoi.os "darwin" }}
+{{      include "private_dot_config/exact_sheldon/plugin_sources/client/macos.toml" }}
+{{-   else if eq .chezmoi.os "linux" }}
+{{      include "private_dot_config/exact_sheldon/plugin_sources/client/ubuntu.toml" }}
+{{-   else }}
+{{      fail (printf "Unknown OS for client system: %s" .chezmoi.os) }}
+{{-   end }}
+{{- else if eq .system "server" }}
+{{    include "private_dot_config/exact_sheldon/plugin_sources/server.toml" }}
+{{- else }}
+{{    fail (printf "Unknown system type: %s" .system) }}
+{{- end -}}
+{{ include "private_dot_config/exact_sheldon/plugin_sources/common_last.toml" -}}

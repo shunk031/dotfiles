@@ -4,7 +4,7 @@
 @test "[common] dotfiles own Herdr hooks and keep Claude settings in a regular file" {
     local settings legacy_source_settings original
     settings="${HOME}/.claude/settings.json"
-    legacy_source_settings="${BATS_TEST_DIRNAME}/../../home/dot_config/claude/settings.json"
+    legacy_source_settings="${BATS_TEST_DIRNAME}/../../home/private_dot_config/claude/settings.json"
     original="$(< "${legacy_source_settings}")"
 
     [ -f "${settings}" ]

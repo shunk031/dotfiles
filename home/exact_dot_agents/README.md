@@ -4,11 +4,11 @@
 
 ## Linked paths
 
-| Applied path | Canonical source |
-| --- | --- |
-| `~/.agents/AGENTS.md` | [dotfiles/home/dot_config/exact_agents/AGENTS.md](../dot_config/exact_agents/AGENTS.md) |
-| `~/.agents/AGENTS-private.md` | [dotfiles-private/home/dot_config/codex/AGENTS-private.md](https://github.com/shunk031/dotfiles-private/blob/main/home/dot_config/codex/AGENTS-private.md) |
-| `~/.agents/agents` | [dotfiles/home/dot_config/exact_agents/agents/](../dot_config/exact_agents/agents/) |
+| Applied path                  | Canonical source                                                                                                                                                                           |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `~/.agents/AGENTS.md`         | [dotfiles/home/dot_config/exact_agents/AGENTS.md](../dot_config/exact_agents/AGENTS.md)                                                                                                    |
+| `~/.agents/AGENTS-private.md` | [dotfiles-private/home/private_dot_config/codex/private_AGENTS-private.md](https://github.com/shunk031/dotfiles-private/blob/main/home/private_dot_config/codex/private_AGENTS-private.md) |
+| `~/.agents/agents`            | [dotfiles/home/dot_config/exact_agents/agents/](../dot_config/exact_agents/agents/)                                                                                                        |
 
 ## Skills
 

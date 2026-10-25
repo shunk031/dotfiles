@@ -10,6 +10,10 @@ case $- in
 *) return ;;
 esac
 
+if [ -r "${HOME%/}/.config/alias/private.bash" ]; then
+    . "${HOME%/}/.config/alias/private.bash"
+fi
+
 # for mise shims
 # shellcheck source=../../dot_config/exact_shell/mise.bash
 if [ -f "${HOME%/}/.config/shell/mise.bash" ]; then

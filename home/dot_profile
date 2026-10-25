@@ -5,3 +5,7 @@
 if [ -f "${HOME%/}/.config/shell/mise.bash" ]; then
     . "${HOME%/}/.config/shell/mise.bash"
 fi
+
+if [ -r "${HOME%/}/.config/alias/private.bash" ]; then
+    . "${HOME%/}/.config/alias/private.bash"
+fi

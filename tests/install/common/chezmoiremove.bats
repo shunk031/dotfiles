@@ -91,13 +91,13 @@ function source_path_for() {
 @test "[common] the resolver finds a leftover that git would not report" {
     # Proves the check can fail. A directory kept alive by an untracked file is
     # the shape that stopped a real apply, and `git status` reports nothing.
-    local probe="${SOURCE_ROOT}/dot_config/leftover-probe/scripts/__pycache__"
+    local probe="${SOURCE_ROOT}/private_dot_config/leftover-probe/scripts/__pycache__"
     mkdir -p "${probe}"
     printf 'bytecode\n' > "${probe}/module.cpython-314.pyc"
 
     run source_path_for ".config/leftover-probe"
     local status_seen="${status}"
-    rm -rf "${SOURCE_ROOT}/dot_config/leftover-probe"
+    rm -rf "${SOURCE_ROOT}/private_dot_config/leftover-probe"
 
     [ "${status_seen}" -eq 0 ]
 }

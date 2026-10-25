@@ -8,11 +8,11 @@
 
 | Applied path                    | Canonical source                                                                                |
 | ------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `~/.claude/CLAUDE.md`           | [dotfiles/home/dot_config/claude/CLAUDE.md](../dot_config/claude/CLAUDE.md)                     |
-| `~/.claude/agents`              | [dotfiles/home/dot_config/claude/agents/](../dot_config/claude/agents/)                         |
-| `~/.claude/commands`            | [dotfiles/home/dot_config/claude/commands/](../dot_config/claude/commands/)                     |
-| `~/.claude/hooks/enforce-uv.sh` | [dotfiles/home/dot_config/claude/hooks/enforce-uv.sh](../dot_config/claude/hooks/enforce-uv.sh) |
-| `~/.claude/rules`               | [dotfiles/home/dot_config/claude/rules/](../dot_config/claude/rules/)                           |
+| `~/.claude/CLAUDE.md`           | [dotfiles/home/private_dot_config/claude/CLAUDE.md](../private_dot_config/claude/CLAUDE.md)                     |
+| `~/.claude/agents`              | [dotfiles/home/private_dot_config/claude/agents/](../private_dot_config/claude/agents/)                         |
+| `~/.claude/commands`            | [dotfiles/home/private_dot_config/claude/commands/](../private_dot_config/claude/commands/)                     |
+| `~/.claude/hooks/enforce-uv.sh` | [dotfiles/home/private_dot_config/claude/hooks/enforce-uv.sh](../private_dot_config/claude/hooks/enforce-uv.sh) |
+| `~/.claude/rules`               | [dotfiles/home/private_dot_config/claude/rules/](../private_dot_config/claude/rules/)                           |
 | `~/.claude/settings.json`       | [dotfiles/home/dot_claude/modify_settings.json](modify_settings.json)                           |
 
 `settings.json` is a regular file managed by a `modify_` template. It uses ChezMoi's JSON parser and recursive merge functions to preserve `model` and other unmanaged object keys; conflicting managed values win. Empty input creates the full initial settings file, and invalid JSON fails before chezmoi changes the target.

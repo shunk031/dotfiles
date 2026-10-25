@@ -2,7 +2,7 @@
 
 readonly SCRIPT_PATH="./install/common/claude-plugins.sh"
 readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_25-install-claude-plugins.sh.tmpl"
-readonly CLAUDE_SETTINGS_PATH="./home/dot_config/claude/settings.json"
+readonly CLAUDE_SETTINGS_PATH="./home/private_dot_config/claude/settings.json"
 readonly CLAUDE_SETTINGS_MODIFIER_PATH="./home/dot_claude/modify_settings.json"
 
 function setup() {
@@ -170,12 +170,12 @@ EOF
 
 @test "[common] Claude settings apply replaces an existing symlink without changing its source" {
     local apply_source="${BATS_TEST_TMPDIR}/apply-source"
-    local source_settings="${apply_source}/dot_config/claude/settings.json"
+    local source_settings="${apply_source}/private_dot_config/claude/settings.json"
     local source_settings_before="${BATS_TEST_TMPDIR}/source-settings.before.json"
     local old_link_target="${HOME}/.config/claude/settings.json"
     local settings="${HOME}/.claude/settings.json"
 
-    mkdir -p "${apply_source}/dot_claude" "${apply_source}/dot_config/claude" "${HOME}/.config/claude" "${HOME}/.claude"
+    mkdir -p "${apply_source}/dot_claude" "${apply_source}/private_dot_config/claude" "${HOME}/.config/claude" "${HOME}/.claude"
     cp "${CLAUDE_SETTINGS_MODIFIER_PATH}" "${apply_source}/dot_claude/modify_settings.json"
     jq '.model = "sonnet" | .runtimeOnly.enabled = true' "${CLAUDE_SETTINGS_PATH}" > "${source_settings}"
     cp "${source_settings}" "${source_settings_before}"

@@ -1,10 +1,10 @@
 #!/usr/bin/env bats
 
 readonly GHOSTTY_PAYLOAD_PATH="./home/dot_ghostty/config"
-readonly GHOSTTY_SYMLINK_TEMPLATE="./home/dot_config/ghostty/symlink_config.tmpl"
+readonly GHOSTTY_SYMLINK_TEMPLATE="./home/private_dot_config/ghostty/symlink_config.tmpl"
 readonly CMUXTERM_GHOSTTY_SYMLINK_TEMPLATE="./home/private_Library/private_Application Support/com.cmuxterm.app/symlink_config.ghostty.tmpl"
-readonly LEGACY_GHOSTTY_PAYLOAD_PATH="./home/dot_config/ghostty/config"
-readonly LEGACY_GHOSTTY_ALT_SYMLINK_TEMPLATE="./home/dot_config/ghostty/symlink_config.ghostty.tmpl"
+readonly LEGACY_GHOSTTY_PAYLOAD_PATH="./home/private_dot_config/ghostty/config"
+readonly LEGACY_GHOSTTY_ALT_SYMLINK_TEMPLATE="./home/private_dot_config/ghostty/symlink_config.ghostty.tmpl"
 readonly CHEZMOIIGNORE_PATH="./home/.chezmoitemplates/chezmoiignore.d/common"
 readonly LINUX_CHEZMOIIGNORE_PATH="./home/.chezmoitemplates/chezmoiignore.d/linux/common"
 

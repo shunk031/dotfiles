@@ -2,7 +2,7 @@
 
 # shellcheck disable=SC2030,SC2031
 
-readonly SCRIPT_PATH="./home/dot_local/bin/exact_common/executable_update-dotfiles"
+readonly SCRIPT_PATH="./home/private_dot_local/private_bin/exact_common/executable_update-dotfiles"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"

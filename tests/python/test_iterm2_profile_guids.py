@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-ITERM2_SOURCE = REPO_ROOT / "home" / "dot_config" / "iterm2"
+ITERM2_SOURCE = REPO_ROOT / "home" / "private_dot_config" / "iterm2"
 DYNAMIC_PROFILE_PATH = ITERM2_SOURCE / "hotkey_window.json"
 PREFERENCES_PATH = ITERM2_SOURCE / "com.googlecode.iterm2.plist"
 

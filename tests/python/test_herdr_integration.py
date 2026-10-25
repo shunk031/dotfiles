@@ -120,7 +120,7 @@ class HerdrIntegrationTest(unittest.TestCase):
     @unittest.skipUnless(shutil.which("chezmoi"), "requires chezmoi")
     def test_apply_migrates_source_symlink_without_changing_its_target(self):
         source = self.root / "source"
-        source_hooks = source / "dot_config" / "claude" / "hooks"
+        source_hooks = source / "private_dot_config" / "claude" / "hooks"
         source_hooks.mkdir(parents=True)
         original = source_hooks / "herdr-agent-state.sh"
         original.write_text("old source-owned hook\n")
@@ -156,7 +156,7 @@ class HerdrIntegrationTest(unittest.TestCase):
             )
         claude = json.loads((self.claude / "settings.json").read_text())["hooks"]
         managed = json.loads(
-            (REPO_ROOT / "home" / "dot_config" / "claude" / "settings.json").read_text()
+            (REPO_ROOT / "home" / "private_dot_config" / "claude" / "settings.json").read_text()
         )["hooks"]["SessionStart"]
         self.assertEqual(set(claude), {"SessionStart"})
         expected = json.loads(json.dumps(managed))

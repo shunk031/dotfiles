@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./home/dot_local/bin/exact_common/executable_chezmoi-notify-cache"
+readonly SCRIPT_PATH="./home/private_dot_local/private_bin/exact_common/executable_chezmoi-notify-cache"
 readonly RUN_AFTER_TEMPLATE="./home/.chezmoiscripts/common/run_after_99-refresh-chezmoi-notify-cache.sh.tmpl"
-readonly P10K_CONFIG_PATH="./home/dot_config/powerlevel10k/p10k.zsh"
-readonly STARSHIP_CONFIG_PATH="./home/dot_config/starship.toml"
+readonly P10K_CONFIG_PATH="./home/private_dot_config/powerlevel10k/p10k.zsh"
+readonly STARSHIP_CONFIG_PATH="./home/private_dot_config/starship.toml"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"

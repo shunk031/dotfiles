@@ -2,5 +2,5 @@
 indent_size = 4
 space_redirects = true
 
-[home/dot_config/powerlevel10k/p10k.zsh]
+[home/private_dot_config/powerlevel10k/p10k.zsh]
 ignore = true # ignore for `invalid parameter name`

@@ -5,7 +5,7 @@
         rendered="${BATS_TEST_TMPDIR}/${system}.toml"
         chezmoi --source "${PWD}" execute-template \
             --override-data "{\"system\":\"${system}\"}" \
-            < home/dot_config/exact_sheldon/plugins.toml.tmpl > "${rendered}"
+            < home/private_dot_config/exact_sheldon/plugins.toml.tmpl > "${rendered}"
         compinit="$(grep -n '^\[plugins\.compinit\]$' "${rendered}" | cut -d: -f1)"
         syntax="$(grep -n '^\[plugins\.zsh-syntax-highlighting\]$' "${rendered}" | cut -d: -f1)"
         [ "${compinit}" -lt "${syntax}" ]

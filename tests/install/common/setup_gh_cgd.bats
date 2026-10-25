@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-readonly SCRIPT_PATH="./home/dot_local/bin/exact_common/executable_setup-gh-cgd"
+readonly SCRIPT_PATH="./home/private_dot_local/private_bin/exact_common/executable_setup-gh-cgd"
 
 function setup() {
     export TEST_BIN_DIR="${BATS_TEST_TMPDIR}/bin"

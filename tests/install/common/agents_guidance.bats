@@ -1,36 +1,36 @@
 #!/usr/bin/env bats
 
-readonly SHARED_AGENTS_PATH="./home/dot_config/exact_agents/AGENTS.md"
-readonly SHARED_GH_AGENT_PATH="./home/dot_config/exact_agents/agents/gh-workflow-manager.md"
-readonly CODEX_AGENTS_PATH="./home/dot_config/codex/AGENTS.md"
-readonly CODEX_SYMLINK_TEMPLATE="./home/dot_codex/symlink_AGENTS.md.tmpl"
-readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_codex/symlink_agents.tmpl"
-readonly CODEX_GH_AGENT_PATH="./home/dot_config/codex/agents/gh-workflow-manager.toml"
-readonly LEGACY_GH_FIRST_SKILL_PATH="./home/dot_config/exact_agents/skills/gh-first-workflow"
-readonly SKILL_CREATOR_SHARED_SKILL_PATH="./home/dot_config/exact_agents/skills/skill-creator"
+readonly SHARED_AGENTS_PATH="./home/private_dot_config/exact_agents/AGENTS.md"
+readonly SHARED_GH_AGENT_PATH="./home/private_dot_config/exact_agents/agents/gh-workflow-manager.md"
+readonly CODEX_AGENTS_PATH="./home/private_dot_config/codex/AGENTS.md"
+readonly CODEX_SYMLINK_TEMPLATE="./home/private_dot_codex/symlink_AGENTS.md.tmpl"
+readonly CODEX_AGENT_DIR_SYMLINK_TEMPLATE="./home/private_dot_codex/symlink_agents.tmpl"
+readonly CODEX_GH_AGENT_PATH="./home/private_dot_config/codex/agents/gh-workflow-manager.toml"
+readonly LEGACY_GH_FIRST_SKILL_PATH="./home/private_dot_config/exact_agents/skills/gh-first-workflow"
+readonly SKILL_CREATOR_SHARED_SKILL_PATH="./home/private_dot_config/exact_agents/skills/skill-creator"
 readonly SKILL_CREATOR_SYMLINK_TEMPLATE="./home/exact_dot_agents/skills/symlink_skill-creator.tmpl"
 readonly AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS.md.tmpl"
 readonly PRIVATE_AGENTS_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_AGENTS-private.md.tmpl"
 readonly SHARED_AGENT_DIR_SYMLINK_TEMPLATE="./home/exact_dot_agents/symlink_agents.tmpl"
-readonly CLAUDE_MD_PATH="./home/dot_config/claude/CLAUDE.md"
+readonly CLAUDE_MD_PATH="./home/private_dot_config/claude/CLAUDE.md"
 readonly CLAUDE_SYMLINK_TEMPLATE="./home/dot_claude/symlink_CLAUDE.md.tmpl"
 readonly CLAUDE_AGENT_DIR_SYMLINK_TEMPLATE="./home/dot_claude/symlink_agents.tmpl"
-readonly CLAUDE_GH_AGENT_PATH="./home/dot_config/claude/agents/gh-workflow-manager.md"
+readonly CLAUDE_GH_AGENT_PATH="./home/private_dot_config/claude/agents/gh-workflow-manager.md"
 readonly CHEZMOIIGNORE_PATH="./home/.chezmoitemplates/chezmoiignore.d/common"
 readonly AGENTS_README_PATH="./home/exact_dot_agents/README.md"
 readonly CLAUDE_README_PATH="./home/dot_claude/README.md"
-readonly CODEX_README_PATH="./home/dot_codex/README.md"
-readonly CANONICAL_AGENTS_README_PATH="./home/dot_config/exact_agents/README.md"
-readonly CANONICAL_CLAUDE_README_PATH="./home/dot_config/claude/README.md"
-readonly CANONICAL_CODEX_README_PATH="./home/dot_config/codex/README.md"
+readonly CODEX_README_PATH="./home/private_dot_codex/README.md"
+readonly CANONICAL_AGENTS_README_PATH="./home/private_dot_config/exact_agents/README.md"
+readonly CANONICAL_CLAUDE_README_PATH="./home/private_dot_config/claude/README.md"
+readonly CANONICAL_CODEX_README_PATH="./home/private_dot_config/codex/README.md"
 readonly CLAUDE_SKILLS_KEEP_PATH="./home/dot_claude/skills/.keep"
 readonly GITIGNORE_PATH="./.gitignore"
 
 @test "[common] codex guidance entrypoint stays minimal and reads shared guidance" {
     [ -f "${SHARED_AGENTS_PATH}" ]
     [ -f "${CODEX_AGENTS_PATH}" ]
-    [ ! -e "./home/dot_config/codex/AGENTS.codex-only.md" ]
-    [ ! -e "./home/dot_codex/symlink_AGENTS.codex-only.md.tmpl" ]
+    [ ! -e "./home/private_dot_config/codex/AGENTS.codex-only.md" ]
+    [ ! -e "./home/private_dot_codex/symlink_AGENTS.codex-only.md.tmpl" ]
 
     run grep -F '~/.agents/AGENTS.md' "${CODEX_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
@@ -70,7 +70,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     # is the delegation: the guidance names each skill and says nothing more.
     # Asserting on the bodies from here would assert against a checkout this
     # repository does not control.
-    [ ! -e "./home/dot_config/exact_agents/skills" ]
+    [ ! -e "./home/private_dot_config/exact_agents/skills" ]
 
     run grep -Fc 'shunk031-manage-agent-guidance' "${SHARED_AGENTS_PATH}"
     [ "${status}" -eq 0 ]
@@ -81,15 +81,15 @@ readonly GITIGNORE_PATH="./.gitignore"
 }
 
 @test "[common] agent guidance adapters point to the canonical files" {
-    [ "$(< "${AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/AGENTS.md" ]
+    [ "$(< "${AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/private_dot_config/exact_agents/AGENTS.md" ]
     [ "$(< "${PRIVATE_AGENTS_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.homeDir }}/.local/share/chezmoi-private/home/private_dot_config/codex/private_AGENTS-private.md" ]
-    [ "$(< "${SHARED_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/exact_agents/agents" ]
+    [ "$(< "${SHARED_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/private_dot_config/exact_agents/agents" ]
     run grep -F '@~/.agents/AGENTS.md' "${CLAUDE_MD_PATH}"
     [ "${status}" -eq 0 ]
-    [ "$(< "${CLAUDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/CLAUDE.md" ]
-    [ "$(< "${CLAUDE_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/claude/agents" ]
-    [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/AGENTS.md" ]
-    [ "$(< "${CODEX_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_config/codex/agents" ]
+    [ "$(< "${CLAUDE_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/private_dot_config/claude/CLAUDE.md" ]
+    [ "$(< "${CLAUDE_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/private_dot_config/claude/agents" ]
+    [ "$(< "${CODEX_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/private_dot_config/codex/AGENTS.md" ]
+    [ "$(< "${CODEX_AGENT_DIR_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/private_dot_config/codex/agents" ]
 }
 
 @test "[common] tool-specific agent wrappers point to shared agent instructions" {
@@ -118,15 +118,15 @@ readonly GITIGNORE_PATH="./.gitignore"
 
     run grep -F "~/.agents" "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../dot_config/exact_agents/" "${AGENTS_README_PATH}"
+    run grep -F "../private_dot_config/exact_agents/" "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.agents/agents" "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../dot_config/exact_agents/agents/" "${AGENTS_README_PATH}"
+    run grep -F "../private_dot_config/exact_agents/agents/" "${AGENTS_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.claude" "${CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../dot_config/claude/" "${CLAUDE_README_PATH}"
+    run grep -F "../private_dot_config/claude/" "${CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.claude/agents" "${CLAUDE_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -134,7 +134,7 @@ readonly GITIGNORE_PATH="./.gitignore"
     [ "${status}" -eq 0 ]
     run grep -F "~/.codex/AGENTS.md" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../dot_config/codex/AGENTS.md" "${CODEX_README_PATH}"
+    run grep -F "../private_dot_config/codex/AGENTS.md" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.codex/agents" "${CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
@@ -165,7 +165,7 @@ readonly GITIGNORE_PATH="./.gitignore"
 
     run grep -F "~/.codex/AGENTS.md" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
-    run grep -F "../../dot_codex/symlink_AGENTS.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
+    run grep -F "../../private_dot_codex/symlink_AGENTS.md.tmpl" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]
     run grep -F "~/.agents/agents" "${CANONICAL_CODEX_README_PATH}"
     [ "${status}" -eq 0 ]

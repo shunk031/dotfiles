@@ -22,7 +22,7 @@ Date: 2026-10-26
 - Keep `.chezmoi.sourceDir` references in apply-time scripts; they locate scripts while chezmoi is running and do not create persistent links in the destination.
 - Keep the canonical content, current destination paths, private directory attributes, and existing apply hooks.
 - Keep the canonical Antigravity settings in `home/private_dot_config/antigravity-cli/settings.json`; render it to `~/.gemini/antigravity-cli/settings.json` as a regular `0644` file. Source content is authoritative. An edited runtime target is drift: normal apply prompts about the changed target, while `--force` replaces it with the source content and mode.
-- Keep the five user-facing agent directories and their managed canonical entries. A read-only `run_before` check blocks apply while untracked or ignored runtime files remain in their old source-linked directories. The explicit migration helper stages and verifies each file or symlink in the home target, preserves file modes and symlink targets, and only then removes its source copy. Conflicts leave the source file in place and keep apply blocked.
+- Keep the five user-facing agent directories and their managed canonical entries. A read-only `run_before` check blocks apply while untracked or ignored runtime files remain in their old source-linked directories. The explicit migration helper stages and verifies each file or symlink in the home target, preserves file modes and symlink targets, then compares each source entry with its staged copy immediately before removal. If a source entry changed during staging, the helper preserves it, exits nonzero, and leaves apply blocked for recovery.
 
 ## User-owned setting and options
 

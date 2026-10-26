@@ -248,6 +248,78 @@ class ChezmoiApplySafetyTest(unittest.TestCase):
                 self.assertEqual(target_file.read_text(), f"runtime-created file {index}\n")
                 self.assertEqual(stat.S_IMODE(target_file.stat().st_mode), (0o600, 0o640, 0o644, 0o700, 0o600)[index])
 
+    @unittest.skipUnless(os.name == "posix", "requires POSIX shell tools")
+    def test_migration_preserves_source_changed_after_staging(self):
+        with tempfile.TemporaryDirectory(prefix="chezmoi-agent-race-test-") as temp:
+            root = Path(temp)
+            repo = root / "repo"
+            source = repo / "home"
+            legacy = source / "private_dot_config" / "claude" / "agents"
+            legacy.mkdir(parents=True)
+            (legacy / "managed.md").write_text("managed\n")
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            subprocess.run(["git", "add", "."], cwd=repo, check=True)
+
+            helper = repo / "install" / "common" / "migrate_agent_directories.sh"
+            helper.parent.mkdir(parents=True)
+            shutil.copy2(REPO_ROOT / "install" / "common" / helper.name, helper)
+
+            runtime_file = legacy / "runtime.md"
+            runtime_file.write_text("before staging\n")
+            runtime_file.chmod(0o600)
+            destination = root / "destination"
+            linked_target = destination / ".claude" / "agents"
+            linked_target.parent.mkdir(parents=True)
+            linked_target.symlink_to(legacy, target_is_directory=True)
+
+            real_cp = shutil.which("cp")
+            self.assertIsNotNone(real_cp)
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            cp_wrapper = fake_bin / "cp"
+            cp_wrapper.write_text(
+                "#!/bin/sh\n"
+                '"$MIGRATION_REAL_CP" "$@"\n'
+                "status=$?\n"
+                '[ "$status" -eq 0 ] || exit "$status"\n'
+                'if [ "${2-}" = "$MIGRATION_RACE_SOURCE" ]; then\n'
+                '    printf \'%s\\n\' "updated during staging" > "$2"\n'
+                "fi\n"
+            )
+            cp_wrapper.chmod(0o755)
+            env = dict(
+                os.environ,
+                PATH=f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
+                MIGRATION_REAL_CP=real_cp,
+                MIGRATION_RACE_SOURCE=str(runtime_file.resolve()),
+            )
+            env.pop("HERDR_ENV", None)
+
+            result = subprocess.run(
+                ["bash", str(helper), "migrate", str(source), str(destination)],
+                env=env,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(
+                result.returncode,
+                0,
+                f"{result.stdout}{result.stderr}source_exists={runtime_file.exists()}",
+            )
+            self.assertIn("Source changed after staging", result.stderr)
+            self.assertEqual(runtime_file.read_text(), "updated during staging\n")
+            self.assertEqual((linked_target / runtime_file.name).read_text(), "before staging\n")
+            self.assertFalse(linked_target.is_symlink())
+
+            blocked = subprocess.run(
+                ["bash", str(helper), "check", str(source), str(destination)],
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotEqual(blocked.returncode, 0, blocked.stdout)
+            self.assertIn("Found 1 untracked file(s) across 1 directory(ies)", blocked.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

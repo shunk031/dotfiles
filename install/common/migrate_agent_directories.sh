@@ -178,8 +178,19 @@ for index in "${!source_directories[@]}"; do
         continue
     fi
     while IFS= read -r -d '' candidate; do
+        relative_path="${candidate#"$legacy_directory"/}"
+        staged_path="$staged_directory/$relative_path"
+        if ! files_match "$staged_path" "$candidate"; then
+            printf 'Source changed after staging; preserving source file: %s\n' "$candidate" >&2
+            conflicts=1
+            continue
+        fi
         rm "$candidate"
     done < "$manifest_file"
+    if [ "$conflicts" -ne 0 ]; then
+        migration_errors=1
+        continue
+    fi
     migrated_files=$((migrated_files + candidate_count))
     migrated_directories=$((migrated_directories + 1))
 done

@@ -1,8 +1,8 @@
-- This directory is the canonical source for the symlinked files under `~/.claude`. Its `settings.json` stays in place as an ignored symlink referent for machines that have not yet applied the settings migration; managed settings now live in [home/dot_claude/modify_settings.json](../../dot_claude/modify_settings.json).
+- This directory is the canonical source for files rendered under `~/.claude`. Its `settings.json` stays in place as an ignored migration referent for machines that have not yet applied the settings migration; managed settings now live in [home/dot_claude/modify_settings.json](../../dot_claude/modify_settings.json).
 - [CLAUDE.md](CLAUDE.md) imports the shared guidance with `@~/.agents/AGENTS.md`; add Claude-specific guidance below that import when needed.
 - [agents/](agents/) contains Claude subagent wrappers exposed as `~/.claude/agents`. Keep long shared instructions in `~/.agents/agents`; each wrapper keeps Claude subagent frontmatter and tells Claude to read `~/.agents/agents/<name>.md` first.
 - `~/.claude/skills` is a real, Claude-only directory, not part of this canonical source: skill installers write generated skills there directly, and a `run_after` script subscribes it to the shared skills pool at `~/.agents/skills` (see [home/private_dot_config/exact_agents/README.md](../exact_agents/README.md#skill-pool-and-subscription-policy)).
-- [home/dot_claude/](../../dot_claude/) is only the adapter layer that exposes this source in the applied home layout.
+- [home/dot_claude/](../../dot_claude/) contains templates that render this source into the applied home layout.
 - The design keeps edits in one git-friendly place while preserving the familiar home path.
-- Edit the symlinked files here; the adapter keeps their home paths stable.
-- Do not edit `settings.json` for new settings: it remains available only so existing settings symlinks can be read during migration.
+- The adapter renders these files into regular managed files under `~/.claude`, keeping their home paths stable.
+- Do not edit `settings.json` for new settings: it remains available only as a migration referent for existing settings links.

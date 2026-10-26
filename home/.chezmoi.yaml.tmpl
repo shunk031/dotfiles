@@ -19,6 +19,8 @@ data:
     email: {{ $email | quote }}
     system: {{ $system | quote }}
 
+umask: 18
+
 {{ if ne (env "CI") "true" -}}
 encryption: "age"
 age:

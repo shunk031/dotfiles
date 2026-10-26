@@ -1,21 +1,21 @@
 #!/usr/bin/env bats
 
 readonly GHOSTTY_PAYLOAD_PATH="./home/dot_ghostty/config"
-readonly GHOSTTY_SYMLINK_TEMPLATE="./home/private_dot_config/ghostty/symlink_config.tmpl"
-readonly CMUXTERM_GHOSTTY_SYMLINK_TEMPLATE="./home/private_Library/private_Application Support/com.cmuxterm.app/symlink_config.ghostty.tmpl"
+readonly GHOSTTY_TEMPLATE="./home/private_dot_config/ghostty/config.tmpl"
+readonly CMUXTERM_GHOSTTY_TEMPLATE="./home/private_Library/private_Application Support/com.cmuxterm.app/config.ghostty.tmpl"
 readonly LEGACY_GHOSTTY_PAYLOAD_PATH="./home/private_dot_config/ghostty/config"
 readonly LEGACY_GHOSTTY_ALT_SYMLINK_TEMPLATE="./home/private_dot_config/ghostty/symlink_config.ghostty.tmpl"
 readonly CHEZMOIIGNORE_PATH="./home/.chezmoitemplates/chezmoiignore.d/common"
 readonly LINUX_CHEZMOIIGNORE_PATH="./home/.chezmoitemplates/chezmoiignore.d/linux/common"
 
-@test "[common] ghostty config payload lives under dot_ghostty and is exposed via a config symlink template" {
+@test "[common] ghostty config payload is rendered from dot_ghostty" {
     [ -f "${GHOSTTY_PAYLOAD_PATH}" ]
-    [ -f "${GHOSTTY_SYMLINK_TEMPLATE}" ]
-    [ -f "${CMUXTERM_GHOSTTY_SYMLINK_TEMPLATE}" ]
+    [ -f "${GHOSTTY_TEMPLATE}" ]
+    [ -f "${CMUXTERM_GHOSTTY_TEMPLATE}" ]
     [ ! -e "${LEGACY_GHOSTTY_PAYLOAD_PATH}" ]
     [ ! -e "${LEGACY_GHOSTTY_ALT_SYMLINK_TEMPLATE}" ]
-    [ "$(< "${GHOSTTY_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_ghostty/config" ]
-    [ "$(< "${CMUXTERM_GHOSTTY_SYMLINK_TEMPLATE}")" = "{{ .chezmoi.sourceDir }}/dot_ghostty/config" ]
+    [ "$(< "${GHOSTTY_TEMPLATE}")" = '{{- include "dot_ghostty/config" -}}' ]
+    [ "$(< "${CMUXTERM_GHOSTTY_TEMPLATE}")" = '{{- include "dot_ghostty/config" -}}' ]
 
     run grep -F 'window-theme = "ghostty"' "${GHOSTTY_PAYLOAD_PATH}"
     [ "${status}" -eq 0 ]

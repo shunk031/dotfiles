@@ -2,18 +2,20 @@
 
 - This directory is applied as `~/.claude`.
 
-## Linked paths
+## Managed paths
 
 ### Public dotfiles
 
-| Applied path                    | Canonical source                                                                                |
-| ------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `~/.claude/CLAUDE.md`           | [dotfiles/home/private_dot_config/claude/CLAUDE.md](../private_dot_config/claude/CLAUDE.md)                     |
-| `~/.claude/agents`              | [dotfiles/home/private_dot_config/claude/agents/](../private_dot_config/claude/agents/)                         |
-| `~/.claude/commands`            | [dotfiles/home/private_dot_config/claude/commands/](../private_dot_config/claude/commands/)                     |
-| `~/.claude/hooks/enforce-uv.sh` | [dotfiles/home/private_dot_config/claude/hooks/enforce-uv.sh](../private_dot_config/claude/hooks/enforce-uv.sh) |
-| `~/.claude/rules`               | [dotfiles/home/private_dot_config/claude/rules/](../private_dot_config/claude/rules/)                           |
-| `~/.claude/settings.json`       | [dotfiles/home/dot_claude/modify_settings.json](modify_settings.json)                           |
+| Applied path                    | Rendered from canonical source                                                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `~/.claude/CLAUDE.md`           | [claude/CLAUDE.md](../private_dot_config/claude/CLAUDE.md) by [CLAUDE.md.tmpl](CLAUDE.md.tmpl)                           |
+| `~/.claude/agents`              | [claude/agents/](../private_dot_config/claude/agents/) by [agents/](agents/)                                                               |
+| `~/.claude/commands`            | [claude/commands/](../private_dot_config/claude/commands/) by [commands/](commands/)                                                       |
+| `~/.claude/hooks/enforce-uv.sh` | [claude/hooks/enforce-uv.sh](../private_dot_config/claude/hooks/enforce-uv.sh) by [template](hooks/executable_enforce-uv.sh.tmpl) |
+| `~/.claude/rules`               | [claude/rules/](../private_dot_config/claude/rules/) by [rules/](rules/)                                                                   |
+| `~/.claude/settings.json`       | [modify_settings.json](modify_settings.json)                                                                                               |
+
+The templates render regular managed files and directories. Application-created files under these paths stay in `$HOME` instead of being written into the source tree.
 
 `settings.json` is a regular file managed by a `modify_` template. It uses ChezMoi's JSON parser and recursive merge functions to preserve `model` and other unmanaged object keys; conflicting managed values win. Empty input creates the full initial settings file, and invalid JSON fails before chezmoi changes the target.
 
@@ -37,5 +39,5 @@ The old source JSON stays in place as an ignored migration referent for existing
 
 ## Editing
 
-- The design keeps the home-facing path stable while the real files live in one git-friendly source tree.
+- The templates keep the home-facing paths stable while canonical files live in one git-friendly source tree.
 - Edit the canonical source, not this adapter directory.

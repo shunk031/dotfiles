@@ -118,15 +118,18 @@ class HerdrIntegrationTest(unittest.TestCase):
         self.assertFalse((self.claude / "settings.json").exists())
 
     @unittest.skipUnless(shutil.which("chezmoi"), "requires chezmoi")
-    def test_apply_migrates_source_symlink_without_changing_its_target(self):
+    def test_apply_materializes_source_content_before_runtime_hooks_are_installed(self):
         source = self.root / "source"
         source_hooks = source / "private_dot_config" / "claude" / "hooks"
         source_hooks.mkdir(parents=True)
-        original = source_hooks / "herdr-agent-state.sh"
+        old_hooks = self.root / "old-source-hooks"
+        old_hooks.mkdir()
+        original = old_hooks / "herdr-agent-state.sh"
         original.write_text("old source-owned hook\n")
         enforce = source_hooks / "enforce-uv.sh"
         enforce.write_text("#!/bin/sh\n")
-        (self.claude / "hooks").symlink_to(source_hooks, target_is_directory=True)
+        enforce.chmod(0o755)
+        (self.claude / "hooks").symlink_to(old_hooks, target_is_directory=True)
         shutil.copytree(REPO_ROOT / "home" / "dot_claude" / "hooks", source / "dot_claude" / "hooks")
         (source / ".chezmoiignore").write_text(".config\n")
         result = subprocess.run(
@@ -138,9 +141,31 @@ class HerdrIntegrationTest(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse((self.claude / "hooks").is_symlink())
-        self.assertEqual((self.claude / "hooks" / "enforce-uv.sh").resolve(), enforce.resolve())
+        managed_hook = self.claude / "hooks" / "enforce-uv.sh"
+        self.assertFalse(managed_hook.is_symlink())
+        self.assertEqual(managed_hook.read_bytes(), enforce.read_bytes())
+        self.assertEqual(managed_hook.stat().st_mode & 0o777, 0o755)
         self.run_sync()
         self.assertEqual(original.read_text(), "old source-owned hook\n")
+
+        runtime_hook = self.claude / "hooks" / "runtime-hook.sh"
+        runtime_hook.write_text("runtime-owned\n")
+        self.assertFalse((source_hooks / runtime_hook.name).exists())
+
+        renamed_source = source / "dot_config"
+        (source / "private_dot_config").rename(renamed_source)
+        adapter = source / "dot_claude" / "hooks" / "executable_enforce-uv.sh.tmpl"
+        adapter.write_text(adapter.read_text().replace("private_dot_config/", "dot_config/"))
+        result = subprocess.run(
+            [shutil.which("chezmoi"), "--source", str(source), "--destination", str(self.root),
+             "--config", "/dev/null", "--config-format", "toml",
+             "--persistent-state", str(self.root / "state.boltdb"),
+             "apply", "--force"],
+            env=self.env, capture_output=True, text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(runtime_hook.exists())
+        self.assertFalse((renamed_source / "claude" / "hooks" / runtime_hook.name).exists())
 
     def test_mise_herdr_pin_has_no_postinstall(self):
         config = REPO_ROOT / "home" / "dot_mise" / "config.toml"

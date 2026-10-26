@@ -134,6 +134,120 @@ class ChezmoiApplySafetyTest(unittest.TestCase):
                 },
             )
 
+    @unittest.skipUnless(CHEZMOI and os.name == "posix", "requires POSIX chezmoi")
+    def test_runtime_files_migrate_from_all_source_linked_agent_directories(self):
+        legacy_directories = (
+            ("private_dot_config/claude/agents", ".claude/agents", "dot_claude/agents"),
+            ("private_dot_config/claude/commands", ".claude/commands", "dot_claude/commands"),
+            ("private_dot_config/claude/rules", ".claude/rules", "dot_claude/rules"),
+            ("private_dot_config/exact_agents/agents", ".agents/agents", "exact_dot_agents/agents"),
+            ("private_dot_config/codex/agents", ".codex/agents", "private_dot_codex/agents"),
+        )
+        with tempfile.TemporaryDirectory(prefix="chezmoi-agent-migration-test-") as temp:
+            root = Path(temp)
+            repo = root / "repo"
+            source = repo / "home"
+            destination = root / "destination"
+            destination.mkdir()
+
+            for source_relative, _, adapter_relative in legacy_directories:
+                shutil.copytree(HOME_SOURCE / source_relative, source / source_relative)
+                shutil.copytree(HOME_SOURCE / adapter_relative, source / adapter_relative)
+            guard = "run_before_00-check-agent-directory-migration.sh.tmpl"
+            guard_source = HOME_SOURCE / ".chezmoiscripts" / "common" / guard
+            if guard_source.exists():
+                guard_target = source / ".chezmoiscripts" / "common" / guard
+                guard_target.parent.mkdir(parents=True)
+                shutil.copy2(guard_source, guard_target)
+            helper = "migrate_agent_directories.sh"
+            helper_source = REPO_ROOT / "install" / "common" / helper
+            if helper_source.exists():
+                helper_target = repo / "install" / "common" / helper
+                helper_target.parent.mkdir(parents=True)
+                shutil.copy2(helper_source, helper_target)
+            (source / ".chezmoiignore").write_text(".config\n")
+            (repo / ".gitignore").write_text(
+                "home/private_dot_config/claude/agents/ignored-runtime.md\n"
+            )
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            subprocess.run(["git", "add", "."], cwd=repo, check=True)
+
+            runtime_files = []
+            for index, (source_relative, target_relative, _) in enumerate(legacy_directories):
+                legacy = source / source_relative
+                name = "ignored-runtime.md" if index == 0 else "runtime-custom.md"
+                runtime_file = legacy / name
+                runtime_file.write_text(f"runtime-created file {index}\n")
+                runtime_file.chmod((0o600, 0o640, 0o644, 0o700, 0o600)[index])
+                runtime_files.append((runtime_file, destination / target_relative, index))
+                target = destination / target_relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.symlink_to(legacy, target_is_directory=True)
+
+            env = dict(os.environ, HOME=str(destination), CI="true")
+            env.pop("HERDR_ENV", None)
+            cache = root / "cache"
+            state = root / "state.boltdb"
+
+            def apply():
+                return subprocess.run(
+                    [
+                        CHEZMOI,
+                        "--source", str(source),
+                        "--destination", str(destination),
+                        "--config", "/dev/null",
+                        "--config-format", "toml",
+                        "--cache", str(cache),
+                        "--persistent-state", str(state),
+                        "--refresh-externals=never",
+                        "apply", "--no-tty", "--exclude=externals",
+                    ],
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                )
+
+            blocked = apply()
+            lost_files = [
+                str(target.relative_to(destination))
+                for source_file, target, index in runtime_files
+                if not (target / source_file.name).exists()
+                or (target / source_file.name).read_text() != f"runtime-created file {index}\n"
+            ]
+            self.assertEqual(lost_files, [], f"runtime files disappeared from {lost_files}")
+            self.assertNotEqual(blocked.returncode, 0, blocked.stdout)
+            blocked_output = blocked.stdout + blocked.stderr
+            self.assertIn("Found 5 untracked file(s) across 5 directory(ies)", blocked_output)
+            self.assertIn("migrate", blocked_output)
+            for source_file, target, _ in runtime_files:
+                self.assertIn("runtime-created file", source_file.read_text())
+                self.assertTrue(target.is_symlink())
+
+            migrated = subprocess.run(
+                [
+                    "bash", str(repo / "install" / "common" / helper),
+                    "migrate", str(source), str(destination),
+                ],
+                env=env,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(migrated.returncode, 0, migrated.stderr)
+            self.assertIn("Migrated 5 file(s) across 5 directory(ies)", migrated.stdout)
+            for source_file, target, index in runtime_files:
+                target_file = target / source_file.name
+                self.assertFalse(source_file.exists())
+                self.assertEqual(target_file.read_text(), f"runtime-created file {index}\n")
+                self.assertEqual(stat.S_IMODE(target_file.stat().st_mode), (0o600, 0o640, 0o644, 0o700, 0o600)[index])
+                self.assertFalse(target.is_symlink())
+
+            applied = apply()
+            self.assertEqual(applied.returncode, 0, applied.stderr)
+            for source_file, target, index in runtime_files:
+                target_file = target / source_file.name
+                self.assertEqual(target_file.read_text(), f"runtime-created file {index}\n")
+                self.assertEqual(stat.S_IMODE(target_file.stat().st_mode), (0o600, 0o640, 0o644, 0o700, 0o600)[index])
+
 
 if __name__ == "__main__":
     unittest.main()

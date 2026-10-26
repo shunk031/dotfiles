@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+migration_script="{{ .chezmoi.sourceDir }}/../install/common/migrate_agent_directories.sh"
+if bash "$migration_script" check "{{ .chezmoi.sourceDir }}" "$HOME"; then
+    exit 0
+fi
+
+cat >&2 <<EOF
+Chezmoi found runtime-created files in an agent directory linked to the source tree.
+Move them safely before applying:
+  bash "$migration_script" migrate "{{ .chezmoi.sourceDir }}" "$HOME"
+Then rerun chezmoi apply.
+EOF
+exit 1

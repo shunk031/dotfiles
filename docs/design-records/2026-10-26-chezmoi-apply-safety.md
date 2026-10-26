@@ -21,6 +21,8 @@ Date: 2026-10-26
 - Keep `~/.agents/AGENTS-private.md` linked to the private source because the private repository owns that content. This change does not edit the private repository.
 - Keep `.chezmoi.sourceDir` references in apply-time scripts; they locate scripts while chezmoi is running and do not create persistent links in the destination.
 - Keep the canonical content, current destination paths, private directory attributes, and existing apply hooks.
+- Keep the canonical Antigravity settings in `home/private_dot_config/antigravity-cli/settings.json`; render it to `~/.gemini/antigravity-cli/settings.json` as a regular `0644` file. Source content is authoritative. An edited runtime target is drift: normal apply prompts about the changed target, while `--force` replaces it with the source content and mode.
+- Keep the five user-facing agent directories and their managed canonical entries. A read-only `run_before` check blocks apply while untracked or ignored runtime files remain in their old source-linked directories. The explicit migration helper stages and verifies each file or symlink in the home target, preserves file modes and symlink targets, and only then removes its source copy. Conflicts leave the source file in place and keep apply blocked.
 
 ## User-owned setting and options
 
@@ -31,6 +33,12 @@ The public chezmoi configuration sets `umask: 18` (`0o022`). This preserves the 
 - Use `0o077`: rejected because it would make ordinary managed files and directories private and would not match the source's intended modes.
 - Use `0o002`: rejected because it permits group writes to ordinary managed files.
 
+For Antigravity settings, the source file `home/private_dot_config/antigravity-cli/settings.json` is canonical and the rendered target mode is `0644`.
+
+- Keep the source authoritative: chosen; normal apply prompts when the runtime target has drifted, and `--force` restores the source content and `0644` mode.
+- Treat runtime edits as authoritative: rejected because they require a deliberate `chezmoi re-add` to update the canonical source and otherwise make applies diverge across machines.
+- Ignore the target: rejected because it would stop managing the canonical settings file.
+
 ## Evidence and migration boundary
 
 The official [umask configuration reference](https://www.chezmoi.io/reference/configuration-file/umask/) documents the configured mask. The [source state attributes reference](https://www.chezmoi.io/reference/source-state-attributes/) documents the `private_` and `executable_` modes. chezmoi v2.72.1's [source-state implementation](https://github.com/twpayne/chezmoi/blob/v2.72.1/internal/chezmoi/sourcestate.go) and [target directory implementation](https://github.com/twpayne/chezmoi/blob/v2.72.1/internal/chezmoi/targetstateentry.go#L163-L183) were also inspected, and a temporary-source reproduction confirmed that `dot_config` and `private_dot_config` collide at `.config`.
@@ -39,4 +47,4 @@ With chezmoi v2.72.1, a caller umask of `077` produced `0600` ordinary files and
 
 There is one upstream first-creation limit: a fresh ordinary directory created under process umask `077` starts as `0700` on its first apply, then chezmoi corrects it to `0755` on a later apply. v2.72.1 calls `mkdir` for a new target directory and only applies `chmod` when the directory already exists. The configured mask normalizes existing entries in one apply; it does not change the caller process's OS umask for that initial `mkdir`.
 
-This change prevents future runtime writes through public-source links. It does not move or delete untracked files already left in an obsolete source path: those need user-reviewed handling before apply, because automatic cleanup could destroy user data. The reported Mac leftovers were moved outside the source tree and the 16 affected home links were re-applied before this change, outside this repository diff. No apply was run against the real home directory.
+The reported Mac leftovers were moved outside the source tree and the 16 affected home links were re-applied before this change, outside this repository diff. For remaining runtime-created files, apply now stops and the explicit migration helper moves them to the corresponding home directories only after verifying the copies. No apply was run against the real home directory.

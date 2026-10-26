@@ -180,6 +180,7 @@ for index in "${!source_directories[@]}"; do
     while IFS= read -r -d '' candidate; do
         relative_path="${candidate#"$legacy_directory"/}"
         staged_path="$staged_directory/$relative_path"
+        # shortcut: comparison and removal are not atomic; add a writer lock if that gap must be closed.
         if ! files_match "$staged_path" "$candidate"; then
             printf 'Source changed after staging; preserving source file: %s\n' "$candidate" >&2
             conflicts=1

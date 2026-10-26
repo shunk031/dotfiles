@@ -8,8 +8,10 @@ fi
 
 cat >&2 <<EOF
 Chezmoi found runtime-created files in an agent directory linked to the source tree.
-Move them safely before applying:
+For files still in the source directory, move them safely before applying:
   bash "$migration_script" migrate "{{ .chezmoi.sourceDir }}" "$HOME"
-Then rerun chezmoi apply.
+If the check reported an unresolved migration backup, inspect the retained backup and target paths above.
+Copy the backup's latest contents to the target with the mkdir and cp -pP commands above, then rerun
+the migration command and chezmoi apply.
 EOF
 exit 1

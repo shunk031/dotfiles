@@ -9,7 +9,7 @@ min_version = "2026.8.15"
 # Language runtimes
 go = "1.27.1"
 node = "lts"
-python = "3.14.6"
+python = "3.15.1"
 ruby = "4.0.6"
 rust = "1.98.1"
 

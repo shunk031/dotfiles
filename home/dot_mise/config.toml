@@ -7,61 +7,61 @@ min_version = "2026.8.15"
 # Keep each group sorted by package name, ignoring backend prefixes and leading `@`.
 
 # Language runtimes
-go = "1.27.1"
+go = "1.27.3"
 node = "lts"
 python = "3.14.6"
-ruby = "4.0.6"
-rust = "1.98.1"
+ruby = "4.0.9"
+rust = "1.99.1"
 
 # CLI tools
-bun = "1.4.2"
+bun = "1.4.4"
 eza = "0.23.5"
-fnox = "1.35.1"
+fnox = "1.42.1"
 gcloud = "575.0.0"
 herdr = "0.9.5"
-sqlite = "3.53.4"
+sqlite = "3.54.1"
 
 # Aqua tools
 "aqua:1password/cli" = "v2.40.0"
 "aqua:FiloSottile/age" = "1.3.2"
 "aqua:google-antigravity/antigravity-cli" = "1.4.3"
-"aqua:aws/aws-cli" = "2.36.40"
+"aqua:aws/aws-cli" = "2.38.5"
 "aqua:bats-core/bats-core" = "1.14.0"
-"aqua:twpayne/chezmoi" = "2.72.1"
+"aqua:twpayne/chezmoi" = "2.73.3"
 "aqua:anthropics/claude-code" = "2.1.305"
 "aqua:openai/codex" = "0.163.0"
-"aqua:dotenvx/dotenvx" = "2.23.0"
-"aqua:bootandy/dust" = "1.2.5"
+"aqua:dotenvx/dotenvx" = "2.38.2"
+"aqua:bootandy/dust" = "1.2.6"
 "aqua:sharkdp/fd" = "10.5.0"
-"aqua:cli/cli" = "2.100.0"
-"aqua:x-motemen/ghq" = "1.10.1"
+"aqua:cli/cli" = "2.103.2"
+"aqua:x-motemen/ghq" = "1.11.2"
 "aqua:jqlang/jq" = "1.8.2"
-"aqua:j178/prek" = "0.5.2"
+"aqua:j178/prek" = "0.5.7"
 "aqua:ahmetb/kubectx" = "0.11.0"
 "aqua:BurntSushi/ripgrep" = "15.2.0"
 "aqua:koalaman/shellcheck" = "0.11.0"
 "aqua:mvdan/sh" = "3.14.1"
-"aqua:astral-sh/uv" = "0.12.10"
+"aqua:astral-sh/uv" = "0.13.5"
 "aqua:sxyazi/yazi" = "26.9.1"
-"aqua:mikefarah/yq" = "4.53.6"
+"aqua:mikefarah/yq" = "4.54.1"
 
 # Cargo tools
 "cargo:pueue" = "4.0.4"
 
 # GitHub release tools
-"github:d-kuro/gwq" = "0.1.1"
-"github:microsoft/apm" = "0.31.0"
+"github:d-kuro/gwq" = "0.1.2"
+"github:microsoft/apm" = "0.35.0"
 "github:shuntaka9576/blocc" = { version = "0.6.0", os = ["linux"] }
 
 # npm tools
-"npm:bash-language-server" = "5.6.0"
+"npm:bash-language-server" = "5.8.1"
 "npm:ccstatusline" = "2.2.32"
 "npm:fast-cli" = "5.2.0"
-"npm:pyright" = "1.1.413"
-"npm:skills" = "1.5.24"
+"npm:pyright" = "1.1.414"
+"npm:skills" = "1.7.4"
 
 # pipx tools
-"pipx:google-colab-cli" = "0.7.2"
+"pipx:google-colab-cli" = "0.7.5"
 
 [settings]
 # Version files: honor idiomatic files such as `.python-version`.

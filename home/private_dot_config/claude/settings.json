@@ -37,6 +37,16 @@
             "command": "~/.claude/hooks/enforce-uv.sh"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.local/bin/common/markdown-sentence-length pre claude",
+            "timeout": 120
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -57,7 +67,8 @@
           },
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path | select(endswith(\".md\"))' | xargs -r npx prettier@2 --write"
+            "command": "~/.local/bin/common/markdown-sentence-length post claude",
+            "timeout": 120
           }
         ]
       }
@@ -81,6 +92,17 @@
           {
             "type": "command",
             "command": "if [ -f \"$HOME/.agents/date_context.py\" ] && command -v python3 >/dev/null 2>&1; then python3 \"$HOME/.agents/date_context.py\"; else exit 0; fi"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.local/bin/common/markdown-sentence-length stop claude",
+            "timeout": 120
           }
         ]
       }

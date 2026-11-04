@@ -104,6 +104,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Node.js
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
       - name: Skip full unit test run for unrelated changes
         if: ${{ needs.changes.outputs.should_test != 'true' }}
         run: |
@@ -188,6 +195,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
 
       - name: Skip full unit test run for unrelated changes
         if: ${{ needs.changes.outputs.should_test != 'true' }}
@@ -299,6 +313,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
 
       - name: Skip full unit test run for unrelated changes
         if: ${{ needs.changes.outputs.should_test != 'true' }}

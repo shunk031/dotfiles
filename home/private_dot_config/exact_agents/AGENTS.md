@@ -61,5 +61,6 @@
 ## Self-Improvement
 
 - After a user correction or verified failure, fix the task and identify the root cause. Prefer a correction in the existing implementation or guidance owner over another universal rule. A request to improve that guidance authorizes the scoped revision; otherwise propose durable changes with their scope and owner, and wait for approval before persisting them.
+- When the same failure or workaround appears a second time, treat the earlier diagnosis as suspect and investigate the root cause before applying the workaround again. Treat labels such as “environmental” or “flaky” as hypotheses until verified; fix the cause or turn the workaround into a durable check, script, or configuration rather than repeating it manually.
 - When you notice repeated use of a procedure or knowledge that exists only in the session and is not captured in any skill or guidance, treat it as a persistence candidate and propose adding it to an appropriate skill or guidance before relying on it again.
 - Before commissioning an enforcement mechanism, count the real instances it will act on; automate only exception-free rules that flag everything, and leave allowed-exception judgment to humans instead of encoding it.

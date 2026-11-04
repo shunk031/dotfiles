@@ -1,8 +1,8 @@
-In this repo, this directory is the editable shared source for agent guidance that is exposed as `~/.agents` through adapter templates. The `exact_` segment in this path is a chezmoi source-state attribute, not a generic "canonical source" naming convention. See the official chezmoi reference for [Source state attributes](https://www.chezmoi.io/reference/source-state-attributes/).
+In this repo, this directory is the editable shared source for agent guidance rendered under `~/.agents` by adapter templates. The `exact_` segment in this path is a chezmoi source-state attribute, not a generic "canonical source" naming convention. See the official chezmoi reference for [Source state attributes](https://www.chezmoi.io/reference/source-state-attributes/).
 
 In chezmoi, `dot_` changes a target name to start with `.`, while `exact_` removes entries in the target directory that are not explicitly managed in the source state. This repo does not apply `.config/agents` directly: [home/.chezmoitemplates/chezmoiignore.d/common](../../.chezmoitemplates/chezmoiignore.d/common) ignores that target, while [home/exact_dot_agents/](../../exact_dot_agents/) provides the home-facing `~/.agents` adapter.
 
-[AGENTS.md](AGENTS.md) is the shared guidance used directly by `~/.agents/AGENTS.md`, imported from `~/.claude/CLAUDE.md` with `@~/.agents/AGENTS.md`, and referenced from `~/.codex/AGENTS.md`. Shared long-form agent instructions live in [agents/](agents/) and are exposed as `~/.agents/agents`; Claude and Codex wrappers explicitly tell each tool to read the same shared Markdown first. Edit files here; the adapter keeps the home path stable.
+[AGENTS.md](AGENTS.md) is the shared guidance rendered at `~/.agents/AGENTS.md`, imported from `~/.claude/CLAUDE.md` with `@~/.agents/AGENTS.md`, and referenced from `~/.codex/AGENTS.md`. Shared long-form agent instructions live in [agents/](agents/) and are rendered under `~/.agents/agents`; Claude and Codex wrappers explicitly tell each tool to read the same shared Markdown first. Edit files here; the templates keep the home path stable.
 
 ## Skill Pool and Subscription Policy
 
@@ -54,15 +54,15 @@ flowchart LR
   subgraph CHEZMOI["chezmoi source state"]
     direction LR
 
-    subgraph ADAPTER["adapter templates"]
-      A_CLAUDE["home/dot_claude/symlink_CLAUDE.md.tmpl"]
-      A_CLAUDE_AGENTS["home/dot_claude/symlink_agents.tmpl"]
+    subgraph ADAPTER["materializing templates"]
+      A_CLAUDE["home/dot_claude/CLAUDE.md.tmpl"]
+      A_CLAUDE_AGENTS["home/dot_claude/agents/gh-workflow-manager.md.tmpl"]
 
-      A_CODEX["home/private_dot_codex/symlink_AGENTS.md.tmpl"]
-      A_CODEX_AGENTS["home/private_dot_codex/symlink_agents.tmpl"]
+      A_CODEX["home/private_dot_codex/AGENTS.md.tmpl"]
+      A_CODEX_AGENTS["home/private_dot_codex/agents/gh-workflow-manager.toml.tmpl"]
 
-      A_SHARED["home/exact_dot_agents/symlink_AGENTS.md.tmpl"]
-      A_SHARED_AGENTS["home/exact_dot_agents/symlink_agents.tmpl"]
+      A_SHARED["home/exact_dot_agents/AGENTS.md.tmpl"]
+      A_SHARED_AGENTS["home/exact_dot_agents/agents/gh-workflow-manager.md.tmpl"]
       A_GEMINI_SKILLS["home/dot_gemini/config/skills.json (pool pointer)"]
     end
 

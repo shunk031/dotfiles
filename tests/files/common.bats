@@ -14,7 +14,8 @@
     [ "${status}" -eq 0 ]
 
     [ ! -L "${HOME}/.claude/hooks" ]
-    [ -L "${HOME}/.claude/hooks/enforce-uv.sh" ]
+    [ -f "${HOME}/.claude/hooks/enforce-uv.sh" ]
+    [ ! -L "${HOME}/.claude/hooks/enforce-uv.sh" ]
     run grep -Fx '# HERDR_INTEGRATION_ID=claude' "${HOME}/.claude/hooks/herdr-agent-state.sh"
     [ "${status}" -eq 0 ]
     run grep -Fx '# HERDR_INTEGRATION_ID=codex' "${HOME}/.codex/herdr-agent-state.sh"

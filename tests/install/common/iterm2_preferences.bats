@@ -3,7 +3,7 @@
 readonly SCRIPT_PATH="./install/macos/common/iterm2.sh"
 readonly PREFERENCES_TEMPLATE_PATH="./home/.chezmoitemplates/chezmoiscripts.d/macos/iterm2.sh.tmpl"
 readonly RECONCILE_TEMPLATE_PATH="./home/.chezmoiscripts/macos/run_after_04-reconcile-iterm2-preferences.sh.tmpl"
-readonly DYNAMIC_PROFILE_TEMPLATE_PATH="./home/private_Library/private_Application Support/iTerm2/exact_DynamicProfiles/symlink_hotkey_window.json.tmpl"
+readonly DYNAMIC_PROFILE_TEMPLATE_PATH="./home/private_Library/private_Application Support/iTerm2/exact_DynamicProfiles/hotkey_window.json.tmpl"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
@@ -87,7 +87,7 @@ function setup() {
     [ "${status}" -eq 1 ]
 
     [ "$(< "${PREFERENCES_TEMPLATE_PATH}")" = "reconcile_iterm2_preferences_source" ]
-    [ "$(< "${DYNAMIC_PROFILE_TEMPLATE_PATH}")" = '../../../../.local/share/chezmoi/home/private_dot_config/iterm2/hotkey_window.json' ]
+    [ "$(< "${DYNAMIC_PROFILE_TEMPLATE_PATH}")" = '{{- include "private_dot_config/iterm2/hotkey_window.json" -}}' ]
 }
 
 @test "[common] iTerm2 preferences are reconciled after every apply" {

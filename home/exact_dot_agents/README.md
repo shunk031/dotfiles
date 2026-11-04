@@ -2,13 +2,13 @@
 
 - This directory is applied as `~/.agents`.
 
-## Linked paths
+## Managed paths
 
-| Applied path                  | Canonical source                                                                                                                                                                           |
+| Applied path                  | Rendered from canonical source                                                                                                                                                             |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `~/.agents/AGENTS.md`         | [dotfiles/home/private_dot_config/exact_agents/AGENTS.md](../private_dot_config/exact_agents/AGENTS.md)                                                                                                    |
+| `~/.agents/AGENTS.md`         | [AGENTS.md](../private_dot_config/exact_agents/AGENTS.md) by [AGENTS.md.tmpl](AGENTS.md.tmpl)                                                                            |
 | `~/.agents/AGENTS-private.md` | [dotfiles-private/home/private_dot_config/codex/private_AGENTS-private.md](https://github.com/shunk031/dotfiles-private/blob/main/home/private_dot_config/codex/private_AGENTS-private.md) |
-| `~/.agents/agents`            | [dotfiles/home/private_dot_config/exact_agents/agents/](../private_dot_config/exact_agents/agents/)                                                                                                        |
+| `~/.agents/agents`            | [agents/](../private_dot_config/exact_agents/agents/) by [agents/](agents/)                                                                                                                |
 
 ## Skills
 

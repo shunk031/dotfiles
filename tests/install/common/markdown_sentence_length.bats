@@ -164,6 +164,27 @@ run_github_body_hook() {
     [ -z "${output}" ]
 }
 
+@test "honors parsed help boolean values before linting GitHub bodies" {
+    local long_sentence option command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+
+    for option in --help=false -h=false; do
+        command="gh pr create ${option} --body '${long_sentence}'"
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+        [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+    done
+
+    for option in --help=true -h=true --help -h; do
+        command="gh pr create ${option} --body '${long_sentence}'"
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ -z "${output}" ]
+    done
+}
+
 @test "fails open for gh issue comment with attached -F- stdin body" {
     run_github_body_hook "gh issue comment 42 -F-"
     [ "${status}" -eq 0 ]

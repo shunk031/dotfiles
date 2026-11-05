@@ -467,6 +467,16 @@ const githubCommandFlags = {
     },
 };
 
+function parsePflagBoolean(value) {
+    if (["1", "t", "T", "TRUE", "true", "True"].includes(value)) {
+        return true;
+    }
+    if (["0", "f", "F", "FALSE", "false", "False"].includes(value)) {
+        return false;
+    }
+    return null;
+}
+
 function githubBodySource(command) {
     const args = parseSimpleShellCommand(command);
     if (!args || args[0] !== "gh") {
@@ -515,7 +525,13 @@ function githubBodySource(command) {
                 return null;
             }
             if (type === "boolean") {
-                helpRequested = helpRequested || flag === "--help";
+                const value = equalIndex < 0 ? true : parsePflagBoolean(option.slice(equalIndex + 1));
+                if (value === null) {
+                    return null;
+                }
+                if (flag === "--help") {
+                    helpRequested = value;
+                }
                 continue;
             }
 
@@ -536,12 +552,21 @@ function githubBodySource(command) {
             }
             const attached = shorthand.slice(1);
             if (type === "boolean") {
-                helpRequested = helpRequested || flag === "-h";
                 if (attached.startsWith("=")) {
                     if (attached.length === 1) {
                         return null;
                     }
+                    const value = parsePflagBoolean(attached.slice(1));
+                    if (value === null) {
+                        return null;
+                    }
+                    if (flag === "-h") {
+                        helpRequested = value;
+                    }
                     break;
+                }
+                if (flag === "-h") {
+                    helpRequested = true;
                 }
                 shorthand = attached;
                 continue;

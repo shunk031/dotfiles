@@ -85,6 +85,18 @@ run_github_body_hook() {
     [[ "${reason}" == *"Length: 201 codepoints; limit: 200"* ]]
 }
 
+@test "blocks an overlong gh pr create body passed with attached -b value" {
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    command="gh pr create -b'${long_sentence}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+}
+
 @test "blocks overlong gh body files through --body-file and -F" {
     local body_file="${BATS_TEST_TMPDIR}/github-body.md"
     local long_sentence command
@@ -99,6 +111,26 @@ run_github_body_hook() {
         [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
         [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
     done
+}
+
+@test "blocks an overlong gh issue comment body passed with attached -F path" {
+    local body_file="${BATS_TEST_TMPDIR}/github-body.md"
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    printf '%s\n' "${long_sentence}" > "${body_file}"
+    command="gh issue comment 42 -F'${body_file}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+}
+
+@test "fails open for gh issue comment with attached -F- stdin body" {
+    run_github_body_hook "gh issue comment 42 -F-"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
 }
 
 @test "allows a passing GitHub body" {

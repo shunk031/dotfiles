@@ -460,13 +460,21 @@ function githubBodySource(command) {
         }
 
         const equalIndex = option.indexOf("=");
-        const flag = equalIndex < 0 ? option : option.slice(0, equalIndex);
+        let flag = equalIndex < 0 ? option : option.slice(0, equalIndex);
+        if (!bodyFlags.has(flag) && equalIndex < 0) {
+            flag = ["-b", "-F"].find((shortFlag) => option.startsWith(shortFlag));
+        }
         const type = bodyFlags.get(flag);
         if (!type) {
             continue;
         }
 
-        const value = equalIndex < 0 ? args[++index] : option.slice(equalIndex + 1);
+        const value =
+            equalIndex >= 0
+                ? option.slice(equalIndex + 1)
+                : flag === option
+                  ? args[++index]
+                  : option.slice(flag.length);
         if (value === undefined || source !== null) {
             return null;
         }

@@ -154,6 +154,14 @@ EOF
     [ "${actual}" = "${expected}" ]
 }
 
+@test "[common] Claude settings modifier preserves runtime permission mode and overrides managed rules" {
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"permissions":{"defaultMode":"acceptEdits","allow":["Bash(git:*)"],"deny":["Bash(echo:*)"]}}'
+    [ "${status}" -eq 0 ]
+
+    run jq -e '.permissions.defaultMode == "acceptEdits" and .permissions.allow == ["Bash(git:*)"] and .permissions.deny == ["Bash(sudo:*)", "Bash(rm -rf:*)", "Read(.env.*)", "Read(id_rsa*)", "Read(id_ed25519*)", "Edit(.env*)"]' <<< "${output}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] Claude sentence-length hooks fail open when Node.js is unavailable" {
     local empty_bin="${BATS_TEST_TMPDIR}/empty-bin"
     local rendered hook_command command_count

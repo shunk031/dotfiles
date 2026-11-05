@@ -30,8 +30,7 @@
       "Read(id_rsa*)",
       "Read(id_ed25519*)",
       "Edit(.env*)"
-    ],
-    "defaultMode": "bypassPermissions"
+    ]
   },
   "skipDangerousModePermissionPrompt": true,
   "hooks": {

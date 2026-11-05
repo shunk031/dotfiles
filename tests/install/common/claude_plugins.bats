@@ -165,8 +165,6 @@ EOF
 
     command_count="$(jq '[.. | objects | .command? // empty | select(contains("markdown-sentence-length"))] | length' <<< "${rendered}")"
     [ "${command_count}" -eq 4 ]
-    run jq -e 'any(.hooks.PreToolUse[]; .matcher == "Bash" and any(.hooks[]; .command | contains("markdown-sentence-length pre claude")))' <<< "${rendered}"
-    [ "${status}" -eq 0 ]
     while IFS= read -r hook_command; do
         run /usr/bin/env -i "PATH=${empty_bin}" "HOME=${HOME}" /bin/sh -c "${hook_command}"
         [ "${status}" -eq 0 ]

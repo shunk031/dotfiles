@@ -62,6 +62,183 @@ run_stop_hook() {
     run --separate-stderr "${HOOK}" stop codex <<< "${payload}"
 }
 
+run_github_body_hook() {
+    local command="$1"
+    local client="${2:-claude}"
+    local payload
+
+    payload="$(jq -cn --arg command "${command}" --arg cwd "${BATS_TEST_TMPDIR}" '{hook_event_name: "PreToolUse", tool_name: "Bash", tool_use_id: "test-tool-use", cwd: $cwd, tool_input: {command: $command}}')"
+    run --separate-stderr "${HOOK}" pre "${client}" <<< "${payload}"
+}
+
+@test "blocks an overlong gh pr create --body before Bash runs" {
+    local long_sentence command reason
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    command="gh pr create --body '${long_sentence}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    reason="$(jq -r '.reason' <<< "${output}")"
+    [[ "${reason}" == "The edited Markdown contains 1 sentence(s) over the limit."* ]]
+    [[ "${reason}" == *"Length: 201 codepoints; limit: 200"* ]]
+}
+
+@test "blocks attached -b values containing equals signs like pflag" {
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(199) + "=.")')"
+
+    for command in "gh pr create -b'${long_sentence}'" "gh pr create -b='${long_sentence}'"; do
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+        [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+    done
+}
+
+@test "does not treat a title value beginning with a body shorthand as a body" {
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    command="gh pr create -t '-b${long_sentence}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "blocks overlong gh body files through --body-file and -F" {
+    local body_file="${BATS_TEST_TMPDIR}/github=body.md"
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    printf '%s\n' "${long_sentence}" > "${body_file}"
+
+    for option in --body-file -F; do
+        command="gh issue comment 42 ${option} '${body_file}'"
+        run_github_body_hook "${command}" codex
+        [ "${status}" -eq 0 ]
+        [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+        [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+    done
+}
+
+@test "blocks an overlong gh issue comment body passed with attached -F path containing equals" {
+    local body_file="${BATS_TEST_TMPDIR}/github=body.md"
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    printf '%s\n' "${long_sentence}" > "${body_file}"
+    command="gh issue comment 42 -F'${body_file}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+}
+
+@test "blocks an overlong gh pr create body passed in a short flag cluster" {
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    command="gh pr create -db'${long_sentence}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+}
+
+@test "fails open for unclassified gh options and options after --" {
+    local long_sentence
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    run_github_body_hook "gh pr create --unknown value --body '${long_sentence}'"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+
+    run_github_body_hook "gh pr create -- '-b${long_sentence}'"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "honors parsed help boolean values before linting GitHub bodies" {
+    local long_sentence option command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+
+    for option in --help=false -h=false; do
+        command="gh pr create ${option} --body '${long_sentence}'"
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+        [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+    done
+
+    for option in --help=true -h=true --help -h; do
+        command="gh pr create ${option} --body '${long_sentence}'"
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ -z "${output}" ]
+    done
+}
+
+@test "fails open for gh issue comment with attached -F- stdin body" {
+    run_github_body_hook "gh issue comment 42 -F-"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "allows a passing GitHub body" {
+    local sentence command
+
+    sentence="$(node -e 'process.stdout.write("x".repeat(199) + ".")')"
+    command="gh pr edit 42 --body '${sentence}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "does not expand a tilde after equals in a GitHub body argument" {
+    local home="${BATS_TEST_TMPDIR}/home-directory-that-would-expand" sentence command
+
+    mkdir -p "${home}"
+    sentence="~/$(node -e 'process.stdout.write("x".repeat(190) + ".")')"
+    [ "${#sentence}" -eq 193 ]
+    command="gh pr create --body=${sentence}"
+
+    HOME="${home}" run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "allows a non-gh Bash command unchanged" {
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    command="printf '%s\\n' '${long_sentence}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "fails open when the gh body command needs shell expansion" {
+    local body_file="${BATS_TEST_TMPDIR}/github-body.md"
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    printf '%s\n' "${long_sentence}" > "${body_file}"
+    command="gh issue create --body \"\$(cat ${body_file})\""
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
 @test "Claude hook commands fail open when Node.js is unavailable" {
     local empty_bin="${BATS_TEST_TMPDIR}/empty-bin"
     local settings="${BATS_TEST_DIRNAME}/../../../home/private_dot_config/claude/settings.json"

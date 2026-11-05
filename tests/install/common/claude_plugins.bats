@@ -150,7 +150,7 @@ EOF
 
     local actual expected
     actual="$(jq -S . <<< "${output}")"
-    expected="$(jq -S . "${CLAUDE_SETTINGS_PATH}")"
+    expected="$(jq --arg command 'command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length pre claude' '.hooks.PreToolUse |= map(if .matcher == "Bash" then .hooks += [{"type":"command","command":$command,"timeout":120}] else . end)' "${CLAUDE_SETTINGS_PATH}" | jq -S .)"
     [ "${actual}" = "${expected}" ]
 }
 
@@ -164,7 +164,7 @@ EOF
     rendered="${output}"
 
     command_count="$(jq '[.. | objects | .command? // empty | select(contains("markdown-sentence-length"))] | length' <<< "${rendered}")"
-    [ "${command_count}" -eq 3 ]
+    [ "${command_count}" -eq 4 ]
     while IFS= read -r hook_command; do
         run /usr/bin/env -i "PATH=${empty_bin}" "HOME=${HOME}" /bin/sh -c "${hook_command}"
         [ "${status}" -eq 0 ]

@@ -345,6 +345,163 @@ async function checkRecords(event, client, requestedPaths = null) {
     return changedViolations(records, await lintTexts(records));
 }
 
+// shortcut: variable expansions, compound commands, and stdin body files fail open; extend when real gh invocations need it.
+function parseSimpleShellCommand(command) {
+    const args = [];
+    let argument = "";
+    let active = false;
+    let quote = null;
+
+    for (let index = 0; index < command.length; index += 1) {
+        const character = command[index];
+        if (quote === "single") {
+            if (character === "'") {
+                quote = null;
+            } else {
+                argument += character;
+            }
+            continue;
+        }
+        if (quote === "double") {
+            if (character === '"') {
+                quote = null;
+            } else if (character === "\\") {
+                const next = command[index + 1];
+                if (next === undefined || next === "\n") {
+                    return null;
+                }
+                if (["$", "`", '"', "\\"].includes(next)) {
+                    argument += next;
+                } else {
+                    argument += `\\${next}`;
+                }
+                index += 1;
+                active = true;
+            } else if (character === "$" || character === "`") {
+                return null;
+            } else {
+                argument += character;
+                active = true;
+            }
+            continue;
+        }
+
+        if (character === " " || character === "\t") {
+            if (active) {
+                args.push(argument);
+                argument = "";
+                active = false;
+            }
+        } else if (character === "\n" || character === "\r") {
+            return null;
+        } else if (character === "'") {
+            quote = "single";
+            active = true;
+        } else if (character === '"') {
+            quote = "double";
+            active = true;
+        } else if (character === "\\") {
+            const next = command[index + 1];
+            if (next === undefined || next === "\n") {
+                return null;
+            }
+            argument += next;
+            index += 1;
+            active = true;
+        } else if (character === "~" && (!active || argument.endsWith("="))) {
+            const next = command[index + 1];
+            if (next !== undefined && next !== "/" && !/\s/u.test(next)) {
+                return null;
+            }
+            argument += process.env.HOME || os.homedir();
+            active = true;
+        } else if (/[;&|<>()\[\]{}*?!$`]/u.test(character) || (character === "#" && !active)) {
+            return null;
+        } else {
+            argument += character;
+            active = true;
+        }
+    }
+
+    if (quote !== null) {
+        return null;
+    }
+    if (active) {
+        args.push(argument);
+    }
+    return args;
+}
+
+function githubBodySource(command) {
+    const args = parseSimpleShellCommand(command);
+    if (!args || args[0] !== "gh") {
+        return null;
+    }
+
+    const [kind, subcommand] = args.slice(1, 3);
+    if (
+        !((kind === "pr" && ["create", "edit"].includes(subcommand)) ||
+          (kind === "issue" && ["create", "edit", "comment"].includes(subcommand)))
+    ) {
+        return null;
+    }
+
+    const bodyFlags = new Map([
+        ["--body", "body"],
+        ["-b", "body"],
+        ["--body-file", "file"],
+        ["-F", "file"],
+    ]);
+    let source = null;
+    for (let index = 3; index < args.length; index += 1) {
+        const option = args[index];
+        if (option === "--") {
+            break;
+        }
+
+        const equalIndex = option.indexOf("=");
+        const flag = equalIndex < 0 ? option : option.slice(0, equalIndex);
+        const type = bodyFlags.get(flag);
+        if (!type) {
+            continue;
+        }
+
+        const value = equalIndex < 0 ? args[++index] : option.slice(equalIndex + 1);
+        if (value === undefined || source !== null) {
+            return null;
+        }
+        source = { type, value };
+    }
+
+    return source ? { ...source, kind } : null;
+}
+
+async function checkGithubBody(event) {
+    const input = event.tool_input || {};
+    if (event.tool_name !== "Bash" || typeof input.command !== "string") {
+        return [];
+    }
+
+    const source = githubBodySource(input.command);
+    if (!source) {
+        return [];
+    }
+
+    let content = source.value;
+    let filePath = `GitHub ${source.kind} body`;
+    if (source.type === "file") {
+        if (!content || content === "-") {
+            return [];
+        }
+        const cwd = path.resolve(event.cwd || process.cwd());
+        filePath = path.resolve(cwd, content);
+        content = await fs.readFile(filePath, "utf8");
+    }
+
+    const records = [{ filePath, baseline: "", current: content }];
+    return changedViolations(records, await lintTexts(records));
+}
+
 async function removeSession(event, client) {
     await fs.rm(sessionDirectory(event, client), { recursive: true, force: true });
 }
@@ -362,6 +519,13 @@ async function main() {
     }
 
     if (action === "pre") {
+        if (event.tool_name === "Bash") {
+            const violations = await checkGithubBody(event);
+            if (violations.length > 0) {
+                block(formatReason(violations));
+            }
+            return;
+        }
         await captureBefore(event, client);
         return;
     }

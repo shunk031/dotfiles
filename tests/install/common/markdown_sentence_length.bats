@@ -21,11 +21,13 @@ codex_event() {
 
 codex_stop_event() {
     local session_id="$1"
+    local stop_hook_active="${2:-false}"
 
     jq -cn \
         --arg session_id "${session_id}" \
         --arg cwd "${BATS_TEST_TMPDIR}" \
-        '{hook_event_name: "Stop", session_id: $session_id, cwd: $cwd, stop_hook_active: false}'
+        --argjson stop_hook_active "${stop_hook_active}" \
+        '{hook_event_name: "Stop", session_id: $session_id, cwd: $cwd, stop_hook_active: $stop_hook_active}'
 }
 
 capture_baseline() {
@@ -34,9 +36,12 @@ capture_baseline() {
     local payload
 
     payload="$(codex_event PreToolUse "${session_id}" "${file_path}")"
-    run "${HOOK}" pre codex <<< "${payload}"
+    run --separate-stderr "${HOOK}" pre codex <<< "${payload}"
     [ "${status}" -eq 0 ]
-    [ -z "${output}" ]
+    if [ -n "${output}" ]; then
+        printf 'Unexpected baseline stdout: %s\nStderr: %s\n' "${output}" "${stderr}" >&2
+        return 1
+    fi
 }
 
 run_post_hook() {
@@ -45,15 +50,111 @@ run_post_hook() {
     local payload
 
     payload="$(codex_event PostToolUse "${session_id}" "${file_path}")"
-    run "${HOOK}" post codex <<< "${payload}"
+    run --separate-stderr "${HOOK}" post codex <<< "${payload}"
 }
 
 run_stop_hook() {
     local session_id="$1"
+    local stop_hook_active="${2:-false}"
     local payload
 
-    payload="$(codex_stop_event "${session_id}")"
-    run "${HOOK}" stop codex <<< "${payload}"
+    payload="$(codex_stop_event "${session_id}" "${stop_hook_active}")"
+    run --separate-stderr "${HOOK}" stop codex <<< "${payload}"
+}
+
+@test "Claude hook commands fail open when Node.js is unavailable" {
+    local empty_bin="${BATS_TEST_TMPDIR}/empty-bin"
+    local settings="${BATS_TEST_DIRNAME}/../../../home/private_dot_config/claude/settings.json"
+    local hook_command command_count
+
+    mkdir -p "${empty_bin}"
+    command_count="$(jq '[.. | objects | .command? // empty | select(contains("markdown-sentence-length"))] | length' "${settings}")"
+    [ "${command_count}" -eq 3 ]
+    while IFS= read -r hook_command; do
+        run /usr/bin/env -i "PATH=${empty_bin}" "HOME=${HOME}" /bin/sh -c "${hook_command}"
+        [ "${status}" -eq 0 ]
+        [ -z "${output}" ]
+    done < <(jq -r '.. | objects | .command? // empty | select(contains("markdown-sentence-length"))' "${settings}")
+}
+
+@test "fails open when textlint cannot run" {
+    local file_path="${BATS_TEST_TMPDIR}/textlint-failure.md"
+    local session_id="textlint-failure"
+    local fake_bin="${BATS_TEST_TMPDIR}/fake-bin"
+
+    printf 'Short sentence.\n' > "${file_path}"
+    capture_baseline "${session_id}" "${file_path}"
+    node -e 'process.stdout.write("x".repeat(200) + ".\n")' > "${file_path}"
+    mkdir -p "${fake_bin}"
+    cat > "${fake_bin}/npm" << 'EOF'
+#!/bin/sh
+exit 2
+EOF
+    chmod +x "${fake_bin}/npm"
+    PATH="${fake_bin}:${PATH}"
+    export PATH
+
+    run_post_hook "${session_id}" "${file_path}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "fails open when textlint reports a contradictory sentence length" {
+    local file_path="${BATS_TEST_TMPDIR}/contradictory-report.md"
+    local session_id="contradictory-report"
+    local fake_bin="${BATS_TEST_TMPDIR}/fake-bin"
+    local marker="${BATS_TEST_TMPDIR}/contradictory-npm-called"
+
+    printf 'Short sentence.\n' > "${file_path}"
+    capture_baseline "${session_id}" "${file_path}"
+    node -e 'process.stdout.write("x".repeat(200) + ".\n")' > "${file_path}"
+    mkdir -p "${fake_bin}"
+    cat > "${fake_bin}/npm" << 'EOF'
+#!/bin/sh
+for arg do
+    case "${arg}" in
+        *-current.md) current_file="${arg}" ;;
+    esac
+done
+[ -n "${current_file}" ] || exit 2
+jq -cn --arg file "${current_file}" '[{filePath: $file, messages: [{ruleId: "sentence-length", message: "sentence length(999)", range: [0, 1], line: 1}]}]' || exit
+: > "${CONTRADICTORY_NPM_MARKER}"
+EOF
+    chmod +x "${fake_bin}/npm"
+    export CONTRADICTORY_NPM_MARKER="${marker}"
+    PATH="${fake_bin}:${PATH}"
+    export PATH
+
+    run_post_hook "${session_id}" "${file_path}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+    [ -e "${marker}" ]
+}
+
+@test "does not repeat a Stop block when stop_hook_active is true" {
+    local file_path="${BATS_TEST_TMPDIR}/active-stop.md"
+    local session_id="active-stop"
+    local fake_bin="${BATS_TEST_TMPDIR}/fake-bin"
+    local marker="${BATS_TEST_TMPDIR}/npm-called"
+
+    printf 'Short sentence.\n' > "${file_path}"
+    capture_baseline "${session_id}" "${file_path}"
+    node -e 'process.stdout.write("x".repeat(200) + ".\n")' > "${file_path}"
+    mkdir -p "${fake_bin}"
+    cat > "${fake_bin}/npm" << 'EOF'
+#!/bin/sh
+printf called > "${STOP_HOOK_NPM_MARKER}"
+exit 2
+EOF
+    chmod +x "${fake_bin}/npm"
+    export STOP_HOOK_NPM_MARKER="${marker}"
+    PATH="${fake_bin}:${PATH}"
+    export PATH
+
+    run_stop_hook "${session_id}" true
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+    [ ! -e "${marker}" ]
 }
 
 @test "blocks a newly edited long sentence through PostToolUse and Stop" {

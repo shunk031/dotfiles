@@ -228,14 +228,21 @@ async function lintTexts(records) {
                 if (message.ruleId !== RULE) {
                     throw new Error(message.message || "textlint reported an unexpected error");
                 }
-                const length = message.message.match(/sentence length\((\d+)\)/i);
-                if (!length || !Array.isArray(message.range) || message.range.length !== 2) {
-                    throw new Error("textlint sentence-length output did not include length and range");
+                const range = message.range;
+                if (
+                    !Array.isArray(range) ||
+                    range.length !== 2 ||
+                    !range.every(Number.isInteger) ||
+                    range[0] < 0 ||
+                    range[0] >= range[1] ||
+                    range[1] > source.content.length
+                ) {
+                    throw new Error("textlint sentence-length output did not include a valid range");
                 }
-                const sentence = source.content.slice(message.range[0], message.range[1]).trim();
+                const sentence = source.content.slice(range[0], range[1]).trim();
                 diagnostics[source.index][source.kind].push({
                     line: message.line || 1,
-                    length: Number(length[1]),
+                    length: [...sentence].length,
                     sentence,
                 });
             }
@@ -349,6 +356,11 @@ async function main() {
     }
 
     const event = JSON.parse(fsSync.readFileSync(0, "utf8") || "{}");
+    if (action === "stop" && event.stop_hook_active === true) {
+        await removeSession(event, client);
+        return;
+    }
+
     if (action === "pre") {
         await captureBefore(event, client);
         return;
@@ -374,6 +386,4 @@ async function main() {
     }
 }
 
-main().catch((error) => {
-    block(`The Markdown sentence-length hook could not complete. Do not finish this edit until it can check the file. ${error.message}`);
-});
+main().catch(() => {});

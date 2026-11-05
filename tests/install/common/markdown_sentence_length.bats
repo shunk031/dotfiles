@@ -99,6 +99,38 @@ EOF
     [ -z "${output}" ]
 }
 
+@test "fails open when textlint reports a contradictory sentence length" {
+    local file_path="${BATS_TEST_TMPDIR}/contradictory-report.md"
+    local session_id="contradictory-report"
+    local fake_bin="${BATS_TEST_TMPDIR}/fake-bin"
+    local marker="${BATS_TEST_TMPDIR}/contradictory-npm-called"
+
+    printf 'Short sentence.\n' > "${file_path}"
+    capture_baseline "${session_id}" "${file_path}"
+    node -e 'process.stdout.write("x".repeat(200) + ".\n")' > "${file_path}"
+    mkdir -p "${fake_bin}"
+    cat > "${fake_bin}/npm" << 'EOF'
+#!/bin/sh
+for arg do
+    case "${arg}" in
+        *-current.md) current_file="${arg}" ;;
+    esac
+done
+[ -n "${current_file}" ] || exit 2
+jq -cn --arg file "${current_file}" '[{filePath: $file, messages: [{ruleId: "sentence-length", message: "sentence length(999)", range: [0, 1], line: 1}]}]' || exit
+: > "${CONTRADICTORY_NPM_MARKER}"
+EOF
+    chmod +x "${fake_bin}/npm"
+    export CONTRADICTORY_NPM_MARKER="${marker}"
+    PATH="${fake_bin}:${PATH}"
+    export PATH
+
+    run_post_hook "${session_id}" "${file_path}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+    [ -e "${marker}" ]
+}
+
 @test "does not repeat a Stop block when stop_hook_active is true" {
     local file_path="${BATS_TEST_TMPDIR}/active-stop.md"
     local session_id="active-stop"

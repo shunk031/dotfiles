@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.local/bin/common/markdown-sentence-length pre claude",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length pre claude",
             "timeout": 120
           }
         ]
@@ -74,7 +74,7 @@
           },
           {
             "type": "command",
-            "command": "~/.local/bin/common/markdown-sentence-length post claude",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length post claude",
             "timeout": 120
           }
         ]
@@ -85,7 +85,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.local/bin/common/markdown-sentence-length stop claude",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length stop claude",
             "timeout": 120
           }
         ]

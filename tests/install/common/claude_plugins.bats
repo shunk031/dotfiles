@@ -154,6 +154,24 @@ EOF
     [ "${actual}" = "${expected}" ]
 }
 
+@test "[common] Claude sentence-length hooks fail open when Node.js is unavailable" {
+    local empty_bin="${BATS_TEST_TMPDIR}/empty-bin"
+    local rendered hook_command command_count
+
+    mkdir -p "${empty_bin}"
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < "${CLAUDE_SETTINGS_PATH}"
+    [ "${status}" -eq 0 ]
+    rendered="${output}"
+
+    command_count="$(jq '[.. | objects | .command? // empty | select(contains("markdown-sentence-length"))] | length' <<< "${rendered}")"
+    [ "${command_count}" -eq 3 ]
+    while IFS= read -r hook_command; do
+        run /usr/bin/env -i "PATH=${empty_bin}" "HOME=${HOME}" /bin/sh -c "${hook_command}"
+        [ "${status}" -eq 0 ]
+        [ -z "${output}" ]
+    done < <(jq -r '.. | objects | .command? // empty | select(contains("markdown-sentence-length"))' <<< "${rendered}")
+}
+
 @test "[common] Claude settings modifier preserves user state and overrides managed keys" {
     run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"model":"sonnet","runtimeOnly":{"enabled":true},"env":{"USER_VALUE":"keep"},"alwaysThinkingEnabled":false}'
     [ "${status}" -eq 0 ]

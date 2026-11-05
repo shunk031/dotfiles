@@ -36,9 +36,12 @@ capture_baseline() {
     local payload
 
     payload="$(codex_event PreToolUse "${session_id}" "${file_path}")"
-    run "${HOOK}" pre codex <<< "${payload}"
+    run --separate-stderr "${HOOK}" pre codex <<< "${payload}"
     [ "${status}" -eq 0 ]
-    [ -z "${output}" ]
+    if [ -n "${output}" ]; then
+        printf 'Unexpected baseline stdout: %s\nStderr: %s\n' "${output}" "${stderr}" >&2
+        return 1
+    fi
 }
 
 run_post_hook() {
@@ -47,7 +50,7 @@ run_post_hook() {
     local payload
 
     payload="$(codex_event PostToolUse "${session_id}" "${file_path}")"
-    run "${HOOK}" post codex <<< "${payload}"
+    run --separate-stderr "${HOOK}" post codex <<< "${payload}"
 }
 
 run_stop_hook() {
@@ -56,16 +59,22 @@ run_stop_hook() {
     local payload
 
     payload="$(codex_stop_event "${session_id}" "${stop_hook_active}")"
-    run "${HOOK}" stop codex <<< "${payload}"
+    run --separate-stderr "${HOOK}" stop codex <<< "${payload}"
 }
 
-@test "fails open when Node.js is unavailable" {
+@test "Claude hook commands fail open when Node.js is unavailable" {
     local empty_bin="${BATS_TEST_TMPDIR}/empty-bin"
+    local settings="${BATS_TEST_DIRNAME}/../../../home/private_dot_config/claude/settings.json"
+    local hook_command command_count
 
     mkdir -p "${empty_bin}"
-    run /usr/bin/env -i "PATH=${empty_bin}" "${HOOK}" stop codex <<< '{}'
-    [ "${status}" -eq 0 ]
-    [ -z "${output}" ]
+    command_count="$(jq '[.. | objects | .command? // empty | select(contains("markdown-sentence-length"))] | length' "${settings}")"
+    [ "${command_count}" -eq 3 ]
+    while IFS= read -r hook_command; do
+        run /usr/bin/env -i "PATH=${empty_bin}" "HOME=${HOME}" /bin/sh -c "${hook_command}"
+        [ "${status}" -eq 0 ]
+        [ -z "${output}" ]
+    done < <(jq -r '.. | objects | .command? // empty | select(contains("markdown-sentence-length"))' "${settings}")
 }
 
 @test "fails open when textlint cannot run" {

@@ -3,8 +3,8 @@
 # @file markdown-sentence-length
 # @brief Run the Markdown sentence-length hook and fail open on runtime errors.
 
-command -v node >/dev/null 2>&1 || exit 0
+command -v node > /dev/null 2>&1 || exit 0
 
 script="${0%/*}/markdown-sentence-length.js"
 [ -f "$script" ] || exit 0
-node "$script" "$@" 2>/dev/null || exit 0
+node "$script" "$@" 2> /dev/null || exit 0

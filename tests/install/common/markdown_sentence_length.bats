@@ -77,7 +77,7 @@ run_stop_hook() {
     capture_baseline "${session_id}" "${file_path}"
     node -e 'process.stdout.write("x".repeat(200) + ".\n")' > "${file_path}"
     mkdir -p "${fake_bin}"
-    cat > "${fake_bin}/npm" <<'EOF'
+    cat > "${fake_bin}/npm" << 'EOF'
 #!/bin/sh
 exit 2
 EOF
@@ -100,7 +100,7 @@ EOF
     capture_baseline "${session_id}" "${file_path}"
     node -e 'process.stdout.write("x".repeat(200) + ".\n")' > "${file_path}"
     mkdir -p "${fake_bin}"
-    cat > "${fake_bin}/npm" <<'EOF'
+    cat > "${fake_bin}/npm" << 'EOF'
 #!/bin/sh
 printf called > "${STOP_HOOK_NPM_MARKER}"
 exit 2

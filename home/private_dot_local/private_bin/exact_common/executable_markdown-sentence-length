@@ -345,7 +345,7 @@ async function checkRecords(event, client, requestedPaths = null) {
     return changedViolations(records, await lintTexts(records));
 }
 
-// shortcut: variable expansions, compound commands, and stdin body files fail open; extend when real gh invocations need it.
+// shortcut: shell expansions, compound commands, stdin body files, and unclassified gh flags fail open; extend when real gh invocations need it.
 function parseSimpleShellCommand(command) {
     const args = [];
     let argument = "";
@@ -432,6 +432,41 @@ function parseSimpleShellCommand(command) {
     return args;
 }
 
+const githubCommonFlags = new Map([
+    ["--body", "body"],
+    ["-b", "body"],
+    ["--body-file", "file"],
+    ["-F", "file"],
+    ["--attach", "value"],
+    ["--repo", "value"],
+    ["-R", "value"],
+    ["--help", "boolean"],
+    ["-h", "boolean"],
+]);
+
+const githubCommandFlags = {
+    "pr create": {
+        value: "--title -t --base -B --head -H --reviewer -r --assignee -a --label -l --project -p --milestone -m --recover --template -T",
+        boolean: "--draft -d --editor -e --web -w --fill-verbose --fill -f --fill-first --no-maintainer-edit --dry-run",
+    },
+    "pr edit": {
+        value: "--title -t --base -B --add-reviewer --remove-reviewer --add-assignee --remove-assignee --add-label --remove-label --add-project --remove-project --milestone -m",
+        boolean: "--remove-milestone",
+    },
+    "issue create": {
+        value: "--title -t --assignee -a --label -l --project -p --milestone -m --recover --template -T --type --parent --blocked-by --blocking",
+        boolean: "--editor -e --web -w",
+    },
+    "issue edit": {
+        value: "--title -t --add-assignee --remove-assignee --add-label --remove-label --add-project --remove-project --milestone -m --type --parent --add-sub-issue --remove-sub-issue --add-blocked-by --remove-blocked-by --add-blocking --remove-blocking",
+        boolean: "--remove-milestone --remove-type --remove-parent",
+    },
+    "issue comment": {
+        value: "",
+        boolean: "--editor -e --web -w --edit-last --delete-last --yes --create-if-none",
+    },
+};
+
 function githubBodySource(command) {
     const args = parseSimpleShellCommand(command);
     if (!args || args[0] !== "gh") {
@@ -439,48 +474,95 @@ function githubBodySource(command) {
     }
 
     const [kind, subcommand] = args.slice(1, 3);
-    if (
-        !((kind === "pr" && ["create", "edit"].includes(subcommand)) ||
-          (kind === "issue" && ["create", "edit", "comment"].includes(subcommand)))
-    ) {
+    const commandFlags = githubCommandFlags[`${kind} ${subcommand}`];
+    if (!commandFlags) {
         return null;
     }
 
-    const bodyFlags = new Map([
-        ["--body", "body"],
-        ["-b", "body"],
-        ["--body-file", "file"],
-        ["-F", "file"],
-    ]);
-    let source = null;
+    const flags = new Map(githubCommonFlags);
+    for (const flag of commandFlags.value.split(/\s+/u).filter(Boolean)) {
+        flags.set(flag, "value");
+    }
+    for (const flag of commandFlags.boolean.split(/\s+/u).filter(Boolean)) {
+        flags.set(flag, "boolean");
+    }
+
+    let body;
+    let bodyFile;
+    let helpRequested = false;
+    const setValue = (type, value) => {
+        if (type === "body") {
+            body = value;
+        } else if (type === "file") {
+            bodyFile = value;
+        }
+    };
+
     for (let index = 3; index < args.length; index += 1) {
         const option = args[index];
         if (option === "--") {
             break;
         }
-
-        const equalIndex = option.indexOf("=");
-        let flag = equalIndex < 0 ? option : option.slice(0, equalIndex);
-        if (!bodyFlags.has(flag) && equalIndex < 0) {
-            flag = ["-b", "-F"].find((shortFlag) => option.startsWith(shortFlag));
-        }
-        const type = bodyFlags.get(flag);
-        if (!type) {
+        if (!option.startsWith("-") || option === "-") {
             continue;
         }
 
-        const value =
-            equalIndex >= 0
-                ? option.slice(equalIndex + 1)
-                : flag === option
-                  ? args[++index]
-                  : option.slice(flag.length);
-        if (value === undefined || source !== null) {
-            return null;
+        if (option.startsWith("--")) {
+            const equalIndex = option.indexOf("=");
+            const flag = equalIndex < 0 ? option : option.slice(0, equalIndex);
+            const type = flags.get(flag);
+            if (!type) {
+                return null;
+            }
+            if (type === "boolean") {
+                helpRequested = helpRequested || flag === "--help";
+                continue;
+            }
+
+            const value = equalIndex < 0 ? args[++index] : option.slice(equalIndex + 1);
+            if (value === undefined) {
+                return null;
+            }
+            setValue(type, value);
+            continue;
         }
-        source = { type, value };
+
+        let shorthand = option.slice(1);
+        while (shorthand) {
+            const flag = `-${shorthand[0]}`;
+            const type = flags.get(flag);
+            if (!type) {
+                return null;
+            }
+            const attached = shorthand.slice(1);
+            if (type === "boolean") {
+                helpRequested = helpRequested || flag === "-h";
+                if (attached.startsWith("=")) {
+                    if (attached.length === 1) {
+                        return null;
+                    }
+                    break;
+                }
+                shorthand = attached;
+                continue;
+            }
+
+            const value =
+                attached.startsWith("=") && attached.length > 1
+                    ? attached.slice(1)
+                    : attached || args[++index];
+            if (value === undefined) {
+                return null;
+            }
+            setValue(type, value);
+            break;
+        }
     }
 
+    if (helpRequested) {
+        return null;
+    }
+    const source = bodyFile ? { type: "file", value: bodyFile } : body === undefined ? null : { type: "body", value: body };
     return source ? { ...source, kind } : null;
 }
 

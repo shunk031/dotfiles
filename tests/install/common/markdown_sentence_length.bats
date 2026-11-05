@@ -85,20 +85,32 @@ run_github_body_hook() {
     [[ "${reason}" == *"Length: 201 codepoints; limit: 200"* ]]
 }
 
-@test "blocks an overlong gh pr create body passed with attached -b value" {
+@test "blocks attached -b values containing equals signs like pflag" {
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(199) + "=.")')"
+
+    for command in "gh pr create -b'${long_sentence}'" "gh pr create -b='${long_sentence}'"; do
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+        [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+    done
+}
+
+@test "does not treat a title value beginning with a body shorthand as a body" {
     local long_sentence command
 
     long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
-    command="gh pr create -b'${long_sentence}'"
+    command="gh pr create -t '-b${long_sentence}'"
 
     run_github_body_hook "${command}"
     [ "${status}" -eq 0 ]
-    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
-    [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+    [ -z "${output}" ]
 }
 
 @test "blocks overlong gh body files through --body-file and -F" {
-    local body_file="${BATS_TEST_TMPDIR}/github-body.md"
+    local body_file="${BATS_TEST_TMPDIR}/github=body.md"
     local long_sentence command
 
     long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
@@ -113,8 +125,8 @@ run_github_body_hook() {
     done
 }
 
-@test "blocks an overlong gh issue comment body passed with attached -F path" {
-    local body_file="${BATS_TEST_TMPDIR}/github-body.md"
+@test "blocks an overlong gh issue comment body passed with attached -F path containing equals" {
+    local body_file="${BATS_TEST_TMPDIR}/github=body.md"
     local long_sentence command
 
     long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
@@ -125,6 +137,31 @@ run_github_body_hook() {
     [ "${status}" -eq 0 ]
     [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
     [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+}
+
+@test "blocks an overlong gh pr create body passed in a short flag cluster" {
+    local long_sentence command
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    command="gh pr create -db'${long_sentence}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
+}
+
+@test "fails open for unclassified gh options and options after --" {
+    local long_sentence
+
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    run_github_body_hook "gh pr create --unknown value --body '${long_sentence}'"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+
+    run_github_body_hook "gh pr create -- '-b${long_sentence}'"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
 }
 
 @test "fails open for gh issue comment with attached -F- stdin body" {

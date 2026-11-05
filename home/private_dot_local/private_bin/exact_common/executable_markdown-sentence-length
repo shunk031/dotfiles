@@ -408,7 +408,7 @@ function parseSimpleShellCommand(command) {
             argument += next;
             index += 1;
             active = true;
-        } else if (character === "~" && (!active || argument.endsWith("="))) {
+        } else if (character === "~" && !active) {
             const next = command[index + 1];
             if (next !== undefined && next !== "/" && !/\s/u.test(next)) {
                 return null;

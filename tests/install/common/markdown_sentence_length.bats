@@ -112,6 +112,19 @@ run_github_body_hook() {
     [ -z "${output}" ]
 }
 
+@test "does not expand a tilde after equals in a GitHub body argument" {
+    local home="${BATS_TEST_TMPDIR}/home-directory-that-would-expand" sentence command
+
+    mkdir -p "${home}"
+    sentence="~/$(node -e 'process.stdout.write("x".repeat(190) + ".")')"
+    [ "${#sentence}" -eq 193 ]
+    command="gh pr create --body=${sentence}"
+
+    HOME="${home}" run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
 @test "allows a non-gh Bash command unchanged" {
     local long_sentence command
 

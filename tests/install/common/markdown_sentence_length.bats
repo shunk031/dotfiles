@@ -21,11 +21,13 @@ codex_event() {
 
 codex_stop_event() {
     local session_id="$1"
+    local stop_hook_active="${2:-false}"
 
     jq -cn \
         --arg session_id "${session_id}" \
         --arg cwd "${BATS_TEST_TMPDIR}" \
-        '{hook_event_name: "Stop", session_id: $session_id, cwd: $cwd, stop_hook_active: false}'
+        --argjson stop_hook_active "${stop_hook_active}" \
+        '{hook_event_name: "Stop", session_id: $session_id, cwd: $cwd, stop_hook_active: $stop_hook_active}'
 }
 
 capture_baseline() {
@@ -50,10 +52,68 @@ run_post_hook() {
 
 run_stop_hook() {
     local session_id="$1"
+    local stop_hook_active="${2:-false}"
     local payload
 
-    payload="$(codex_stop_event "${session_id}")"
+    payload="$(codex_stop_event "${session_id}" "${stop_hook_active}")"
     run "${HOOK}" stop codex <<< "${payload}"
+}
+
+@test "fails open when Node.js is unavailable" {
+    local empty_bin="${BATS_TEST_TMPDIR}/empty-bin"
+
+    mkdir -p "${empty_bin}"
+    run /usr/bin/env -i "PATH=${empty_bin}" "${HOOK}" stop codex <<< '{}'
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "fails open when textlint cannot run" {
+    local file_path="${BATS_TEST_TMPDIR}/textlint-failure.md"
+    local session_id="textlint-failure"
+    local fake_bin="${BATS_TEST_TMPDIR}/fake-bin"
+
+    printf 'Short sentence.\n' > "${file_path}"
+    capture_baseline "${session_id}" "${file_path}"
+    node -e 'process.stdout.write("x".repeat(200) + ".\n")' > "${file_path}"
+    mkdir -p "${fake_bin}"
+    cat > "${fake_bin}/npm" <<'EOF'
+#!/bin/sh
+exit 2
+EOF
+    chmod +x "${fake_bin}/npm"
+    PATH="${fake_bin}:${PATH}"
+    export PATH
+
+    run_post_hook "${session_id}" "${file_path}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "does not repeat a Stop block when stop_hook_active is true" {
+    local file_path="${BATS_TEST_TMPDIR}/active-stop.md"
+    local session_id="active-stop"
+    local fake_bin="${BATS_TEST_TMPDIR}/fake-bin"
+    local marker="${BATS_TEST_TMPDIR}/npm-called"
+
+    printf 'Short sentence.\n' > "${file_path}"
+    capture_baseline "${session_id}" "${file_path}"
+    node -e 'process.stdout.write("x".repeat(200) + ".\n")' > "${file_path}"
+    mkdir -p "${fake_bin}"
+    cat > "${fake_bin}/npm" <<'EOF'
+#!/bin/sh
+printf called > "${STOP_HOOK_NPM_MARKER}"
+exit 2
+EOF
+    chmod +x "${fake_bin}/npm"
+    export STOP_HOOK_NPM_MARKER="${marker}"
+    PATH="${fake_bin}:${PATH}"
+    export PATH
+
+    run_stop_hook "${session_id}" true
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+    [ ! -e "${marker}" ]
 }
 
 @test "blocks a newly edited long sentence through PostToolUse and Stop" {

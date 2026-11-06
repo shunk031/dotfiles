@@ -14,7 +14,137 @@ const path = require("node:path");
 const DISCOVERY_LIMIT = 100;
 const JAPANESE_LIMIT = 100;
 const OTHER_LIMIT = 200;
+const GITHUB_BODY_BLOCK_LIMIT = 600;
 const RULE = "sentence-length";
+const BODY_RULE = "github-body-paragraph-length";
+const BODY_RULE_SOURCE = String.raw`module.exports = (context) => {
+    const ignored = new Set(["Code", "CodeBlock", "Html", "Table"]);
+    const urlPattern = /(?:[a-z][a-z\d+.-]*:\/\/|mailto:|www\.)[^\s<>()]+/giu;
+
+    function prose(node, rootListItem) {
+        if (ignored.has(node.type) || (node.type === "ListItem" && node !== rootListItem)) {
+            return "";
+        }
+        if (node.type === "Str") return node.value.replace(urlPattern, " ");
+        return (node.children || [])
+            .map((child) => prose(child, rootListItem))
+            .join(node.type === "ListItem" ? " " : "");
+    }
+
+    function report(node, continuations = []) {
+        const text = [
+            prose(node, node.type === "ListItem" ? node : null),
+            ...continuations.map((paragraph) => prose(paragraph, null)),
+        ]
+            .join(" ")
+            .replace(/\s+/gu, " ")
+            .trim();
+        const length = [...text].length;
+        if (length <= __LIMIT__) return;
+        context.report(
+            node,
+            new context.RuleError(
+                JSON.stringify({
+                    length,
+                    preview: [...text].slice(0, 80).join("") + (length > 80 ? "…" : ""),
+                }),
+            ),
+        );
+    }
+
+    return {
+        [context.Syntax.DocumentExit](document) {
+            const continuations = new Map();
+            const skip = new Set();
+            function findLazy(parent) {
+                const children = parent.children || [];
+                for (let index = 0; index < children.length; index += 1) {
+                    const list = children[index];
+                    if (list.type === "List") {
+                        const item = (list.children || [])
+                            .filter((child) => child.type === "ListItem")
+                            .pop();
+                        if (item?.children?.at(-1)?.type === "Paragraph") {
+                            let endLine = list.loc?.end?.line;
+                            for (
+                                let next = index + 1;
+                                item && next < children.length;
+                                next += 1
+                            ) {
+                                const paragraph = children[next];
+                                if (
+                                    paragraph.type !== "Paragraph" ||
+                                    paragraph.loc?.start?.line !== endLine + 1
+                                ) break;
+                                const items = continuations.get(item) || [];
+                                items.push(paragraph);
+                                continuations.set(item, items);
+                                skip.add(paragraph);
+                                endLine = paragraph.loc.end.line;
+                            }
+                        }
+                    }
+                    findLazy(list);
+                }
+            }
+            function visit(node, insideListItem = false) {
+                if (node.type === "ListItem") report(node, continuations.get(node) || []);
+                else if (node.type === "Paragraph" && !insideListItem && !skip.has(node)) report(node);
+                for (const child of node.children || []) {
+                    visit(child, insideListItem || node.type === "ListItem");
+                }
+            }
+            findLazy(document);
+            visit(document);
+        },
+    };
+};`;
+
+const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
+    const fs = require("node:fs/promises");
+    const fsSync = require("node:fs");
+    const path = require("node:path");
+    const modulesDir = process.env.PATH.split(path.delimiter)
+        .map((entry) => path.resolve(entry, ".."))
+        .find((entry) => fsSync.existsSync(path.join(entry, "textlint", "package.json")));
+    if (!modulesDir) throw new Error("could not locate textlint packages");
+    const packageRequire = require("node:module").createRequire(
+        path.join(modulesDir, "textlint", "package.json"),
+    );
+    const { createLinter, loadTextlintrc } = packageRequire("textlint");
+    const { TextlintKernelDescriptor } = packageRequire("@textlint/kernel");
+    const [configPath, bodyRulePath, ...inputFiles] = process.argv.slice(1);
+    let descriptor = await loadTextlintrc({
+        configFilePath: configPath,
+        node_modulesDir: modulesDir,
+    });
+    if (bodyRulePath) {
+        descriptor = descriptor.concat(
+            new TextlintKernelDescriptor({
+                rules: [
+                    {
+                        ruleId: "${BODY_RULE}",
+                        rule: require(bodyRulePath),
+                        options: true,
+                    },
+                ],
+                filterRules: [],
+                plugins: [],
+            }),
+        );
+    }
+    const linter = createLinter({ descriptor });
+    const reports = await Promise.all(
+        inputFiles.map(async (filePath) =>
+            linter.lintText(await fs.readFile(filePath, "utf8"), filePath),
+        ),
+    );
+    process.stdout.write(JSON.stringify(reports));
+})().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});`;
+
 const TEXTLINT_PACKAGES = [
     "textlint@15.8.0",
     "textlint-rule-sentence-length@3.0.1",
@@ -143,7 +273,7 @@ async function recordsForPaths(event, client, requestedPaths = null) {
     return records;
 }
 
-async function lintTexts(records) {
+async function lintTexts(records, includeGithubBody = false) {
     if (records.length === 0) {
         return records.map(() => ({ baseline: [], current: [] }));
     }
@@ -151,14 +281,19 @@ async function lintTexts(records) {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "markdown-sentence-length-"));
     try {
         const configPath = path.join(directory, ".textlintrc.json");
+        const bodyRulePath = path.join(directory, `${BODY_RULE}.js`);
+        const rules = {
+            [RULE]: { max: DISCOVERY_LIMIT, countBy: "codepoints" },
+        };
+        if (includeGithubBody) {
+            await fs.writeFile(
+                bodyRulePath,
+                BODY_RULE_SOURCE.replace("__LIMIT__", GITHUB_BODY_BLOCK_LIMIT),
+            );
+        }
         await fs.writeFile(
             configPath,
-            JSON.stringify({
-                rules: {
-                    [RULE]: { max: DISCOVERY_LIMIT, countBy: "codepoints" },
-                },
-                filters: { comments: true },
-            }),
+            JSON.stringify({ rules, filters: { comments: true } }),
         );
 
         const inputFiles = [];
@@ -177,21 +312,21 @@ async function lintTexts(records) {
         const npmCache =
             process.env.NPM_CONFIG_CACHE ||
             path.join(process.env.TMPDIR || os.tmpdir(), "codex-npm-cache");
+        const args = [
+            "exec",
+            "--yes",
+            ...TEXTLINT_PACKAGES.map((name) => `--package=${name}`),
+            "--",
+            "node",
+            "-e",
+            TEXTLINT_API_RUNNER_SOURCE,
+            configPath,
+            includeGithubBody ? bodyRulePath : "",
+            ...inputFiles,
+        ];
         const result = spawnSync(
             "npm",
-            [
-                "exec",
-                "--yes",
-                ...TEXTLINT_PACKAGES.map((name) => `--package=${name}`),
-                "--",
-                "textlint",
-                "--config",
-                configPath,
-                "--format",
-                "json",
-                "--no-color",
-                ...inputFiles,
-            ],
+            args,
             {
                 cwd: directory,
                 encoding: "utf8",
@@ -202,7 +337,7 @@ async function lintTexts(records) {
         if (result.error) {
             throw result.error;
         }
-        if (result.status !== 0 && result.status !== 1) {
+        if (result.status !== 0) {
             throw new Error(
                 `textlint exited with status ${result.status}: ${(result.stderr || "").trim()}`,
             );
@@ -218,13 +353,30 @@ async function lintTexts(records) {
             throw new Error("textlint returned an unexpected JSON report");
         }
 
-        const diagnostics = records.map(() => ({ baseline: [], current: [] }));
+        const diagnostics = records.map(() => ({ baseline: [], current: [], blocks: [] }));
         for (const report of reports) {
             const source = sources.get(path.resolve(report.filePath));
             if (!source) {
                 throw new Error(`textlint reported an unknown file: ${report.filePath}`);
             }
             for (const message of report.messages || []) {
+                if (message.ruleId === BODY_RULE) {
+                    const diagnostic = JSON.parse(message.message);
+                    if (
+                        !Number.isInteger(diagnostic.length) ||
+                        diagnostic.length <= GITHUB_BODY_BLOCK_LIMIT ||
+                        typeof diagnostic.preview !== "string"
+                    ) {
+                        throw new Error("textlint body-length output was invalid");
+                    }
+                    diagnostics[source.index].blocks.push({
+                        kind: "paragraph",
+                        preview: diagnostic.preview,
+                        length: diagnostic.length,
+                        limit: GITHUB_BODY_BLOCK_LIMIT,
+                    });
+                    continue;
+                }
                 if (message.ruleId !== RULE) {
                     throw new Error(message.message || "textlint reported an unexpected error");
                 }
@@ -314,6 +466,47 @@ function formatReason(violations) {
         remaining +
         "\nIf a definition or quotation must stay long, wrap only that text with blank lines around `<!-- textlint-disable sentence-length -->` and `<!-- textlint-enable sentence-length -->`."
     );
+}
+
+function formatGithubBodyReason(violations) {
+    const sentences = violations.filter((item) => item.kind !== "paragraph");
+    const paragraphs = violations.filter((item) => item.kind === "paragraph");
+    const reason = [];
+    if (sentences.length > 0) {
+        reason.push(formatReason(sentences));
+    }
+    if (paragraphs.length > 0) {
+        reason.push(
+            "The edited GitHub body contains " +
+                paragraphs.length +
+                " paragraph(s) or list item(s) over the 600-codepoint limit.",
+        );
+        reason.push(
+            paragraphs
+                .slice(0, 5)
+                .map(
+                    (item) =>
+                        "- File: GitHub body\n" +
+                        "  Paragraph/list item: " +
+                        item.preview +
+                        "\n" +
+                        "  Length: " +
+                        item.length +
+                        " codepoints; limit: " +
+                        item.limit +
+                        "\n" +
+                        "  Fix: split the paragraph or list item.",
+                )
+                .join("\n"),
+        );
+        if (paragraphs.length > 5) {
+            reason.push(
+                (paragraphs.length - 5) +
+                    " more paragraph(s) or list item(s) remain; split these first and the hook will report the rest.",
+            );
+        }
+    }
+    return reason.join("\n");
 }
 
 function block(reason) {
@@ -614,7 +807,11 @@ async function checkGithubBody(event) {
     }
 
     const records = [{ filePath, baseline: "", current: content }];
-    return changedViolations(records, await lintTexts(records));
+    const diagnostics = await lintTexts(records, true);
+    return [
+        ...changedViolations(records, diagnostics),
+        ...diagnostics[0].blocks,
+    ];
 }
 
 async function removeSession(event, client) {
@@ -637,7 +834,7 @@ async function main() {
         if (event.tool_name === "Bash") {
             const violations = await checkGithubBody(event);
             if (violations.length > 0) {
-                block(formatReason(violations));
+                block(formatGithubBodyReason(violations));
             }
             return;
         }

@@ -287,6 +287,47 @@ run_github_body_hook() {
     [ -z "${output}" ]
 }
 
+@test "allows a 301-codepoint paragraph after a 301-codepoint heading" {
+    local heading paragraph body command
+
+    heading="$(node -e 'process.stdout.write(("h".repeat(98) + ". ").repeat(3) + "h")')"
+    paragraph="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(3) + "p")')"
+    body="# ${heading}
+${paragraph}"
+    command="gh pr create --body '${body}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "allows a long GitHub HTML comment" {
+    local comment command
+
+    comment="$(node -e 'process.stdout.write("c".repeat(700))')"
+    command="gh issue create --body '<!-- ${comment} -->'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "counts a lazy continuation as part of its GitHub list item" {
+    local first continuation body command
+
+    first="$(node -e 'process.stdout.write(("l".repeat(98) + ". ").repeat(3) + "l")')"
+    continuation="$(node -e 'process.stdout.write(("c".repeat(98) + ". ").repeat(3) + "c")')"
+    body="- ${first}
+${continuation}"
+    command="gh issue create --body '${body}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "${output}" == *"Length: 603 codepoints; limit: 600"* ]]
+    [[ "${output}" == *"Fix: split the paragraph or list item."* ]]
+}
+
 @test "does not apply the GitHub paragraph limit to Markdown edits" {
     local file_path="${BATS_TEST_TMPDIR}/long-markdown-paragraph.md"
     local session_id="long-markdown-paragraph"

@@ -16,6 +16,84 @@ const JAPANESE_LIMIT = 100;
 const OTHER_LIMIT = 200;
 const GITHUB_BODY_BLOCK_LIMIT = 600;
 const RULE = "sentence-length";
+const BODY_RULE = "github-body-paragraph-length";
+const BODY_RULE_SOURCE = String.raw`module.exports = (context) => {
+    const ignored = new Set(["Code", "CodeBlock", "Html", "Table"]);
+    const urlPattern = /(?:[a-z][a-z\d+.-]*:\/\/|mailto:|www\.)[^\s<>()]+/giu;
+
+    function prose(node, rootListItem) {
+        if (ignored.has(node.type) || (node.type === "ListItem" && node !== rootListItem)) {
+            return "";
+        }
+        if (node.type === "Str") return node.value.replace(urlPattern, " ");
+        return (node.children || [])
+            .map((child) => prose(child, rootListItem))
+            .join(node.type === "ListItem" ? " " : "");
+    }
+
+    function report(node, continuations = []) {
+        const text = [
+            prose(node, node.type === "ListItem" ? node : null),
+            ...continuations.map((paragraph) => prose(paragraph, null)),
+        ]
+            .join(" ")
+            .replace(/\s+/gu, " ")
+            .trim();
+        const length = [...text].length;
+        if (length <= __LIMIT__) return;
+        context.report(
+            node,
+            new context.RuleError(
+                JSON.stringify({
+                    length,
+                    preview: [...text].slice(0, 80).join("") + (length > 80 ? "…" : ""),
+                }),
+            ),
+        );
+    }
+
+    return {
+        [context.Syntax.DocumentExit](document) {
+            const continuations = new Map();
+            const skip = new Set();
+            function findLazy(parent) {
+                const children = parent.children || [];
+                for (let index = 0; index < children.length; index += 1) {
+                    const list = children[index];
+                    if (list.type === "List") {
+                        const item = (list.children || [])
+                            .filter((child) => child.type === "ListItem")
+                            .pop();
+                        let endLine = list.loc?.end?.line;
+                        for (let next = index + 1; item && next < children.length; next += 1) {
+                            const paragraph = children[next];
+                            if (
+                                paragraph.type !== "Paragraph" ||
+                                paragraph.loc?.start?.line !== endLine + 1
+                            ) break;
+                            const items = continuations.get(item) || [];
+                            items.push(paragraph);
+                            continuations.set(item, items);
+                            skip.add(paragraph);
+                            endLine = paragraph.loc.end.line;
+                        }
+                    }
+                    findLazy(list);
+                }
+            }
+            function visit(node, insideListItem = false) {
+                if (node.type === "ListItem") report(node, continuations.get(node) || []);
+                else if (node.type === "Paragraph" && !insideListItem && !skip.has(node)) report(node);
+                for (const child of node.children || []) {
+                    visit(child, insideListItem || node.type === "ListItem");
+                }
+            }
+            findLazy(document);
+            visit(document);
+        },
+    };
+};`;
+
 const TEXTLINT_PACKAGES = [
     "textlint@15.8.0",
     "textlint-rule-sentence-length@3.0.1",
@@ -144,7 +222,7 @@ async function recordsForPaths(event, client, requestedPaths = null) {
     return records;
 }
 
-async function lintTexts(records) {
+async function lintTexts(records, includeGithubBody = false) {
     if (records.length === 0) {
         return records.map(() => ({ baseline: [], current: [] }));
     }
@@ -152,14 +230,19 @@ async function lintTexts(records) {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "markdown-sentence-length-"));
     try {
         const configPath = path.join(directory, ".textlintrc.json");
+        const rules = {
+            [RULE]: { max: DISCOVERY_LIMIT, countBy: "codepoints" },
+        };
+        if (includeGithubBody) {
+            rules[BODY_RULE] = true;
+            await fs.writeFile(
+                path.join(directory, `${BODY_RULE}.js`),
+                BODY_RULE_SOURCE.replace("__LIMIT__", GITHUB_BODY_BLOCK_LIMIT),
+            );
+        }
         await fs.writeFile(
             configPath,
-            JSON.stringify({
-                rules: {
-                    [RULE]: { max: DISCOVERY_LIMIT, countBy: "codepoints" },
-                },
-                filters: { comments: true },
-            }),
+            JSON.stringify({ rules, filters: { comments: true } }),
         );
 
         const inputFiles = [];
@@ -178,21 +261,23 @@ async function lintTexts(records) {
         const npmCache =
             process.env.NPM_CONFIG_CACHE ||
             path.join(process.env.TMPDIR || os.tmpdir(), "codex-npm-cache");
+        const args = [
+            "exec",
+            "--yes",
+            ...TEXTLINT_PACKAGES.map((name) => `--package=${name}`),
+            "--",
+            "textlint",
+            "--config",
+            configPath,
+            ...(includeGithubBody ? ["--rulesdir", directory] : []),
+            "--format",
+            "json",
+            "--no-color",
+            ...inputFiles,
+        ];
         const result = spawnSync(
             "npm",
-            [
-                "exec",
-                "--yes",
-                ...TEXTLINT_PACKAGES.map((name) => `--package=${name}`),
-                "--",
-                "textlint",
-                "--config",
-                configPath,
-                "--format",
-                "json",
-                "--no-color",
-                ...inputFiles,
-            ],
+            args,
             {
                 cwd: directory,
                 encoding: "utf8",
@@ -219,13 +304,30 @@ async function lintTexts(records) {
             throw new Error("textlint returned an unexpected JSON report");
         }
 
-        const diagnostics = records.map(() => ({ baseline: [], current: [] }));
+        const diagnostics = records.map(() => ({ baseline: [], current: [], blocks: [] }));
         for (const report of reports) {
             const source = sources.get(path.resolve(report.filePath));
             if (!source) {
                 throw new Error(`textlint reported an unknown file: ${report.filePath}`);
             }
             for (const message of report.messages || []) {
+                if (message.ruleId === BODY_RULE) {
+                    const diagnostic = JSON.parse(message.message);
+                    if (
+                        !Number.isInteger(diagnostic.length) ||
+                        diagnostic.length <= GITHUB_BODY_BLOCK_LIMIT ||
+                        typeof diagnostic.preview !== "string"
+                    ) {
+                        throw new Error("textlint body-length output was invalid");
+                    }
+                    diagnostics[source.index].blocks.push({
+                        kind: "paragraph",
+                        preview: diagnostic.preview,
+                        length: diagnostic.length,
+                        limit: GITHUB_BODY_BLOCK_LIMIT,
+                    });
+                    continue;
+                }
                 if (message.ruleId !== RULE) {
                     throw new Error(message.message || "textlint reported an unexpected error");
                 }
@@ -292,195 +394,6 @@ function changedViolations(records, diagnostics) {
             }
         }
     });
-    return violations;
-}
-
-function withoutFencedCode(content) {
-    const result = [];
-    let fence = null;
-    for (const line of content.split(/\r?\n/u)) {
-        const marker = line.match(/^ {0,3}(\x60{3,}|~{3,})(.*)$/u);
-        if (fence) {
-            if (
-                marker &&
-                marker[1][0] === fence.character &&
-                marker[1].length >= fence.length &&
-                marker[2].trim() === ""
-            ) {
-                fence = null;
-            }
-            result.push("");
-        } else if (marker) {
-            fence = { character: marker[1][0], length: marker[1].length };
-            result.push("");
-        } else {
-            result.push(line);
-        }
-    }
-    return result;
-}
-
-function stripInlineCode(text) {
-    const tick = String.fromCharCode(96);
-    let result = "";
-    let cursor = 0;
-    while (cursor < text.length) {
-        const opening = text.indexOf(tick, cursor);
-        if (opening < 0) {
-            result += text.slice(cursor);
-            break;
-        }
-        result += text.slice(cursor, opening);
-        let openingEnd = opening + 1;
-        while (text[openingEnd] === tick) {
-            openingEnd += 1;
-        }
-        const delimiterLength = openingEnd - opening;
-        let closing = -1;
-        for (let index = openingEnd; index < text.length; ) {
-            if (text[index] !== tick) {
-                index += 1;
-                continue;
-            }
-            let runEnd = index + 1;
-            while (text[runEnd] === tick) {
-                runEnd += 1;
-            }
-            if (runEnd - index === delimiterLength) {
-                closing = runEnd;
-                break;
-            }
-            index = runEnd;
-        }
-        if (closing < 0) {
-            result += text.slice(opening, openingEnd);
-            cursor = openingEnd;
-        } else {
-            result += " ";
-            cursor = closing;
-        }
-    }
-    return result;
-}
-
-function isListItem(line) {
-    return line.match(/^(\s*)(?:[-+*]|\d+[.)])\s+(.*)$/u);
-}
-
-function isMarkdownTableSeparator(line) {
-    if (!line.includes("|")) {
-        return false;
-    }
-    const cells = line.trim().replace(/^\|/u, "").replace(/\|$/u, "").split("|");
-    return cells.every((cell) => /^:?-{3,}:?$/u.test(cell.trim()));
-}
-
-function stripMarkdownTables(lines) {
-    const result = [...lines];
-    for (let index = 1; index < lines.length; index += 1) {
-        if (!isMarkdownTableSeparator(lines[index]) || !lines[index - 1].includes("|")) {
-            continue;
-        }
-        result[index - 1] = "";
-        result[index] = "";
-        let end = index + 1;
-        while (end < lines.length && lines[end].includes("|")) {
-            result[end] = "";
-            end += 1;
-        }
-        index = end - 1;
-    }
-    return result;
-}
-
-function githubProseText(text) {
-    return text
-        .replace(/!?\[([^\]]*)\]\([^)]*\)/gu, "$1")
-        .replace(
-            /<(?:[a-z][a-z\d+.-]*:\/\/|mailto:)[^>\s]+>|(?:[a-z][a-z\d+.-]*:\/\/|mailto:|www\.)[^\s<>()]+/giu,
-            "",
-        )
-        .replace(/\s+/gu, " ")
-        .trim();
-}
-
-function githubBodyBlockViolations(content) {
-    const withoutCode = stripInlineCode(withoutFencedCode(content).join("\n"));
-    const withoutHtmlTables = withoutCode.replace(
-        /<table\b[^>]*>[\s\S]*?<\/table\s*>/giu,
-        "\n\n",
-    );
-    const lines = stripMarkdownTables(withoutHtmlTables.split(/\r?\n/u));
-    const violations = [];
-    let paragraphLines = [];
-    const addBlock = (text) => {
-        const prose = githubProseText(text);
-        const length = [...prose].length;
-        if (length > GITHUB_BODY_BLOCK_LIMIT) {
-            violations.push({
-                kind: "paragraph",
-                preview:
-                    [...prose].slice(0, 80).join("") +
-                    (length > 80 ? "…" : ""),
-                length,
-                limit: GITHUB_BODY_BLOCK_LIMIT,
-            });
-        }
-    };
-    const flushParagraph = () => {
-        if (paragraphLines.length > 0) {
-            addBlock(paragraphLines.join(" "));
-            paragraphLines = [];
-        }
-    };
-
-    for (let index = 0; index < lines.length; ) {
-        const line = lines[index];
-        if (!line.trim()) {
-            flushParagraph();
-            index += 1;
-            continue;
-        }
-
-        const item = isListItem(line);
-        if (!item) {
-            paragraphLines.push(line.trim());
-            index += 1;
-            continue;
-        }
-
-        flushParagraph();
-        const itemIndent = item[1].length;
-        const itemLines = [item[2]];
-        let end = index + 1;
-        while (end < lines.length) {
-            const next = lines[end];
-            if (!next.trim()) {
-                let continuation = end + 1;
-                while (continuation < lines.length && !lines[continuation].trim()) {
-                    continuation += 1;
-                }
-                if (
-                    continuation < lines.length &&
-                    !isListItem(lines[continuation]) &&
-                    lines[continuation].match(/^\s*/u)[0].length > itemIndent
-                ) {
-                    itemLines.push("");
-                    end = continuation;
-                    continue;
-                }
-                break;
-            }
-            if (isListItem(next) || next.match(/^\s*/u)[0].length <= itemIndent) {
-                break;
-            }
-            itemLines.push(next.trim());
-            end += 1;
-        }
-        addBlock(itemLines.join(" "));
-        index = end;
-    }
-    flushParagraph();
     return violations;
 }
 
@@ -845,9 +758,10 @@ async function checkGithubBody(event) {
     }
 
     const records = [{ filePath, baseline: "", current: content }];
+    const diagnostics = await lintTexts(records, true);
     return [
-        ...changedViolations(records, await lintTexts(records)),
-        ...githubBodyBlockViolations(content),
+        ...changedViolations(records, diagnostics),
+        ...diagnostics[0].blocks,
     ];
 }
 

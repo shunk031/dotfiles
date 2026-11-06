@@ -4,6 +4,7 @@
   "dependencyDashboard": true,
   "labels": ["dependencies"],
   "branchPrefix": "renovate/",
+  "rebaseWhen": "behind-base-branch",
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
   "mise": {

@@ -202,6 +202,106 @@ run_github_body_hook() {
     [ -z "${output}" ]
 }
 
+@test "blocks a GitHub prose paragraph over 600 codepoints" {
+    local paragraph command reason prefix
+
+    paragraph="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(6) + "😀")')"
+    command="gh pr create --body '${paragraph}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    reason="$(jq -r '.reason' <<< "${output}")"
+    prefix="$(printf '%s' "${paragraph}" | cut -c1-20)"
+    [[ "${reason}" == *"Paragraph/list item: ${prefix}"* ]]
+    [[ "${reason}" == *"Length: 601 codepoints; limit: 600"* ]]
+    [[ "${reason}" == *"Fix: split the paragraph or list item."* ]]
+}
+
+@test "allows a long GitHub list item when URLs and inline code make it long" {
+    local prose inline_code url_item code_item item command
+
+    prose="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(5) + "p".repeat(89) + ".")')"
+    inline_code="$(node -e 'process.stdout.write(String.fromCharCode(96) + "c".repeat(20) + String.fromCharCode(96))')"
+    url_item="- ${prose} https://example.com/a-long-url"
+    code_item="- ${prose} ${inline_code}"
+
+    for item in "${url_item}" "${code_item}"; do
+        command="gh issue create --body '${item}'"
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ -z "${output}" ]
+    done
+}
+
+@test "excludes fenced code from GitHub paragraph length" {
+    local prose code body_file command
+
+    prose="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(5) + "p".repeat(89) + ".")')"
+    code="$(node -e 'process.stdout.write("c".repeat(50))')"
+    body_file="$BATS_TEST_TMPDIR/long-fenced-code.md"
+    {
+        printf '%s\n' "$prose"
+        printf '\140\140\140text\n'
+        printf '%s\n' "$code"
+        printf '\140\140\140\n'
+    } > "$body_file"
+    command="gh issue create --body-file '$body_file'"
+
+    run_github_body_hook "$command"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "allows long HTML and Markdown tables in GitHub bodies" {
+    local cell html_table body_file command
+
+    cell="$(node -e 'process.stdout.write("t".repeat(140) + ".")')"
+    html_table="<table><tr><td>${cell}</td><td>${cell}</td><td>${cell}</td><td>${cell}</td><td>${cell}</td></tr></table>"
+    command="gh issue create --body '${html_table}'"
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+
+    body_file="${BATS_TEST_TMPDIR}/long-markdown-table.md"
+    {
+        printf '| value |\n| --- |\n'
+        for _ in 1 2 3 4 5; do
+            printf '| %s |\n' "${cell}"
+        done
+    } > "${body_file}"
+    command="gh issue create --body-file '${body_file}'"
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "allows a GitHub prose paragraph of 599 codepoints" {
+    local paragraph command
+
+    paragraph="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(5) + "p".repeat(99))')"
+    command="gh issue edit 42 --body '${paragraph}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "does not apply the GitHub paragraph limit to Markdown edits" {
+    local file_path="${BATS_TEST_TMPDIR}/long-markdown-paragraph.md"
+    local session_id="long-markdown-paragraph"
+    local paragraph
+
+    printf 'Short sentence.\n' > "${file_path}"
+    capture_baseline "${session_id}" "${file_path}"
+    paragraph="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(6) + "😀")')"
+    printf '%s\n' "${paragraph}" > "${file_path}"
+
+    run_post_hook "${session_id}" "${file_path}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
 @test "does not expand a tilde after equals in a GitHub body argument" {
     local home="${BATS_TEST_TMPDIR}/home-directory-that-would-expand" sentence command
 

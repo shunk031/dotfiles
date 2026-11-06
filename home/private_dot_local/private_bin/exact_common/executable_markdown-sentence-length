@@ -14,6 +14,7 @@ const path = require("node:path");
 const DISCOVERY_LIMIT = 100;
 const JAPANESE_LIMIT = 100;
 const OTHER_LIMIT = 200;
+const GITHUB_BODY_BLOCK_LIMIT = 600;
 const RULE = "sentence-length";
 const TEXTLINT_PACKAGES = [
     "textlint@15.8.0",
@@ -294,6 +295,195 @@ function changedViolations(records, diagnostics) {
     return violations;
 }
 
+function withoutFencedCode(content) {
+    const result = [];
+    let fence = null;
+    for (const line of content.split(/\r?\n/u)) {
+        const marker = line.match(/^ {0,3}(\x60{3,}|~{3,})(.*)$/u);
+        if (fence) {
+            if (
+                marker &&
+                marker[1][0] === fence.character &&
+                marker[1].length >= fence.length &&
+                marker[2].trim() === ""
+            ) {
+                fence = null;
+            }
+            result.push("");
+        } else if (marker) {
+            fence = { character: marker[1][0], length: marker[1].length };
+            result.push("");
+        } else {
+            result.push(line);
+        }
+    }
+    return result;
+}
+
+function stripInlineCode(text) {
+    const tick = String.fromCharCode(96);
+    let result = "";
+    let cursor = 0;
+    while (cursor < text.length) {
+        const opening = text.indexOf(tick, cursor);
+        if (opening < 0) {
+            result += text.slice(cursor);
+            break;
+        }
+        result += text.slice(cursor, opening);
+        let openingEnd = opening + 1;
+        while (text[openingEnd] === tick) {
+            openingEnd += 1;
+        }
+        const delimiterLength = openingEnd - opening;
+        let closing = -1;
+        for (let index = openingEnd; index < text.length; ) {
+            if (text[index] !== tick) {
+                index += 1;
+                continue;
+            }
+            let runEnd = index + 1;
+            while (text[runEnd] === tick) {
+                runEnd += 1;
+            }
+            if (runEnd - index === delimiterLength) {
+                closing = runEnd;
+                break;
+            }
+            index = runEnd;
+        }
+        if (closing < 0) {
+            result += text.slice(opening, openingEnd);
+            cursor = openingEnd;
+        } else {
+            result += " ";
+            cursor = closing;
+        }
+    }
+    return result;
+}
+
+function isListItem(line) {
+    return line.match(/^(\s*)(?:[-+*]|\d+[.)])\s+(.*)$/u);
+}
+
+function isMarkdownTableSeparator(line) {
+    if (!line.includes("|")) {
+        return false;
+    }
+    const cells = line.trim().replace(/^\|/u, "").replace(/\|$/u, "").split("|");
+    return cells.every((cell) => /^:?-{3,}:?$/u.test(cell.trim()));
+}
+
+function stripMarkdownTables(lines) {
+    const result = [...lines];
+    for (let index = 1; index < lines.length; index += 1) {
+        if (!isMarkdownTableSeparator(lines[index]) || !lines[index - 1].includes("|")) {
+            continue;
+        }
+        result[index - 1] = "";
+        result[index] = "";
+        let end = index + 1;
+        while (end < lines.length && lines[end].includes("|")) {
+            result[end] = "";
+            end += 1;
+        }
+        index = end - 1;
+    }
+    return result;
+}
+
+function githubProseText(text) {
+    return text
+        .replace(/!?\[([^\]]*)\]\([^)]*\)/gu, "$1")
+        .replace(
+            /<(?:[a-z][a-z\d+.-]*:\/\/|mailto:)[^>\s]+>|(?:[a-z][a-z\d+.-]*:\/\/|mailto:|www\.)[^\s<>()]+/giu,
+            "",
+        )
+        .replace(/\s+/gu, " ")
+        .trim();
+}
+
+function githubBodyBlockViolations(content) {
+    const withoutCode = stripInlineCode(withoutFencedCode(content).join("\n"));
+    const withoutHtmlTables = withoutCode.replace(
+        /<table\b[^>]*>[\s\S]*?<\/table\s*>/giu,
+        "\n\n",
+    );
+    const lines = stripMarkdownTables(withoutHtmlTables.split(/\r?\n/u));
+    const violations = [];
+    let paragraphLines = [];
+    const addBlock = (text) => {
+        const prose = githubProseText(text);
+        const length = [...prose].length;
+        if (length > GITHUB_BODY_BLOCK_LIMIT) {
+            violations.push({
+                kind: "paragraph",
+                preview:
+                    [...prose].slice(0, 80).join("") +
+                    (length > 80 ? "…" : ""),
+                length,
+                limit: GITHUB_BODY_BLOCK_LIMIT,
+            });
+        }
+    };
+    const flushParagraph = () => {
+        if (paragraphLines.length > 0) {
+            addBlock(paragraphLines.join(" "));
+            paragraphLines = [];
+        }
+    };
+
+    for (let index = 0; index < lines.length; ) {
+        const line = lines[index];
+        if (!line.trim()) {
+            flushParagraph();
+            index += 1;
+            continue;
+        }
+
+        const item = isListItem(line);
+        if (!item) {
+            paragraphLines.push(line.trim());
+            index += 1;
+            continue;
+        }
+
+        flushParagraph();
+        const itemIndent = item[1].length;
+        const itemLines = [item[2]];
+        let end = index + 1;
+        while (end < lines.length) {
+            const next = lines[end];
+            if (!next.trim()) {
+                let continuation = end + 1;
+                while (continuation < lines.length && !lines[continuation].trim()) {
+                    continuation += 1;
+                }
+                if (
+                    continuation < lines.length &&
+                    !isListItem(lines[continuation]) &&
+                    lines[continuation].match(/^\s*/u)[0].length > itemIndent
+                ) {
+                    itemLines.push("");
+                    end = continuation;
+                    continue;
+                }
+                break;
+            }
+            if (isListItem(next) || next.match(/^\s*/u)[0].length <= itemIndent) {
+                break;
+            }
+            itemLines.push(next.trim());
+            end += 1;
+        }
+        addBlock(itemLines.join(" "));
+        index = end;
+    }
+    flushParagraph();
+    return violations;
+}
+
 function formatReason(violations) {
     const shown = violations.slice(0, 5);
     const items = shown.map(
@@ -314,6 +504,47 @@ function formatReason(violations) {
         remaining +
         "\nIf a definition or quotation must stay long, wrap only that text with blank lines around `<!-- textlint-disable sentence-length -->` and `<!-- textlint-enable sentence-length -->`."
     );
+}
+
+function formatGithubBodyReason(violations) {
+    const sentences = violations.filter((item) => item.kind !== "paragraph");
+    const paragraphs = violations.filter((item) => item.kind === "paragraph");
+    const reason = [];
+    if (sentences.length > 0) {
+        reason.push(formatReason(sentences));
+    }
+    if (paragraphs.length > 0) {
+        reason.push(
+            "The edited GitHub body contains " +
+                paragraphs.length +
+                " paragraph(s) or list item(s) over the 600-codepoint limit.",
+        );
+        reason.push(
+            paragraphs
+                .slice(0, 5)
+                .map(
+                    (item) =>
+                        "- File: GitHub body\n" +
+                        "  Paragraph/list item: " +
+                        item.preview +
+                        "\n" +
+                        "  Length: " +
+                        item.length +
+                        " codepoints; limit: " +
+                        item.limit +
+                        "\n" +
+                        "  Fix: split the paragraph or list item.",
+                )
+                .join("\n"),
+        );
+        if (paragraphs.length > 5) {
+            reason.push(
+                (paragraphs.length - 5) +
+                    " more paragraph(s) or list item(s) remain; split these first and the hook will report the rest.",
+            );
+        }
+    }
+    return reason.join("\n");
 }
 
 function block(reason) {
@@ -614,7 +845,10 @@ async function checkGithubBody(event) {
     }
 
     const records = [{ filePath, baseline: "", current: content }];
-    return changedViolations(records, await lintTexts(records));
+    return [
+        ...changedViolations(records, await lintTexts(records)),
+        ...githubBodyBlockViolations(content),
+    ];
 }
 
 async function removeSession(event, client) {
@@ -637,7 +871,7 @@ async function main() {
         if (event.tool_name === "Bash") {
             const violations = await checkGithubBody(event);
             if (violations.length > 0) {
-                block(formatReason(violations));
+                block(formatGithubBodyReason(violations));
             }
             return;
         }

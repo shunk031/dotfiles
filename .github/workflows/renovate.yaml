@@ -1,6 +1,9 @@
 name: Renovate
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
   schedule:
     - cron: "0 18 * * *" # At 18:00 every day.

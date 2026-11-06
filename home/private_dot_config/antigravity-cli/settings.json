@@ -5,6 +5,8 @@
     }
   },
   "toolPermission": "always-proceed",
+  "agentMode": "accept-edits",
+  "allowNonWorkspaceAccess": true,
   "general": {
     "enableAutoUpdate": true
   },

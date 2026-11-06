@@ -4,6 +4,7 @@
       "selectedType": "oauth-personal"
     }
   },
+  "toolPermission": "always-proceed",
   "general": {
     "enableAutoUpdate": true
   },

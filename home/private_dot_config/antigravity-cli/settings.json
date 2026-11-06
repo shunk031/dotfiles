@@ -4,6 +4,17 @@
       "selectedType": "oauth-personal"
     }
   },
+  "toolPermission": "always-proceed",
+  "agentMode": "accept-edits",
+  "allowNonWorkspaceAccess": true,
+  "enableTerminalSandbox": false,
+  "artifactReviewPolicy": "always-proceed",
+  "permissions": {
+    "deny": [
+      "command(sudo)",
+      "command(rm -rf)"
+    ]
+  },
   "general": {
     "enableAutoUpdate": true
   },

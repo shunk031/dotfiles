@@ -64,18 +64,24 @@ const BODY_RULE_SOURCE = String.raw`module.exports = (context) => {
                         const item = (list.children || [])
                             .filter((child) => child.type === "ListItem")
                             .pop();
-                        let endLine = list.loc?.end?.line;
-                        for (let next = index + 1; item && next < children.length; next += 1) {
-                            const paragraph = children[next];
-                            if (
-                                paragraph.type !== "Paragraph" ||
-                                paragraph.loc?.start?.line !== endLine + 1
-                            ) break;
-                            const items = continuations.get(item) || [];
-                            items.push(paragraph);
-                            continuations.set(item, items);
-                            skip.add(paragraph);
-                            endLine = paragraph.loc.end.line;
+                        if (item?.children?.at(-1)?.type === "Paragraph") {
+                            let endLine = list.loc?.end?.line;
+                            for (
+                                let next = index + 1;
+                                item && next < children.length;
+                                next += 1
+                            ) {
+                                const paragraph = children[next];
+                                if (
+                                    paragraph.type !== "Paragraph" ||
+                                    paragraph.loc?.start?.line !== endLine + 1
+                                ) break;
+                                const items = continuations.get(item) || [];
+                                items.push(paragraph);
+                                continuations.set(item, items);
+                                skip.add(paragraph);
+                                endLine = paragraph.loc.end.line;
+                            }
                         }
                     }
                     findLazy(list);
@@ -93,6 +99,51 @@ const BODY_RULE_SOURCE = String.raw`module.exports = (context) => {
         },
     };
 };`;
+
+const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
+    const fs = require("node:fs/promises");
+    const fsSync = require("node:fs");
+    const path = require("node:path");
+    const modulesDir = process.env.PATH.split(path.delimiter)
+        .map((entry) => path.resolve(entry, ".."))
+        .find((entry) => fsSync.existsSync(path.join(entry, "textlint", "package.json")));
+    if (!modulesDir) throw new Error("could not locate textlint packages");
+    const packageRequire = require("node:module").createRequire(
+        path.join(modulesDir, "textlint", "package.json"),
+    );
+    const { createLinter, loadTextlintrc } = packageRequire("textlint");
+    const { TextlintKernelDescriptor } = packageRequire("@textlint/kernel");
+    const [configPath, bodyRulePath, ...inputFiles] = process.argv.slice(1);
+    let descriptor = await loadTextlintrc({
+        configFilePath: configPath,
+        node_modulesDir: modulesDir,
+    });
+    if (bodyRulePath) {
+        descriptor = descriptor.concat(
+            new TextlintKernelDescriptor({
+                rules: [
+                    {
+                        ruleId: "${BODY_RULE}",
+                        rule: require(bodyRulePath),
+                        options: true,
+                    },
+                ],
+                filterRules: [],
+                plugins: [],
+            }),
+        );
+    }
+    const linter = createLinter({ descriptor });
+    const reports = await Promise.all(
+        inputFiles.map(async (filePath) =>
+            linter.lintText(await fs.readFile(filePath, "utf8"), filePath),
+        ),
+    );
+    process.stdout.write(JSON.stringify(reports));
+})().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});`;
 
 const TEXTLINT_PACKAGES = [
     "textlint@15.8.0",
@@ -230,13 +281,13 @@ async function lintTexts(records, includeGithubBody = false) {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "markdown-sentence-length-"));
     try {
         const configPath = path.join(directory, ".textlintrc.json");
+        const bodyRulePath = path.join(directory, `${BODY_RULE}.js`);
         const rules = {
             [RULE]: { max: DISCOVERY_LIMIT, countBy: "codepoints" },
         };
         if (includeGithubBody) {
-            rules[BODY_RULE] = true;
             await fs.writeFile(
-                path.join(directory, `${BODY_RULE}.js`),
+                bodyRulePath,
                 BODY_RULE_SOURCE.replace("__LIMIT__", GITHUB_BODY_BLOCK_LIMIT),
             );
         }
@@ -266,13 +317,11 @@ async function lintTexts(records, includeGithubBody = false) {
             "--yes",
             ...TEXTLINT_PACKAGES.map((name) => `--package=${name}`),
             "--",
-            "textlint",
-            "--config",
+            "node",
+            "-e",
+            TEXTLINT_API_RUNNER_SOURCE,
             configPath,
-            ...(includeGithubBody ? ["--rulesdir", directory] : []),
-            "--format",
-            "json",
-            "--no-color",
+            includeGithubBody ? bodyRulePath : "",
             ...inputFiles,
         ];
         const result = spawnSync(
@@ -288,7 +337,7 @@ async function lintTexts(records, includeGithubBody = false) {
         if (result.error) {
             throw result.error;
         }
-        if (result.status !== 0 && result.status !== 1) {
+        if (result.status !== 0) {
             throw new Error(
                 `textlint exited with status ${result.status}: ${(result.stderr || "").trim()}`,
             );

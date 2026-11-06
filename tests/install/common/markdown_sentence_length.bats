@@ -328,6 +328,24 @@ ${continuation}"
     [[ "${output}" == *"Fix: split the paragraph or list item."* ]]
 }
 
+@test "does not merge a paragraph after a GitHub list item ending in fenced code" {
+    local first paragraph fence body command
+
+    first="$(node -e 'process.stdout.write(("l".repeat(98) + ". ").repeat(3) + "l")')"
+    paragraph="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(3) + "p")')"
+    fence="$(printf '\140\140\140')"
+    body="- ${first}
+  ${fence}text
+  code
+  ${fence}
+${paragraph}"
+    command="gh issue create --body '${body}'"
+
+    run_github_body_hook "${command}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
 @test "does not apply the GitHub paragraph limit to Markdown edits" {
     local file_path="${BATS_TEST_TMPDIR}/long-markdown-paragraph.md"
     local session_id="long-markdown-paragraph"

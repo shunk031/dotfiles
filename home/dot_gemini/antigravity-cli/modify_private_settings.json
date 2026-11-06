@@ -1,0 +1,10 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- $current := dict -}}
+{{- if ne .chezmoi.stdin "" -}}
+  {{- $current = mustFromJson .chezmoi.stdin -}}
+{{- end -}}
+{{- if not (kindIs "map" $current) -}}
+  {{- fail "Antigravity CLI settings must be a JSON object" -}}
+{{- end -}}
+{{- $managed := include "private_dot_config/antigravity-cli/settings.json" | mustFromJson -}}
+{{- mergeOverwrite $current $managed | toPrettyJson -}}

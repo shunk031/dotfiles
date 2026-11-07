@@ -1,0 +1,24 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+
+# @file home/.chezmoiscripts/macos/run_onchange_after_60-load-herdr-meta-patrol.sh.tmpl
+# @brief Reload the herdr-meta-patrol LaunchAgent when its definition changes.
+# plist hash: {{ include "private_Library/LaunchAgents/com.shunk031.herdr-meta-patrol.plist.tmpl" | sha256sum }}
+
+set -Eeuo pipefail
+
+label="com.shunk031.herdr-meta-patrol"
+mkdir -p "${HOME}/.local/state/herdr-meta-patrol"
+domain="gui/$(id -u)"
+if ! launchctl print "${domain}" > /dev/null 2>&1; then
+    echo "No GUI session for ${domain}; skipping ${label} load (log in and re-apply)."
+    exit 0
+fi
+launchctl bootout "${domain}/${label}" 2> /dev/null || true
+for _ in 1 2 3 4 5; do
+    launchctl bootstrap "${domain}" "${HOME}/Library/LaunchAgents/${label}.plist" && exit 0
+    sleep 1
+done
+echo "Failed to bootstrap ${label}" >&2
+exit 1
+{{- end }}

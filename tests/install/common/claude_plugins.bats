@@ -140,7 +140,7 @@ EOF
     run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < /dev/null
     [ "${status}" -eq 0 ]
 
-    run jq -e 'type == "object" and (has("model") | not) and .alwaysThinkingEnabled == true and .enabledPlugins["inbox@inbox"] == true' <<< "${output}"
+    run jq -e 'type == "object" and (has("model") | not) and .alwaysThinkingEnabled == true and .promptSuggestionEnabled == false and .enabledPlugins["inbox@inbox"] == true' <<< "${output}"
     [ "${status}" -eq 0 ]
 }
 

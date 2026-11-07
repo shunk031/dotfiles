@@ -8,6 +8,7 @@
   "alwaysThinkingEnabled": true,
   "autoMemoryEnabled": false,
   "disableClaudeAiConnectors": true,
+  "promptSuggestionEnabled": false,
   "env": {
     "DISABLE_AUTOUPDATER": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",

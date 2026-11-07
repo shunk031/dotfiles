@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+
+# @file home/private_dot_local/private_bin/exact_common/executable_herdr-meta-patrol
+# @brief Poll Herdr root orchestrators without an LLM and wake the meta agent on news.
+# @description
+#   Scans the local Herdr server and every enabled `herdr machine list` machine
+#   for blocked agents, root inbox tokens, leftover text in root input boxes, and
+#   finished or orphaned panes. Findings go to `latest.txt`. Lines whose
+#   normalized form is new since the previous run are sent to the meta agent
+#   through the guarded prompt sender; nothing is sent when nothing is new.
+#   Leftover input is re-reported after `HERDR_META_PATROL_REPEAT_SECONDS`.
+#   Undeliverable messages are appended to `undelivered.log`.
+# @option HERDR_META_PATROL_ROOTS Space-separated root orchestrator names.
+# @option HERDR_META_PATROL_META Agent name that receives the message (default `meta`).
+# @option HERDR_META_PATROL_STATE_DIR State directory (default `~/.local/state/herdr-meta-patrol`).
+# @option HERDR_META_PATROL_SENDER Guarded prompt sender script.
+# @option HERDR_META_PATROL_REPEAT_SECONDS Leftover re-report interval (default 3600).
+# @option HERDR_META_PATROL_RETRY_SLEEP Seconds before the connection retry (default 5).
+
+set -Eeuo pipefail
+
+roots="${HERDR_META_PATROL_ROOTS:-orch orch264 llt-orch omj orch-radm korch}"
+meta="${HERDR_META_PATROL_META:-meta}"
+state_dir="${HERDR_META_PATROL_STATE_DIR:-${HOME}/.local/state/herdr-meta-patrol}"
+sender="${HERDR_META_PATROL_SENDER:-${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts/herdr-agent-prompt-if-input-empty.sh}"
+repeat_seconds="${HERDR_META_PATROL_REPEAT_SECONDS:-3600}"
+retry_sleep="${HERDR_META_PATROL_RETRY_SLEEP:-5}"
+machine=local
+
+# @description Run herdr against the machine being scanned.
+function hr() {
+    if [[ "${machine}" == local ]]; then
+        herdr "$@"
+    elif command -v timeout > /dev/null; then
+        timeout 40 herdr --machine "${machine}" "$@"
+    else
+        herdr --machine "${machine}" "$@"
+    fi
+}
+
+# @description Print the non-dim text typed into the input box of a visible pane read from stdin.
+function input_leftover() {
+    python3 -c '
+import sys,re
+L=sys.stdin.read().split("\n")
+plain=[re.sub(r"\x1b\[[0-9;]*m","",l) for l in L]
+rules=[i for i,l in enumerate(plain) if re.match(r"^\s*─{20,}\s*$",l)]
+box=None
+for a,b in zip(rules,rules[1:]):
+    if any(re.match(r"^\s*(❯|›)",plain[k]) for k in range(a+1,b)): box=(a,b)
+if not box: sys.exit()
+out=[]
+for k in range(box[0]+1,box[1]):
+    t=re.sub(r"\x1b\[7m.?\x1b\[0?m(?=\x1b\[2m|\x1b\[38;2;153;153;153m)","",L[k]); t=re.sub(r"\x1b\[2m.*?(\x1b\[0?m|$)","",t); t=re.sub(r"\x1b\[38;2;153;153;153m.*?(\x1b\[(0|39)?m|$)","",t)
+    t=re.sub(r"\x1b\[[0-9;]*m","",t).replace("\xa0"," "); t=re.sub(r"^\s*(❯|›)\s*","",t).strip()
+    if t: out.append(t)
+print(" / ".join(out).replace("\t"," "))
+'
+}
+
+# @description Print the findings for the current `machine`, one per line.
+function scan_machine() {
+    local list a pane inbox rest fin del
+    list="$(hr agent list 2> /dev/null)" || {
+        sleep "${retry_sleep}"
+        list="$(hr agent list 2> /dev/null)" || {
+            printf '[%s] 接続できない（2 回とも失敗）\n' "${machine}"
+            return 0
+        }
+    }
+    jq -r --arg m "${machine}" '.result.agents[] | select(.agent_status=="blocked") | "[\($m)] blocked: \(.name // "-") \(.pane_id)"' <<< "${list}"
+    for a in ${roots}; do
+        pane="$(jq -r --arg a "${a}" 'first(.result.agents[] | select(.name==$a) | .pane_id) // empty' <<< "${list}")"
+        [[ -n "${pane}" ]] || continue
+        inbox="$(jq -r --arg a "${a}" 'first(.result.agents[] | select(.name==$a) | .tokens.inbox) // empty' <<< "${list}")"
+        [[ -n "${inbox}" && "${inbox}" != 0 ]] && printf '[%s] %s inbox=%s\n' "${machine}" "${a}" "${inbox}"
+        rest="$(hr pane read "${pane}" --source visible --format ansi 2> /dev/null | input_leftover || true)"
+        [[ -n "${rest}" ]] && printf '[%s] %s 入力欄: %s\n' "${machine}" "${a}" "${rest}"
+    done
+    fin="$(jq -r --arg r "${roots} ${meta}" '[.result.agents[] | select(.agent_status=="done" or .agent_status=="idle") | select((.name // "") as $n | $r | split(" ") | index($n) | not)] | length' <<< "${list}")"
+    del="$(hr pane list 2> /dev/null | jq -r '[.result.panes[]? | select(((.cwd // "") + (.foreground_cwd // "")) | test("\\(deleted\\)"))] | length' || echo 0)"
+    [[ "${fin}" != 0 ]] && printf '[%s] 残り: 終わった・待機中の作業役 %s 個\n' "${machine}" "${fin}"
+    [[ "${del:-0}" != 0 ]] && printf '[%s] 残り: 中身が消えたペイン %s 個\n' "${machine}" "${del}"
+    return 0
+}
+
+# @description Strip the per-run counts so an unchanged situation yields an identical line.
+function normalize() {
+    sed -E 's/inbox=[0-9]+/inbox=N/; s/[0-9]+ 個/N 個/'
+}
+
+# @description Print the epoch recorded for a leftover line, or nothing.
+# @arg $1 string Leftover line.
+function leftover_epoch() {
+    L="$1" awk -F'\t' '$2 == ENVIRON["L"] { print $1; exit }' "${state_dir}/leftover.tsv"
+}
+
+mkdir -p "${state_dir}"
+touch "${state_dir}/keys.txt" "${state_dir}/leftover.tsv"
+now="$(date +%s)"
+
+findings=""
+for machine in local $(herdr machine list --json | jq -r '.[] | select(.enabled) | .label'); do
+    findings+="$(scan_machine)"$'\n'
+done
+
+new=""
+keys=""
+leftovers=""
+leftover_tsv=""
+while IFS= read -r line; do
+    [[ -n "${line}" ]] || continue
+    if [[ "${line}" == *' 入力欄: '* ]]; then
+        leftovers+="${line}"$'\n'
+        epoch="$(leftover_epoch "${line}")"
+        if [[ -z "${epoch}" ]] || ((now - epoch >= repeat_seconds)); then
+            new+="${line}"$'\n'
+            epoch="${now}"
+        fi
+        leftover_tsv+="${epoch}"$'\t'"${line}"$'\n'
+        continue
+    fi
+    key="$(normalize <<< "${line}")"
+    keys+="${key}"$'\n'
+    grep -qxF -- "${key}" "${state_dir}/keys.txt" || new+="${line}"$'\n'
+done <<< "${findings}"
+
+# A machine that was failing and now is not gets a one-time recovery line.
+while IFS= read -r key; do
+    [[ "${key}" == *接続できない* ]] || continue
+    grep -qxF -- "${key}" <<< "${keys}" || new+="${key%% *} 接続が回復した"$'\n'
+done < "${state_dir}/keys.txt"
+
+printf '%s' "${findings}" > "${state_dir}/latest.txt"
+printf '%s' "${keys}" > "${state_dir}/keys.txt"
+printf '%s' "${leftover_tsv}" > "${state_dir}/leftover.tsv"
+
+[[ -n "${new}" ]] || exit 0
+
+machine=local
+message="$(printf '自動巡回（herdr-meta-patrol）で新しい項目を検出しました。\n%s' "${new}")"
+if ! { hr agent get "${meta}" > /dev/null 2>&1 && HERDR_ENV=1 "${sender}" "${meta}" "${message}"; }; then
+    printf '%s\n%s\n\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${message}" >> "${state_dir}/undelivered.log"
+fi

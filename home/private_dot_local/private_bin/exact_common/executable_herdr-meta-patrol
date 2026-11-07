@@ -9,12 +9,14 @@
 #   normalized form is new since the previous run are sent to the meta agent
 #   through the guarded prompt sender; nothing is sent when nothing is new.
 #   Leftover input is re-reported after `HERDR_META_PATROL_REPEAT_SECONDS`.
-#   Undeliverable messages are appended to `undelivered.log`.
+#   State is saved only after delivery succeeds, so undelivered items are retried
+#   on the next run; `undelivered.log` holds only the latest pending message.
 # @option HERDR_META_PATROL_ROOTS Space-separated root orchestrator names.
 # @option HERDR_META_PATROL_META Agent name that receives the message (default `meta`).
 # @option HERDR_META_PATROL_STATE_DIR State directory (default `~/.local/state/herdr-meta-patrol`).
 # @option HERDR_META_PATROL_SENDER Guarded prompt sender script.
 # @option HERDR_META_PATROL_REPEAT_SECONDS Leftover re-report interval (default 3600).
+# @option HERDR_META_PATROL_TIMEOUT Seconds before a single herdr call is killed (default 40).
 # @option HERDR_META_PATROL_RETRY_SLEEP Seconds before the connection retry (default 5).
 
 set -Eeuo pipefail
@@ -24,18 +26,33 @@ meta="${HERDR_META_PATROL_META:-meta}"
 state_dir="${HERDR_META_PATROL_STATE_DIR:-${HOME}/.local/state/herdr-meta-patrol}"
 sender="${HERDR_META_PATROL_SENDER:-${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts/herdr-agent-prompt-if-input-empty.sh}"
 repeat_seconds="${HERDR_META_PATROL_REPEAT_SECONDS:-3600}"
+timeout_seconds="${HERDR_META_PATROL_TIMEOUT:-40}"
 retry_sleep="${HERDR_META_PATROL_RETRY_SLEEP:-5}"
 machine=local
+
+# @description Run herdr with a portable alarm-based timeout (perl ships with macOS).
+function hx() {
+    perl -e 'alarm shift; exec @ARGV' "${timeout_seconds}" herdr "$@"
+}
 
 # @description Run herdr against the machine being scanned.
 function hr() {
     if [[ "${machine}" == local ]]; then
-        herdr "$@"
-    elif command -v timeout > /dev/null; then
-        timeout 40 herdr --machine "${machine}" "$@"
+        hx "$@"
     else
-        herdr --machine "${machine}" "$@"
+        hx --machine "${machine}" "$@"
     fi
+}
+
+# @description Drop the oldest lines of a log that grew past 1000 lines.
+# @arg $1 string Log file path.
+function trim_log() {
+    [[ -f "$1" ]] && (($(wc -l < "$1") > 1000)) && {
+        tail -n 500 "$1" > "$1.tmp"
+        cat "$1.tmp" > "$1"
+        rm -f "$1.tmp"
+    }
+    return 0
 }
 
 # @description Print the non-dim text typed into the input box of a visible pane read from stdin.
@@ -86,7 +103,7 @@ function scan_machine() {
 
 # @description Strip the per-run counts so an unchanged situation yields an identical line.
 function normalize() {
-    sed -E 's/inbox=[0-9]+/inbox=N/; s/[0-9]+ 個/N 個/'
+    sed -E 's/^(\[[^]]*\] [^ ]+ inbox=)[0-9]+ · /\1N · /; s/^(\[[^]]*\] 残り: .* )[0-9]+ 個$/\1N 個/'
 }
 
 # @description Print the epoch recorded for a leftover line, or nothing.
@@ -100,7 +117,8 @@ touch "${state_dir}/keys.txt" "${state_dir}/leftover.tsv"
 now="$(date +%s)"
 
 findings=""
-for machine in local $(herdr machine list --json | jq -r '.[] | select(.enabled) | .label'); do
+trim_log "${state_dir}/launchd.log"
+for machine in local $(hx machine list --json | jq -r '.[] | select(.enabled) | .label'); do
     findings+="$(scan_machine)"$'\n'
 done
 
@@ -131,14 +149,24 @@ while IFS= read -r key; do
     grep -qxF -- "${key}" <<< "${keys}" || new+="${key%% *} 接続が回復した"$'\n'
 done < "${state_dir}/keys.txt"
 
-printf '%s' "${findings}" > "${state_dir}/latest.txt"
-printf '%s' "${keys}" > "${state_dir}/keys.txt"
-printf '%s' "${leftover_tsv}" > "${state_dir}/leftover.tsv"
+# @description Persist this run's state; called only once nothing is left undelivered.
+function commit_state() {
+    printf '%s' "${keys}" > "${state_dir}/keys.txt"
+    printf '%s' "${leftover_tsv}" > "${state_dir}/leftover.tsv"
+    rm -f "${state_dir}/undelivered.log"
+}
 
-[[ -n "${new}" ]] || exit 0
+printf '%s' "${findings}" > "${state_dir}/latest.txt"
+
+if [[ -z "${new}" ]]; then
+    commit_state
+    exit 0
+fi
 
 machine=local
 message="$(printf '自動巡回（herdr-meta-patrol）で新しい項目を検出しました。\n%s' "${new}")"
-if ! { hr agent get "${meta}" > /dev/null 2>&1 && HERDR_ENV=1 "${sender}" "${meta}" "${message}"; }; then
-    printf '%s\n%s\n\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${message}" >> "${state_dir}/undelivered.log"
+if hr agent get "${meta}" > /dev/null 2>&1 && HERDR_ENV=1 "${sender}" "${meta}" "${message}"; then
+    commit_state
+else
+    printf '%s\n%s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${message}" > "${state_dir}/undelivered.log"
 fi

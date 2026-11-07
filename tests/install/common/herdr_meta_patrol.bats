@@ -10,6 +10,7 @@ function setup() {
     export SENDER_CALLS="${BATS_TEST_TMPDIR}/sender_calls.txt"
     export FAKE_AGENTS="${BATS_TEST_TMPDIR}/agents.json"
     export FAKE_REMOTE_DOWN="${BATS_TEST_TMPDIR}/remote_down"
+    export FAKE_PANE="${BATS_TEST_TMPDIR}/pane.txt"
     export FAKE_NO_META="${BATS_TEST_TMPDIR}/no_meta"
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
     PATH="${BATS_TEST_TMPDIR}/bin:${PATH}"
@@ -26,7 +27,7 @@ case "$1 $2" in
 "agent list") cat "${FAKE_AGENTS}" ;;
 "agent get") [[ ! -e "${FAKE_NO_META}" ]] ;;
 "pane list") echo '{"result":{"panes":[]}}' ;;
-"pane read") ;;
+"pane read") [[ -e "${FAKE_PANE}" ]] && cat "${FAKE_PANE}" ;;
 esac
 STUB
     cat > "${HERDR_META_PATROL_SENDER}" << 'STUB'
@@ -87,6 +88,74 @@ function blocked_agent() {
     [ "${status}" -eq 0 ]
     [ ! -e "${SENDER_CALLS}" ]
     grep -q 'blocked: w1 p1' "${HERDR_META_PATROL_STATE_DIR}/undelivered.log"
+}
+
+function root_inbox() {
+    jq -n --arg i "$1" '{result:{agents:[{name:"orch",pane_id:"p1",agent_status:"working",tokens:{inbox:$i}}]}}' > "${FAKE_AGENTS}"
+}
+
+@test "[common] herdr-meta-patrol ignores a leading inbox count change" {
+    root_inbox "5 · 519 をマージするか"
+    bash "${SCRIPT_PATH}"
+    grep -q 'inbox=5 · 519' "${SENDER_CALLS}"
+
+    rm "${SENDER_CALLS}"
+    root_inbox "6 · 519 をマージするか"
+    bash "${SCRIPT_PATH}"
+    [ ! -e "${SENDER_CALLS}" ]
+}
+
+@test "[common] herdr-meta-patrol notifies when the inbox question text changes" {
+    root_inbox "5 · 519 をマージするか"
+    bash "${SCRIPT_PATH}"
+
+    rm "${SENDER_CALLS}"
+    root_inbox "5 · 520 をマージするか"
+    bash "${SCRIPT_PATH}"
+    grep -q 'inbox=5 · 520' "${SENDER_CALLS}"
+}
+
+@test "[common] herdr-meta-patrol normalizes only the leftover counts" {
+    echo '{"result":{"agents":[{"name":"w1","pane_id":"p1","agent_status":"idle"}]}}' > "${FAKE_AGENTS}"
+    bash "${SCRIPT_PATH}"
+    grep -q '残り: 終わった・待機中の作業役 1 個' "${SENDER_CALLS}"
+
+    rm "${SENDER_CALLS}"
+    echo '{"result":{"agents":[{"name":"w1","pane_id":"p1","agent_status":"idle"},{"name":"w2","pane_id":"p2","agent_status":"idle"}]}}' > "${FAKE_AGENTS}"
+    bash "${SCRIPT_PATH}"
+    [ ! -e "${SENDER_CALLS}" ]
+
+    blocked_agent
+    bash "${SCRIPT_PATH}"
+    grep -q 'blocked: w1 p1' "${SENDER_CALLS}"
+    rm "${SENDER_CALLS}"
+    echo '{"result":{"agents":[{"name":"w2","pane_id":"p1","agent_status":"blocked"}]}}' > "${FAKE_AGENTS}"
+    bash "${SCRIPT_PATH}"
+    grep -q 'blocked: w2 p1' "${SENDER_CALLS}"
+}
+
+@test "[common] herdr-meta-patrol detects first-time leftover input" {
+    echo '{"result":{"agents":[{"name":"orch","pane_id":"p1","agent_status":"idle"}]}}' > "${FAKE_AGENTS}"
+    printf '%s\n' '────────────────────────────' '❯ draft' '────────────────────────────' > "${FAKE_PANE}"
+    bash "${SCRIPT_PATH}"
+    grep -q '\[local\] orch 入力欄: draft' "${SENDER_CALLS}"
+    rm "${SENDER_CALLS}"
+    bash "${SCRIPT_PATH}"
+    [ ! -e "${SENDER_CALLS}" ]
+}
+
+@test "[common] herdr-meta-patrol retries after a failed delivery and keeps one pending log" {
+    touch "${FAKE_NO_META}"
+    blocked_agent
+    bash "${SCRIPT_PATH}"
+    bash "${SCRIPT_PATH}"
+    [ "$(grep -c '自動巡回' "${HERDR_META_PATROL_STATE_DIR}/undelivered.log")" -eq 1 ]
+    [ ! -s "${HERDR_META_PATROL_STATE_DIR}/keys.txt" ]
+
+    rm "${FAKE_NO_META}"
+    bash "${SCRIPT_PATH}"
+    grep -q 'blocked: w1 p1' "${SENDER_CALLS}"
+    [ ! -e "${HERDR_META_PATROL_STATE_DIR}/undelivered.log" ]
 }
 
 @test "[common] herdr-meta-patrol repeats leftover input only after the interval" {

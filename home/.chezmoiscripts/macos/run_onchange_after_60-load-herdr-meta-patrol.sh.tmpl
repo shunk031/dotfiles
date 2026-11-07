@@ -9,6 +9,16 @@ set -Eeuo pipefail
 
 label="com.shunk031.herdr-meta-patrol"
 mkdir -p "${HOME}/.local/state/herdr-meta-patrol"
-launchctl bootout "gui/$(id -u)/${label}" 2> /dev/null || true
-launchctl bootstrap "gui/$(id -u)" "${HOME}/Library/LaunchAgents/${label}.plist"
+domain="gui/$(id -u)"
+if ! launchctl print "${domain}" > /dev/null 2>&1; then
+    echo "No GUI session for ${domain}; skipping ${label} load (log in and re-apply)."
+    exit 0
+fi
+launchctl bootout "${domain}/${label}" 2> /dev/null || true
+for _ in 1 2 3 4 5; do
+    launchctl bootstrap "${domain}" "${HOME}/Library/LaunchAgents/${label}.plist" && exit 0
+    sleep 1
+done
+echo "Failed to bootstrap ${label}" >&2
+exit 1
 {{- end }}

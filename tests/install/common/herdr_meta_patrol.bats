@@ -19,7 +19,7 @@ function setup() {
     cat > "${BATS_TEST_TMPDIR}/bin/herdr" << 'STUB'
 #!/usr/bin/env bash
 if [[ "$1" == --machine ]]; then
-    [[ -e "${FAKE_REMOTE_DOWN}" ]] && exit 1
+    [[ -e "${FAKE_REMOTE_DOWN}" ]] && { echo "boom: refused" >&2; exit 1; }
     shift 2
 fi
 case "$1 $2" in
@@ -177,4 +177,34 @@ STUB
     printf '%s\t%s\n' "$(($(date +%s) - 7200))" '[local] orch 入力欄: draft' > "${HERDR_META_PATROL_STATE_DIR}/leftover.tsv"
     run bash "${SCRIPT_PATH}"
     grep -q '入力欄: draft' "${SENDER_CALLS}"
+}
+
+@test "[common] herdr-meta-patrol keeps counts single-line when pane list fails" {
+    cat > "${BATS_TEST_TMPDIR}/bin/herdr" << 'STUB'
+#!/usr/bin/env bash
+case "$1 $2" in
+"machine list") echo '[]' ;;
+"agent list") echo '{"result":{"agents":[{"name":"w1","pane_id":"p1","agent_status":"idle"}]}}' ;;
+"agent get") exit 0 ;;
+"pane list") echo '{"result":{"panes":[]}}'; exit 1 ;;
+esac
+STUB
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    grep -q '残り: 終わった・待機中の作業役 1 個' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    run grep -q '中身が消えた' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+    run grep -v '^\[' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] herdr-meta-patrol logs connection errors to stderr only" {
+    touch "${FAKE_REMOTE_DOWN}"
+    bash "${SCRIPT_PATH}" 2> "${BATS_TEST_TMPDIR}/stderr.txt"
+    [ "$(grep -c '\[remote\] 接続できない（2 回とも失敗）' "${HERDR_META_PATROL_STATE_DIR}/latest.txt")" -eq 1 ]
+    run grep -q 'boom' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+    run grep -q 'boom' "${SENDER_CALLS}"
+    [ "${status}" -ne 0 ]
+    [ "$(grep -c '\[remote\] agent list failed (exit 1): boom: refused' "${BATS_TEST_TMPDIR}/stderr.txt")" -eq 2 ]
 }

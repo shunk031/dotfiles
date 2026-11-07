@@ -75,12 +75,22 @@ print(" / ".join(out).replace("\t"," "))
 '
 }
 
+# @description Log a failed `agent list` attempt (exit status and the first stderr lines) to stderr, which launchd writes to launchd.log.
+# @arg $1 number Exit status of the failed attempt.
+# @arg $2 string File holding the attempt's stderr.
+function log_attempt_failure() {
+    printf '[%s] [%s] agent list failed (exit %s): %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${machine}" "$1" "$(head -n 3 "$2" | tr '\n' ' ')" >&2
+}
+
 # @description Print the findings for the current `machine`, one per line.
 function scan_machine() {
-    local list a pane inbox rest fin del
-    list="$(hr agent list 2> /dev/null)" || {
+    local list a pane inbox rest fin del panes
+    local err="${state_dir}/agent-list.err"
+    list="$(hr agent list 2> "${err}")" || {
+        log_attempt_failure "$?" "${err}"
         sleep "${retry_sleep}"
-        list="$(hr agent list 2> /dev/null)" || {
+        list="$(hr agent list 2> "${err}")" || {
+            log_attempt_failure "$?" "${err}"
             printf '[%s] 接続できない（2 回とも失敗）\n' "${machine}"
             return 0
         }
@@ -95,7 +105,8 @@ function scan_machine() {
         [[ -n "${rest}" ]] && printf '[%s] %s 入力欄: %s\n' "${machine}" "${a}" "${rest}"
     done
     fin="$(jq -r --arg r "${roots} ${meta}" '[.result.agents[] | select(.agent_status=="done" or .agent_status=="idle") | select((.name // "") as $n | $r | split(" ") | index($n) | not)] | length' <<< "${list}")"
-    del="$(hr pane list 2> /dev/null | jq -r '[.result.panes[]? | select(((.cwd // "") + (.foreground_cwd // "")) | test("\\(deleted\\)"))] | length' || echo 0)"
+    panes="$(hr pane list 2> /dev/null)" || panes='{}'
+    del="$(jq -r '[.result.panes[]? | select(((.cwd // "") + (.foreground_cwd // "")) | test("\\(deleted\\)"))] | length' <<< "${panes}")" || del=0
     [[ "${fin}" != 0 ]] && printf '[%s] 残り: 終わった・待機中の作業役 %s 個\n' "${machine}" "${fin}"
     [[ "${del:-0}" != 0 ]] && printf '[%s] 残り: 中身が消えたペイン %s 個\n' "${machine}" "${del}"
     return 0

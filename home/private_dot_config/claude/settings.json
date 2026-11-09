@@ -6,6 +6,9 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "attribution": {
+    "pr": ""
+  },
   "autoMemoryEnabled": false,
   "disableClaudeAiConnectors": true,
   "promptSuggestionEnabled": false,

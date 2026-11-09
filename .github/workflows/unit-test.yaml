@@ -82,12 +82,20 @@ jobs:
           echo "No unit-test-relevant files changed."
           echo "Compared diff range: ${{ needs.changes.outputs.diff_range }}"
 
+      - name: Install pinned `shfmt`
+        if: ${{ needs.changes.outputs.should_test == 'true' }}
+        uses: jdx/mise-action@v3
+        env:
+          # Reuse the shfmt pin from the dotfiles mise config instead of
+          # resolving a latest release at run time.
+          MISE_CONFIG_FILE: home/dot_mise/config.toml
+        with:
+          install_args: aqua:mvdan/sh
+          cache: true
+
       - name: Run `shfmt`
         if: ${{ needs.changes.outputs.should_test == 'true' }}
-        uses: reviewdog/action-shfmt@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          shfmt_flags: -i 4 -sr -d
+        run: make format
 
   macos:
     # Run after formatting so a failure stops all distribution test jobs.

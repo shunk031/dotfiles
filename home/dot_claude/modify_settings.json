@@ -14,7 +14,8 @@
   },
   "alwaysThinkingEnabled": true,
   "attribution": {
-    "pr": ""
+    "pr": "",
+    "sessionUrl": false
   },
   "autoMemoryEnabled": false,
   "disableClaudeAiConnectors": true,

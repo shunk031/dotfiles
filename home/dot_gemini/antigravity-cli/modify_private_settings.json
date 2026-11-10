@@ -6,6 +6,8 @@
 {{- if not (kindIs "map" $current) -}}
   {{- fail "Antigravity CLI settings must be a JSON object" -}}
 {{- end -}}
+{{- /* Normalize agy's omitted default false before comparing managed settings. */ -}}
+{{- $current = mergeOverwrite (dict "enableTerminalSandbox" false) $current -}}
 {{- $managed := include "private_dot_config/antigravity-cli/settings.json" | mustFromJson -}}
 {{- $merged := mergeOverwrite (deepCopy $current) $managed -}}
 {{- /* Keep agy's serialization when the managed values already match. */ -}}

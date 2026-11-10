@@ -136,11 +136,11 @@ EOF
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] Claude settings modifier creates initial managed settings without a model" {
+@test "[common] Claude settings modifier creates initial Fable low-effort defaults" {
     run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < /dev/null
     [ "${status}" -eq 0 ]
 
-    run jq -e 'type == "object" and (has("model") | not) and .alwaysThinkingEnabled == true and .promptSuggestionEnabled == false and .enabledPlugins["inbox@inbox"] == true' <<< "${output}"
+    run jq -e 'type == "object" and .model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .modelSettings["claude-opus-5-5"].effortLevel == "high" and .alwaysThinkingEnabled == true and .promptSuggestionEnabled == false and .enabledPlugins["inbox@inbox"] == true' <<< "${output}"
     [ "${status}" -eq 0 ]
 }
 
@@ -176,7 +176,7 @@ EOF
     run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"model":"sonnet","runtimeOnly":{"enabled":true},"env":{"USER_VALUE":"keep"},"alwaysThinkingEnabled":false}'
     [ "${status}" -eq 0 ]
 
-    run jq -e '.model == "sonnet" and .runtimeOnly.enabled == true and .env.USER_VALUE == "keep" and .alwaysThinkingEnabled == true' <<< "${output}"
+    run jq -e '.model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .runtimeOnly.enabled == true and .env.USER_VALUE == "keep" and .alwaysThinkingEnabled == true' <<< "${output}"
     [ "${status}" -eq 0 ]
 }
 
@@ -212,7 +212,7 @@ EOF
     [ -f "${settings}" ]
     [ ! -L "${settings}" ]
 
-    run jq -e '.model == "sonnet" and .runtimeOnly.enabled == true' "${settings}"
+    run jq -e '.model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .runtimeOnly.enabled == true' "${settings}"
     [ "${status}" -eq 0 ]
 
     run cmp "${source_settings_before}" "${source_settings}"

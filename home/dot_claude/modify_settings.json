@@ -7,9 +7,13 @@
   {{- fail "Claude Code settings must be a JSON object" -}}
 {{- end -}}
 {{- $managed := mustFromJson `{
+  "model": "fable",
   "modelSettings": {
     "claude-opus-5-5": {
       "effortLevel": "high"
+    },
+    "claude-fable-5-2": {
+      "effortLevel": "low"
     }
   },
   "alwaysThinkingEnabled": true,

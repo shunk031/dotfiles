@@ -738,9 +738,12 @@ EOF
     export HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_calls.txt"
     export CODEX_MODEL_CATALOG_CALLS_PATH="${BATS_TEST_TMPDIR}/codex_model_catalog_calls.txt"
     cat > "${HOME}/.local/bin/codex-model-catalog" << 'EOF'
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-printf '%s\n' refreshed >> "${CODEX_MODEL_CATALOG_CALLS_PATH}"
+import os
+
+with open(os.environ["CODEX_MODEL_CATALOG_CALLS_PATH"], "a", encoding="utf-8") as calls:
+    calls.write("refreshed\n")
 EOF
     chmod +x "${HOME}/.local/bin/codex-model-catalog"
     unset GITHUB_ACTIONS
@@ -750,7 +753,7 @@ EOF
 
     run cat "${MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    expected_calls="$(printf 'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- %s\nexec -- herdr --version\nexec -- herdr integration status\nexec -- herdr integration install claude\nexec -- herdr integration install codex\nexec -- herdr --skill' "${HOME}/.local/bin/codex-model-catalog")"
+    expected_calls="$(printf 'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- python3 %s\nexec -- herdr --version\nexec -- herdr integration status\nexec -- herdr integration install claude\nexec -- herdr integration install codex\nexec -- herdr --skill' "${HOME}/.local/bin/codex-model-catalog")"
     [ "${output}" = "${expected_calls}" ]
 
     run cat "${CODEX_MODEL_CATALOG_CALLS_PATH}"

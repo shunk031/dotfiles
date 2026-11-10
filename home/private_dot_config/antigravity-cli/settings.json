@@ -16,7 +16,7 @@
     ]
   },
   "general": {
-    "enableAutoUpdate": true
+    "enableAutoUpdate": false
   },
   "context": {
     "fileName": [

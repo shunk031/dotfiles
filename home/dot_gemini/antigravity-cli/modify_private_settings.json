@@ -7,4 +7,10 @@
   {{- fail "Antigravity CLI settings must be a JSON object" -}}
 {{- end -}}
 {{- $managed := include "private_dot_config/antigravity-cli/settings.json" | mustFromJson -}}
-{{- mergeOverwrite $current $managed | toPrettyJson -}}
+{{- $merged := mergeOverwrite (deepCopy $current) $managed -}}
+{{- /* Keep agy's serialization when the managed values already match. */ -}}
+{{- if eq (mustToJson $current) (mustToJson $merged) -}}
+  {{- .chezmoi.stdin -}}
+{{- else -}}
+  {{- $merged | toPrettyJson -}}
+{{- end -}}

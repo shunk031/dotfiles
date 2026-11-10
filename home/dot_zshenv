@@ -7,6 +7,7 @@
 #   interactive plugins, or prompt configuration.
 
 _zshenv_mise="${HOME}/.config/shell/mise.zsh"
+export AGY_CLI_DISABLE_AUTO_UPDATE=1
 
 if [[ -r "${_zshenv_mise}" ]]; then
     source "${_zshenv_mise}"

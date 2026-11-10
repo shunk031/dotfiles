@@ -21,7 +21,7 @@
   "disableClaudeAiConnectors": true,
   "promptSuggestionEnabled": false,
   "env": {
-    "DISABLE_AUTOUPDATER": "1",
+    "DISABLE_UPDATES": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",

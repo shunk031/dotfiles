@@ -247,7 +247,8 @@ function inbox_agent() {
     [ "${status}" -eq 0 ]
     [ ! -e "${SENDER_CALLS}" ]
     [ ! -e "${FAKE_PANE_READS}" ]
-    [ ! -s "${HERDR_META_PATROL_STATE_DIR}/latest.txt" ]
+    run grep -q . "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
 }
 
 @test "[common] herdr-meta-patrol reads a registered inbox-zero root without counting or notifying its inbox" {

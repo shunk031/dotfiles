@@ -67,12 +67,10 @@ EOF
     run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "plugin list --json" ]
-    [ "${lines[1]}" = "plugin marketplace add DietrichGebert/ponytail" ]
-    [ "${lines[2]}" = "plugin install --scope user --yes ponytail@ponytail" ]
+    [ "${lines[1]}" = "plugin marketplace add petekp/inbox" ]
+    [ "${lines[2]}" = "plugin install --scope user --yes inbox@inbox" ]
     [ "${lines[3]}" = "plugin list --json" ]
-    [ "${lines[4]}" = "plugin marketplace add petekp/inbox" ]
-    [ "${lines[5]}" = "plugin install --scope user --yes inbox@inbox" ]
-    [ "${#lines[@]}" -eq 6 ]
+    [ "${#lines[@]}" -eq 4 ]
 
     run grep -c '^exec -- jq ' "${CLAUDE_PLUGINS_MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
@@ -100,7 +98,7 @@ EOF
 
     run env \
         CLAUDE_PLUGINS_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_args.txt" \
-        CLAUDE_PLUGIN_LIST_JSON='[{"id":"ponytail@ponytail","enabled":true},{"id":"inbox@inbox","enabled":true}]' \
+        CLAUDE_PLUGIN_LIST_JSON='[{"id":"inbox@inbox","enabled":true}]' \
         HOME="${HOME}" \
         bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
@@ -117,7 +115,7 @@ EOF
 
     run env \
         CLAUDE_PLUGINS_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_args.txt" \
-        CLAUDE_PLUGIN_LIST_JSON='[{"id":"ponytail@ponytail","enabled":false},{"id":"inbox@inbox","enabled":false}]' \
+        CLAUDE_PLUGIN_LIST_JSON='[{"id":"inbox@inbox","enabled":false}]' \
         HOME="${HOME}" \
         bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
@@ -125,10 +123,19 @@ EOF
     run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
     [ "${status}" -eq 0 ]
     [ "${lines[0]}" = "plugin list --json" ]
-    [ "${lines[1]}" = "plugin enable ponytail@ponytail" ]
+    [ "${lines[1]}" = "plugin enable inbox@inbox" ]
     [ "${lines[2]}" = "plugin list --json" ]
-    [ "${lines[3]}" = "plugin enable inbox@inbox" ]
-    [ "${#lines[@]}" -eq 4 ]
+    [ "${#lines[@]}" -eq 3 ]
+}
+
+@test "[common] Claude settings omit Ponytail and keep inbox enabled" {
+    run jq -e '(.enabledPlugins | has("ponytail@ponytail") | not) and .enabledPlugins["inbox@inbox"] == true and (.extraKnownMarketplaces | has("ponytail") | not)' "${CLAUDE_SETTINGS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < /dev/null
+    [ "${status}" -eq 0 ]
+    run jq -e '(.enabledPlugins | has("ponytail@ponytail") | not) and .enabledPlugins["inbox@inbox"] == true and (.extraKnownMarketplaces | has("ponytail") | not)' <<< "${output}"
+    [ "${status}" -eq 0 ]
 }
 
 @test "[common] Claude settings enable inbox and register its GitHub marketplace" {

@@ -39,13 +39,13 @@ function ensure_claude_plugin() {
     fi
 
     if "${MISE_BIN}" exec -- jq -e --arg plugin_id "${plugin_id}" \
-        'any(.[]; .id == $plugin_id and .enabled)' \
+        "any(.[]; .id == \$plugin_id and .enabled)" \
         <<< "${installed_json}" > /dev/null; then
         return
     fi
 
     if "${MISE_BIN}" exec -- jq -e --arg plugin_id "${plugin_id}" \
-        'any(.[]; .id == $plugin_id)' \
+        "any(.[]; .id == \$plugin_id)" \
         <<< "${installed_json}" > /dev/null; then
         run_claude_plugin enable "${plugin_id}"
         return
@@ -59,7 +59,6 @@ function ensure_claude_plugin() {
 # @description Run the Claude Code plugin installation workflow.
 #
 function main() {
-    ensure_claude_plugin "ponytail@ponytail" "DietrichGebert/ponytail"
     ensure_claude_plugin "inbox@inbox" "petekp/inbox"
 }
 

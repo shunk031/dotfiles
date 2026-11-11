@@ -6,6 +6,9 @@
 {{- if not (kindIs "map" $current) -}}
   {{- fail "Claude Code settings must be a JSON object" -}}
 {{- end -}}
+{{- if kindIs "map" (get $current "extraKnownMarketplaces") -}}
+  {{- $_ := unset (get $current "extraKnownMarketplaces") "ponytail" -}}
+{{- end -}}
 {{- $managed := mustFromJson `{
   "model": "fable",
   "modelSettings": {
@@ -136,16 +139,10 @@
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
     "claude-mem@thedotmack": false,
-    "ponytail@ponytail": true,
+    "ponytail@ponytail": false,
     "inbox@inbox": true
   },
   "extraKnownMarketplaces": {
-    "ponytail": {
-      "source": {
-        "source": "github",
-        "repo": "DietrichGebert/ponytail"
-      }
-    },
     "inbox": {
       "source": {
         "source": "github",

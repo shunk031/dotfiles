@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 
 # @file home/private_dot_local/private_bin/exact_common/executable_herdr-meta-patrol
-# @brief Poll Herdr root orchestrators without an LLM and wake the meta agent on news.
+# @brief Poll Herdr machines without an LLM and wake the meta agent on news.
 # @description
 #   Scans the local Herdr server and every enabled `herdr machine list` machine
-#   for blocked agents, root inbox tokens, leftover text in root input boxes, and
-#   finished or orphaned panes. Findings go to `latest.txt`. Lines whose
-#   normalized form is new since the previous run are sent to the meta agent
+#   for blocked agents, inbox tokens, leftover text in inbox-bearing agents'
+#   input boxes, and finished or orphaned panes. Findings go to `latest.txt`.
+#   Lines whose normalized form is new since the previous run are sent to the meta agent
 #   through the guarded prompt sender; nothing is sent when nothing is new.
 #   Leftover input is re-reported after `HERDR_META_PATROL_REPEAT_SECONDS`.
 #   State is saved only after delivery succeeds, so undelivered items are retried
 #   on the next run; `undelivered.log` holds only the latest pending message.
-# @option HERDR_META_PATROL_ROOTS Space-separated root orchestrator names.
 # @option HERDR_META_PATROL_META Agent name that receives the message (default `meta`).
 # @option HERDR_META_PATROL_STATE_DIR State directory (default `~/.local/state/herdr-meta-patrol`).
 # @option HERDR_META_PATROL_SENDER Guarded prompt sender script.
@@ -21,7 +20,6 @@
 
 set -Eeuo pipefail
 
-roots="${HERDR_META_PATROL_ROOTS:-orch orch264 llt-orch omj orch-radm korch}"
 meta="${HERDR_META_PATROL_META:-meta}"
 state_dir="${HERDR_META_PATROL_STATE_DIR:-${HOME}/.local/state/herdr-meta-patrol}"
 sender="${HERDR_META_PATROL_SENDER:-${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts/herdr-agent-prompt-if-input-empty.sh}"
@@ -75,36 +73,43 @@ print(" / ".join(out).replace("\t"," "))
 '
 }
 
-# @description Log a failed `agent list` attempt (exit status and the first stderr lines) to stderr, which launchd writes to launchd.log.
+# @description Log a failed `agent list` attempt's exit status to stderr, which launchd writes to launchd.log.
 # @arg $1 number Exit status of the failed attempt.
-# @arg $2 string File holding the attempt's stderr.
 function log_attempt_failure() {
-    printf '[%s] [%s] agent list failed (exit %s): %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${machine}" "$1" "$(head -n 3 "$2" | tr '\n' ' ')" >&2
+    printf '[%s] [%s] agent list failed (exit %s)\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${machine}" "$1" >&2
 }
 
 # @description Print the findings for the current `machine`, one per line.
 function scan_machine() {
-    local list a pane inbox rest fin del panes
-    local err="${state_dir}/agent-list.err"
-    list="$(hr agent list 2> "${err}")" || {
-        log_attempt_failure "$?" "${err}"
+    local machine="$1" list agent a pane inbox relay refs rest fin del panes
+    list="$(hr agent list 2> /dev/null)" || {
+        log_attempt_failure "$?"
         sleep "${retry_sleep}"
-        list="$(hr agent list 2> "${err}")" || {
-            log_attempt_failure "$?" "${err}"
+        list="$(hr agent list 2> /dev/null)" || {
+            log_attempt_failure "$?"
             printf '[%s] 接続できない（2 回とも失敗）\n' "${machine}"
             return 0
         }
     }
     jq -r --arg m "${machine}" '.result.agents[] | select(.agent_status=="blocked") | "[\($m)] blocked: \(.name // "-") \(.pane_id)"' <<< "${list}"
-    for a in ${roots}; do
-        pane="$(jq -r --arg a "${a}" 'first(.result.agents[] | select(.name==$a) | .pane_id) // empty' <<< "${list}")"
+    while IFS= read -r agent; do
+        a="$(jq -r '.name // "-"' <<< "${agent}")"
+        pane="$(jq -r '.pane_id // empty' <<< "${agent}")"
+        inbox="$(jq -r '.tokens.inbox // empty' <<< "${agent}")"
+        relay="$(jq -r '.tokens.relay // empty' <<< "${agent}")"
+        refs=""
+        if [[ -n "${relay}" ]]; then refs+=" relay=${relay}"; fi
+        if jq -e '(.tokens.url // "") | length > 0' <<< "${agent}" > /dev/null; then
+            refs+=" url=present"
+        fi
+        if [[ -n "${inbox}" && "${inbox}" != 0 ]]; then
+            printf '[%s] %s inbox=%s%s\n' "${machine}" "${a}" "${inbox}" "${refs}"
+        fi
         [[ -n "${pane}" ]] || continue
-        inbox="$(jq -r --arg a "${a}" 'first(.result.agents[] | select(.name==$a) | .tokens.inbox) // empty' <<< "${list}")"
-        [[ -n "${inbox}" && "${inbox}" != 0 ]] && printf '[%s] %s inbox=%s\n' "${machine}" "${a}" "${inbox}"
         rest="$(hr pane read "${pane}" --source visible --format ansi 2> /dev/null | input_leftover || true)"
         [[ -n "${rest}" ]] && printf '[%s] %s 入力欄: %s\n' "${machine}" "${a}" "${rest}"
-    done
-    fin="$(jq -r --arg r "${roots} ${meta}" '[.result.agents[] | select(.agent_status=="done" or .agent_status=="idle") | select((.name // "") as $n | $r | split(" ") | index($n) | not)] | length' <<< "${list}")"
+    done < <(jq -c '.result.agents[] | select((.tokens // {}) | has("inbox"))' <<< "${list}")
+    fin="$(jq -r --arg meta "${meta}" '[.result.agents[] | select(.agent_status=="done" or .agent_status=="idle") | select((.name // "") != $meta) | select(((.tokens // {}) | has("inbox") | not))] | length' <<< "${list}")"
     panes="$(hr pane list 2> /dev/null)" || panes='{}'
     del="$(jq -r '[.result.panes[]? | select(((.cwd // "") + (.foreground_cwd // "")) | test("\\(deleted\\)"))] | length' <<< "${panes}")" || del=0
     [[ "${fin}" != 0 ]] && printf '[%s] 残り: 終わった・待機中の作業役 %s 個\n' "${machine}" "${fin}"
@@ -129,8 +134,25 @@ now="$(date +%s)"
 
 findings=""
 trim_log "${state_dir}/launchd.log"
-for machine in local $(hx machine list --json | jq -r '.[] | select(.enabled) | .label'); do
-    findings+="$(scan_machine)"$'\n'
+machine_list="$(hx machine list --json 2> /dev/null | jq -r '.[] | select(.enabled) | .label')" || machine_list=""
+machines=(local)
+while IFS= read -r machine_label; do
+    if [[ -n "${machine_label}" ]]; then machines+=("${machine_label}"); fi
+done <<< "${machine_list}"
+scan_dir="$(mktemp -d "${state_dir}/scan.XXXXXX")"
+trap 'rm -rf "$scan_dir"' EXIT
+pids=()
+for ((i = 0; i < ${#machines[@]}; i++)); do
+    (scan_machine "${machines[$i]}") > "${scan_dir}/${i}.out" &
+    pids[i]=$!
+done
+scan_failed=0
+for pid in "${pids[@]}"; do
+    if ! wait "${pid}"; then scan_failed=1; fi
+done
+((scan_failed == 0)) || exit 1
+for ((i = 0; i < ${#machines[@]}; i++)); do
+    findings+="$(cat "${scan_dir}/${i}.out")"$'\n'
 done
 
 new=""

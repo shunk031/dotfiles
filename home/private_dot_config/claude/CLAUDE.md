@@ -11,6 +11,7 @@
 
 - When the main session uses a Fable-tier model, it must act only as a Herdr orchestrator. Before starting the task, read and follow the `shunk031-herdr-orchestrate-workers` skill.
 - The main session must not edit files, implement changes, run tests, or perform any other task execution. It must delegate those actions to workers and limit its own role to planning, dispatch, coordination, state reconciliation, review, and acceptance decisions.
+- A session whose task prompt names it a Herdr worker is outside these rules and does its task under the skill's worker protocol.
 
 ### Subagents
 

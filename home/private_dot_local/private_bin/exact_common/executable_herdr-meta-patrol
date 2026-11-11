@@ -6,6 +6,8 @@
 #   Scans the local Herdr server and every enabled `herdr machine list` machine
 #   for blocked agents, inbox tokens, leftover text in inbox-bearing agents'
 #   input boxes, and finished or orphaned panes. Findings go to `latest.txt`.
+#   A root is any agent with an `inbox` token, including empty or zero values;
+#   every other agent except `meta` is a non-root.
 #   Lines whose normalized form is new since the previous run are sent to the meta agent
 #   through the guarded prompt sender; nothing is sent when nothing is new.
 #   Leftover input is re-reported after `HERDR_META_PATROL_REPEAT_SECONDS`.

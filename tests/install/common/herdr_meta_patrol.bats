@@ -31,7 +31,10 @@ case "$1 $2" in
 "agent list") cat "${FAKE_AGENTS}" ;;
 "agent get") [[ ! -e "${FAKE_NO_META}" ]] ;;
 "pane list") echo '{"result":{"panes":[]}}' ;;
-"pane read") [[ -e "${FAKE_PANE}" ]] && cat "${FAKE_PANE}" ;;
+"pane read")
+    [[ -z "${FAKE_PANE_READS:-}" ]] || touch "${FAKE_PANE_READS}"
+    [[ -e "${FAKE_PANE}" ]] && cat "${FAKE_PANE}"
+    ;;
 esac
 STUB
     cat > "${HERDR_META_PATROL_SENDER}" << 'STUB'
@@ -161,6 +164,34 @@ function unlisted_root_inbox() {
     echo '{"result":{"agents":[{"name":"w2","pane_id":"p1","agent_status":"blocked"}]}}' > "${FAKE_AGENTS}"
     bash "${SCRIPT_PATH}"
     grep -q 'blocked: w2 p1' "${SENDER_CALLS}"
+}
+
+@test "[common] herdr-meta-patrol counts token-less orch as non-root without reading its input" {
+    export FAKE_PANE_READS="${BATS_TEST_TMPDIR}/pane_reads"
+    echo '{"result":{"agents":[{"name":"orch","pane_id":"p1","agent_status":"idle"}]}}' > "${FAKE_AGENTS}"
+    printf '%s\n' '────────────────────────────' '❯ draft' '────────────────────────────' > "${FAKE_PANE}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    grep -q '残り: 終わった・待機中の作業役 1 個' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ ! -e "${FAKE_PANE_READS}" ]
+    run grep -q '入力欄:' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] herdr-meta-patrol reads inbox-zero input without counting or notifying its inbox" {
+    export FAKE_PANE_READS="${BATS_TEST_TMPDIR}/pane_reads"
+    echo '{"result":{"agents":[{"name":"orch","pane_id":"p1","agent_status":"idle","tokens":{"inbox":"0"}}]}}' > "${FAKE_AGENTS}"
+    printf '%s\n' '────────────────────────────' '❯ draft' '────────────────────────────' > "${FAKE_PANE}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ -e "${FAKE_PANE_READS}" ]
+    grep -Fq '[local] orch 入力欄: draft' "${SENDER_CALLS}"
+    run grep -q 'inbox=' "${SENDER_CALLS}"
+    [ "${status}" -ne 0 ]
+    run grep -q 'inbox=' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+    run grep -q '残り: 終わった・待機中の作業役' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
 }
 
 @test "[common] herdr-meta-patrol detects first-time leftover input" {

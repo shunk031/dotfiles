@@ -7,10 +7,8 @@ coverage*
 .agents/worklog/
 .playwright-cli/
 
-# Herdr and other integrations may generate Claude hooks here. Ignore generated
-# hooks by default and explicitly allow repo-managed hooks below.
+# Herdr and other integrations may generate Claude hooks here. Ignore them.
 home/private_dot_config/claude/hooks/*
-!home/private_dot_config/claude/hooks/enforce-uv.sh
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

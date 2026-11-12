@@ -7,3 +7,6 @@
 .claude/plugins/cache/thedotmack/claude-mem
 .claude/plugins/data/claude-mem-thedotmack
 .claude/plugins/marketplaces/thedotmack
+
+# Remove the retired Claude Code command hook.
+.claude/hooks/enforce-uv.sh

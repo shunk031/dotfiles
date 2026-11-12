@@ -22,6 +22,8 @@
     "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
     "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/.local/share/claude/plugins/inbox",
+    "CLAUDE_CODE_PLUGIN_DIR_WATCH": "1",
     "INBOX_RECORDED_ITEMS_ONLY": "1"
   },
   "permissions": {
@@ -136,17 +138,7 @@
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
     "claude-mem@thedotmack": false,
-    "ponytail@ponytail": false,
-    "inbox@inbox": true
-  },
-  "extraKnownMarketplaces": {
-    "inbox": {
-      "source": {
-        "source": "github",
-        "repo": "shunk031/inbox",
-        "ref": "v0.3.0-fork.1"
-      }
-    }
+    "ponytail@ponytail": false
   },
   "tui": "fullscreen"
 }

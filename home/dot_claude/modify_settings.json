@@ -53,10 +53,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/enforce-uv.sh"
-          },
-          {
-            "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length pre claude",
             "timeout": 120
           }

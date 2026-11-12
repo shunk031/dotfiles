@@ -145,7 +145,7 @@
   },
   "tui": "fullscreen"
 }` -}}
-{{- $pluginDirs := list (joinPath .chezmoi.homeDir ".local" "share" "claude" "plugins" "inbox") -}}
+{{- $pluginDirs := list "~/.local/share/claude/plugins/inbox" -}}
 {{- if kindIs "map" (get $current "env") -}}
   {{- $currentPluginDirs := get (get $current "env") "CLAUDE_CODE_PLUGIN_DIRS" -}}
   {{- if kindIs "string" $currentPluginDirs -}}

@@ -39,7 +39,7 @@ function run_jq() {
 #
 function update_inbox_clone() {
     local clone_parent="${INBOX_PLUGIN_DIR%/*}"
-    local clone_root branch remote upstream head
+    local path_prefix branch remote upstream head
 
     mkdir -p "${clone_parent}"
     if [ -L "${INBOX_PLUGIN_DIR}" ]; then
@@ -51,8 +51,8 @@ function update_inbox_clone() {
         return
     fi
 
-    clone_root="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse --show-toplevel)"
-    if [ "${clone_root}" != "$(cd "${INBOX_PLUGIN_DIR}" && pwd -P)" ]; then
+    path_prefix="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse --show-prefix)"
+    if [ -n "${path_prefix}" ]; then
         printf 'Inbox plugin path is not the root of its git clone: %s\n' "${INBOX_PLUGIN_DIR}" >&2
         return 1
     fi
@@ -63,7 +63,7 @@ function update_inbox_clone() {
         return 1
     fi
 
-    remote="$(git -C "${INBOX_PLUGIN_DIR}" remote get-url origin)"
+    remote="$(git -C "${INBOX_PLUGIN_DIR}" config --get remote.origin.url)"
     if [ "${remote}" != "${INBOX_REPOSITORY_URL}" ]; then
         printf 'Inbox clone origin must be %s, found %s\n' "${INBOX_REPOSITORY_URL}" "${remote}" >&2
         return 1
@@ -124,13 +124,18 @@ function backup_inbox_store() (
             return 1
         fi
     done
+
+    if ! chmod a-w "${backup_dir}"; then
+        printf 'Failed to make inbox store backup directory read-only: %s\n' "${backup_dir}" >&2
+        return 1
+    fi
 )
 
 #
 # @description Back up and uninstall the marketplace inbox when it is installed.
 #
 function remove_marketplace_inbox() {
-    local installed_json
+    local installed_json marketplaces_json
 
     installed_json="$(run_claude_plugin list --json)"
     if ! run_jq -e 'type == "array"' <<< "${installed_json}" > /dev/null; then
@@ -141,6 +146,15 @@ function remove_marketplace_inbox() {
     if run_jq -e 'any(.[]; .id == "inbox@inbox")' <<< "${installed_json}" > /dev/null; then
         backup_inbox_store
         run_claude_plugin uninstall inbox@inbox --scope user --keep-data
+
+        marketplaces_json="$(run_claude_plugin marketplace list --json)"
+        if ! run_jq -e 'type == "array"' <<< "${marketplaces_json}" > /dev/null; then
+            printf 'Claude plugin marketplace list did not return a JSON array\n' >&2
+            return 1
+        fi
+        if run_jq -e 'any(.[]; .name == "inbox")' <<< "${marketplaces_json}" > /dev/null; then
+            run_claude_plugin marketplace remove inbox
+        fi
     fi
 }
 

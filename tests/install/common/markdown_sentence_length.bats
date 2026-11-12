@@ -662,6 +662,30 @@ EOF
     [[ "${output}" == *"Sentences/bullets: 1 (0 sentences, 1 bullets); median 2 chars; max 2 chars"* ]]
 }
 
+@test "reports form shares and nesting for a heading with inline code" {
+    local file_path="${BATS_TEST_TMPDIR}/neighbor-form.md"
+    cat > "${file_path}" << 'EOF'
+## Neighbors
+Lead.
+- One.
+- Two.
+  - Nested.
+1. Step.
+
+## Changed `part`
+Edit.
+- A.
+  - B.
+1. C.
+EOF
+
+    run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed part" --report
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"Form: mostly bullets (bullets 3/5 (60.0%), prose 1/5 (20.0%), numbered steps 1/5 (20.0%))"* ]]
+    [[ "${output}" == *"Nesting depth: median 1, max 2"* ]]
+    [[ "${output}" == *"Form: mostly bullets (bullets 2/4 (50.0%), prose 1/4 (25.0%), numbered steps 1/4 (25.0%))"* ]]
+}
+
 @test "names every edited bullet longer than the neighboring median" {
     local document="${BATS_TEST_TMPDIR}/neighbor-bullets.md"
     local edited="${BATS_TEST_TMPDIR}/edited-bullets.md"

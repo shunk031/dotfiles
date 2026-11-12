@@ -70,7 +70,7 @@ const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
                     if (ignoredTypes.has(node.type)) return;
                     if (node.type === "Header") {
                         analysis.headers.push({
-                            text: text(node),
+                            text: new StringSource(node).toString().replace(/\s+/gu, " ").trim(),
                             depth: node.depth,
                             line: node.loc.start.line,
                         });

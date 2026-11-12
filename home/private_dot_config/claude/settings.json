@@ -109,7 +109,8 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "ccstatusline"
+    "command": "ccstatusline",
+    "refreshInterval": 60
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,

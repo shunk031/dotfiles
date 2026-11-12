@@ -13,7 +13,10 @@
 #   limit or 429 on it or the two lines below. Herdr can keep reporting such an
 #   agent as working. A Claude Code error line that is still retrying is skipped. Each executable in
 #   `HERDR_META_PATROL_FINDINGS_DIR` also runs once per patrol, and each line it
-#   prints is treated as a finding. Findings go to `latest.txt`.
+#   prints is treated as a finding. A working agent whose pane text, without
+#   digits, symbols, and its interrupt hint line, has not changed for
+#   `HERDR_META_PATROL_STILL_SECONDS` is reported as having made no progress; the
+#   first time each text was seen is kept in `still.tsv`. Findings go to `latest.txt`.
 #   A root is an agent listed in `${XDG_STATE_HOME:-$HOME/.local/state}/meta/roots.tsv`
 #   for its machine alias (`Local` for this machine); inbox tokens alone do not
 #   define roots.
@@ -40,6 +43,7 @@
 # @option HERDR_META_PATROL_RETRY_SLEEP Seconds before the connection retry (default 5).
 # @option HERDR_META_PATROL_DIGEST_SECONDS Progress digest interval (default 1800).
 # @option HERDR_META_PATROL_ERROR_LINES Pane lines read per stopped-agent check (default 25).
+# @option HERDR_META_PATROL_STILL_SECONDS Seconds without pane change before a working agent is reported (default 1200).
 # @option HERDR_META_PATROL_FINDINGS_DIR Directory of finding scripts (default `~/.config/herdr-meta-patrol/findings.d`).
 
 set -Eeuo pipefail
@@ -53,6 +57,8 @@ timeout_seconds="${HERDR_META_PATROL_TIMEOUT:-40}"
 retry_sleep="${HERDR_META_PATROL_RETRY_SLEEP:-5}"
 digest_seconds="${HERDR_META_PATROL_DIGEST_SECONDS:-1800}"
 error_lines="${HERDR_META_PATROL_ERROR_LINES:-25}"
+still_seconds="${HERDR_META_PATROL_STILL_SECONDS:-1200}"
+still_lines=40
 findings_dir="${HERDR_META_PATROL_FINDINGS_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/herdr-meta-patrol/findings.d}"
 # Only lines shaped like an agent's own error output count: a Codex error cell
 # starts with `■ ` at column 0, and a Claude Code API or usage-limit error is a
@@ -166,11 +172,18 @@ function api_error_cause() {
     printf '%sで停止%s\n' "${cause}" "${suffix}"
 }
 
+# @description Print a checksum of pane text that ignores timers, spinners, and the interrupt hint.
+# @stdin Recent pane text.
+function pane_progress_sum() {
+    LC_ALL=C grep -viE 'esc to interrupt|interrupt\)' | LC_ALL=C tr -cd 'A-Za-z\n' | cksum | awk '{ print $1 }'
+}
+
 # @description Print the findings for the current `machine`, one per line.
 # @arg $1 string Machine label (`local` for this machine).
 # @arg $2 string Digest record file, or empty when no digest is due.
+# @arg $3 string File for this machine's `still.tsv` records; it is created only when the agent list was read.
 function scan_machine() {
-    local machine="$1" digest_file="$2" registry_machine list agent a pane inbox relay refs input_state has_inbox registered status fin del panes cause label
+    local machine="$1" digest_file="$2" still_file="$3" registry_machine list agent a pane inbox relay refs input_state has_inbox registered status fin del panes cause label sum since
     list="$(hr agent list 2> /dev/null)" || {
         log_attempt_failure "$?"
         sleep "${retry_sleep}"
@@ -182,6 +195,7 @@ function scan_machine() {
     }
     jq -r --arg m "${machine}" --arg meta "${meta}" '.result.agents[] | select(.agent_status=="blocked") | select((.name // "") != $meta) | "[\($m)] blocked: \(.name // "-") \(.pane_id)"' <<< "${list}"
     if [[ "${machine}" == local ]]; then registry_machine=Local; else registry_machine="${machine}"; fi
+    : > "${still_file}"
     if [[ -n "${digest_file}" ]]; then
         write_digest_records "${machine}" "${registry_machine}" "${list}" "${digest_file}"
     fi
@@ -193,6 +207,17 @@ function scan_machine() {
         inbox="$(jq -r '.tokens.inbox // empty' <<< "${agent}")"
         has_inbox="$(jq -r '(.tokens // {}) | has("inbox")' <<< "${agent}")"
         status="$(jq -r '.agent_status // empty' <<< "${agent}")"
+        if [[ -n "${pane}" && "${status}" == working ]]; then
+            if sum="$(hr pane read "${pane}" --source recent --lines "${still_lines}" --format text 2> /dev/null | pane_progress_sum)"; then
+                since="$(M="${machine}" P="${pane}" S="${sum}" awk -F '\t' '$1 == ENVIRON["M"] && $2 == ENVIRON["P"] && $3 == ENVIRON["S"] { print $4; exit }' "${state_dir}/still.tsv")"
+                [[ -n "${since}" ]] || since="${now}"
+                printf '%s\t%s\t%s\t%s\n' "${machine}" "${pane}" "${sum}" "${since}" >> "${still_file}"
+                if ((now - since >= still_seconds)); then
+                    if [[ "${a}" == - ]]; then label="${pane}"; else label="${a}"; fi
+                    printf '[%s] %s: %s 分動きなし\n' "${machine}" "${label}" "$((still_seconds / 60))"
+                fi
+            fi
+        fi
         if [[ -n "${pane}" ]]; then
             cause="$(hr pane read "${pane}" --source recent --lines "${error_lines}" --format text 2> /dev/null | api_error_cause)" || cause=""
             if [[ -n "${cause}" ]]; then
@@ -266,7 +291,7 @@ function digest_changes() {
 }
 
 mkdir -p "${state_dir}"
-touch "${state_dir}/keys.txt" "${state_dir}/leftover.tsv"
+touch "${state_dir}/keys.txt" "${state_dir}/leftover.tsv" "${state_dir}/still.tsv"
 now="$(date +%s)"
 last_digest="$(cat "${state_dir}/digest.epoch" 2> /dev/null)" || last_digest=""
 digest_due=0
@@ -287,7 +312,7 @@ pids=()
 for ((i = 0; i < ${#machines[@]}; i++)); do
     digest_file=""
     ((digest_due == 0)) || digest_file="${scan_dir}/${i}.digest"
-    (scan_machine "${machines[$i]}" "${digest_file}") > "${scan_dir}/${i}.out" &
+    (scan_machine "${machines[$i]}" "${digest_file}" "${scan_dir}/${i}.still") > "${scan_dir}/${i}.out" &
     pids[i]=$!
 done
 scan_failed=0
@@ -391,6 +416,21 @@ function send_digest() {
         commit_digest "${current}"
     fi
 }
+
+# Panes on a machine that could not be read keep their first-seen times.
+still_scanned=""
+: > "${scan_dir}/still.next"
+for ((i = 0; i < ${#machines[@]}; i++)); do
+    if [[ -e "${scan_dir}/${i}.still" ]]; then
+        cat "${scan_dir}/${i}.still" >> "${scan_dir}/still.next"
+        still_scanned+="${machines[$i]}"$'\n'
+    fi
+done
+S="${still_scanned}" LC_ALL=C awk -F '\t' '
+    BEGIN { n = split(ENVIRON["S"], list, "\n"); for (j = 1; j <= n; j++) ok[list[j]] = 1 }
+    !($1 in ok)
+' "${state_dir}/still.tsv" >> "${scan_dir}/still.next"
+cat "${scan_dir}/still.next" > "${state_dir}/still.tsv"
 
 printf '%s' "${findings}" > "${state_dir}/latest.txt"
 machine=local

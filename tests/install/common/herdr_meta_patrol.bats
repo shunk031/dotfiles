@@ -662,3 +662,58 @@ function stopped_worker() {
     run bash "${SCRIPT_PATH}"
     [ -z "$(calls)" ]
 }
+
+# @description Move every first-seen time in still.tsv back by the given seconds.
+function age_still() {
+    awk -F '\t' -v OFS='\t' -v d="$1" '{ $4 = $4 - d; print }' "${HERDR_META_PATROL_STATE_DIR}/still.tsv" > "${BATS_TEST_TMPDIR}/still.tmp"
+    cat "${BATS_TEST_TMPDIR}/still.tmp" > "${HERDR_META_PATROL_STATE_DIR}/still.tsv"
+}
+
+@test "[common] herdr-meta-patrol reports a working agent whose pane has not changed, once until it changes" {
+    stopped_worker working '• Running tests' '◦ Working (12m 03s • esc to interrupt)'
+    printf '%s\n' '• Waiting for the job' '◦ Working (12m 03s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
+    bash "${SCRIPT_PATH}"
+    run grep -Fq '動きなし' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+
+    age_still 1300
+    printf '%s\n' '• Waiting for the job' '⠹ Working (33m 41s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
+    bash "${SCRIPT_PATH}"
+    grep -Fq '[local] w1: 20 分動きなし' <(calls)
+
+    ack_all
+    bash "${SCRIPT_PATH}"
+    [ -z "$(calls)" ]
+
+    printf '%s\n' '• Job finished, writing the report' '◦ Working (34m 02s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
+    bash "${SCRIPT_PATH}"
+    run grep -Fq '動きなし' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] herdr-meta-patrol does not report idle agents or recent changes as no progress" {
+    stopped_worker idle '• Done.'
+    bash "${SCRIPT_PATH}"
+    [ ! -s "${HERDR_META_PATROL_STATE_DIR}/still.tsv" ]
+
+    stopped_worker working '• Step one'
+    bash "${SCRIPT_PATH}"
+    age_still 600
+    bash "${SCRIPT_PATH}"
+    run grep -Fq '動きなし' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] herdr-meta-patrol keeps first-seen times for a machine that could not be read" {
+    export FAKE_MACHINE_LIST='[{"label":"remote","enabled":true}]'
+    stopped_worker working '• Step one'
+    bash "${SCRIPT_PATH}"
+    grep -q "^remote	p1	" "${HERDR_META_PATROL_STATE_DIR}/still.tsv"
+    age_still 1300
+    touch "${FAKE_REMOTE_DOWN}"
+    bash "${SCRIPT_PATH}"
+    grep -Fq '[local] w1: 20 分動きなし' <(calls)
+    run grep -Fq '[remote] w1: 20 分動きなし' <(calls)
+    [ "${status}" -ne 0 ]
+    [ "$(awk -F '\t' '$1 == "remote"' "${HERDR_META_PATROL_STATE_DIR}/still.tsv" | wc -l)" -eq 1 ]
+}

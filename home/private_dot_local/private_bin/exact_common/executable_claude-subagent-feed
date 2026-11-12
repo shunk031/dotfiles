@@ -22,7 +22,7 @@ PostToolUse)
         exit 0
     fi
     agent_id="$(jq -er '.tool_response.agentId | strings | select(length > 0)' <<< "${input}")" || exit 0
-    title="$(jq -r '(.tool_response.description // "") | if type == "string" then . else "" end' <<< "${input}")"
+    title="$(jq -r '[.tool_response.description, .tool_input.description, .tool_input.subagent_type] | map(select(type == "string" and length > 0)) | first // "subagent"' <<< "${input}")"
     detail="$(jq -r '[(.tool_input.subagent_type // ""), (.tool_response.resolvedModel // .tool_input.model // "")] | map(select(type == "string" and length > 0)) | join(" · ")' <<< "${input}")"
     state=working
     ;;
@@ -67,3 +67,4 @@ else
 fi
 
 mv -f "${tmp_file}" "${entry_file}"
+find "${INBOX_FEED}" -maxdepth 1 -type f -name 'subagent-*.json' -mmin +360 -delete

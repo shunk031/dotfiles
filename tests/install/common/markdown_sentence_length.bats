@@ -129,8 +129,10 @@ assert_github_command_denied() {
     run_github_body_hook "gh pr create --unknown value --body-file body.md"
     assert_github_command_denied "the hook does not recognize the option --unknown"
 
-    run_github_body_hook "gh pr create --title t --body-file missing.md"
-    assert_github_command_denied "the body file ${BATS_TEST_TMPDIR}/missing.md does not exist"
+    for command in "gh pr create --title t --body-file missing.md" "gh pr comment 42 -F /dev/stdin"; do
+        run_github_body_hook "${command}"
+        assert_github_command_denied "is not a regular file"
+    done
 }
 
 @test "denies the compound command that published an unchecked PR body" {
@@ -149,6 +151,28 @@ assert_github_command_denied() {
     run_github_body_hook "gh pr create -R o/r --head x --title t --body-file '${body_file}'"
     [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
     [[ "${output}" == *"Fix: split the paragraph or list item."* ]]
+}
+
+@test "denies gh calls in aliases, repo flag positions, and shell forms bash runs" {
+    local command
+
+    for command in \
+        "gh pr new --title t --body 'Short.'" \
+        "gh -R o/r pr comment 42 --body 'Short.'" \
+        "gh pr --repo=o/r comment 42 --body 'Short.'" \
+        "jq . <<< \"\$json\"
+gh pr comment 42 --body 'Short.'" \
+        "n=\$((1<<3))
+gh pr comment 42 --body 'Short.'" \
+        "# don't forget
+gh pr comment 42 --body 'Short.'" \
+        "echo \"\`gh pr comment 42 --body 'Short.'\`\"" \
+        "cat <<EOF
+\$(gh pr comment 42 --body 'Short.')
+EOF"; do
+        run_github_body_hook "${command}"
+        assert_github_command_denied "it passes inline text with --body or -b"
+    done
 }
 
 @test "denies a body file written or named earlier in the same command" {
@@ -206,7 +230,10 @@ gh pr create --title t --body-file '${body_file}'"
 }
 
 @test "allows gh commands that post no text or only mention gh in prose" {
+    local body_file="${BATS_TEST_TMPDIR}/short.md"
     local command
+
+    printf 'Short body.\n' > "${body_file}"
 
     for command in \
         "gh pr edit 42 --add-label rebase >/dev/null" \
@@ -214,9 +241,12 @@ gh pr create --title t --body-file '${body_file}'"
         "gh issue comment 42 --delete-last --yes" \
         "gh pr edit --help | head -5" \
         "gh pr create --help=true --body 'Short.'" \
-        "gh pr create -t '-bShort.' --body-file /dev/null" \
+        "gh pr create -t '-bShort.' --body-file '${body_file}'" \
+        "gh issue comment 42 --attach shot.png" \
+        "gh pr create --title t --body-file '${body_file}' # it's linted" \
         "git commit -m 'fix: gh pr create --body parsing'" \
-        "herdr agent send w \"Open it with \`gh pr create --body-file <draft>\`.\"" \
+        "herdr agent send w 'Open it with \`gh pr create --body-file <draft>\`.'" \
+        "# gh pr create --body 'Short.'" \
         "cat > notes.txt <<'EOF'
 gh pr create --body 'Short.'
 EOF"; do

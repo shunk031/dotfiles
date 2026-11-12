@@ -540,20 +540,24 @@ async function checkRecords(event, client, requestedPaths = null) {
 
 // GitHub text must come from a --body-file this hook can read and lint, so
 // every other form of these gh commands is denied before Bash runs.
-const GITHUB_TEXT_COMMAND =
-    /(?:^|[^\w./-])((?:[\w./-]*\/)?gh\s+(pr\s+(?:create|edit|comment|review)|issue\s+(?:create|edit|comment))(?![\w-])[^;&|\n()<>]*)/gu;
+const GITHUB_REPO_FLAG = String.raw`(?:\s+(?:-R|--repo)(?:=|\s+)[^\s;&|()<>]+)*`;
+const GITHUB_TEXT_COMMAND = new RegExp(
+    String.raw`(?:^|[^\w./-])((?:[\w./-]*\/)?gh${GITHUB_REPO_FLAG}\s+(pr|issue)${GITHUB_REPO_FLAG}\s+(create|new|edit|comment|review)(?![\w-])[^;&|\n()<>\x60]*)`,
+    "gu",
+);
 const GITHUB_BODY_REQUIRED = new Set(["pr create", "issue create", "pr comment", "issue comment"]);
 const GITHUB_OTHER_BODY_SOURCES = new Set([
     "--fill", "-f", "--fill-first", "--fill-verbose", "--editor", "-e",
     "--web", "-w", "--template", "-T", "--recover",
 ]);
 
-// Blank out quoted text and heredoc bodies, keeping every offset, so gh
-// mentioned in prose, such as a prompt sent to another agent, is not taken for
-// a command. Command substitutions inside double quotes stay visible.
+// Blank out comments, quoted text and quoted heredoc bodies, keeping every
+// offset, so gh mentioned in prose, such as a prompt sent to another agent, is
+// not taken for a command. Command substitutions that bash runs, inside double
+// quotes or unquoted heredocs, stay visible.
 function shellCodeText(command) {
     let out = "";
-    const stack = [{ type: "code", parens: 0 }];
+    const stack = [{ type: "code", parens: 0, closer: null }];
     const heredocs = [];
     for (let index = 0; index < command.length; index += 1) {
         const context = stack.at(-1);
@@ -566,16 +570,25 @@ function shellCodeText(command) {
                 stack.pop();
                 out += " ";
             } else if (character === "$" && command[index + 1] === "(") {
-                stack.push({ type: "code", parens: 0 });
+                stack.push({ type: "code", parens: 0, closer: ")" });
                 out += "$(";
                 index += 1;
+            } else if (character === "`") {
+                stack.push({ type: "code", parens: 0, closer: "`" });
+                out += "`";
             } else {
                 out += character === "\n" ? "\n" : " ";
             }
             continue;
         }
 
-        if (character === "'") {
+        const wordStart = index === 0 || /[\s;&|()]/u.test(command[index - 1]);
+        if (character === "#" && wordStart) {
+            const lineEnd = command.indexOf("\n", index);
+            const stop = lineEnd < 0 ? command.length : lineEnd;
+            out += " ".repeat(stop - index);
+            index = stop - 1;
+        } else if (character === "'") {
             const end = command.indexOf("'", index + 1);
             const stop = end < 0 ? command.length : end;
             out += command.slice(index, stop + 1).replace(/[^\n]/g, " ");
@@ -586,27 +599,43 @@ function shellCodeText(command) {
         } else if (character === "\\") {
             out += "  ";
             index += 1;
+        } else if (character === "`" && context.closer === "`") {
+            stack.pop();
+            out += character;
+        } else if (character === "`") {
+            stack.push({ type: "code", parens: 0, closer: "`" });
+            out += character;
+        } else if (command.startsWith("$((", index)) {
+            const end = command.indexOf("))", index);
+            const stop = end < 0 ? command.length : end + 2;
+            out += command.slice(index, stop);
+            index = stop - 1;
         } else if (character === "(") {
             context.parens += 1;
             out += character;
-        } else if (character === ")" && context.parens === 0 && stack.length > 1) {
+        } else if (character === ")" && context.parens === 0 && context.closer === ")") {
             stack.pop();
             out += character;
         } else if (character === ")") {
             context.parens = Math.max(0, context.parens - 1);
             out += character;
-        } else if (character === "<" && command.startsWith("<<", index) && command[index + 2] !== "<") {
+        } else if (command.startsWith("<<<", index)) {
+            out += "<<<";
+            index += 2;
+        } else if (command.startsWith("<<", index)) {
             const heredoc = /^<<(-?)\s*(['"]?)([^\s'"<>;&|()]+)\2/u.exec(command.slice(index));
             if (heredoc) {
-                heredocs.push({ strip: heredoc[1] === "-", delimiter: heredoc[3] });
+                heredocs.push({ strip: heredoc[1] === "-", quoted: heredoc[2] !== "", delimiter: heredoc[3] });
                 out += " ".repeat(heredoc[0].length);
                 index += heredoc[0].length - 1;
             } else {
                 out += character;
             }
         } else if (character === "\n" && heredocs.length > 0) {
+            out += "\n";
             let lineStart = index + 1;
             for (const heredoc of heredocs.splice(0)) {
+                const bodyStart = lineStart;
                 while (lineStart <= command.length) {
                     const lineEnd = command.indexOf("\n", lineStart);
                     const end = lineEnd < 0 ? command.length : lineEnd;
@@ -616,10 +645,12 @@ function shellCodeText(command) {
                         break;
                     }
                 }
+                const body = command.slice(bodyStart, Math.min(lineStart, command.length));
+                out += heredoc.quoted
+                    ? body.replace(/[^\n]/g, " ")
+                    : shellCodeText(`"${body.replace(/"/g, " ")}"`).slice(1, -1);
             }
-            const stop = Math.min(lineStart, command.length);
-            out += command.slice(index, stop).replace(/[^\n]/g, " ");
-            index = stop - 1;
+            index = Math.min(lineStart, command.length) - 1;
         } else {
             out += character;
         }
@@ -700,7 +731,9 @@ function parseSimpleShellCommand(command) {
             }
             argument += process.env.HOME || os.homedir();
             active = true;
-        } else if (/[;&|<>()\[\]{}*?!$`]/u.test(character) || (character === "#" && !active)) {
+        } else if (character === "#" && !active) {
+            break;
+        } else if (/[;&|<>()\[\]{}*?!$`]/u.test(character)) {
             return null;
         } else {
             argument += character;
@@ -776,17 +809,22 @@ function githubTextCalls(command) {
     const code = shellCodeText(command);
     const changesDirectory = /(?:^|[^\w./-])(?:cd|pushd)(?:\s|$)/u.test(code);
     return [...code.matchAll(GITHUB_TEXT_COMMAND)]
+        .filter((match) => `${match[2]} ${match[3]}` !== "issue review")
         .map((match) => {
-            const name = match[2].replace(/\s+/gu, " ");
+            const name = `${match[2]} ${match[3] === "new" ? "create" : match[3]}`;
             const start = match.index + match[0].length - match[1].length;
             const args = parseSimpleShellCommand(command.slice(start, start + match[1].length));
-            if (!args || path.basename(args[0]) !== "gh" || `${args[1]} ${args[2]}` !== name) {
+            const words = (args || []).filter(
+                (arg, index, all) =>
+                    !/^(?:-R|--repo)(?:=.*)?$/u.test(arg) && !/^(?:-R|--repo)$/u.test(all[index - 1] || ""),
+            );
+            if (!args || path.basename(words[0]) !== "gh" || `${words[1]} ${words[2]}` !== `${match[2]} ${match[3]}`) {
                 return {
                     name,
                     problem: "its arguments need shell expansion, such as a variable, $(...), a glob, or a heredoc",
                 };
             }
-            const call = githubTextCall(args, name);
+            const call = githubTextCall(words.slice(3), name);
             if (call?.bodyFile && changesDirectory && !path.isAbsolute(call.bodyFile)) {
                 return { name, problem: "the command changes directory, so the --body-file path must be absolute" };
             }
@@ -814,6 +852,7 @@ function githubTextCall(args, name) {
     let inline = false;
     let bodyFile;
     let deleteLast = false;
+    let attach = false;
     let helpRequested = false;
     const otherSources = new Set();
     const setBoolean = (flag, value) => {
@@ -830,13 +869,15 @@ function githubTextCall(args, name) {
             inline = true;
         } else if (type === "file") {
             bodyFile = value;
+        } else if (flag === "--attach") {
+            attach = true;
         } else if (GITHUB_OTHER_BODY_SOURCES.has(flag)) {
             otherSources.add(flag);
         }
     };
     const unsupported = (flag) => ({ name, problem: `the hook does not recognize the option ${flag}` });
 
-    for (let index = 3; index < args.length; index += 1) {
+    for (let index = 0; index < args.length; index += 1) {
         const option = args[index];
         if (option === "--") {
             break;
@@ -918,7 +959,7 @@ function githubTextCall(args, name) {
     if (bodyFile === "") {
         return { name, problem: "its --body-file path is empty" };
     }
-    if (bodyFile === undefined && GITHUB_BODY_REQUIRED.has(name) && !deleteLast) {
+    if (bodyFile === undefined && GITHUB_BODY_REQUIRED.has(name) && !deleteLast && !attach) {
         return { name, problem: "it has no --body-file" };
     }
     return { name, bodyFile };
@@ -926,12 +967,11 @@ function githubTextCall(args, name) {
 
 function formatGithubCommandReason(name, problem) {
     const target = name.endsWith("create") ? "" : " <number>";
-    const extra =
-        name === "pr create"
-            ? ' --head <branch> --title "<title>"'
-            : name === "issue create"
-              ? ' --title "<title>"'
-              : "";
+    const extra = {
+        "pr create": ' --head <branch> --title "<title>"',
+        "issue create": ' --title "<title>"',
+        "pr review": " --comment",
+    }[name] || "";
     return (
         `Blocked \`gh ${name}\`: ${problem}.\n` +
         "GitHub text must come from a Markdown file that this hook can lint. " +
@@ -956,11 +996,11 @@ async function checkGithubCommand(event) {
     const records = [];
     for (const call of calls.filter((entry) => entry.bodyFile !== undefined)) {
         const filePath = path.resolve(event.cwd || process.cwd(), call.bodyFile);
-        const content = await readFileOrMissing(filePath);
-        if (content === null) {
-            return formatGithubCommandReason(call.name, `the body file ${filePath} does not exist`);
+        const stat = await fs.stat(filePath).catch(() => null);
+        if (!stat?.isFile()) {
+            return formatGithubCommandReason(call.name, `the body file ${filePath} is not a regular file`);
         }
-        records.push({ filePath, baseline: "", current: content });
+        records.push({ filePath, baseline: "", current: await fs.readFile(filePath, "utf8") });
     }
     if (records.length === 0) {
         return null;

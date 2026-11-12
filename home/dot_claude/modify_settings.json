@@ -91,6 +91,16 @@
             "timeout": 120
           }
         ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.local/bin/common/claude-subagent-feed\"",
+            "async": true
+          }
+        ]
       }
     ],
     "Stop": [
@@ -112,6 +122,17 @@
             "type": "command",
             "command": "bash \"$HOME/.claude/hooks/herdr-agent-state.sh\" session",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.local/bin/common/claude-subagent-feed\"",
+            "async": true
           }
         ]
       }

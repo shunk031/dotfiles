@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+# @file home/private_dot_local/private_bin/exact_common/executable_claude-subagent-feed
+# @brief Write Claude Code subagent lifecycle events to the inbox feed.
+# @description
+#   Handles asynchronous Agent launches and SubagentStop events. Feed snapshots
+#   are written atomically under `INBOX_FEED` when it names an existing directory.
+
+set -Eeuo pipefail
+
+if [[ -z "${INBOX_FEED:-}" || ! -d "${INBOX_FEED}" ]]; then
+    exit 0
+fi
+
+input="$(cat)"
+event="$(jq -r '.hook_event_name // empty' <<< "${input}")"
+
+case "${event}" in
+PostToolUse)
+    if ! jq -e 'has("agent_id") | not' <<< "${input}" > /dev/null ||
+        ! jq -e '.tool_name == "Agent" and .tool_response.status == "async_launched"' <<< "${input}" > /dev/null; then
+        exit 0
+    fi
+    agent_id="$(jq -er '.tool_response.agentId | strings | select(length > 0)' <<< "${input}")" || exit 0
+    title="$(jq -r '(.tool_response.description // "") | if type == "string" then . else "" end' <<< "${input}")"
+    detail="$(jq -r '[(.tool_input.subagent_type // ""), (.tool_response.resolvedModel // .tool_input.model // "")] | map(select(type == "string" and length > 0)) | join(" · ")' <<< "${input}")"
+    state=working
+    ;;
+SubagentStop)
+    agent_id="$(jq -er '.agent_id | strings | select(length > 0)' <<< "${input}")" || exit 0
+    state='done'
+    ;;
+*)
+    exit 0
+    ;;
+esac
+
+session_id="$(jq -er '.session_id | strings | select(length > 0)' <<< "${input}")" || exit 0
+key="subagent/${session_id}/${agent_id}"
+safe_session_id="$(printf '%s' "${session_id}" | LC_ALL=C tr -c 'A-Za-z0-9._-' '_')"
+safe_agent_id="$(printf '%s' "${agent_id}" | LC_ALL=C tr -c 'A-Za-z0-9._-' '_')"
+entry_file="${INBOX_FEED}/subagent-${safe_session_id}-${safe_agent_id}.json"
+
+if [[ "${state}" == 'done' ]]; then
+    [[ -f "${entry_file}" ]] || exit 0
+    jq -e --arg key "${key}" 'any(.entries[]?; .key == $key)' "${entry_file}" > /dev/null || exit 0
+fi
+
+written_at="$(jq -nr 'now * 1000 | floor')"
+tmp_file="$(mktemp "${INBOX_FEED}/.subagent-XXXXXX")"
+trap 'rm -f "${tmp_file}"' EXIT
+
+if [[ "${state}" == working ]]; then
+    jq -n \
+        --arg key "${key}" \
+        --arg title "${title}" \
+        --arg detail "${detail}" \
+        --argjson at "${written_at}" \
+        '{version: 1, source: "claude-subagent-hook", writtenAt: $at, entries: [{key: $key, state: "working", title: $title[0:120], detail: $detail[0:600], at: $at}]}' \
+        > "${tmp_file}"
+else
+    jq \
+        --arg key "${key}" \
+        --argjson at "${written_at}" \
+        '.writtenAt = $at | .entries |= map(if .key == $key then .state = "done" | .at = $at else . end)' \
+        "${entry_file}" > "${tmp_file}"
+fi
+
+mv -f "${tmp_file}" "${entry_file}"

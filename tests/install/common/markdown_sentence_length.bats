@@ -662,7 +662,7 @@ EOF
     [[ "${output}" == *"Sentences/bullets: 1 (0 sentences, 1 bullets); median 2 chars; max 2 chars"* ]]
 }
 
-@test "reports form shares and nesting for a heading with inline code" {
+@test "reports form shares and nesting for a heading with inline code and HTML" {
     local file_path="${BATS_TEST_TMPDIR}/neighbor-form.md"
     cat > "${file_path}" << 'EOF'
 ## Neighbors
@@ -672,14 +672,14 @@ Lead.
   - Nested.
 1. Step.
 
-## Changed `part`
+## Changed `part` <span>section</span>
 Edit.
 - A.
   - B.
 1. C.
 EOF
 
-    run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed part" --report
+    run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed part section" --report
     [ "${status}" -eq 0 ]
     [[ "${output}" == *"Form: mostly bullets (bullets 3/5 (60.0%), prose 1/5 (20.0%), numbered steps 1/5 (20.0%))"* ]]
     [[ "${output}" == *"Nesting depth: median 1, max 2"* ]]

@@ -30,12 +30,12 @@ const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
     const [configPath, ...inputFiles] = process.argv.slice(1);
     const ignoredTypes = new Set(["Code", "CodeBlock", "Html", "Table"]);
 
-    function withoutCode(node) {
-        if (ignoredTypes.has(node.type)) return null;
+    function withoutIgnoredTypes(node, keepInlineCode = false) {
+        if (ignoredTypes.has(node.type) && !(keepInlineCode && node.type === "Code")) return null;
         if (!node.children) return node;
         return {
             ...node,
-            children: node.children.map(withoutCode).filter(Boolean),
+            children: node.children.map((child) => withoutIgnoredTypes(child, keepInlineCode)).filter(Boolean),
         };
     }
 
@@ -52,7 +52,7 @@ const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
                 .join(" ");
         }
         if (["Paragraph", "Header", "Sentence"].includes(node.type)) {
-            const filtered = withoutCode(node);
+            const filtered = withoutIgnoredTypes(node);
             return filtered
                 ? new StringSource(filtered).toString().replace(/\s+/gu, " ").trim()
                 : "";
@@ -70,7 +70,7 @@ const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
                     if (ignoredTypes.has(node.type)) return;
                     if (node.type === "Header") {
                         analysis.headers.push({
-                            text: new StringSource(node).toString().replace(/\s+/gu, " ").trim(),
+                            text: new StringSource(withoutIgnoredTypes(node, true)).toString().replace(/\s+/gu, " ").trim(),
                             depth: node.depth,
                             line: node.loc.start.line,
                         });
@@ -109,7 +109,7 @@ const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
                                 if (!previous || depth >= previous.depth) lines.set(line, { kind, depth });
                             }
                             if (!item || item.ordered) {
-                                const paragraph = withoutCode(node);
+                                const paragraph = withoutIgnoredTypes(node);
                                 for (const sentence of splitAST(paragraph).children) {
                                     if (sentence.type !== SentenceSyntax.Sentence) continue;
                                     const sentenceText = text(sentence);

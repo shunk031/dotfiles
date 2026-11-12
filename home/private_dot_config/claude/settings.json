@@ -72,6 +72,27 @@
             "timeout": 120
           }
         ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.local/bin/common/claude-subagent-feed\"",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.local/bin/common/claude-subagent-feed\"",
+            "async": true
+          }
+        ]
       }
     ],
     "SessionStart": [

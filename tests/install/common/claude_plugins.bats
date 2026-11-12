@@ -514,6 +514,39 @@ MOCK_CP
     [ "${status}" -eq 0 ]
 }
 
+@test "[common] Claude subagent feed hooks preserve existing hooks and render once" {
+    local rendered command
+    command="bash \"\$HOME/.local/bin/common/claude-subagent-feed\""
+
+    run jq -e --arg command "${command}" '
+        ([.hooks.PostToolUse[] | select(.matcher == "Agent") | .hooks[] | select(.command == $command and .async == true)] | length) == 1
+        and ([.hooks.SubagentStop[] | select(has("matcher") | not) | .hooks[] | select(.command == $command and .async == true)] | length) == 1
+        and any(.hooks.PostToolUse[]; .matcher == "Write|Edit|MultiEdit")
+    ' "${CLAUDE_SETTINGS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < "${CLAUDE_SETTINGS_PATH}"
+    [ "${status}" -eq 0 ]
+    rendered="${output}"
+    run jq -e --arg command "${command}" '
+        ([.hooks.PostToolUse[] | select(.matcher == "Agent") | .hooks[] | select(.command == $command and .async == true)] | length) == 1
+        and ([.hooks.SubagentStop[] | select(has("matcher") | not) | .hooks[] | select(.command == $command and .async == true)] | length) == 1
+        and any(.hooks.PostToolUse[]; .matcher == "Write|Edit|MultiEdit")
+        and any(.hooks.PreToolUse[]; .matcher == "Bash")
+        and any(.hooks.SessionStart[]; .matcher == "^(startup|resume|clear|compact|fork)$")
+        and any(.hooks.Stop[].hooks[]; .command | contains("markdown-sentence-length stop claude"))
+    ' <<< "${rendered}"
+    [ "${status}" -eq 0 ]
+
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< "${rendered}"
+    [ "${status}" -eq 0 ]
+    run jq -e --arg command "${command}" '
+        ([.hooks.PostToolUse[] | select(.matcher == "Agent") | .hooks[] | select(.command == $command and .async == true)] | length) == 1
+        and ([.hooks.SubagentStop[] | select(has("matcher") | not) | .hooks[] | select(.command == $command and .async == true)] | length) == 1
+    ' <<< "${output}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] Claude settings modifier creates initial Fable low-effort defaults" {
     run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < /dev/null
     [ "${status}" -eq 0 ]

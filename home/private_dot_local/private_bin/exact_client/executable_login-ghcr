@@ -9,8 +9,8 @@
 # @description Log into GHCR using credentials stored in 1Password.
 function login-ghcr() {
     local cr_pat username
-    cr_pat=$(op item get github.com --fields label=cr-pat)
-    username=$(op item get github.com --fields label=username)
+    cr_pat=$(op item get github.com --fields label=cr-pat) && test -n "${cr_pat}" || return 1
+    username=$(op item get github.com --fields label=username) && test -n "${username}" || return 1
 
     echo "${cr_pat}" | docker login ghcr.io -u "${username}" --password-stdin
 }

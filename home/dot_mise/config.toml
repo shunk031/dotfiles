@@ -56,6 +56,7 @@ sqlite = "3.54.1"
 # npm tools
 "npm:bash-language-server" = "5.8.1"
 "npm:ccstatusline" = "2.2.32"
+"npm:ccusage" = "20.0.50"
 "npm:fast-cli" = "5.2.0"
 "npm:pyright" = "1.1.414"
 "npm:skills" = "1.7.4"

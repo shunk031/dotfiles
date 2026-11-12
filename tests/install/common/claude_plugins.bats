@@ -26,6 +26,10 @@ function setup() {
     MOCK_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_calls.txt"
 }
 
+function teardown() {
+    chmod -R u+w "${BATS_TEST_TMPDIR}" 2> /dev/null || true
+}
+
 function write_claude_workflow_mocks() {
     mkdir -p "${MOCK_BIN}"
     export MOCK_BIN MOCK_GIT_CALLS_PATH MOCK_CLAUDE_CALLS_PATH
@@ -463,6 +467,7 @@ MOCK_CP
     export CLAUDE_PLUGIN_LIST_FILE="${list_file}"
     export MOCK_CLAUDE_REQUIRE_BACKUP=1
     export CLAUDE_EXPECT_BACKUP_FILE="${state_dir}/inbox-store-backup/$(date '+%Y-%m-%d')/inbox_inbox-session.json"
+    export CLAUDE_EXPECT_BACKUP_DIR="${state_dir}/inbox-store-backup/$(date '+%Y-%m-%d')"
 
     run_claude_plugin_script
     [ "${status}" -eq 0 ]

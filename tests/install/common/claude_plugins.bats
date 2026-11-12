@@ -223,7 +223,17 @@ readonly INBOX_KNOWN='[{"name":"inbox","source":"github","repo":"shunk031/inbox"
 
     local actual expected
     actual="$(jq -S . <<< "${output}")"
-    expected="$(jq --arg command 'command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length pre claude' '.hooks.PreToolUse |= map(if .matcher == "Bash" then .hooks += [{"type":"command","command":$command,"timeout":120}] else . end)' "${CLAUDE_SETTINGS_PATH}" | jq -S .)"
+    expected="$(
+        jq --arg command 'command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length pre claude' '
+            def markdown_hook: {"type":"command","command":$command,"timeout":120};
+            .hooks.PreToolUse |= (
+                if any(.[]; .matcher == "Bash") then
+                    map(if .matcher == "Bash" then .hooks += [markdown_hook] else . end)
+                else
+                    [{"matcher":"Bash","hooks":[markdown_hook]}] + .
+                end
+            )' "${CLAUDE_SETTINGS_PATH}" | jq -S .
+    )"
     [ "${actual}" = "${expected}" ]
 }
 

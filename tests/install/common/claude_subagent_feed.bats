@@ -33,6 +33,32 @@ function subagent_stop() {
     [ "${status}" -eq 0 ]
 }
 
+@test "[common] Claude subagent title falls back through available descriptions" {
+    local input
+    input="$(post_tool_use session-1 response 'Response title' Explore sonnet | jq -c '.tool_input.description = "Input title"')"
+    run env INBOX_FEED="${FEED_DIR}" bash "${SCRIPT_PATH}" <<< "${input}"
+    [ "${status}" -eq 0 ]
+
+    input="$(post_tool_use session-1 input '' Explore sonnet | jq -c 'del(.tool_response.description) | .tool_input.description = "Input title"')"
+    run env INBOX_FEED="${FEED_DIR}" bash "${SCRIPT_PATH}" <<< "${input}"
+    [ "${status}" -eq 0 ]
+
+    input="$(post_tool_use session-1 type '' Explore sonnet | jq -c 'del(.tool_response.description) | del(.tool_input.description)')"
+    run env INBOX_FEED="${FEED_DIR}" bash "${SCRIPT_PATH}" <<< "${input}"
+    [ "${status}" -eq 0 ]
+
+    input="$(post_tool_use session-1 fallback '' Explore sonnet | jq -c 'del(.tool_response.description) | del(.tool_input.description) | del(.tool_input.subagent_type)')"
+    run env INBOX_FEED="${FEED_DIR}" bash "${SCRIPT_PATH}" <<< "${input}"
+    [ "${status}" -eq 0 ]
+
+    run jq -e -s 'map(.entries[0].title) == ["Response title", "Input title", "Explore", "subagent"]' \
+        "${FEED_DIR}/subagent-session-1-response.json" \
+        "${FEED_DIR}/subagent-session-1-input.json" \
+        "${FEED_DIR}/subagent-session-1-type.json" \
+        "${FEED_DIR}/subagent-session-1-fallback.json"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] Claude SubagentStop marks the existing entry done" {
     local input stop_input entry_file
     input="$(post_tool_use session-1 agent-1 'Review the change' Explore sonnet)"
@@ -46,6 +72,40 @@ function subagent_stop() {
 
     run jq -e '.entries[0].state == "done" and .entries[0].title == "Review the change" and (.entries[0].at | type == "number")' "${entry_file}"
     [ "${status}" -eq 0 ]
+}
+
+@test "[common] Claude SubagentStop without a matching entry creates no file" {
+    local input
+    input="$(subagent_stop session-1 agent-1)"
+
+    run env INBOX_FEED="${FEED_DIR}" bash "${SCRIPT_PATH}" <<< "${input}"
+    [ "${status}" -eq 0 ]
+    [ -z "$(find "${FEED_DIR}" -type f -print)" ]
+}
+
+@test "[common] Claude subagent hook rejects bad JSON without writing" {
+    run env INBOX_FEED="${FEED_DIR}" bash "${SCRIPT_PATH}" <<< '{'
+    [ "${status}" -ne 0 ]
+    [ -z "$(find "${FEED_DIR}" -type f -print)" ]
+}
+
+@test "[common] Claude subagent write prunes only old subagent snapshots" {
+    local input old_file new_file other_file
+    old_file="${FEED_DIR}/subagent-old.json"
+    new_file="${FEED_DIR}/subagent-new.json"
+    other_file="${FEED_DIR}/notes.json"
+    : > "${old_file}"
+    : > "${new_file}"
+    : > "${other_file}"
+    touch -t 200001010000 "${old_file}" "${other_file}"
+    input="$(post_tool_use session-1 agent-1 'Review the change' Explore sonnet)"
+
+    run env INBOX_FEED="${FEED_DIR}" bash "${SCRIPT_PATH}" <<< "${input}"
+    [ "${status}" -eq 0 ]
+    [ ! -e "${old_file}" ]
+    [ -e "${new_file}" ]
+    [ -e "${other_file}" ]
+    [ -e "${FEED_DIR}/subagent-session-1-agent-1.json" ]
 }
 
 @test "[common] Claude subagent PostToolUse is ignored" {

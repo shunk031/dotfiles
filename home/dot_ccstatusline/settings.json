@@ -6,7 +6,7 @@
         "id": "1",
         "type": "custom-command",
         "color": "white",
-        "commandPath": "npx -y ccusage@latest statusline",
+        "commandPath": "ccusage statusline",
         "timeout": 50000
       },
       {

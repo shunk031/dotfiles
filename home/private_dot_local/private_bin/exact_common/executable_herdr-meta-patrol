@@ -13,8 +13,8 @@
 #   limit or 429 on it or the two lines below. Herdr can keep reporting such an
 #   agent as working. A Claude Code error line that is still retrying is skipped. Each executable in
 #   `HERDR_META_PATROL_FINDINGS_DIR` also runs once per patrol, and each line it
-#   prints is treated as a finding. A working agent whose pane text, without
-#   digits, symbols, and its interrupt hint line, has not changed for
+#   prints is treated as a finding. A working agent whose pane letters, in any
+#   script and without its interrupt hint line, have not changed for
 #   `HERDR_META_PATROL_STILL_SECONDS` is reported as having made no progress; the
 #   first time each text was seen is kept in `still.tsv`. Findings go to `latest.txt`.
 #   A root is an agent listed in `${XDG_STATE_HOME:-$HOME/.local/state}/meta/roots.tsv`
@@ -172,10 +172,14 @@ function api_error_cause() {
     printf '%sで停止%s\n' "${cause}" "${suffix}"
 }
 
-# @description Print a checksum of pane text that ignores timers, spinners, and the interrupt hint.
+# @description Print a checksum of the letters in pane text, ignoring timers, spinners, and the interrupt hint.
 # @stdin Recent pane text.
 function pane_progress_sum() {
-    LC_ALL=C grep -viE 'esc to interrupt|interrupt\)' | LC_ALL=C tr -cd 'A-Za-z\n' | cksum | awk '{ print $1 }'
+    local letters
+    letters="$(perl -CSD -ne 'next if /esc to interrupt|interrupt\)/i; s/[^\p{L}\n]//g; print')"
+    # An empty or fully filtered pane gives no evidence either way.
+    [[ -n "${letters//$'\n'/}" ]] || return 1
+    printf '%s\n' "${letters}" | cksum | awk '{ print $1 }'
 }
 
 # @description Print the findings for the current `machine`, one per line.

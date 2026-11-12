@@ -29,6 +29,7 @@
 # @option HERDR_META_PATROL_STATE_DIR State directory (default `~/.local/state/herdr-meta-patrol`).
 # @option HERDR_META_PATROL_QUEUE_POLL Seconds between `wait` polls (default 5).
 # @option HERDR_META_PATROL_QUEUE_KEEP_DAYS Days to keep acknowledged records (default 7).
+# @option HERDR_META_PATROL_TIMEOUT Seconds before the notification call is killed (default 40).
 # @option HERDR_META_PATROL_STALE_SECONDS Age of unread records and of the waiter heartbeat that triggers a notification (default 600).
 # @exitcode 0 On success.
 # @exitcode 2 On a usage error.
@@ -68,7 +69,7 @@ function number_in() {
 
 # @description Run a command while holding the queue lock (perl ships with macOS).
 function with_lock() {
-    perl -MFcntl=:flock -e 'open(my $fh, ">>", shift) or die "lock: $!\n"; flock($fh, LOCK_EX) or die "lock: $!\n"; exit(system(@ARGV) >> 8)' "${lock_file}" "$@"
+    perl -MFcntl=:flock -e 'open(my $fh, ">>", shift) or die "lock: $!\n"; flock($fh, LOCK_EX) or die "lock: $!\n"; my $r = system(@ARGV); exit($r & 127 ? 128 + ($r & 127) : $r >> 8)' "${lock_file}" "$@"
 }
 
 # @description Append one record; runs under the queue lock.
@@ -79,10 +80,14 @@ function append_locked() {
     local seq now
     seq=$(($(number_in "${seq_file}") + 1))
     now="$(date +%s)"
+    # A line cut short by an earlier failed write must not swallow this record.
+    if [[ -s "${queue}" && -n "$(tail -c 1 "${queue}")" ]]; then
+        printf '\n' >> "${queue}" || return 1
+    fi
     jq -cn --argjson seq "${seq}" --argjson t "${now}" --arg at "$(date '+%Y-%m-%dT%H:%M:%S%z')" \
         --arg kind "$1" --arg from "$2" --arg text "$3" \
-        '{seq: $seq, t: $t, at: $at, kind: $kind, from: $from, text: $text}' >> "${queue}"
-    printf '%s\n' "${seq}" > "${seq_file}.tmp"
+        '{seq: $seq, t: $t, at: $at, kind: $kind, from: $from, text: $text}' >> "${queue}" || return 1
+    printf '%s\n' "${seq}" > "${seq_file}.tmp" || return 1
     mv "${seq_file}.tmp" "${seq_file}"
 }
 
@@ -92,14 +97,14 @@ function trim_locked() {
     [[ -s "${queue}" ]] || return 0
     ack="$(number_in "${ack_file}")"
     cutoff=$(($(date +%s) - keep_days * 86400))
-    jq -c --argjson ack "${ack}" --argjson cutoff "${cutoff}" 'select(.seq > $ack or .t >= $cutoff)' "${queue}" > "${queue}.tmp"
-    mv "${queue}.tmp" "${queue}"
+    jq -cR --argjson ack "${ack}" --argjson cutoff "${cutoff}" 'fromjson? // empty | select(.seq > $ack or .t >= $cutoff)' "${queue}" > "${queue}.tmp" &&
+        mv "${queue}.tmp" "${queue}"
 }
 
 # @description Print the unread records.
 function read_unread() {
     [[ -s "${queue}" ]] || return 0
-    jq -c --argjson ack "$(number_in "${ack_file}")" 'select(.seq > $ack)' "${queue}"
+    jq -cR --argjson ack "$(number_in "${ack_file}")" 'fromjson? // empty | select(.seq > $ack)' "${queue}"
 }
 
 mkdir -p "${state_dir}"
@@ -127,7 +132,7 @@ add)
     (($# == 1)) && [[ -n "$1" ]] || usage
     export -f append_locked number_in
     export queue seq_file
-    with_lock bash -c 'append_locked "$@"' _ "${kind}" "${from}" "$1"
+    with_lock bash -c 'set -Eeuo pipefail; append_locked "$@"' _ "${kind}" "${from}" "$1"
     ;;
 wait)
     max_seconds=21600
@@ -168,7 +173,7 @@ trim)
     (($# == 0)) || usage
     export -f trim_locked number_in
     export queue ack_file keep_days
-    with_lock bash -c trim_locked
+    with_lock bash -c 'set -Eeuo pipefail; trim_locked'
     ;;
 notify-if-stale)
     (($# == 0)) || usage
@@ -183,7 +188,7 @@ notify-if-stale)
         ((now - beat >= stale_seconds)) || exit 0
     fi
     count="$(read_unread | wc -l | tr -d ' ')"
-    herdr notification show 'meta patrol' --body "未読 ${count} 件。meta の待機（herdr-meta-patrol-queue wait）が動いていません。" > /dev/null 2>&1 || exit 0
+    perl -e 'alarm shift; exec @ARGV' "${HERDR_META_PATROL_TIMEOUT:-40}" herdr notification show 'meta patrol' --body "未読 ${count} 件。meta の待機（herdr-meta-patrol-queue wait）が動いていません。" > /dev/null 2>&1 || exit 0
     printf '%s\n' "${last}" > "${notified_file}"
     ;;
 *) usage ;;

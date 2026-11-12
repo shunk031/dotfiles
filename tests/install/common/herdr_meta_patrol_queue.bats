@@ -121,3 +121,29 @@ function queue() {
     run queue frobnicate
     [ "${status}" -eq 2 ]
 }
+
+@test "[common] herdr-meta-patrol-queue fails an append it cannot write and keeps the sequence number" {
+    queue add first
+    chmod a-w "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+    run queue add second
+    chmod u+w "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+    [ "${status}" -ne 0 ]
+    [ "$(cat "${HERDR_META_PATROL_STATE_DIR}/queue.seq")" = 1 ]
+    [ "$(queue read | jq -r '.text')" = first ]
+}
+
+@test "[common] herdr-meta-patrol-queue skips a malformed line without losing unread records" {
+    queue add one
+    printf '{"seq": 2, "t": 1, "te\n' >> "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+    queue add three
+    [ "$(queue read | jq -r '.text' | tr '\n' ' ')" = 'one three ' ]
+    queue trim
+    [ "$(queue read | jq -r '.text' | tr '\n' ' ')" = 'one three ' ]
+}
+
+@test "[common] herdr-meta-patrol-queue keeps a record appended after a line cut short" {
+    queue add one
+    printf '{"seq":2' >> "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+    queue add three
+    [ "$(queue read | jq -r '.text' | tr '\n' ' ')" = 'one three ' ]
+}

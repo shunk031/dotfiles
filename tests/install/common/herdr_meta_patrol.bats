@@ -34,7 +34,6 @@ case "$1 $2" in
     echo "${FAKE_MACHINE_LIST:-[]}"
     ;;
 "agent list") cat "${FAKE_AGENTS}" ;;
-"agent get") exit 0 ;;
 "pane list") echo '{"result":{"panes":[]}}' ;;
 "tab list") if [[ -n "${FAKE_TABS:-}" ]]; then echo "${FAKE_TABS}"; else echo '{"result":{"tabs":[]}}'; fi ;;
 "pane read")
@@ -355,7 +354,6 @@ function inbox_agent() {
 case "$1 $2" in
 "machine list") echo '[]' ;;
 "agent list") echo '{"result":{"agents":[{"name":"orch","pane_id":"p1","agent_status":"idle","tokens":{"inbox":"0"}}]}}' ;;
-"agent get") exit 0 ;;
 "pane list") echo '{"result":{"panes":[]}}' ;;
 "pane read") printf '%s\n' '────────────────────────────' '❯ draft' '────────────────────────────' ;;
 esac
@@ -374,7 +372,6 @@ STUB
 case "$1 $2" in
 "machine list") echo '[]' ;;
 "agent list") echo '{"result":{"agents":[{"name":"w1","pane_id":"p1","agent_status":"idle"}]}}' ;;
-"agent get") exit 0 ;;
 "pane list") echo '{"result":{"panes":[]}}'; exit 1 ;;
 esac
 STUB
@@ -430,7 +427,6 @@ case "$1 $2" in
     echo '{"result":{"agents":[]}}'
     ;;
 "pane list") echo '{"result":{"panes":[]}}' ;;
-"agent get") exit 0 ;;
 esac
 STUB
     run bash "${SCRIPT_PATH}"
@@ -607,7 +603,7 @@ function stopped_worker() {
     printf '%s\n' '• Reading the wiki pages' '◦ Reconnecting... 1/5 (12s • esc to interrupt)' '  └ stream error: exceeded retry limit, last status: 429 Too Many Requests' > "${FAKE_RECENT_PANE}"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[local] w1: 429 で停止' "${SENDER_CALLS}"
+    grep -Fq '[local] w1: 429 で停止' <(calls)
 
     printf '%s\n' '• Reading the wiki pages' '◦ Reconnecting... 1/5 (3s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
     run bash "${SCRIPT_PATH}"
@@ -670,14 +666,14 @@ function age_still() {
 }
 
 @test "[common] herdr-meta-patrol reports a working agent whose pane has not changed, once until it changes" {
-    stopped_worker working '• Running tests' '◦ Working (12m 03s • esc to interrupt)'
-    printf '%s\n' '• Waiting for the job' '◦ Working (12m 03s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
+    stopped_worker working '• Running tests'
+    printf '%s\n' '• ジョブを待っています' '◯ general-purpose  Reading log  7m 02s · ↓ 12.1k tokens' '◦ Working (12m 03s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
     bash "${SCRIPT_PATH}"
     run grep -Fq '動きなし' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
     [ "${status}" -ne 0 ]
 
     age_still 1300
-    printf '%s\n' '• Waiting for the job' '⠹ Working (33m 41s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
+    printf '%s\n' '• ジョブを待っています' '◯ general-purpose  Reading log  27m 36s · ↓ 168.5k tokens' '⠹ Working (33m 41s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
     bash "${SCRIPT_PATH}"
     grep -Fq '[local] w1: 20 分動きなし' <(calls)
 
@@ -685,7 +681,7 @@ function age_still() {
     bash "${SCRIPT_PATH}"
     [ -z "$(calls)" ]
 
-    printf '%s\n' '• Job finished, writing the report' '◦ Working (34m 02s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
+    printf '%s\n' '• 報告を書いています' '◯ general-purpose  Reading log  28m 02s · ↓ 170.2k tokens' '◦ Working (34m 02s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
     bash "${SCRIPT_PATH}"
     run grep -Fq '動きなし' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
     [ "${status}" -ne 0 ]

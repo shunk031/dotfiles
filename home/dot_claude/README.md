@@ -14,7 +14,9 @@
 | `~/.claude/rules`         | [claude/rules/](../private_dot_config/claude/rules/) by [rules/](rules/)                       |
 | `~/.claude/settings.json` | [modify_settings.json](modify_settings.json)                                                   |
 
-`settings.json` is a regular file managed by a `modify_` template. It uses ChezMoi's JSON parser and recursive merge functions to preserve `model` and other unmanaged object keys; conflicting managed values win. Empty input creates the full initial settings file, and invalid JSON fails before chezmoi changes the target.
+`settings.json` is a regular file managed by a `modify_` template. It uses ChezMoi's JSON parser and recursive merge functions to preserve unmanaged object keys; managed values such as `model` override existing values. Empty input creates the full initial settings file, and invalid JSON fails before chezmoi changes the target.
+
+Set `[data]` and `claude.model = "claude-opus-5-5"` in `~/.config/chezmoi/chezmoi.toml` to override the per-machine model; omit the key to keep the `fable` default.
 
 The old source JSON stays in place as an ignored migration referent for existing symlinks. The existing ignore rule excludes its `.config/claude` destination, so it is not a second managed target. Chezmoi reads the live symlink's referent before replacing it with a regular file. Review `chezmoi diff` and get the machine user's approval before the first apply; this change does not migrate any machine.
 

@@ -150,4 +150,5 @@
   },
   "tui": "fullscreen"
 }` -}}
+{{- $_ := set $managed "model" (dig "claude" "model" "fable" .) -}}
 {{- mergeOverwrite $current $managed | toPrettyJson -}}

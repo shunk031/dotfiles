@@ -217,6 +217,25 @@ readonly INBOX_KNOWN='[{"name":"inbox","source":"github","repo":"shunk031/inbox"
     [ "${status}" -eq 0 ]
 }
 
+@test "[common] Claude settings modifier uses the configured model" {
+    local config="${BATS_TEST_TMPDIR}/chezmoi.toml"
+    cat > "${config}" <<'EOF'
+[data]
+claude.model = "claude-opus-5-5"
+EOF
+
+    run chezmoi \
+        --source "${CHEZMOI_TEMPLATE_SOURCE}" \
+        --destination "${CHEZMOI_TEMPLATE_DESTINATION}" \
+        --config "${config}" \
+        --config-format toml \
+        execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < /dev/null
+    [ "${status}" -eq 0 ]
+
+    run jq -e '.model == "claude-opus-5-5"' <<< "${output}"
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] Claude settings modifier retains all current shared values" {
     run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < "${CLAUDE_SETTINGS_PATH}"
     [ "${status}" -eq 0 ]

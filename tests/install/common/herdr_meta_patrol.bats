@@ -1,15 +1,16 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./home/private_dot_local/private_bin/exact_common/executable_herdr-meta-patrol"
+readonly QUEUE_PATH="${PWD}/home/private_dot_local/private_bin/exact_common/executable_herdr-meta-patrol-queue"
 readonly SHARED_INPUT_STATE_PARSER="${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts/herdr-visible-input-state.awk"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
     export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/xdg-state"
     export HERDR_META_PATROL_STATE_DIR="${BATS_TEST_TMPDIR}/state"
-    export HERDR_META_PATROL_SENDER="${BATS_TEST_TMPDIR}/sender"
+    export HERDR_META_PATROL_QUEUE="${QUEUE_PATH}"
+    export HERDR_META_PATROL_INPUT_PARSER="${BATS_TEST_TMPDIR}/herdr-visible-input-state.awk"
     export HERDR_META_PATROL_RETRY_SLEEP=0
-    export SENDER_CALLS="${BATS_TEST_TMPDIR}/sender_calls.txt"
     export FAKE_AGENTS="${BATS_TEST_TMPDIR}/agents.json"
     export FAKE_MACHINE_LIST_DOWN="${BATS_TEST_TMPDIR}/machine_list_down"
     export FAKE_REMOTE_DOWN="${BATS_TEST_TMPDIR}/remote_down"
@@ -17,7 +18,6 @@ function setup() {
     export FAKE_RECENT_PANE="${BATS_TEST_TMPDIR}/recent.txt"
     export HERDR_META_PATROL_FINDINGS_DIR="${BATS_TEST_TMPDIR}/findings.d"
     export FAKE_INPUT_STATE=empty
-    export FAKE_NO_META="${BATS_TEST_TMPDIR}/no_meta"
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
     PATH="${BATS_TEST_TMPDIR}/bin:${PATH}"
     export PATH
@@ -34,7 +34,7 @@ case "$1 $2" in
     echo "${FAKE_MACHINE_LIST:-[]}"
     ;;
 "agent list") cat "${FAKE_AGENTS}" ;;
-"agent get") [[ ! -e "${FAKE_NO_META}" ]] ;;
+"agent get") exit 0 ;;
 "pane list") echo '{"result":{"panes":[]}}' ;;
 "tab list") if [[ -n "${FAKE_TABS:-}" ]]; then echo "${FAKE_TABS}"; else echo '{"result":{"tabs":[]}}'; fi ;;
 "pane read")
@@ -47,10 +47,6 @@ case "$1 $2" in
     ;;
 esac
 STUB
-    cat > "${HERDR_META_PATROL_SENDER}" << 'STUB'
-#!/usr/bin/env bash
-printf '%s\n' "$*" >> "${SENDER_CALLS}"
-STUB
     if [[ -r "${SHARED_INPUT_STATE_PARSER}" ]]; then
         ln -s "${SHARED_INPUT_STATE_PARSER}" "${BATS_TEST_TMPDIR}/herdr-visible-input-state.awk"
     else
@@ -58,8 +54,18 @@ STUB
 END { print ENVIRON["FAKE_INPUT_STATE"] }
 STUB
     fi
-    chmod +x "${BATS_TEST_TMPDIR}/bin/herdr" "${HERDR_META_PATROL_SENDER}"
+    chmod +x "${BATS_TEST_TMPDIR}/bin/herdr"
     echo '{"result":{"agents":[]}}' > "${FAKE_AGENTS}"
+}
+
+# @description Print the text of every unread queued message.
+function calls() {
+    bash "${QUEUE_PATH}" read | jq -r '.text'
+}
+
+# @description Acknowledge every queued message.
+function ack_all() {
+    bash "${QUEUE_PATH}" ack "$(cat "${HERDR_META_PATROL_STATE_DIR}/queue.seq" 2> /dev/null || echo 0)"
 }
 
 function register_root() {
@@ -74,7 +80,7 @@ function blocked_agent() {
 @test "[common] herdr-meta-patrol stays silent when nothing is found" {
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 }
 
 @test "[common] herdr-meta-patrol still scans local when machine listing fails" {
@@ -82,50 +88,68 @@ function blocked_agent() {
     blocked_agent
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[local] blocked: w1 p1' "${SENDER_CALLS}"
+    grep -Fq '[local] blocked: w1 p1' <(calls)
 }
 
 @test "[common] herdr-meta-patrol notifies meta once for a new line" {
     blocked_agent
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ "$(wc -l < "${SENDER_CALLS}")" -ge 1 ]
-    grep -q '^meta ' "${SENDER_CALLS}"
-    grep -q '\[local\] blocked: w1 p1' "${SENDER_CALLS}"
+    [ "$(calls | wc -l)" -ge 1 ]
+    grep -q '\[local\] blocked: w1 p1' <(calls)
     grep -q 'blocked: w1 p1' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
 
-    rm "${SENDER_CALLS}"
+    ack_all
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 }
 
 @test "[common] herdr-meta-patrol notifies once per connection change" {
     export FAKE_MACHINE_LIST='[{"label":"remote","enabled":true}]'
     touch "${FAKE_REMOTE_DOWN}"
     bash "${SCRIPT_PATH}"
-    grep -q '\[remote\] 接続できない' "${SENDER_CALLS}"
+    grep -q '\[remote\] 接続できない' <(calls)
 
-    rm "${SENDER_CALLS}"
+    ack_all
     bash "${SCRIPT_PATH}"
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 
     rm "${FAKE_REMOTE_DOWN}"
     bash "${SCRIPT_PATH}"
-    grep -q '\[remote\] 接続が回復した' "${SENDER_CALLS}"
+    grep -q '\[remote\] 接続が回復した' <(calls)
 
-    rm "${SENDER_CALLS}"
+    ack_all
     bash "${SCRIPT_PATH}"
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 }
 
-@test "[common] herdr-meta-patrol logs undelivered messages when meta is missing" {
-    touch "${FAKE_NO_META}"
-    blocked_agent
+# @description Make queue appends fail while the other queue subcommands still work.
+function fail_queue_adds() {
+    cat > "${BATS_TEST_TMPDIR}/failing-queue" << STUB
+#!/usr/bin/env bash
+[[ "\$1" != add ]] || exit 1
+exec bash "${QUEUE_PATH}" "\$@"
+STUB
+    chmod +x "${BATS_TEST_TMPDIR}/failing-queue"
+    export HERDR_META_PATROL_QUEUE="${BATS_TEST_TMPDIR}/failing-queue"
+}
+
+@test "[common] herdr-meta-patrol queues findings without typing into any pane" {
+    cat > "${BATS_TEST_TMPDIR}/bin/herdr" << 'STUB'
+#!/usr/bin/env bash
+case "$1 $2" in
+"machine list") echo '[]' ;;
+"agent list") echo '{"result":{"agents":[{"name":"w1","pane_id":"p1","agent_status":"blocked"}]}}' ;;
+"pane list") echo '{"result":{"panes":[]}}' ;;
+"agent prompt" | "pane send-text" | "pane send-keys" | "agent send-keys") touch "${BATS_TEST_TMPDIR}/typed"; exit 1 ;;
+esac
+STUB
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ ! -e "${SENDER_CALLS}" ]
-    grep -q 'blocked: w1 p1' "${HERDR_META_PATROL_STATE_DIR}/undelivered.log"
+    [ ! -e "${BATS_TEST_TMPDIR}/typed" ]
+    [ "$(bash "${QUEUE_PATH}" read | jq -r '.kind')" = findings ]
+    grep -Fq '[local] blocked: w1 p1' <(calls)
 }
 
 function root_inbox() {
@@ -141,8 +165,8 @@ function inbox_agent() {
     inbox_agent "5 · review task" "/agent/files/result.md" "https://example.test/result.md"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[local] new-root inbox=5 · review task relay=/agent/files/result.md url=present' "${SENDER_CALLS}"
-    ! grep -Fq 'https://example.test/result.md' "${SENDER_CALLS}"
+    grep -Fq '[local] new-root inbox=5 · review task relay=/agent/files/result.md url=present' <(calls)
+    ! grep -Fq 'https://example.test/result.md' <(calls)
 }
 
 @test "[common] herdr-meta-patrol reports an unregistered inbox agent once despite token changes" {
@@ -150,19 +174,19 @@ function inbox_agent() {
     inbox_agent "5 · first text" "/agent/files/result.md" "https://example.test/result.md" idle
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[local] unregistered agent with inbox token: new-root' "${SENDER_CALLS}"
+    grep -Fq '[local] unregistered agent with inbox token: new-root' <(calls)
     grep -q '残り: 終わった・待機中の作業役 1 個' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
-    ! grep -Fq 'first text' "${SENDER_CALLS}"
-    ! grep -Fq '/agent/files/result.md' "${SENDER_CALLS}"
-    ! grep -Fq 'https://example.test/result.md' "${SENDER_CALLS}"
+    ! grep -Fq 'first text' <(calls)
+    ! grep -Fq '/agent/files/result.md' <(calls)
+    ! grep -Fq 'https://example.test/result.md' <(calls)
     [ ! -e "${FAKE_PANE_READS}" ]
     [ ! -e "${XDG_STATE_HOME}/meta/roots.tsv" ]
 
-    rm "${SENDER_CALLS}"
+    ack_all
     inbox_agent "6 · changed text" "/agent/files/other.md" "https://example.test/other.md" idle
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 }
 
 @test "[common] herdr-meta-patrol ignores comment-only root registries" {
@@ -171,7 +195,7 @@ function inbox_agent() {
     inbox_agent 0 "/agent/files/result.md" "https://example.test/result.md"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[local] unregistered agent with inbox token: new-root' "${SENDER_CALLS}"
+    grep -Fq '[local] unregistered agent with inbox token: new-root' <(calls)
 }
 
 @test "[common] herdr-meta-patrol uses the saved remote machine alias for roots" {
@@ -180,20 +204,20 @@ function inbox_agent() {
     root_inbox "5 · review task"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[remote] orch inbox=5 · review task' "${SENDER_CALLS}"
-    grep -Fq '[local] unregistered agent with inbox token: orch' "${SENDER_CALLS}"
+    grep -Fq '[remote] orch inbox=5 · review task' <(calls)
+    grep -Fq '[local] unregistered agent with inbox token: orch' <(calls)
 }
 
 @test "[common] herdr-meta-patrol ignores a leading inbox count change" {
     register_root Local orch
     root_inbox "5 · 519 をマージするか"
     bash "${SCRIPT_PATH}"
-    grep -q 'inbox=5 · 519' "${SENDER_CALLS}"
+    grep -q 'inbox=5 · 519' <(calls)
 
-    rm "${SENDER_CALLS}"
+    ack_all
     root_inbox "6 · 519 をマージするか"
     bash "${SCRIPT_PATH}"
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 }
 
 @test "[common] herdr-meta-patrol notifies when the inbox question text changes" {
@@ -201,34 +225,34 @@ function inbox_agent() {
     root_inbox "5 · 519 をマージするか"
     bash "${SCRIPT_PATH}"
 
-    rm "${SENDER_CALLS}"
+    ack_all
     root_inbox "5 · 520 をマージするか"
     bash "${SCRIPT_PATH}"
-    grep -q 'inbox=5 · 520' "${SENDER_CALLS}"
+    grep -q 'inbox=5 · 520' <(calls)
 }
 
 @test "[common] herdr-meta-patrol normalizes only the leftover counts" {
     echo '{"result":{"agents":[{"name":"w1","pane_id":"p1","agent_status":"idle"}]}}' > "${FAKE_AGENTS}"
     bash "${SCRIPT_PATH}"
-    grep -q '残り: 終わった・待機中の作業役 1 個' "${SENDER_CALLS}"
+    grep -q '残り: 終わった・待機中の作業役 1 個' <(calls)
 
-    rm "${SENDER_CALLS}"
+    ack_all
     echo '{"result":{"agents":[{"name":"w1","pane_id":"p1","agent_status":"idle"},{"name":"w2","pane_id":"p2","agent_status":"idle"}]}}' > "${FAKE_AGENTS}"
     bash "${SCRIPT_PATH}"
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
     register_root Local new-root
     echo '{"result":{"agents":[{"name":"new-root","pane_id":"p0","agent_status":"idle","tokens":{"inbox":"0"}},{"name":"w1","pane_id":"p1","agent_status":"idle"}]}}' > "${FAKE_AGENTS}"
     bash "${SCRIPT_PATH}"
     grep -q '残り: 終わった・待機中の作業役 1 個' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 
     blocked_agent
     bash "${SCRIPT_PATH}"
-    grep -q 'blocked: w1 p1' "${SENDER_CALLS}"
-    rm "${SENDER_CALLS}"
+    grep -q 'blocked: w1 p1' <(calls)
+    ack_all
     echo '{"result":{"agents":[{"name":"w2","pane_id":"p1","agent_status":"blocked"}]}}' > "${FAKE_AGENTS}"
     bash "${SCRIPT_PATH}"
-    grep -q 'blocked: w2 p1' "${SENDER_CALLS}"
+    grep -q 'blocked: w2 p1' <(calls)
 }
 
 @test "[common] herdr-meta-patrol counts token-less orch as non-root without reading its input" {
@@ -252,7 +276,7 @@ function inbox_agent() {
 
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
     [ ! -e "${FAKE_PANE_READS}" ]
     run grep -q . "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
     [ "${status}" -ne 0 ]
@@ -267,8 +291,8 @@ function inbox_agent() {
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
     [ -e "${FAKE_PANE_READS}" ]
-    grep -Fq '[local] orch 入力欄: occupied' "${SENDER_CALLS}"
-    run grep -q 'inbox=' "${SENDER_CALLS}"
+    grep -Fq '[local] orch 入力欄: occupied' <(calls)
+    run grep -q 'inbox=' <(calls)
     [ "${status}" -ne 0 ]
     run grep -q 'inbox=' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
     [ "${status}" -ne 0 ]
@@ -282,10 +306,10 @@ function inbox_agent() {
     echo '{"result":{"agents":[{"name":"orch","pane_id":"p1","agent_status":"idle","tokens":{"inbox":"0"}}]}}' > "${FAKE_AGENTS}"
     printf '%s\n' '────────────────────────────' '❯ draft' '────────────────────────────' > "${FAKE_PANE}"
     bash "${SCRIPT_PATH}"
-    grep -q '\[local\] orch 入力欄: occupied' "${SENDER_CALLS}"
-    rm "${SENDER_CALLS}"
+    grep -q '\[local\] orch 入力欄: occupied' <(calls)
+    ack_all
     bash "${SCRIPT_PATH}"
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 }
 
 @test "[common] herdr-meta-patrol ignores plugin panel text above an empty root input line" {
@@ -307,18 +331,18 @@ function inbox_agent() {
     [ "${status}" -ne 0 ]
 }
 
-@test "[common] herdr-meta-patrol retries after a failed delivery and keeps one pending log" {
-    touch "${FAKE_NO_META}"
+@test "[common] herdr-meta-patrol keeps its state when a queue append fails and retries" {
+    fail_queue_adds
     blocked_agent
-    bash "${SCRIPT_PATH}"
-    bash "${SCRIPT_PATH}"
-    [ "$(grep -c '自動巡回' "${HERDR_META_PATROL_STATE_DIR}/undelivered.log")" -eq 1 ]
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
     [ ! -s "${HERDR_META_PATROL_STATE_DIR}/keys.txt" ]
+    [ -z "$(calls)" ]
 
-    rm "${FAKE_NO_META}"
+    export HERDR_META_PATROL_QUEUE="${QUEUE_PATH}"
     bash "${SCRIPT_PATH}"
-    grep -q 'blocked: w1 p1' "${SENDER_CALLS}"
-    [ ! -e "${HERDR_META_PATROL_STATE_DIR}/undelivered.log" ]
+    [ "$(grep -c 'blocked: w1 p1' <(calls))" -eq 1 ]
+    grep -q 'blocked: w1 p1' "${HERDR_META_PATROL_STATE_DIR}/keys.txt"
 }
 
 @test "[common] herdr-meta-patrol repeats leftover input only after the interval" {
@@ -337,11 +361,11 @@ case "$1 $2" in
 esac
 STUB
     run bash "${SCRIPT_PATH}"
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 
     printf '%s\t%s\n' "$(($(date +%s) - 7200))" '[local] orch 入力欄: occupied' > "${HERDR_META_PATROL_STATE_DIR}/leftover.tsv"
     run bash "${SCRIPT_PATH}"
-    grep -q '入力欄: occupied' "${SENDER_CALLS}"
+    grep -q '入力欄: occupied' <(calls)
 }
 
 @test "[common] herdr-meta-patrol keeps counts single-line when pane list fails" {
@@ -370,7 +394,7 @@ STUB
     [ "$(grep -c '\[remote\] 接続できない（2 回とも失敗）' "${HERDR_META_PATROL_STATE_DIR}/latest.txt")" -eq 1 ]
     run grep -q 'boom' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
     [ "${status}" -ne 0 ]
-    run grep -q 'boom' "${SENDER_CALLS}"
+    run grep -q 'boom' <(calls)
     [ "${status}" -ne 0 ]
     [ "$(grep -c '\[remote\] agent list failed (exit 1)' "${BATS_TEST_TMPDIR}/stderr.txt")" -eq 2 ]
     run grep -q 'boom' "${BATS_TEST_TMPDIR}/stderr.txt"
@@ -428,12 +452,12 @@ function digest_roots() {
     digest_roots working 0 working
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
     grep -Fq "$(printf 'local\torch\tworking\t🤖 Orchestrator\t0')" "${HERDR_META_PATROL_STATE_DIR}/digest.tsv"
 
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 }
 
 @test "[common] herdr-meta-patrol digest sends one line per changed root only" {
@@ -448,17 +472,17 @@ function digest_roots() {
     export FAKE_TABS='{"result":{"tabs":[{"tab_id":"t1","label":"✅ Orchestrator"},{"tab_id":"t2","label":"🤖 Orch2"}]}}'
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ "$(grep -c '進捗まとめ（自動巡回）' "${SENDER_CALLS}")" -eq 1 ]
-    grep -Fq '[local] orch: 状態 working → done / タブ 🤖 Orchestrator → ✅ Orchestrator' "${SENDER_CALLS}"
-    run grep -Fq 'orch2' "${SENDER_CALLS}"
+    [ "$(grep -c '進捗まとめ（自動巡回）' <(calls))" -eq 1 ]
+    grep -Fq '[local] orch: 状態 working → done / タブ 🤖 Orchestrator → ✅ Orchestrator' <(calls)
+    run grep -Fq 'orch2' <(calls)
     [ "${status}" -ne 0 ]
-    run grep -Fq '自動巡回（herdr-meta-patrol）' "${SENDER_CALLS}"
+    run grep -Fq '自動巡回（herdr-meta-patrol）' <(calls)
     [ "${status}" -ne 0 ]
 
-    rm "${SENDER_CALLS}"
+    ack_all
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 }
 
 @test "[common] herdr-meta-patrol digest waits for its interval" {
@@ -470,12 +494,12 @@ function digest_roots() {
     digest_roots done 0 working
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 
     printf '%s\n' "$(($(date +%s) - 1800))" > "${HERDR_META_PATROL_STATE_DIR}/digest.epoch"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[local] orch: 状態 working → done' "${SENDER_CALLS}"
+    grep -Fq '[local] orch: 状態 working → done' <(calls)
 }
 
 @test "[common] herdr-meta-patrol digest reports a missing root and keeps an unreadable machine's state" {
@@ -490,31 +514,30 @@ function digest_roots() {
     echo '{"result":{"agents":[]}}' > "${FAKE_AGENTS}"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[local] orch: 状態 working → 不在' "${SENDER_CALLS}"
-    run grep -Fq '[remote] rorch:' "${SENDER_CALLS}"
+    grep -Fq '[local] orch: 状態 working → 不在' <(calls)
+    run grep -Fq '[remote] rorch:' <(calls)
     [ "${status}" -ne 0 ]
     grep -Fq "$(printf 'remote\trorch\tworking')" "${HERDR_META_PATROL_STATE_DIR}/digest.tsv"
 }
 
-@test "[common] herdr-meta-patrol retries an undelivered digest" {
+@test "[common] herdr-meta-patrol retries a digest that could not be queued" {
     register_root Local orch
     root_inbox "first question"
     bash "${SCRIPT_PATH}"
 
-    rm -f "${SENDER_CALLS}"
-    touch "${FAKE_NO_META}"
+    ack_all
+    fail_queue_adds
     root_inbox "second question"
     printf '%s\n' 1 > "${HERDR_META_PATROL_STATE_DIR}/digest.epoch"
     bash "${SCRIPT_PATH}"
-    [ ! -e "${SENDER_CALLS}" ]
-    grep -Fq '[local] orch: inbox first question → second question' "${HERDR_META_PATROL_STATE_DIR}/digest-undelivered.log"
+    [ -z "$(calls)" ]
     grep -Fq 'first question' "${HERDR_META_PATROL_STATE_DIR}/digest.tsv"
     [ "$(cat "${HERDR_META_PATROL_STATE_DIR}/digest.epoch")" = 1 ]
 
-    rm "${FAKE_NO_META}"
+    export HERDR_META_PATROL_QUEUE="${QUEUE_PATH}"
     bash "${SCRIPT_PATH}"
-    grep -Fq '[local] orch: inbox first question → second question' "${SENDER_CALLS}"
-    [ ! -e "${HERDR_META_PATROL_STATE_DIR}/digest-undelivered.log" ]
+    grep -Fq '[local] orch: inbox first question → second question' <(calls)
+    [ "$(bash "${QUEUE_PATH}" read | jq -r 'select(.kind == "digest") | .seq' | wc -l)" -eq 1 ]
     grep -Fq 'second question' "${HERDR_META_PATROL_STATE_DIR}/digest.tsv"
     [ "$(cat "${HERDR_META_PATROL_STATE_DIR}/digest.epoch")" -gt 1 ]
 }
@@ -528,23 +551,23 @@ function stopped_worker() {
     stopped_worker idle '■ exceeded retry limit, last status: 429 Too Many Requests'
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[local] w1: 429 で停止' "${SENDER_CALLS}"
-    run grep -Fq '（Gateway 予算）' "${SENDER_CALLS}"
+    grep -Fq '[local] w1: 429 で停止' <(calls)
+    run grep -Fq '（Gateway 予算）' <(calls)
     [ "${status}" -ne 0 ]
 
-    rm "${SENDER_CALLS}"
+    ack_all
     run bash "${SCRIPT_PATH}"
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 
     stopped_worker idle 'All checks passed.'
     run bash "${SCRIPT_PATH}"
     run grep -Fq '429 で停止' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
     [ "${status}" -ne 0 ]
 
-    rm -f "${SENDER_CALLS}"
+    ack_all
     stopped_worker done '  ⎿  API Error: 429 Too many requests, please wait before trying again.'
     run bash "${SCRIPT_PATH}"
-    grep -Fq '[local] w1: 429 で停止' "${SENDER_CALLS}"
+    grep -Fq '[local] w1: 429 で停止' <(calls)
 }
 
 @test "[common] herdr-meta-patrol classifies stopped-agent error texts" {
@@ -629,13 +652,13 @@ function stopped_worker() {
     chmod +x "${HERDR_META_PATROL_FINDINGS_DIR}/ok" "${HERDR_META_PATROL_FINDINGS_DIR}/broken"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[local] extra finding A' "${SENDER_CALLS}"
-    run grep -Fq 'must not appear' "${SENDER_CALLS}"
+    grep -Fq '[local] extra finding A' <(calls)
+    run grep -Fq 'must not appear' <(calls)
     [ "${status}" -ne 0 ]
-    run grep -Fq 'not executable' "${SENDER_CALLS}"
+    run grep -Fq 'not executable' <(calls)
     [ "${status}" -ne 0 ]
 
-    rm "${SENDER_CALLS}"
+    ack_all
     run bash "${SCRIPT_PATH}"
-    [ ! -e "${SENDER_CALLS}" ]
+    [ -z "$(calls)" ]
 }

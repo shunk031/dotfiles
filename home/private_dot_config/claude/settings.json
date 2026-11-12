@@ -26,7 +26,6 @@
   "permissions": {
     "deny": [
       "Bash(sudo:*)",
-      "Bash(rm -rf:*)",
       "Read(.env.*)",
       "Read(id_rsa*)",
       "Read(id_ed25519*)",

@@ -219,7 +219,7 @@ readonly INBOX_KNOWN='[{"name":"inbox","source":"github","repo":"shunk031/inbox"
 
 @test "[common] Claude settings modifier uses the configured model" {
     local config="${BATS_TEST_TMPDIR}/chezmoi.toml"
-    cat > "${config}" <<'EOF'
+    cat > "${config}" << 'EOF'
 [data]
 claude.model = "claude-opus-5-5"
 EOF

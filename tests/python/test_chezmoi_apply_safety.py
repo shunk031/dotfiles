@@ -25,6 +25,54 @@ class ChezmoiApplySafetyTest(unittest.TestCase):
         self.assertEqual(offenders, [])
 
     @unittest.skipUnless(CHEZMOI and os.name == "posix", "requires POSIX chezmoi")
+    def test_init_config_template_preserves_claude_data(self):
+        with tempfile.TemporaryDirectory(prefix="chezmoi-config-template-test-") as temp:
+            root = Path(temp)
+            home = root / "home"
+            home.mkdir()
+            config = root / "chezmoi.yaml"
+            config.write_text(
+                "data:\n"
+                "  email: test@example.com\n"
+                "  system: client\n"
+                "  claude:\n"
+                "    model: claude-opus-5-5\n"
+            )
+            env = {
+                key: value
+                for key, value in os.environ.items()
+                if not key.startswith("HERDR_")
+            }
+            env.update(CI="true", HOME=str(home))
+
+            rendered_config = subprocess.run(
+                [
+                    CHEZMOI,
+                    "--source",
+                    str(HOME_SOURCE),
+                    "--config",
+                    str(config),
+                    "--config-format",
+                    "yaml",
+                    "--cache",
+                    str(root / "cache"),
+                    "execute-template",
+                    "--init",
+                    "--file",
+                    str(HOME_SOURCE / ".chezmoi.yaml.tmpl"),
+                ],
+                env=env,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+
+            self.assertIn(
+                "    claude:\n        model: claude-opus-5-5\n",
+                rendered_config.stdout,
+            )
+
+    @unittest.skipUnless(CHEZMOI and os.name == "posix", "requires POSIX chezmoi")
     def test_apply_uses_configured_modes_with_caller_umask_077(self):
         with tempfile.TemporaryDirectory(prefix="chezmoi-mode-test-") as temp:
             root = Path(temp)

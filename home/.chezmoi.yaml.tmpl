@@ -18,6 +18,9 @@
 data:
     email: {{ $email | quote }}
     system: {{ $system | quote }}
+{{ if hasKey . "claude" }}
+    claude:{{ .claude | toYaml | nindent 8 }}
+{{ end }}
 
 umask: 18
 

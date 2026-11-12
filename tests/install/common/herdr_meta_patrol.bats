@@ -566,33 +566,59 @@ function stopped_worker() {
     grep -Fxq '[local] w1: API 制限で停止' "${latest}"
 }
 
-@test "[common] herdr-meta-patrol ignores working or blocked agents and error words outside error lines" {
+@test "[common] herdr-meta-patrol reports API error lines on working and blocked agents" {
+    local latest="${HERDR_META_PATROL_STATE_DIR}/latest.txt"
     stopped_worker working '■ exceeded retry limit, last status: 429 Too Many Requests'
-    run bash "${SCRIPT_PATH}"
-    [ "${status}" -eq 0 ]
-    run grep -Fq 'で停止' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
-    [ "${status}" -ne 0 ]
+    bash "${SCRIPT_PATH}"
+    grep -Fxq '[local] w1: 429 で停止' "${latest}"
 
     stopped_worker blocked '■ exceeded retry limit, last status: 429 Too Many Requests'
+    bash "${SCRIPT_PATH}"
+    grep -Fxq '[local] blocked: w1 p1' "${latest}"
+    grep -Fxq '[local] w1: 429 で停止' "${latest}"
+}
+
+@test "[common] herdr-meta-patrol reports a working agent stuck reconnecting after a 429" {
+    local latest="${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    jq -n '{result:{agents:[{name:"w1",pane_id:"p1",agent_status:"working"}]}}' > "${FAKE_AGENTS}"
+    printf '%s\n' '• Reading the wiki pages' '◦ Reconnecting... 1/5 (12s • esc to interrupt)' '  └ stream error: exceeded retry limit, last status: 429 Too Many Requests' > "${FAKE_RECENT_PANE}"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
-    grep -Fq '[local] blocked: w1 p1' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
-    run grep -Fq 'で停止' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
-    [ "${status}" -ne 0 ]
+    grep -Fq '[local] w1: 429 で停止' "${SENDER_CALLS}"
 
-    local line
+    printf '%s\n' '• Reading the wiki pages' '◦ Reconnecting... 1/5 (3s • esc to interrupt)' > "${FAKE_RECENT_PANE}"
+    run bash "${SCRIPT_PATH}"
+    run grep -Fq 'で停止' "${latest}"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] herdr-meta-patrol ignores error words outside error lines" {
+    local line status_value
     for line in \
+        '• The worker showed "Reconnecting... 1/5" and "exceeded retry limit, last status: 429"; restarting it.' \
+        'fixtures/reconnect.txt:1:Reconnecting... 1/5 and fixtures/429.json' \
+        '  - Reconnecting... 1/5 and then Exceeded retry limit, last status: 429 for 4 hours.' \
+        '  ⎿  API Error (429 rate_limit_error) · Retrying in 5 seconds… (attempt 1/10)' \
         '• The worker stopped with "exceeded retry limit, last status: 429 Too Many Requests"; resuming it.' \
         'mise WARN  GitHub rate limit exceeded. Resets at 01:33' \
         '  ⎿  gh: API rate limit exceeded for this address.' \
         '⏺ Committed findings.d/genai-budget-exhausted.' \
         '429 エラーで再接続を繰り返していました。budget guard と rate limit を確認します。'; do
-        stopped_worker idle "${line}"
-        run bash "${SCRIPT_PATH}"
-        [ "${status}" -eq 0 ]
-        run grep -Fq 'で停止' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
-        [ "${status}" -ne 0 ]
+        for status_value in idle working; do
+            stopped_worker "${status_value}" "${line}"
+            run bash "${SCRIPT_PATH}"
+            [ "${status}" -eq 0 ]
+            run grep -Fq 'で停止' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+            [ "${status}" -ne 0 ]
+        done
     done
+
+    # A short reconnect below an unrelated earlier mention of 429.
+    stopped_worker working '• Earlier the worker hit 429 and recovered.'
+    printf '%s\n' '• Earlier the worker hit 429 and recovered.' '' '' '' '◦ Reconnecting... 1/5 (2s • esc to interrupt)' '  └ stream disconnected before completion' > "${FAKE_RECENT_PANE}"
+    run bash "${SCRIPT_PATH}"
+    run grep -Fq 'で停止' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
 }
 
 @test "[common] herdr-meta-patrol reports finding script lines once and skips failing scripts" {

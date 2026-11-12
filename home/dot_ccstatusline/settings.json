@@ -6,7 +6,7 @@
         "id": "1",
         "type": "custom-command",
         "color": "white",
-        "commandPath": "ccusage statusline",
+        "commandPath": "$HOME/.local/share/mise/shims/ccusage statusline",
         "timeout": 50000
       },
       {
@@ -118,7 +118,15 @@
         }
       }
     ],
-    []
+    [
+      {
+        "id": "29c67f44-77e2-4351-8bbc-3e45cc288db2",
+        "type": "custom-command",
+        "color": "white",
+        "commandPath": "if command -v my-custom-status-for-work >/dev/null 2>&1; then my-custom-status-for-work; fi",
+        "timeout": 1000
+      }
+    ]
   ],
   "flexMode": "full-minus-40",
   "compactThreshold": 60,

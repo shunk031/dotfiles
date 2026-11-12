@@ -32,7 +32,8 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "INBOX_RECORDED_ITEMS_ONLY": "1"
   },
   "permissions": {
     "deny": [
@@ -50,10 +51,6 @@
       {
         "matcher": "Bash",
         "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/enforce-uv.sh"
-          },
           {
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length pre claude",
@@ -133,7 +130,8 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "ccstatusline"
+    "command": "ccstatusline",
+    "refreshInterval": 60
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
@@ -145,7 +143,8 @@
     "inbox": {
       "source": {
         "source": "github",
-        "repo": "petekp/inbox"
+        "repo": "shunk031/inbox",
+        "ref": "v0.3.0-fork.1"
       }
     }
   },

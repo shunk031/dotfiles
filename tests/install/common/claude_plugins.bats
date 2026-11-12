@@ -42,11 +42,19 @@ EOF
 printf '%s\n' "$*" >> "${CLAUDE_PLUGINS_CLAUDE_CALLS_PATH}"
 if [ "$*" = "plugin list --json" ]; then
     printf '%s\n' "${CLAUDE_PLUGIN_LIST_JSON}"
+elif [ "$*" = "plugin marketplace list --json" ]; then
+    printf '%s\n' "${CLAUDE_MARKETPLACE_LIST_JSON:-[]}"
 fi
 EOF
     chmod +x "${BATS_TEST_TMPDIR}/bin/claude"
     export PATH="${BATS_TEST_TMPDIR}/bin:${PATH}"
+
+    mkdir -p "${HOME}/.claude"
+    cp "${CLAUDE_SETTINGS_PATH}" "${HOME}/.claude/settings.json"
 }
+
+readonly INBOX_SOURCE="shunk031/inbox@v0.3.0-fork.1"
+readonly INBOX_KNOWN='[{"name":"inbox","source":"github","repo":"shunk031/inbox","ref":"v0.3.0-fork.1"}]'
 
 @test "[common] Claude plugins run-after template includes the installer" {
     run cat "${TMPL_SCRIPT_PATH}"
@@ -66,33 +74,39 @@ EOF
 
     run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "plugin list --json" ]
-    [ "${lines[1]}" = "plugin marketplace add petekp/inbox" ]
-    [ "${lines[2]}" = "plugin install --scope user --yes inbox@inbox" ]
-    [ "${#lines[@]}" -eq 3 ]
+    [ "${lines[0]}" = "plugin marketplace list --json" ]
+    [ "${lines[1]}" = "plugin marketplace add ${INBOX_SOURCE}" ]
+    [ "${lines[2]}" = "plugin list --json" ]
+    [ "${lines[3]}" = "plugin install --scope user --yes inbox@inbox" ]
+    [ "${#lines[@]}" -eq 4 ]
 
     run grep -c '^exec -- jq ' "${CLAUDE_PLUGINS_MISE_CALLS_PATH}"
     [ "${status}" -eq 0 ]
-    [ "${output}" = "3" ]
+    [ "${output}" = "6" ]
 }
 
-@test "[common] Claude plugins script rejects invalid plugin list JSON" {
+@test "[common] Claude plugins script adds a marketplace listed with another source and reinstalls its plugin" {
     write_claude_workflow_mocks
 
     run env \
         CLAUDE_PLUGINS_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_args.txt" \
-        CLAUDE_PLUGIN_LIST_JSON='[{"id":' \
+        CLAUDE_MARKETPLACE_LIST_JSON='[{"name":"inbox","source":"github","repo":"petekp/inbox"}]' \
+        CLAUDE_PLUGIN_LIST_JSON='[{"id":"inbox@inbox","enabled":true}]' \
         HOME="${HOME}" \
         bash "${SCRIPT_PATH}"
-    [ "${status}" -ne 0 ]
+    [ "${status}" -eq 0 ]
 
     run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "plugin list --json" ]
-    [ "${#lines[@]}" -eq 1 ]
+    [ "${lines[0]}" = "plugin marketplace list --json" ]
+    [ "${lines[1]}" = "plugin marketplace add ${INBOX_SOURCE}" ]
+    [ "${lines[2]}" = "plugin list --json" ]
+    [ "${lines[3]}" = "plugin uninstall --keep-data inbox@inbox" ]
+    [ "${lines[4]}" = "plugin install --scope user --yes inbox@inbox" ]
+    [ "${#lines[@]}" -eq 5 ]
 }
 
-@test "[common] Claude plugins script skips enabled plugins" {
+@test "[common] Claude plugins script reinstalls a plugin when it adds its marketplace" {
     write_claude_workflow_mocks
 
     run env \
@@ -104,8 +118,48 @@ EOF
 
     run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "plugin list --json" ]
-    [ "${#lines[@]}" -eq 1 ]
+    [ "${lines[0]}" = "plugin marketplace list --json" ]
+    [ "${lines[1]}" = "plugin marketplace add ${INBOX_SOURCE}" ]
+    [ "${lines[2]}" = "plugin list --json" ]
+    [ "${lines[3]}" = "plugin uninstall --keep-data inbox@inbox" ]
+    [ "${lines[4]}" = "plugin install --scope user --yes inbox@inbox" ]
+    [ "${#lines[@]}" -eq 5 ]
+}
+
+@test "[common] Claude plugins script rejects invalid plugin list JSON" {
+    write_claude_workflow_mocks
+
+    run env \
+        CLAUDE_PLUGINS_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_args.txt" \
+        CLAUDE_MARKETPLACE_LIST_JSON="${INBOX_KNOWN}" \
+        CLAUDE_PLUGIN_LIST_JSON='[{"id":' \
+        HOME="${HOME}" \
+        bash "${SCRIPT_PATH}"
+    [ "${status}" -ne 0 ]
+
+    run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "plugin marketplace list --json" ]
+    [ "${lines[1]}" = "plugin list --json" ]
+    [ "${#lines[@]}" -eq 2 ]
+}
+
+@test "[common] Claude plugins script skips enabled plugins" {
+    write_claude_workflow_mocks
+
+    run env \
+        CLAUDE_PLUGINS_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_args.txt" \
+        CLAUDE_MARKETPLACE_LIST_JSON="${INBOX_KNOWN}" \
+        CLAUDE_PLUGIN_LIST_JSON='[{"id":"inbox@inbox","enabled":true}]' \
+        HOME="${HOME}" \
+        bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
+    [ "${status}" -eq 0 ]
+    [ "${lines[0]}" = "plugin marketplace list --json" ]
+    [ "${lines[1]}" = "plugin list --json" ]
+    [ "${#lines[@]}" -eq 2 ]
 }
 
 @test "[common] Claude plugins script enables disabled plugins" {
@@ -113,6 +167,7 @@ EOF
 
     run env \
         CLAUDE_PLUGINS_CLAUDE_CALLS_PATH="${BATS_TEST_TMPDIR}/claude_args.txt" \
+        CLAUDE_MARKETPLACE_LIST_JSON="${INBOX_KNOWN}" \
         CLAUDE_PLUGIN_LIST_JSON='[{"id":"inbox@inbox","enabled":false}]' \
         HOME="${HOME}" \
         bash "${SCRIPT_PATH}"
@@ -120,9 +175,10 @@ EOF
 
     run cat "${BATS_TEST_TMPDIR}/claude_args.txt"
     [ "${status}" -eq 0 ]
-    [ "${lines[0]}" = "plugin list --json" ]
-    [ "${lines[1]}" = "plugin enable inbox@inbox" ]
-    [ "${#lines[@]}" -eq 2 ]
+    [ "${lines[0]}" = "plugin marketplace list --json" ]
+    [ "${lines[1]}" = "plugin list --json" ]
+    [ "${lines[2]}" = "plugin enable inbox@inbox" ]
+    [ "${#lines[@]}" -eq 3 ]
 }
 
 @test "[common] Claude settings disable Ponytail and keep inbox enabled" {
@@ -143,8 +199,13 @@ EOF
     [ "${status}" -eq 0 ]
 }
 
-@test "[common] Claude settings enable inbox and register its GitHub marketplace" {
-    run jq -e '.enabledPlugins["inbox@inbox"] == true and .extraKnownMarketplaces.inbox.source.source == "github" and .extraKnownMarketplaces.inbox.source.repo == "petekp/inbox"' "${CLAUDE_SETTINGS_PATH}"
+@test "[common] Claude settings enable inbox from the pinned fork with recorded items only" {
+    run jq -e '.enabledPlugins["inbox@inbox"] == true and .extraKnownMarketplaces.inbox.source == {"source":"github","repo":"shunk031/inbox","ref":"v0.3.0-fork.1"} and .env.INBOX_RECORDED_ITEMS_ONLY == "1"' "${CLAUDE_SETTINGS_PATH}"
+    [ "${status}" -eq 0 ]
+
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"extraKnownMarketplaces":{"inbox":{"source":{"source":"github","repo":"petekp/inbox"}}}}'
+    [ "${status}" -eq 0 ]
+    run jq -e '.extraKnownMarketplaces.inbox.source == {"source":"github","repo":"shunk031/inbox","ref":"v0.3.0-fork.1"}' <<< "${output}"
     [ "${status}" -eq 0 ]
 }
 
@@ -162,7 +223,17 @@ EOF
 
     local actual expected
     actual="$(jq -S . <<< "${output}")"
-    expected="$(jq --arg command 'command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length pre claude' '.hooks.PreToolUse |= map(if .matcher == "Bash" then .hooks += [{"type":"command","command":$command,"timeout":120}] else . end)' "${CLAUDE_SETTINGS_PATH}" | jq -S .)"
+    expected="$(
+        jq --arg command 'command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length pre claude' '
+            def markdown_hook: {"type":"command","command":$command,"timeout":120};
+            .hooks.PreToolUse |= (
+                if any(.[]; .matcher == "Bash") then
+                    map(if .matcher == "Bash" then .hooks += [markdown_hook] else . end)
+                else
+                    [{"matcher":"Bash","hooks":[markdown_hook]}] + .
+                end
+            )' "${CLAUDE_SETTINGS_PATH}" | jq -S .
+    )"
     [ "${actual}" = "${expected}" ]
 }
 

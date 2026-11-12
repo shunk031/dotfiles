@@ -85,7 +85,7 @@ assert_github_command_denied() {
 
     [ "${status}" -eq 0 ]
     [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
-    [[ "$(jq -r '.reason' <<< "${output}")" == *": ${problem}"* ]]
+    [[ "$(jq -r '.reason' <<< "${output}")" == *"${problem}"* ]]
     [[ "$(jq -r '.reason' <<< "${output}")" == *"--body-file /absolute/path/body.md"* ]]
 }
 
@@ -162,6 +162,8 @@ assert_github_command_denied() {
         "gh pr --repo=o/r comment 42 --body 'Short.'" \
         "gh -R \"o/r\" pr comment 42 --body 'Short.'" \
         "gh pr --repo='o/r' comment 42 --body 'Short.'" \
+        "gh -Ro/r pr comment 42 --body 'Short.'" \
+        "echo \$'don\\'t' && gh pr comment 42 --body 'Short.'" \
         "echo \"\$((1<<3))\"
 gh pr comment 42 --body 'Short.'" \
         "(( x <<= 2 ))
@@ -182,6 +184,23 @@ gh pr comment 42 --body 'Short.'" \
 EOF"; do
         run_github_body_hook "${command}"
         assert_github_command_denied "it passes inline text with --body or -b"
+    done
+}
+
+@test "denies close and reopen comments and allows them without one" {
+    local command
+
+    for command in "gh pr close 42 --comment 'Superseded.'" "gh issue close 42 -c 'Done.'" \
+        "gh pr close 42 -dc 'Done.'" "gh issue reopen 42 --comment=Again." "gh pr close \"\$n\" --comment x"; do
+        run_github_body_hook "${command}"
+        assert_github_command_denied "it posts a comment with --comment"
+        [[ "$(jq -r '.reason' <<< "${output}")" == *"--body-file /absolute/path/body.md"* ]]
+    done
+
+    for command in "gh pr close 42 -d" "gh issue close 42 -r completed" "gh pr close \"\$n\"" "gh pr reopen 42"; do
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ -z "${output}" ]
     done
 }
 

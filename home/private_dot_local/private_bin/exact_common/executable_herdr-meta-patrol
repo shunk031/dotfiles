@@ -5,7 +5,13 @@
 # @description
 #   Scans the local Herdr server and every enabled `herdr machine list` machine
 #   for blocked agents, inbox tokens, leftover input in root agents'
-#   input boxes, and finished or orphaned panes. Findings go to `latest.txt`.
+#   input boxes, agents stopped by an API error, and finished or orphaned panes.
+#   An agent counts as stopped when it is neither working nor blocked and the last
+#   `HERDR_META_PATROL_ERROR_LINES` lines of its pane hold a Codex or Claude Code
+#   error line about a retry limit, 429, rate limit, usage limit, spending limit,
+#   budget, or quota. Each executable in
+#   `HERDR_META_PATROL_FINDINGS_DIR` also runs once per patrol, and each line it
+#   prints is treated as a finding. Findings go to `latest.txt`.
 #   A root is an agent listed in `${XDG_STATE_HOME:-$HOME/.local/state}/meta/roots.tsv`
 #   for its machine alias (`Local` for this machine); inbox tokens alone do not
 #   define roots.
@@ -27,6 +33,8 @@
 # @option HERDR_META_PATROL_TIMEOUT Seconds before a single herdr call is killed (default 40).
 # @option HERDR_META_PATROL_RETRY_SLEEP Seconds before the connection retry (default 5).
 # @option HERDR_META_PATROL_DIGEST_SECONDS Progress digest interval (default 1800).
+# @option HERDR_META_PATROL_ERROR_LINES Pane lines read per stopped-agent check (default 25).
+# @option HERDR_META_PATROL_FINDINGS_DIR Directory of finding scripts (default `~/.config/herdr-meta-patrol/findings.d`).
 
 set -Eeuo pipefail
 
@@ -38,6 +46,15 @@ repeat_seconds="${HERDR_META_PATROL_REPEAT_SECONDS:-3600}"
 timeout_seconds="${HERDR_META_PATROL_TIMEOUT:-40}"
 retry_sleep="${HERDR_META_PATROL_RETRY_SLEEP:-5}"
 digest_seconds="${HERDR_META_PATROL_DIGEST_SECONDS:-1800}"
+error_lines="${HERDR_META_PATROL_ERROR_LINES:-25}"
+findings_dir="${HERDR_META_PATROL_FINDINGS_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/herdr-meta-patrol/findings.d}"
+# Only lines shaped like an agent's own error output count: a Codex error cell
+# starts with `■ ` at column 0, and a Claude Code API or usage-limit error is a
+# `⎿` result line that starts with one of these phrases. Agents quote error
+# texts, tool output, and file names that contain the same words in other lines.
+api_error_line='^(■ |[[:space:]]*⎿[[:space:]]+(API Error|Claude usage limit|[0-9]+-hour limit|You.{1,3}ve hit your|Weekly limit|Session limit))'
+# Error texts within those lines that end an agent's turn.
+api_error_pattern='exceeded retry limit|429|Too Many Requests|rate[ _-]?limit|usage limit|hit your ([a-z]+ )?limit|limit reached|spend(ing)?[ _-]limit[ _-]exceeded|budget[ _-](exceeded|exhausted)|insufficient_quota|quota[ _-]exceeded'
 machine=local
 sender_dir="${sender%/*}"
 [[ "${sender_dir}" != "${sender}" ]] || sender_dir=.
@@ -119,11 +136,27 @@ function write_digest_records() {
     fi
 }
 
+# @description Print why a pane's text shows an agent stopped by an API error, or nothing.
+# @stdin Recent pane text.
+function api_error_cause() {
+    local matched cause suffix=""
+    matched="$(LC_ALL=C grep -E -- "${api_error_line}" | LC_ALL=C grep -iE -- "${api_error_pattern}")" || return 0
+    if LC_ALL=C grep -qiE -- '429|Too Many Requests' <<< "${matched}"; then
+        cause='429 '
+    elif LC_ALL=C grep -qiE -- 'usage limit|hit your|limit reached' <<< "${matched}"; then
+        cause=利用上限
+    else
+        cause='API 制限'
+    fi
+    if LC_ALL=C grep -qiE -- 'spend(ing)?[ _-]limit|budget' <<< "${matched}"; then suffix='（Gateway 予算）'; fi
+    printf '%sで停止%s\n' "${cause}" "${suffix}"
+}
+
 # @description Print the findings for the current `machine`, one per line.
 # @arg $1 string Machine label (`local` for this machine).
 # @arg $2 string Digest record file, or empty when no digest is due.
 function scan_machine() {
-    local machine="$1" digest_file="$2" registry_machine list agent a pane inbox relay refs input_state has_inbox registered status fin del panes
+    local machine="$1" digest_file="$2" registry_machine list agent a pane inbox relay refs input_state has_inbox registered status fin del panes cause label
     list="$(hr agent list 2> /dev/null)" || {
         log_attempt_failure "$?"
         sleep "${retry_sleep}"
@@ -146,6 +179,14 @@ function scan_machine() {
         inbox="$(jq -r '.tokens.inbox // empty' <<< "${agent}")"
         has_inbox="$(jq -r '(.tokens // {}) | has("inbox")' <<< "${agent}")"
         status="$(jq -r '.agent_status // empty' <<< "${agent}")"
+        # A blocked agent already has its own finding line.
+        if [[ -n "${pane}" && "${status}" != working && "${status}" != blocked ]]; then
+            cause="$(hr pane read "${pane}" --source recent --lines "${error_lines}" --format text 2> /dev/null | api_error_cause)" || cause=""
+            if [[ -n "${cause}" ]]; then
+                if [[ "${a}" == - ]]; then label="${pane}"; else label="${a}"; fi
+                printf '[%s] %s: %s\n' "${machine}" "${label}" "${cause}"
+            fi
+        fi
         registered=0
         if is_registered_root "${registry_machine}" "${a}"; then registered=1; fi
         if [[ "${registered}" == 1 ]]; then
@@ -244,6 +285,16 @@ done
 for ((i = 0; i < ${#machines[@]}; i++)); do
     findings+="$(cat "${scan_dir}/${i}.out")"$'\n'
 done
+if [[ -d "${findings_dir}" ]]; then
+    for script in "${findings_dir}"/*; do
+        [[ -f "${script}" && -x "${script}" ]] || continue
+        if script_output="$(perl -e 'alarm shift; exec @ARGV' "${timeout_seconds}" "${script}" 2> /dev/null)"; then
+            findings+="$(tr -d '\r' <<< "${script_output}")"$'\n'
+        else
+            printf '[%s] finding script failed: %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${script##*/}" >&2
+        fi
+    done
+fi
 
 new=""
 keys=""

@@ -14,6 +14,8 @@ function setup() {
     export FAKE_MACHINE_LIST_DOWN="${BATS_TEST_TMPDIR}/machine_list_down"
     export FAKE_REMOTE_DOWN="${BATS_TEST_TMPDIR}/remote_down"
     export FAKE_PANE="${BATS_TEST_TMPDIR}/pane.txt"
+    export FAKE_RECENT_PANE="${BATS_TEST_TMPDIR}/recent.txt"
+    export HERDR_META_PATROL_FINDINGS_DIR="${BATS_TEST_TMPDIR}/findings.d"
     export FAKE_INPUT_STATE=empty
     export FAKE_NO_META="${BATS_TEST_TMPDIR}/no_meta"
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
@@ -36,6 +38,10 @@ case "$1 $2" in
 "pane list") echo '{"result":{"panes":[]}}' ;;
 "tab list") if [[ -n "${FAKE_TABS:-}" ]]; then echo "${FAKE_TABS}"; else echo '{"result":{"tabs":[]}}'; fi ;;
 "pane read")
+    if [[ " $* " == *" --source recent "* ]]; then
+        [[ -e "${FAKE_RECENT_PANE}" ]] && cat "${FAKE_RECENT_PANE}"
+        exit 0
+    fi
     [[ -z "${FAKE_PANE_READS:-}" ]] || touch "${FAKE_PANE_READS}"
     [[ -e "${FAKE_PANE}" ]] && cat "${FAKE_PANE}"
     ;;
@@ -511,4 +517,99 @@ function digest_roots() {
     [ ! -e "${HERDR_META_PATROL_STATE_DIR}/digest-undelivered.log" ]
     grep -Fq 'second question' "${HERDR_META_PATROL_STATE_DIR}/digest.tsv"
     [ "$(cat "${HERDR_META_PATROL_STATE_DIR}/digest.epoch")" -gt 1 ]
+}
+
+function stopped_worker() {
+    jq -n --arg s "$1" '{result:{agents:[{name:"w1",pane_id:"p1",agent_status:$s}]}}' > "${FAKE_AGENTS}"
+    printf '%s\n' "$2" '' '› ' > "${FAKE_RECENT_PANE}"
+}
+
+@test "[common] herdr-meta-patrol reports an agent stopped by a 429 once until it changes" {
+    stopped_worker idle '■ exceeded retry limit, last status: 429 Too Many Requests'
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    grep -Fq '[local] w1: 429 で停止' "${SENDER_CALLS}"
+    run grep -Fq '（Gateway 予算）' "${SENDER_CALLS}"
+    [ "${status}" -ne 0 ]
+
+    rm "${SENDER_CALLS}"
+    run bash "${SCRIPT_PATH}"
+    [ ! -e "${SENDER_CALLS}" ]
+
+    stopped_worker idle 'All checks passed.'
+    run bash "${SCRIPT_PATH}"
+    run grep -Fq '429 で停止' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+
+    rm -f "${SENDER_CALLS}"
+    stopped_worker done '  ⎿  API Error: 429 Too many requests, please wait before trying again.'
+    run bash "${SCRIPT_PATH}"
+    grep -Fq '[local] w1: 429 で停止' "${SENDER_CALLS}"
+}
+
+@test "[common] herdr-meta-patrol classifies stopped-agent error texts" {
+    local latest="${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    stopped_worker idle '■ unexpected status 429 Too Many Requests: {"error":{"message":"spending limit exceeded"}}'
+    bash "${SCRIPT_PATH}"
+    grep -Fxq '[local] w1: 429 で停止（Gateway 予算）' "${latest}"
+
+    stopped_worker idle "■ You've hit your usage limit. Try again in 3 hours."
+    bash "${SCRIPT_PATH}"
+    grep -Fxq '[local] w1: 利用上限で停止' "${latest}"
+
+    stopped_worker idle '  ⎿  5-hour limit reached ∙ resets 3am'
+    bash "${SCRIPT_PATH}"
+    grep -Fxq '[local] w1: 利用上限で停止' "${latest}"
+
+    stopped_worker idle '■ Quota exceeded. Check your plan and billing details.'
+    bash "${SCRIPT_PATH}"
+    grep -Fxq '[local] w1: API 制限で停止' "${latest}"
+}
+
+@test "[common] herdr-meta-patrol ignores working or blocked agents and error words outside error lines" {
+    stopped_worker working '■ exceeded retry limit, last status: 429 Too Many Requests'
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -Fq 'で停止' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+
+    stopped_worker blocked '■ exceeded retry limit, last status: 429 Too Many Requests'
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    grep -Fq '[local] blocked: w1 p1' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    run grep -Fq 'で停止' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+    [ "${status}" -ne 0 ]
+
+    local line
+    for line in \
+        '• The worker stopped with "exceeded retry limit, last status: 429 Too Many Requests"; resuming it.' \
+        'mise WARN  GitHub rate limit exceeded. Resets at 01:33' \
+        '  ⎿  gh: API rate limit exceeded for this address.' \
+        '⏺ Committed findings.d/genai-budget-exhausted.' \
+        '429 エラーで再接続を繰り返していました。budget guard と rate limit を確認します。'; do
+        stopped_worker idle "${line}"
+        run bash "${SCRIPT_PATH}"
+        [ "${status}" -eq 0 ]
+        run grep -Fq 'で停止' "${HERDR_META_PATROL_STATE_DIR}/latest.txt"
+        [ "${status}" -ne 0 ]
+    done
+}
+
+@test "[common] herdr-meta-patrol reports finding script lines once and skips failing scripts" {
+    mkdir -p "${HERDR_META_PATROL_FINDINGS_DIR}"
+    printf '#!/usr/bin/env bash\nprintf "%%s\\n" "[local] extra finding A"\n' > "${HERDR_META_PATROL_FINDINGS_DIR}/ok"
+    printf '#!/usr/bin/env bash\necho "[local] must not appear"\nexit 3\n' > "${HERDR_META_PATROL_FINDINGS_DIR}/broken"
+    printf 'not executable\n' > "${HERDR_META_PATROL_FINDINGS_DIR}/README"
+    chmod +x "${HERDR_META_PATROL_FINDINGS_DIR}/ok" "${HERDR_META_PATROL_FINDINGS_DIR}/broken"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    grep -Fq '[local] extra finding A' "${SENDER_CALLS}"
+    run grep -Fq 'must not appear' "${SENDER_CALLS}"
+    [ "${status}" -ne 0 ]
+    run grep -Fq 'not executable' "${SENDER_CALLS}"
+    [ "${status}" -ne 0 ]
+
+    rm "${SENDER_CALLS}"
+    run bash "${SCRIPT_PATH}"
+    [ ! -e "${SENDER_CALLS}" ]
 }

@@ -130,7 +130,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "ccstatusline"
+    "command": "$HOME/.local/share/mise/installs/npm-ccstatusline/latest/node_modules/.bin/ccstatusline"
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,

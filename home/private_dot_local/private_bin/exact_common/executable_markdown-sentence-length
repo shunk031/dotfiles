@@ -486,7 +486,7 @@ function formatGithubBodyReason(violations) {
                 .slice(0, 5)
                 .map(
                     (item) =>
-                        "- File: GitHub body\n" +
+                        `- File: ${item.filePath}\n` +
                         "  Paragraph/list item: " +
                         item.preview +
                         "\n" +
@@ -540,7 +540,7 @@ async function checkRecords(event, client, requestedPaths = null) {
 
 // GitHub text must come from a --body-file this hook can read and lint, so
 // every other form of these gh commands is denied before Bash runs.
-const GITHUB_REPO_FLAG = String.raw`(?:\s+(?:-R|--repo)(?:=|\s+)[^\s;&|()<>]+)*`;
+const GITHUB_REPO_FLAG = String.raw`(?:\s+(?:-R|--repo)(?:=|\s+)[^\s;&|()<>]*)*`;
 const GITHUB_TEXT_COMMAND = new RegExp(
     String.raw`(?:^|[^\w./-])((?:[\w./-]*\/)?gh${GITHUB_REPO_FLAG}\s+(pr|issue)${GITHUB_REPO_FLAG}\s+(create|new|edit|comment|review)(?![\w-])[^;&|\n()<>\x60]*)`,
     "gu",
@@ -555,6 +555,26 @@ const GITHUB_OTHER_BODY_SOURCES = new Set([
 // offset, so gh mentioned in prose, such as a prompt sent to another agent, is
 // not taken for a command. Command substitutions that bash runs, inside double
 // quotes or unquoted heredocs, stay visible.
+// Returns the index just past the "))" that closes the arithmetic "((" at start.
+function arithmeticEnd(command, start) {
+    let depth = 0;
+    for (let index = start; index < command.length; index += 1) {
+        if (command[index] === "(") {
+            depth += 1;
+        } else if (command[index] === ")") {
+            depth -= 1;
+            if (depth === 0) {
+                return index + 1;
+            }
+        }
+    }
+    return command.length;
+}
+
+function unquotedWord(word) {
+    return word.replace(/\\(.)|'([^']*)'|"([^"]*)"/gsu, (_, escaped, single, double) => escaped ?? single ?? double);
+}
+
 function shellCodeText(command) {
     let out = "";
     const stack = [{ type: "code", parens: 0, closer: null }];
@@ -569,6 +589,10 @@ function shellCodeText(command) {
             } else if (character === '"') {
                 stack.pop();
                 out += " ";
+            } else if (command.startsWith("$((", index)) {
+                const stop = arithmeticEnd(command, index + 1);
+                out += command.slice(index, stop);
+                index = stop - 1;
             } else if (character === "$" && command[index + 1] === "(") {
                 stack.push({ type: "code", parens: 0, closer: ")" });
                 out += "$(";
@@ -605,9 +629,8 @@ function shellCodeText(command) {
         } else if (character === "`") {
             stack.push({ type: "code", parens: 0, closer: "`" });
             out += character;
-        } else if (command.startsWith("$((", index)) {
-            const end = command.indexOf("))", index);
-            const stop = end < 0 ? command.length : end + 2;
+        } else if (command.startsWith("$((", index) || (command.startsWith("((", index) && wordStart)) {
+            const stop = arithmeticEnd(command, index + (character === "$" ? 1 : 0));
             out += command.slice(index, stop);
             index = stop - 1;
         } else if (character === "(") {
@@ -623,9 +646,13 @@ function shellCodeText(command) {
             out += "<<<";
             index += 2;
         } else if (command.startsWith("<<", index)) {
-            const heredoc = /^<<(-?)\s*(['"]?)([^\s'"<>;&|()]+)\2/u.exec(command.slice(index));
+            const heredoc = /^<<(-?)[ \t]*((?:\\.|'[^']*'|"[^"]*"|[^\s<>;&|()'"\\])+)/su.exec(command.slice(index));
             if (heredoc) {
-                heredocs.push({ strip: heredoc[1] === "-", quoted: heredoc[2] !== "", delimiter: heredoc[3] });
+                heredocs.push({
+                    strip: heredoc[1] === "-",
+                    quoted: /['"\\]/u.test(heredoc[2]),
+                    delimiter: unquotedWord(heredoc[2]),
+                });
                 out += " ".repeat(heredoc[0].length);
                 index += heredoc[0].length - 1;
             } else {
@@ -1009,7 +1036,9 @@ async function checkGithubCommand(event) {
     const diagnostics = await lintTexts(records, true);
     const violations = [
         ...changedViolations(records, diagnostics),
-        ...diagnostics.flatMap((diagnostic) => diagnostic.blocks),
+        ...diagnostics.flatMap((diagnostic, index) =>
+            diagnostic.blocks.map((item) => ({ ...item, filePath: records[index].filePath })),
+        ),
     ];
     return violations.length > 0 ? formatGithubBodyReason(violations) : null;
 }

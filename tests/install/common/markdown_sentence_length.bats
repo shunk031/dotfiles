@@ -160,6 +160,16 @@ assert_github_command_denied() {
         "gh pr new --title t --body 'Short.'" \
         "gh -R o/r pr comment 42 --body 'Short.'" \
         "gh pr --repo=o/r comment 42 --body 'Short.'" \
+        "gh -R \"o/r\" pr comment 42 --body 'Short.'" \
+        "gh pr --repo='o/r' comment 42 --body 'Short.'" \
+        "echo \"\$((1<<3))\"
+gh pr comment 42 --body 'Short.'" \
+        "(( x <<= 2 ))
+gh pr comment 42 --body 'Short.'" \
+        "cat <<\\EOF
+hi
+EOF
+gh pr comment 42 --body 'Short.'" \
         "jq . <<< \"\$json\"
 gh pr comment 42 --body 'Short.'" \
         "n=\$((1<<3))

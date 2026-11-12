@@ -405,7 +405,7 @@ GIT_CONFIG
     export CLAUDE_CONFIG_DIR="${config_dir}" XDG_STATE_HOME="${state_dir}"
     export CLAUDE_PLUGIN_LIST_JSON='[{"id":"inbox@inbox","enabled":true}]'
 
-    run --separate-stderr run_claude_plugin_script
+    run --separate-stderr env HOME="${HOME}" bash "${SCRIPT_PATH}"
     [ "${status}" -ne 0 ]
     [[ "${stderr}" == *"Cannot create inbox store backup directory"* ]]
     [ "$(cat "${retry_dir}/existing.json")" = "preserve" ]

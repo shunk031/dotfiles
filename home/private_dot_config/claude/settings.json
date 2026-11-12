@@ -21,7 +21,8 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "INBOX_RECORDED_ITEMS_ONLY": "1"
   },
   "permissions": {
     "deny": [
@@ -129,7 +130,8 @@
     "inbox": {
       "source": {
         "source": "github",
-        "repo": "petekp/inbox"
+        "repo": "shunk031/inbox",
+        "ref": "v0.3.0-fork.1"
       }
     }
   },

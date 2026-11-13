@@ -8,6 +8,10 @@
 {{- end -}}
 {{- if kindIs "map" (get $current "extraKnownMarketplaces") -}}
   {{- $_ := unset (get $current "extraKnownMarketplaces") "ponytail" -}}
+  {{- $_ := unset (get $current "extraKnownMarketplaces") "inbox" -}}
+{{- end -}}
+{{- if kindIs "map" (get $current "enabledPlugins") -}}
+  {{- $_ := unset (get $current "enabledPlugins") "inbox@inbox" -}}
 {{- end -}}
 {{- $managed := mustFromJson `{
   "model": "fable",
@@ -33,6 +37,7 @@
     "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
     "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "CLAUDE_CODE_PLUGIN_DIR_WATCH": "1",
     "INBOX_RECORDED_ITEMS_ONLY": "1"
   },
   "permissions": {
@@ -91,6 +96,16 @@
             "timeout": 120
           }
         ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.local/bin/common/claude-subagent-feed\"",
+            "async": true
+          }
+        ]
       }
     ],
     "Stop": [
@@ -116,6 +131,17 @@
         ]
       }
     ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.local/bin/common/claude-subagent-feed\"",
+            "async": true
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "matcher": "*",
@@ -136,18 +162,20 @@
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
     "claude-mem@thedotmack": false,
-    "ponytail@ponytail": false,
-    "inbox@inbox": true
-  },
-  "extraKnownMarketplaces": {
-    "inbox": {
-      "source": {
-        "source": "github",
-        "repo": "shunk031/inbox",
-        "ref": "v0.3.0-fork.1"
-      }
-    }
+    "ponytail@ponytail": false
   },
   "tui": "fullscreen"
 }` -}}
+{{- $pluginDirs := list "~/.local/share/claude/plugins/inbox" -}}
+{{- if kindIs "map" (get $current "env") -}}
+  {{- $currentPluginDirs := get (get $current "env") "CLAUDE_CODE_PLUGIN_DIRS" -}}
+  {{- if kindIs "string" $currentPluginDirs -}}
+    {{- range splitList ":" $currentPluginDirs -}}
+      {{- if and (ne . "") (ne . "~/.local/share/claude/plugins/inbox") (not (has . $pluginDirs)) -}}
+        {{- $pluginDirs = append $pluginDirs . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $_ := set (get $managed "env") "CLAUDE_CODE_PLUGIN_DIRS" (join ":" $pluginDirs) -}}
 {{- mergeOverwrite $current $managed | toPrettyJson -}}

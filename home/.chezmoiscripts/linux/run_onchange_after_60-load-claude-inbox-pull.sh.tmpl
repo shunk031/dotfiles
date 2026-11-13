@@ -1,0 +1,20 @@
+{{ if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env bash
+
+# @file home/.chezmoiscripts/linux/run_onchange_after_60-load-claude-inbox-pull.sh.tmpl
+# @brief Reload and enable the Claude inbox pull systemd user timer after its unit files change.
+#
+# service hash: {{ include "private_dot_config/systemd/user/claude-inbox-pull.service" | sha256sum }}
+# timer hash: {{ include "private_dot_config/systemd/user/claude-inbox-pull.timer" | sha256sum }}
+
+set -Eeuo pipefail
+
+readonly SYSTEMCTL_COMMAND="${DOTFILES_SYSTEMCTL_COMMAND:-systemctl}"
+if ! command -v "${SYSTEMCTL_COMMAND}" > /dev/null 2>&1 || ! "${SYSTEMCTL_COMMAND}" --user show-environment > /dev/null 2>&1; then
+    echo "No systemd user manager; skipping claude-inbox-pull.timer."
+    exit 0
+fi
+
+"${SYSTEMCTL_COMMAND}" --user daemon-reload
+"${SYSTEMCTL_COMMAND}" --user enable --now claude-inbox-pull.timer
+{{- end }}

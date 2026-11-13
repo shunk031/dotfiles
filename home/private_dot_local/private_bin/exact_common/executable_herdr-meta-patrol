@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # @file home/private_dot_local/private_bin/exact_common/executable_herdr-meta-patrol
-# @brief Poll Herdr machines without an LLM and wake the meta agent on news.
+# @brief Poll Herdr machines without an LLM and queue news for the meta agent.
 # @description
 #   Scans the local Herdr server and every enabled `herdr machine list` machine
 #   for blocked agents, inbox tokens, leftover input in root agents'
@@ -13,29 +13,37 @@
 #   limit or 429 on it or the two lines below. Herdr can keep reporting such an
 #   agent as working. A Claude Code error line that is still retrying is skipped. Each executable in
 #   `HERDR_META_PATROL_FINDINGS_DIR` also runs once per patrol, and each line it
-#   prints is treated as a finding. Findings go to `latest.txt`.
+#   prints is treated as a finding. A working agent whose pane letters, in any
+#   script and without its interrupt hint line, have not changed for
+#   `HERDR_META_PATROL_STILL_SECONDS` is reported as having made no progress; the
+#   first time each text was seen is kept in `still.tsv`. Findings go to `latest.txt`.
 #   A root is an agent listed in `${XDG_STATE_HOME:-$HOME/.local/state}/meta/roots.tsv`
 #   for its machine alias (`Local` for this machine); inbox tokens alone do not
 #   define roots.
-#   Lines whose normalized form is new since the previous run are sent to the meta agent
-#   through the guarded prompt sender; nothing is sent when nothing is new.
+#   Lines whose normalized form is new since the previous run are appended as one
+#   message to the queue of `herdr-meta-patrol-queue`, which the meta agent waits
+#   on; nothing is typed into any pane, and nothing is queued when nothing is new.
 #   Leftover input is re-reported after `HERDR_META_PATROL_REPEAT_SECONDS`.
-#   State is saved only after delivery succeeds, so undelivered items are retried
-#   on the next run; `undelivered.log` holds only the latest pending message.
+#   State is saved only after the message is queued, so a failed append is retried
+#   on the next run. After each run, acknowledged messages past their keep period
+#   are trimmed, and a batch of messages left unread while no waiter runs raises
+#   one Herdr notification.
 #   Every `HERDR_META_PATROL_DIGEST_SECONDS`, a progress digest compares each
 #   registered root's agent status, tab label, and inbox token with the previous
 #   digest (`digest.tsv`) and sends one line per changed root; nothing is sent when
 #   no root changed. The first digest only records a baseline. Roots on a machine
-#   that could not be read keep their previous state. An undelivered digest is kept
-#   in `digest-undelivered.log` and retried on the next run.
-# @option HERDR_META_PATROL_META Agent name that receives the message (default `meta`).
-# @option HERDR_META_PATROL_STATE_DIR State directory (default `~/.local/state/herdr-meta-patrol`).
-# @option HERDR_META_PATROL_SENDER Guarded prompt sender script.
+#   that could not be read keep their previous state. A digest that cannot be queued
+#   is retried on the next run.
+# @option HERDR_META_PATROL_META Name of the meta agent, which the scan skips (default `meta`).
+# @option HERDR_META_PATROL_STATE_DIR State directory, shared with the queue (default `~/.local/state/herdr-meta-patrol`).
+# @option HERDR_META_PATROL_QUEUE Queue command (default `herdr-meta-patrol-queue` next to this script).
+# @option HERDR_META_PATROL_INPUT_PARSER Visible-input-state parser (default from the shunk031-herdr-orchestrate-workers skill).
 # @option HERDR_META_PATROL_REPEAT_SECONDS Leftover re-report interval (default 3600).
 # @option HERDR_META_PATROL_TIMEOUT Seconds before a single herdr call is killed (default 40).
 # @option HERDR_META_PATROL_RETRY_SLEEP Seconds before the connection retry (default 5).
 # @option HERDR_META_PATROL_DIGEST_SECONDS Progress digest interval (default 1800).
 # @option HERDR_META_PATROL_ERROR_LINES Pane lines read per stopped-agent check (default 25).
+# @option HERDR_META_PATROL_STILL_SECONDS Seconds without pane change before a working agent is reported (default 1200).
 # @option HERDR_META_PATROL_FINDINGS_DIR Directory of finding scripts (default `~/.config/herdr-meta-patrol/findings.d`).
 
 set -Eeuo pipefail
@@ -43,12 +51,14 @@ set -Eeuo pipefail
 meta="${HERDR_META_PATROL_META:-meta}"
 state_dir="${HERDR_META_PATROL_STATE_DIR:-${HOME}/.local/state/herdr-meta-patrol}"
 roots_file="${XDG_STATE_HOME:-${HOME}/.local/state}/meta/roots.tsv"
-sender="${HERDR_META_PATROL_SENDER:-${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts/herdr-agent-prompt-if-input-empty.sh}"
+queue_command="${HERDR_META_PATROL_QUEUE:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/herdr-meta-patrol-queue}"
 repeat_seconds="${HERDR_META_PATROL_REPEAT_SECONDS:-3600}"
 timeout_seconds="${HERDR_META_PATROL_TIMEOUT:-40}"
 retry_sleep="${HERDR_META_PATROL_RETRY_SLEEP:-5}"
 digest_seconds="${HERDR_META_PATROL_DIGEST_SECONDS:-1800}"
 error_lines="${HERDR_META_PATROL_ERROR_LINES:-25}"
+still_seconds="${HERDR_META_PATROL_STILL_SECONDS:-1200}"
+still_lines=40
 findings_dir="${HERDR_META_PATROL_FINDINGS_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/herdr-meta-patrol/findings.d}"
 # Only lines shaped like an agent's own error output count: a Codex error cell
 # starts with `■ ` at column 0, and a Claude Code API or usage-limit error is a
@@ -62,9 +72,7 @@ api_reconnect_line='^[[:space:]]*[^[:alnum:][:space:]]+ Reconnecting\.\.\. [0-9]
 # Error texts within those lines that end an agent's turn.
 api_error_pattern='exceeded retry limit|429|Too Many Requests|rate[ _-]?limit|usage limit|hit your ([a-z]+ )?limit|limit reached|spend(ing)?[ _-]limit[ _-]exceeded|budget[ _-](exceeded|exhausted)|insufficient_quota|quota[ _-]exceeded'
 machine=local
-sender_dir="${sender%/*}"
-[[ "${sender_dir}" != "${sender}" ]] || sender_dir=.
-input_state_parser="${sender_dir}/herdr-visible-input-state.awk"
+input_state_parser="${HERDR_META_PATROL_INPUT_PARSER:-${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts/herdr-visible-input-state.awk}"
 
 # @description Run herdr with a portable alarm-based timeout (perl ships with macOS).
 function hx() {
@@ -164,11 +172,22 @@ function api_error_cause() {
     printf '%sで停止%s\n' "${cause}" "${suffix}"
 }
 
+# @description Print a checksum of the letters in pane text, ignoring timers, spinners, and the interrupt hint.
+# @stdin Recent pane text.
+function pane_progress_sum() {
+    local letters
+    letters="$(perl -CSD -ne 'next if /esc to interrupt|interrupt\)/i; s/[^\p{L}\n]//g; print')"
+    # An empty or fully filtered pane gives no evidence either way.
+    [[ -n "${letters//$'\n'/}" ]] || return 1
+    printf '%s\n' "${letters}" | cksum | awk '{ print $1 }'
+}
+
 # @description Print the findings for the current `machine`, one per line.
 # @arg $1 string Machine label (`local` for this machine).
 # @arg $2 string Digest record file, or empty when no digest is due.
+# @arg $3 string File for this machine's `still.tsv` records; it is created only when the agent list was read.
 function scan_machine() {
-    local machine="$1" digest_file="$2" registry_machine list agent a pane inbox relay refs input_state has_inbox registered status fin del panes cause label
+    local machine="$1" digest_file="$2" still_file="$3" registry_machine list agent a pane inbox relay refs input_state has_inbox registered status fin del panes cause label sum since
     list="$(hr agent list 2> /dev/null)" || {
         log_attempt_failure "$?"
         sleep "${retry_sleep}"
@@ -180,6 +199,7 @@ function scan_machine() {
     }
     jq -r --arg m "${machine}" --arg meta "${meta}" '.result.agents[] | select(.agent_status=="blocked") | select((.name // "") != $meta) | "[\($m)] blocked: \(.name // "-") \(.pane_id)"' <<< "${list}"
     if [[ "${machine}" == local ]]; then registry_machine=Local; else registry_machine="${machine}"; fi
+    : > "${still_file}"
     if [[ -n "${digest_file}" ]]; then
         write_digest_records "${machine}" "${registry_machine}" "${list}" "${digest_file}"
     fi
@@ -191,6 +211,17 @@ function scan_machine() {
         inbox="$(jq -r '.tokens.inbox // empty' <<< "${agent}")"
         has_inbox="$(jq -r '(.tokens // {}) | has("inbox")' <<< "${agent}")"
         status="$(jq -r '.agent_status // empty' <<< "${agent}")"
+        if [[ -n "${pane}" && "${status}" == working ]]; then
+            if sum="$(hr pane read "${pane}" --source recent --lines "${still_lines}" --format text 2> /dev/null | pane_progress_sum)"; then
+                since="$(M="${machine}" P="${pane}" S="${sum}" awk -F '\t' '$1 == ENVIRON["M"] && $2 == ENVIRON["P"] && $3 == ENVIRON["S"] { print $4; exit }' "${state_dir}/still.tsv")"
+                [[ -n "${since}" ]] || since="${now}"
+                printf '%s\t%s\t%s\t%s\n' "${machine}" "${pane}" "${sum}" "${since}" >> "${still_file}"
+                if ((now - since >= still_seconds)); then
+                    if [[ "${a}" == - ]]; then label="${pane}"; else label="${a}"; fi
+                    printf '[%s] %s: %s 分動きなし\n' "${machine}" "${label}" "$((still_seconds / 60))"
+                fi
+            fi
+        fi
         if [[ -n "${pane}" ]]; then
             cause="$(hr pane read "${pane}" --source recent --lines "${error_lines}" --format text 2> /dev/null | api_error_cause)" || cause=""
             if [[ -n "${cause}" ]]; then
@@ -264,7 +295,7 @@ function digest_changes() {
 }
 
 mkdir -p "${state_dir}"
-touch "${state_dir}/keys.txt" "${state_dir}/leftover.tsv"
+touch "${state_dir}/keys.txt" "${state_dir}/leftover.tsv" "${state_dir}/still.tsv"
 now="$(date +%s)"
 last_digest="$(cat "${state_dir}/digest.epoch" 2> /dev/null)" || last_digest=""
 digest_due=0
@@ -285,7 +316,7 @@ pids=()
 for ((i = 0; i < ${#machines[@]}; i++)); do
     digest_file=""
     ((digest_due == 0)) || digest_file="${scan_dir}/${i}.digest"
-    (scan_machine "${machines[$i]}" "${digest_file}") > "${scan_dir}/${i}.out" &
+    (scan_machine "${machines[$i]}" "${digest_file}" "${scan_dir}/${i}.still") > "${scan_dir}/${i}.out" &
     pids[i]=$!
 done
 scan_failed=0
@@ -334,11 +365,20 @@ while IFS= read -r key; do
     grep -qxF -- "${key}" <<< "${keys}" || new+="${key%% *} 接続が回復した"$'\n'
 done < "${state_dir}/keys.txt"
 
-# @description Persist this run's state; called only once nothing is left undelivered.
+# @description Persist this run's state; called only once the message is queued.
 function commit_state() {
     printf '%s' "${keys}" > "${state_dir}/keys.txt"
     printf '%s' "${leftover_tsv}" > "${state_dir}/leftover.tsv"
-    rm -f "${state_dir}/undelivered.log"
+}
+
+# @description Append one message to the meta queue.
+# @arg $1 string Message kind.
+# @arg $2 string Message text.
+function queue_message() {
+    HERDR_META_PATROL_STATE_DIR="${state_dir}" "${queue_command}" add --kind "$1" --from patrol "$2" || {
+        printf '[%s] queue append failed (%s)\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$1" >&2
+        return 1
+    }
 }
 
 # @description Persist this run's digest as the baseline for the next one.
@@ -346,10 +386,9 @@ function commit_state() {
 function commit_digest() {
     cat "$1" > "${state_dir}/digest.tsv"
     printf '%s\n' "${now}" > "${state_dir}/digest.epoch"
-    rm -f "${state_dir}/digest-undelivered.log"
 }
 
-# @description Send the progress digest when a registered root changed since the last digest.
+# @description Queue the progress digest when a registered root changed since the last digest.
 function send_digest() {
     local current="${scan_dir}/digest.current" changes message i scanned
     : > "${current}"
@@ -377,12 +416,25 @@ function send_digest() {
         return 0
     fi
     message="$(printf '進捗まとめ（自動巡回）\n%s' "${changes}")"
-    if hr agent get "${meta}" > /dev/null 2>&1 && HERDR_ENV=1 "${sender}" "${meta}" "${message}"; then
+    if queue_message digest "${message}"; then
         commit_digest "${current}"
-    else
-        printf '%s\n%s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${message}" > "${state_dir}/digest-undelivered.log"
     fi
 }
+
+# Panes on a machine that could not be read keep their first-seen times.
+still_scanned=""
+: > "${scan_dir}/still.next"
+for ((i = 0; i < ${#machines[@]}; i++)); do
+    if [[ -e "${scan_dir}/${i}.still" ]]; then
+        cat "${scan_dir}/${i}.still" >> "${scan_dir}/still.next"
+        still_scanned+="${machines[$i]}"$'\n'
+    fi
+done
+S="${still_scanned}" LC_ALL=C awk -F '\t' '
+    BEGIN { n = split(ENVIRON["S"], list, "\n"); for (j = 1; j <= n; j++) ok[list[j]] = 1 }
+    !($1 in ok)
+' "${state_dir}/still.tsv" >> "${scan_dir}/still.next"
+cat "${scan_dir}/still.next" > "${state_dir}/still.tsv"
 
 printf '%s' "${findings}" > "${state_dir}/latest.txt"
 machine=local
@@ -391,13 +443,14 @@ if [[ -z "${new}" ]]; then
     commit_state
 else
     message="$(printf '自動巡回（herdr-meta-patrol）で新しい項目を検出しました。\n%s' "${new}")"
-    if hr agent get "${meta}" > /dev/null 2>&1 && HERDR_ENV=1 "${sender}" "${meta}" "${message}"; then
+    if queue_message findings "${message}"; then
         commit_state
-    else
-        printf '%s\n%s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${message}" > "${state_dir}/undelivered.log"
     fi
 fi
 
 if ((digest_due)); then
     send_digest
 fi
+
+HERDR_META_PATROL_STATE_DIR="${state_dir}" "${queue_command}" trim || true
+HERDR_META_PATROL_STATE_DIR="${state_dir}" "${queue_command}" notify-if-stale || true

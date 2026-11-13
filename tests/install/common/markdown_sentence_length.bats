@@ -259,6 +259,59 @@ gh pr create --title t --body-file '${body_file}'"
     done
 }
 
+@test "blocks GitHub bodies over 1,500 prose codepoints through the shared body-file path" {
+    local body_file="${BATS_TEST_TMPDIR}/long-github-body.md"
+    local paragraph command reason
+
+    paragraph="$(node -e 'process.stdout.write("p".repeat(185) + "😀.")')"
+    : > "${body_file}"
+    for _ in 1 2 3 4 5 6 7 8; do
+        printf '%s\n\n' "${paragraph}" >> "${body_file}"
+    done
+
+    for command in \
+        "gh pr create --title t --body-file '${body_file}'" \
+        "gh issue create --title t --body-file '${body_file}'" \
+        "gh pr comment 42 --body-file '${body_file}'" \
+        "gh issue comment 42 --body-file '${body_file}'"; do
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+        reason="$(jq -r '.reason' <<< "${output}")"
+        [[ "${reason}" == *"1503 prose codepoints; limit: 1500"* ]]
+        [[ "${reason}" == *"Fix: cut design records, reference lists, and repeated descriptions of the diff."* ]]
+    done
+}
+
+@test "allows a 1,500-codepoint GitHub body plus excluded code, HTML, tables, and URLs" {
+    local body_file="${BATS_TEST_TMPDIR}/github-body-at-limit.md"
+    local paragraph last_paragraph code inline_code url html table
+
+    paragraph="$(node -e 'process.stdout.write("p".repeat(186) + ".")')"
+    last_paragraph="$(node -e 'process.stdout.write("q".repeat(183) + ".")')"
+    code="$(node -e 'process.stdout.write("c".repeat(2000))')"
+    inline_code="$(printf '\140%s\140' "$(node -e 'process.stdout.write("i".repeat(20))')")"
+    url="$(node -e 'process.stdout.write("u".repeat(2000))')"
+    html="<table><tr><td>${code}</td></tr></table>"
+    table="| ${code} |
+| --- |
+| ${code} |"
+    {
+        for _ in 1 2 3 4 5 6 7; do
+            printf '%s\n\n' "${paragraph}"
+        done
+        printf '%s\n\n' "${last_paragraph}"
+        printf '%s\n\n' "${inline_code}"
+        printf '%s\n\n' "${html}"
+        printf '%s\n\n' "${table}"
+        printf '```text\n%s\n```\n\nhttps://example.com/%s\n' "${code}" "${url}"
+    } > "${body_file}"
+
+    run_github_body_hook "gh issue create --title t --body-file '${body_file}'"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
 @test "allows gh commands that post no text or only mention gh in prose" {
     local body_file="${BATS_TEST_TMPDIR}/short.md"
     local command

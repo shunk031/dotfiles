@@ -89,8 +89,10 @@ const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
                             const bullet = text(node, node);
                             analysis.bullets.push({
                                 line: node.loc.start.line,
-                                depth: current.depth,
-                                hasChildren: (node.children || []).some((child) => child.type === "List"),
+                                depth: lists.filter((list) => !list.ordered).length,
+                                hasChildren: (node.children || []).some(
+                                    (child) => child.type === "List" && !child.ordered,
+                                ),
                             });
                             if (bullet) {
                                 analysis.units.push({
@@ -298,13 +300,6 @@ function summarize(analysis) {
         if (bullet.depth === 1) section.topLevelBullets += 1;
         section.maxDepth = Math.max(section.maxDepth, bullet.depth);
     }
-    for (const line of analysis.lines) {
-        const header = headerForLine(line.line);
-        const section = bulletSections.get(header ? header.line : 0);
-        if (section) {
-            section.maxDepth = Math.max(section.maxDepth, line.depth);
-        }
-    }
     const bulletSectionList = [...bulletSections.values()];
     const sectionBulletCounts = bulletSectionList.map((section) => section.topLevelBullets);
     const lengths = analysis.units.map((unit) => unit.length);
@@ -397,7 +392,7 @@ function compare(neighbors, edited, editedLabel) {
             `Form differs: neighbors are ${formName(neighbors.dominant)}; ${editedLabel} is ${formName(edited.dominant)}.`,
         );
     }
-    const neighborsNest = neighbors.depthMax !== null && neighbors.depthMax > 1;
+    const neighborsNest = neighbors.structureDepthMax !== null && neighbors.structureDepthMax > 1;
     if (neighborsNest) {
         for (const section of edited.bulletSections) {
             if (section.bulletCount > 0 && section.maxDepth <= 1) {

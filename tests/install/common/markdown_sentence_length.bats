@@ -737,3 +737,53 @@ EOF
     [[ "${output}" == *"Bullet hierarchy differs: section \"Changed section\""*"is flat (max depth 1); neighbors nest"* ]]
     [[ "${output}" == *"Top-level bullet siblings in section \"Changed section\""*"7; limit: 4"*"neighbors' median: 2"* ]]
 }
+
+@test "does not treat nested numbered steps as nested bullets" {
+    local file_path="${BATS_TEST_TMPDIR}/numbered-neighbor-hierarchy.md"
+    cat > "${file_path}" << 'EOF'
+## Neighbor style
+- Neighbor bullet one is deliberately longer than the changed bullets.
+- Neighbor bullet two is deliberately longer than the changed bullets.
+- Neighbor bullet three is deliberately longer than the changed bullets.
+- Neighbor bullet four is deliberately longer than the changed bullets.
+- Neighbor bullet five is deliberately longer than the changed bullets.
+1. Outer numbered step.
+   1. Nested numbered step.
+
+## Changed section
+- Short one.
+- Short two.
+- Short three.
+EOF
+
+    run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed section" --report
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"Bullet hierarchy: 5 bullets; 0 with children (0.0%); max depth 1"* ]]
+}
+
+@test "numbered nesting does not hide flat edited bullets" {
+    local file_path="${BATS_TEST_TMPDIR}/numbered-edited-hierarchy.md"
+    cat > "${file_path}" << 'EOF'
+## Neighbor style
+- Parent one has a nested bullet hierarchy.
+  - Child one is longer than the changed bullets.
+  - Child two is longer than the changed bullets.
+- Parent two has a nested bullet hierarchy.
+  - Child three is longer than the changed bullets.
+  - Child four is longer than the changed bullets.
+1. Outer numbered step.
+   1. Nested numbered step.
+
+## Changed section
+- Short one.
+- Short two.
+- Short three.
+1. Outer changed step.
+   1. Nested changed step.
+EOF
+
+    run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed section" --report
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"Bullet hierarchy: 3 bullets; 0 with children (0.0%); max depth 1"* ]]
+    [[ "${output}" == *"Bullet hierarchy differs: section \"Changed section\""*"is flat (max depth 1); neighbors nest (max depth 2)"* ]]
+}

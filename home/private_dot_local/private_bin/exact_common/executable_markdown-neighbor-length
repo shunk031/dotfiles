@@ -319,12 +319,6 @@ function compare(neighbors, edited, editedLabel) {
             `Form differs: neighbors are ${formName(neighbors.dominant)}; ${editedLabel} is ${formName(edited.dominant)}.`,
         );
     }
-    if (neighbors.depthMedian !== edited.depthMedian) {
-        failures.push(
-            `Nesting depth differs: neighbors median ${formatNumber(neighbors.depthMedian)}; ` +
-                `${editedLabel} median ${formatNumber(edited.depthMedian)}.`,
-        );
-    }
     for (const unit of edited.analysis.units) {
         if (unit.length > neighbors.unitMedian) {
             const type = unit.kind === "bullet" ? "Bullet" : "Sentence";

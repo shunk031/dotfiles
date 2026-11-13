@@ -16,6 +16,12 @@ const JAPANESE_LIMIT = 100;
 const OTHER_LIMIT = 200;
 const GITHUB_BODY_BLOCK_LIMIT = 600;
 const GITHUB_BODY_PROSE_LIMIT = 1500;
+const GITHUB_BODY_TOTAL_LIMIT_COMMANDS = new Set([
+    "pr create",
+    "pr edit",
+    "issue create",
+    "issue edit",
+]);
 const RULE = "sentence-length";
 const BODY_RULE = "github-body-paragraph-length";
 const BODY_RULE_SOURCE = String.raw`module.exports = (context) => {
@@ -1129,7 +1135,12 @@ async function checkGithubCommand(event) {
         if (!stat?.isFile()) {
             return formatGithubCommandReason(call.name, `the body file ${filePath} is not a regular file`);
         }
-        records.push({ filePath, baseline: "", current: await fs.readFile(filePath, "utf8") });
+        records.push({
+            filePath,
+            commandName: call.name,
+            baseline: "",
+            current: await fs.readFile(filePath, "utf8"),
+        });
     }
     if (records.length === 0) {
         return null;
@@ -1139,7 +1150,10 @@ async function checkGithubCommand(event) {
     const violations = [
         ...changedViolations(records, diagnostics),
         ...diagnostics.flatMap((diagnostic, index) => {
-            if (diagnostic.bodyLength <= GITHUB_BODY_PROSE_LIMIT) {
+            if (
+                !GITHUB_BODY_TOTAL_LIMIT_COMMANDS.has(records[index].commandName) ||
+                diagnostic.bodyLength <= GITHUB_BODY_PROSE_LIMIT
+            ) {
                 return [];
             }
             return [{

@@ -259,27 +259,51 @@ gh pr create --title t --body-file '${body_file}'"
     done
 }
 
-@test "blocks GitHub bodies over 1,500 prose codepoints through the shared body-file path" {
+@test "blocks PR and issue create/edit bodies over 1,500 prose codepoints" {
     local body_file="${BATS_TEST_TMPDIR}/long-github-body.md"
-    local paragraph command reason
+    local paragraph last_paragraph command reason
 
     paragraph="$(node -e 'process.stdout.write("p".repeat(185) + "😀.")')"
+    last_paragraph="$(node -e 'process.stdout.write("q".repeat(183) + "😀.")')"
     : > "${body_file}"
-    for _ in 1 2 3 4 5 6 7 8; do
+    for _ in 1 2 3 4 5 6 7; do
         printf '%s\n\n' "${paragraph}" >> "${body_file}"
     done
+    printf '%s\n' "${last_paragraph}" >> "${body_file}"
 
     for command in \
         "gh pr create --title t --body-file '${body_file}'" \
+        "gh pr edit 42 --body-file '${body_file}'" \
         "gh issue create --title t --body-file '${body_file}'" \
-        "gh pr comment 42 --body-file '${body_file}'" \
-        "gh issue comment 42 --body-file '${body_file}'"; do
+        "gh issue edit 42 --body-file '${body_file}'"; do
         run_github_body_hook "${command}"
         [ "${status}" -eq 0 ]
         [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
         reason="$(jq -r '.reason' <<< "${output}")"
-        [[ "${reason}" == *"1503 prose codepoints; limit: 1500"* ]]
+        [[ "${reason}" == *"1501 prose codepoints; limit: 1500"* ]]
         [[ "${reason}" == *"Fix: cut design records, reference lists, and repeated descriptions of the diff."* ]]
+    done
+}
+
+@test "allows long comments and reviews without applying the PR description cap" {
+    local body_file="${BATS_TEST_TMPDIR}/long-comment.md"
+    local paragraph last_paragraph command
+
+    paragraph="$(node -e 'process.stdout.write("p".repeat(185) + "😀.")')"
+    last_paragraph="$(node -e 'process.stdout.write("q".repeat(183) + "😀.")')"
+    : > "${body_file}"
+    for _ in 1 2 3 4 5 6 7; do
+        printf '%s\n\n' "${paragraph}" >> "${body_file}"
+    done
+    printf '%s\n' "${last_paragraph}" >> "${body_file}"
+
+    for command in \
+        "gh pr comment 42 --body-file '${body_file}'" \
+        "gh issue comment 42 --body-file '${body_file}'" \
+        "gh pr review 42 --comment --body-file '${body_file}'"; do
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ -z "${output}" ]
     done
 }
 

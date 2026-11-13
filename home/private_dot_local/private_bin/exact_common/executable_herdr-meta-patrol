@@ -45,6 +45,7 @@
 # @option HERDR_META_PATROL_ERROR_LINES Pane lines read per stopped-agent check (default 25).
 # @option HERDR_META_PATROL_STILL_SECONDS Seconds without pane change before a working agent is reported (default 1200).
 # @option HERDR_META_PATROL_FINDINGS_DIR Directory of finding scripts (default `~/.config/herdr-meta-patrol/findings.d`).
+# @option HERDR_META_PATROL_FEED_COMMAND Inbox feed writer command (default the adjacent `herdr-meta-patrol-feed`).
 
 set -Eeuo pipefail
 
@@ -60,6 +61,14 @@ error_lines="${HERDR_META_PATROL_ERROR_LINES:-25}"
 still_seconds="${HERDR_META_PATROL_STILL_SECONDS:-1200}"
 still_lines=40
 findings_dir="${HERDR_META_PATROL_FINDINGS_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/herdr-meta-patrol/findings.d}"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -n "${HERDR_META_PATROL_FEED_COMMAND:-}" ]]; then
+    feed_command="${HERDR_META_PATROL_FEED_COMMAND}"
+elif [[ -x "${script_dir}/herdr-meta-patrol-feed" ]]; then
+    feed_command="${script_dir}/herdr-meta-patrol-feed"
+else
+    feed_command="${script_dir}/executable_herdr-meta-patrol-feed"
+fi
 # Only lines shaped like an agent's own error output count: a Codex error cell
 # starts with `■ ` at column 0, and a Claude Code API or usage-limit error is a
 # `⎿` result line that starts with one of these phrases. Agents quote error
@@ -119,8 +128,9 @@ function log_attempt_failure() {
 # @arg $2 string Machine alias from the roots registry.
 # @arg $3 string JSON output of `herdr agent list` for the machine.
 # @arg $4 string Digest record file; it is created only when the records are complete.
+# @arg $5 string JSON output of `herdr tab list` for the machine.
 function write_digest_records() {
-    local machine="$1" registry_machine="$2" list="$3" digest_file="$4" roots tabs records
+    local machine="$1" registry_machine="$2" list="$3" digest_file="$4" tabs="$5" roots records
     roots="$(
         if [[ -r "${roots_file}" ]]; then
             LC_ALL=C awk -F '\t' -v machine="${registry_machine}" \
@@ -131,7 +141,6 @@ function write_digest_records() {
         : > "${digest_file}"
         return 0
     fi
-    tabs="$(hr tab list 2> /dev/null)" || return 0
     records="$(jq -r --arg m "${machine}" --argjson roots "${roots}" --argjson tabs "${tabs}" '
         ([$tabs.result.tabs[]? | {key: .tab_id, value: (.label // "")}] | from_entries) as $labels
         | .result.agents as $agents
@@ -186,8 +195,9 @@ function pane_progress_sum() {
 # @arg $1 string Machine label (`local` for this machine).
 # @arg $2 string Digest record file, or empty when no digest is due.
 # @arg $3 string File for this machine's `still.tsv` records; it is created only when the agent list was read.
+# @arg $4 path Prefix for this machine's agent and tab JSON snapshots.
 function scan_machine() {
-    local machine="$1" digest_file="$2" still_file="$3" registry_machine list agent a pane inbox relay refs input_state has_inbox registered status fin del panes cause label sum since
+    local machine="$1" digest_file="$2" still_file="$3" snapshot_prefix="$4" registry_machine list tabs agent a pane inbox relay refs input_state has_inbox registered status fin del panes cause label sum since
     list="$(hr agent list 2> /dev/null)" || {
         log_attempt_failure "$?"
         sleep "${retry_sleep}"
@@ -197,11 +207,18 @@ function scan_machine() {
             return 0
         }
     }
+    printf '%s\n' "${list}" > "${snapshot_prefix}.agents.json"
+    tabs=""
+    if tabs="$(hr tab list 2> /dev/null)" && jq -e '.result.tabs | type == "array"' <<< "${tabs}" > /dev/null 2>&1; then
+        printf '%s\n' "${tabs}" > "${snapshot_prefix}.tabs.json"
+    else
+        tabs=""
+    fi
     jq -r --arg m "${machine}" --arg meta "${meta}" '.result.agents[] | select(.agent_status=="blocked") | select((.name // "") != $meta) | "[\($m)] blocked: \(.name // "-") \(.pane_id)"' <<< "${list}"
     if [[ "${machine}" == local ]]; then registry_machine=Local; else registry_machine="${machine}"; fi
     : > "${still_file}"
     if [[ -n "${digest_file}" ]]; then
-        write_digest_records "${machine}" "${registry_machine}" "${list}" "${digest_file}"
+        write_digest_records "${machine}" "${registry_machine}" "${list}" "${digest_file}" "${tabs}"
     fi
     fin=0
     while IFS= read -r agent; do
@@ -250,7 +267,7 @@ function scan_machine() {
         elif [[ "${has_inbox}" == true ]]; then
             printf '[%s] unregistered agent with inbox token: %s\n' "${machine}" "${a}"
         fi
-        if [[ "${status}" == done || "${status}" == idle ]] && [[ "${registered}" == 0 ]]; then
+        if [[ "${status}" == "done" || "${status}" == idle ]] && [[ "${registered}" == 0 ]]; then
             fin=$((fin + 1))
         fi
     done < <(jq -c '.result.agents[]' <<< "${list}")
@@ -305,7 +322,12 @@ fi
 
 findings=""
 trim_log "${state_dir}/launchd.log"
-machine_list="$(hx machine list --json 2> /dev/null | jq -r '.[] | select(.enabled) | .label')" || machine_list=""
+machine_list_succeeded=0
+if machine_list="$(hx machine list --json 2> /dev/null | jq -r '.[] | select(.enabled) | .label')"; then
+    machine_list_succeeded=1
+else
+    machine_list=""
+fi
 machines=(local)
 while IFS= read -r machine_label; do
     if [[ -n "${machine_label}" ]]; then machines+=("${machine_label}"); fi
@@ -316,7 +338,7 @@ pids=()
 for ((i = 0; i < ${#machines[@]}; i++)); do
     digest_file=""
     ((digest_due == 0)) || digest_file="${scan_dir}/${i}.digest"
-    (scan_machine "${machines[$i]}" "${digest_file}" "${scan_dir}/${i}.still") > "${scan_dir}/${i}.out" &
+    (scan_machine "${machines[$i]}" "${digest_file}" "${scan_dir}/${i}.still" "${scan_dir}/${i}") > "${scan_dir}/${i}.out" &
     pids[i]=$!
 done
 scan_failed=0
@@ -454,3 +476,18 @@ fi
 
 HERDR_META_PATROL_STATE_DIR="${state_dir}" "${queue_command}" trim || true
 HERDR_META_PATROL_STATE_DIR="${state_dir}" "${queue_command}" notify-if-stale || true
+
+# Feed snapshots are written after patrol state and the queue have been handled.
+feed_options=()
+feed_args=()
+for ((i = 0; i < ${#machines[@]}; i++)); do
+    if [[ -s "${scan_dir}/${i}.agents.json" && -s "${scan_dir}/${i}.tabs.json" ]]; then
+        feed_args+=("${machines[$i]}" "${scan_dir}/${i}.agents.json" "${scan_dir}/${i}.tabs.json")
+    else
+        feed_args+=("${machines[$i]}" "" "")
+    fi
+done
+((machine_list_succeeded == 0)) || feed_options+=(--prune)
+if ! "${feed_command}" ${feed_options[@]+"${feed_options[@]}"} "${feed_args[@]}"; then
+    printf '[%s] inbox feed writer failed\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" >&2
+fi

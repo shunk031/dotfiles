@@ -37,7 +37,6 @@ function setup() {
     export TEST_BIN_DIR="${BATS_TEST_TMPDIR}/bin"
     export MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_calls.txt"
     export MISE_ZSH_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_zsh_calls.txt"
-    export GH_CALLS_PATH="${BATS_TEST_TMPDIR}/gh_calls.txt"
     export MISE_CONFIG_PATH="${BATS_TEST_TMPDIR}/mise_config.toml"
     export RUN_AFTER_SCRIPT="${BATS_TEST_TMPDIR}/run_after_20-install-mise-tools.sh"
     export BATS_TEST_TMPDIR
@@ -48,7 +47,6 @@ function setup() {
     rm -f \
         "${MISE_CALLS_PATH}" \
         "${MISE_ZSH_CALLS_PATH}" \
-        "${GH_CALLS_PATH}" \
         "${BATS_TEST_TMPDIR}/curl_args.txt" \
         "${BATS_TEST_TMPDIR}/installer_env.txt"
     unset GITHUB_TOKEN
@@ -211,28 +209,6 @@ EOF
     chmod +x "${TEST_BIN_DIR}/curl"
 }
 
-function write_gh_stub() {
-    cat > "${TEST_BIN_DIR}/gh" << 'EOF'
-#!/usr/bin/env bash
-
-printf "%s\n" "$*" >> "${GH_CALLS_PATH}"
-printf "stub-token\n"
-EOF
-
-    chmod +x "${TEST_BIN_DIR}/gh"
-}
-
-function write_failing_gh_stub() {
-    cat > "${TEST_BIN_DIR}/gh" << 'EOF'
-#!/usr/bin/env bash
-
-printf "%s\n" "$*" >> "${GH_CALLS_PATH}"
-exit 1
-EOF
-
-    chmod +x "${TEST_BIN_DIR}/gh"
-}
-
 function write_chezmoi_shim() {
     local shims_dir="${HOME}/.local/share/mise/shims"
 
@@ -316,6 +292,16 @@ function render_zprofile() {
         /^\[tools\]$/ { in_tools = 1; next }
         /^\[/ { in_tools = 0 }
         in_tools && $0 ~ /^fnox = "[0-9]+[.][0-9]+[.][0-9]+"$/ { found = 1 }
+        END { exit !found }
+    ' "${MISE_CONFIG_SOURCE}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] mise config declares GitHub credential command" {
+    run awk '
+        /^\[settings\.github\]$/ { in_github = 1; next }
+        /^\[/ { in_github = 0 }
+        in_github && /^credential_command = / { found = 1 }
         END { exit !found }
     ' "${MISE_CONFIG_SOURCE}"
     [ "${status}" -eq 0 ]
@@ -822,44 +808,4 @@ EOF
     [ "${status}" -eq 0 ]
     [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version' ]
     [ -e "${BATS_TEST_TMPDIR}/curl_args.txt" ]
-}
-
-@test "[common] run_after template reuses existing GITHUB_TOKEN" {
-    write_mise_stub
-    write_gh_stub
-    export GITHUB_TOKEN="existing-token"
-
-    run bash "${RUN_AFTER_SCRIPT}"
-    [ "${status}" -eq 0 ]
-
-    run cat "${MISE_CALLS_PATH}"
-    [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=existing-token\nexec -- herdr --version' ]
-    [ ! -e "${GH_CALLS_PATH}" ]
-}
-
-@test "[common] run_after template exports gh token when GITHUB_TOKEN is unset" {
-    write_mise_stub
-    write_gh_stub
-
-    run bash "${RUN_AFTER_SCRIPT}"
-    [ "${status}" -eq 0 ]
-
-    run cat "${MISE_CALLS_PATH}"
-    [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=stub-token\nexec -- herdr --version' ]
-    [ "$(< "${GH_CALLS_PATH}")" = "auth token" ]
-}
-
-@test "[common] run_after template continues when gh token lookup fails" {
-    write_mise_stub
-    write_failing_gh_stub
-
-    run bash "${RUN_AFTER_SCRIPT}"
-    [ "${status}" -eq 0 ]
-
-    run cat "${MISE_CALLS_PATH}"
-    [ "${status}" -eq 0 ]
-    [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version' ]
-    [ "$(< "${GH_CALLS_PATH}")" = "auth token" ]
 }

@@ -16,14 +16,6 @@ source "{{ .chezmoi.sourceDir }}/../install/common/herdr.sh"
 
 ensure_mise_min_version
 
-if [ -z "${GITHUB_TOKEN:-}" ] && command -v gh > /dev/null 2>&1; then
-    if GITHUB_TOKEN="$(gh auth token 2> /dev/null)" && [ -n "${GITHUB_TOKEN}" ]; then
-        export GITHUB_TOKEN
-    else
-        unset GITHUB_TOKEN
-    fi
-fi
-
 run_mise_install
 
 if [ "${GITHUB_ACTIONS:-}" != "true" ] && [ -x "${HOME}/.local/bin/codex-model-catalog" ]; then

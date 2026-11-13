@@ -16,6 +16,12 @@ function setup() {
     export FAKE_REMOTE_DOWN="${BATS_TEST_TMPDIR}/remote_down"
     export FAKE_PANE="${BATS_TEST_TMPDIR}/pane.txt"
     export FAKE_RECENT_PANE="${BATS_TEST_TMPDIR}/recent.txt"
+    export FAKE_TAB_LIST_CALLS="${BATS_TEST_TMPDIR}/tab_list_calls"
+    export FAKE_FEED_LOG="${BATS_TEST_TMPDIR}/feed_args"
+    export FAKE_FEED_VALIDATION_FAILED="${BATS_TEST_TMPDIR}/feed-validation-failed"
+    export FAKE_FEED_VALIDATE_SNAPSHOTS=0
+    export FAKE_FEED_EXIT=0
+    export HERDR_META_PATROL_FEED_COMMAND="${BATS_TEST_TMPDIR}/feed-writer"
     export HERDR_META_PATROL_FINDINGS_DIR="${BATS_TEST_TMPDIR}/findings.d"
     export FAKE_INPUT_STATE=empty
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
@@ -35,7 +41,10 @@ case "$1 $2" in
     ;;
 "agent list") cat "${FAKE_AGENTS}" ;;
 "pane list") echo '{"result":{"panes":[]}}' ;;
-"tab list") if [[ -n "${FAKE_TABS:-}" ]]; then echo "${FAKE_TABS}"; else echo '{"result":{"tabs":[]}}'; fi ;;
+"tab list")
+    [[ -z "${FAKE_TAB_LIST_CALLS:-}" ]] || printf '.' >> "${FAKE_TAB_LIST_CALLS}"
+    if [[ -n "${FAKE_TABS:-}" ]]; then echo "${FAKE_TABS}"; else echo '{"result":{"tabs":[]}}'; fi
+    ;;
 "pane read")
     if [[ " $* " == *" --source recent "* ]]; then
         [[ -e "${FAKE_RECENT_PANE}" ]] && cat "${FAKE_RECENT_PANE}"
@@ -54,6 +63,24 @@ END { print ENVIRON["FAKE_INPUT_STATE"] }
 STUB
     fi
     chmod +x "${BATS_TEST_TMPDIR}/bin/herdr"
+    cat > "${HERDR_META_PATROL_FEED_COMMAND}" << 'STUB'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "${FAKE_FEED_LOG}"
+if [[ "${FAKE_FEED_VALIDATE_SNAPSHOTS:-0}" == 1 ]]; then
+    [[ "${1:-}" != --prune ]] || shift
+    while (($#)); do
+        machine="$1"
+        agents="$2"
+        tabs="$3"
+        shift 3
+        [[ -s "${agents}" && -s "${tabs}" ]] || { touch "${FAKE_FEED_VALIDATION_FAILED}"; exit 1; }
+        jq -e '.result.agents | type == "array"' "${agents}" > /dev/null || { touch "${FAKE_FEED_VALIDATION_FAILED}"; exit 1; }
+        jq -e '.result.tabs | type == "array"' "${tabs}" > /dev/null || { touch "${FAKE_FEED_VALIDATION_FAILED}"; exit 1; }
+    done
+fi
+exit "${FAKE_FEED_EXIT:-0}"
+STUB
+    chmod +x "${HERDR_META_PATROL_FEED_COMMAND}"
     echo '{"result":{"agents":[]}}' > "${FAKE_AGENTS}"
 }
 
@@ -712,4 +739,36 @@ function age_still() {
     run grep -Fq '[remote] w1: 20 分動きなし' <(calls)
     [ "${status}" -ne 0 ]
     [ "$(awk -F '\t' '$1 == "remote"' "${HERDR_META_PATROL_STATE_DIR}/still.tsv" | wc -l)" -eq 1 ]
+}
+
+@test "[common] herdr-meta-patrol saves snapshots and reuses tabs for the digest" {
+    export HERDR_META_PATROL_DIGEST_SECONDS=0
+    export FAKE_FEED_VALIDATE_SNAPSHOTS=1
+    register_root Local orch
+    digest_roots working 0 working
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ ! -e "${FAKE_FEED_VALIDATION_FAILED}" ]
+    [ "$(wc -c < "${FAKE_TAB_LIST_CALLS}" | tr -d '[:space:]')" -eq 1 ]
+}
+
+@test "[common] herdr-meta-patrol prunes feeds only after a successful machine list" {
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    grep -qx -- '--prune' "${FAKE_FEED_LOG}"
+
+    touch "${FAKE_MACHINE_LIST_DOWN}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -qx -- '--prune' "${FAKE_FEED_LOG}"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] herdr-meta-patrol keeps the queue working when the feed writer fails" {
+    export FAKE_FEED_EXIT=1
+    blocked_agent
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    grep -Fq '[local] blocked: w1 p1' <(calls)
+    grep -q 'inbox feed writer failed' <<< "${output}"
 }

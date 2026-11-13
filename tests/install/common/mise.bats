@@ -3,6 +3,7 @@
 readonly SCRIPT_PATH="./install/common/mise.sh"
 readonly TMPL_SCRIPT_GLOB="./home/.chezmoiscripts/common/run_once_after_*-install-mise.sh.tmpl"
 readonly RUN_AFTER_TEMPLATE="./home/.chezmoiscripts/common/run_after_20-install-mise-tools.sh.tmpl"
+readonly HERDR_PLUGIN_MANIFEST="./home/private_dot_local/private_share/herdr-plugins/herdr-tab-title/herdr-plugin.toml"
 readonly MISE_CONFIG_SOURCE="./home/dot_mise/config.toml"
 readonly MISE_BASH_SOURCE="./home/private_dot_config/exact_shell/mise.bash"
 readonly MISE_ZSH_SOURCE="./home/private_dot_config/exact_shell/mise.zsh"
@@ -99,10 +100,27 @@ case "$*" in
         mkdir -p "${CODEX_HOME}"
         printf '%s\n' '# HERDR_INTEGRATION_ID=codex' > "${CODEX_HOME}/herdr-agent-state.sh"
         ;;
+    'plugin list --plugin shunk031.herdr-tab-title --json')
+        printf '%s\n' '{"result":{"plugins":[]}}'
+        ;;
+    'plugin link '*)
+        printf '%s\n' "${HERDR_PLUGIN_LINK_ERROR:-unexpected Herdr plugin link}" >&2
+        exit "${HERDR_PLUGIN_LINK_STATUS:-1}"
+        ;;
 esac
 EOF
 
     chmod +x "${herdr_path}"
+}
+
+function prepare_run_after_plugin_test() {
+    local plugin_root="${HOME}/.local/share/herdr-plugins/herdr-tab-title"
+
+    write_mise_stub
+    export HERDR_CALLS_PATH="${BATS_TEST_TMPDIR}/herdr_calls.txt"
+    write_herdr_stub
+    mkdir -p "${plugin_root}"
+    cp "${HERDR_PLUGIN_MANIFEST}" "${plugin_root}/herdr-plugin.toml"
 }
 
 function write_mise_stub() {
@@ -783,6 +801,61 @@ EOF
     [ "${status}" -eq 0 ]
     [ "${output}" = $'install\nMISE_CURRENT_VERSION=\nMISE_VERSION=\nGITHUB_TOKEN=\nexec -- herdr --version' ]
     [ ! -e "${HOME}/.agents/skills/herdr/SKILL.md" ]
+}
+
+@test "[common] run_after continues when Herdr cannot link the newer tab-title plugin" {
+    local plugin_root expected_calls
+
+    prepare_run_after_plugin_test
+    plugin_root="${HOME}/.local/share/herdr-plugins/herdr-tab-title"
+    export HERDR_PLUGIN_LINK_ERROR='{"error":{"code":"plugin_requires_newer_herdr","message":"plugin needs a newer server"}}'
+
+    run bash "${RUN_AFTER_SCRIPT}"
+
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *'Herdr tab-title plugin requires Herdr 0.9.5'* ]]
+    [[ "${output}" == *'restart the Herdr server at a quiet time'* ]]
+    [[ "${output}" == *'rerun chezmoi apply'* ]]
+    [[ "${output}" == *'Tab-title updates remain unavailable until the plugin is linked.'* ]]
+
+    expected_calls="$(printf '%s\n' \
+        '--version' \
+        'integration status' \
+        'integration install claude' \
+        'integration install codex' \
+        '--skill' \
+        'plugin list --plugin shunk031.herdr-tab-title --json' \
+        "plugin link ${plugin_root} --enabled")"
+    run cat "${HERDR_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "${expected_calls}" ]
+    [ -f "${HOME}/.claude/hooks/herdr-agent-state.sh" ]
+    [ -f "${HOME}/.codex/herdr-agent-state.sh" ]
+    [ -f "${HOME}/.agents/skills/herdr/SKILL.md" ]
+}
+
+@test "[common] run_after fails for other tab-title plugin link errors" {
+    local plugin_root expected_calls
+
+    prepare_run_after_plugin_test
+    plugin_root="${HOME}/.local/share/herdr-plugins/herdr-tab-title"
+    export HERDR_PLUGIN_LINK_ERROR='{"error":{"code":"plugin_link_denied","message":"link denied"}}'
+
+    run bash "${RUN_AFTER_SCRIPT}"
+
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *'"code":"plugin_link_denied"'* ]]
+    [[ "${output}" != *'restart the Herdr server at a quiet time'* ]]
+
+    expected_calls="$(printf '%s\n' \
+        '--version' \
+        'integration status' \
+        'integration install claude' \
+        'integration install codex' \
+        '--skill' \
+        'plugin list --plugin shunk031.herdr-tab-title --json' \
+        "plugin link ${plugin_root} --enabled")"
+    [ "$(< "${HERDR_CALLS_PATH}")" = "${expected_calls}" ]
 }
 
 @test "[common] run_after template bootstraps mise when it is not installed" {

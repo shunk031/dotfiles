@@ -109,10 +109,10 @@ function sync_herdr_skill() {
 }
 
 #
-# @description Link the managed tab-title plugin once; leave a manually disabled plugin disabled.
+# @description Link the managed tab-title plugin once, preserve disabled plugins, and defer only when the running server is too old.
 # @arg $@ string Herdr command and any prefix arguments.
 function sync_herdr_tab_title_plugin() {
-    local plugin_root installed
+    local plugin_root installed link_stderr link_status required_version
 
     plugin_root="${HOME}/.local/share/herdr-plugins/herdr-tab-title"
     [ -f "${plugin_root}/herdr-plugin.toml" ] || return 0
@@ -120,5 +120,26 @@ function sync_herdr_tab_title_plugin() {
     if printf '%s\n' "${installed}" | jq -e '.result.plugins | length > 0' > /dev/null; then
         return 0
     fi
-    "$@" plugin link "${plugin_root}" --enabled
+
+    link_stderr="$(mktemp)" || return
+    if "$@" plugin link "${plugin_root}" --enabled 2> "${link_stderr}"; then
+        cat "${link_stderr}" >&2
+        rm -f "${link_stderr}"
+        return 0
+    else
+        link_status=$?
+    fi
+
+    if jq -e -s 'length == 1 and .[0].error.code == "plugin_requires_newer_herdr"' "${link_stderr}" > /dev/null 2>&1; then
+        required_version="$(sed -nE 's/^[[:space:]]*min_herdr_version[[:space:]]*=[[:space:]]*"([^"]+)"[[:space:]]*$/\1/p' "${plugin_root}/herdr-plugin.toml")"
+        if [ -n "${required_version}" ]; then
+            rm -f "${link_stderr}"
+            printf 'Warning: Herdr tab-title plugin requires Herdr %s. It was skipped; restart the Herdr server at a quiet time, then rerun chezmoi apply. Tab-title updates remain unavailable until the plugin is linked.\n' "${required_version}" >&2
+            return 0
+        fi
+    fi
+
+    cat "${link_stderr}" >&2
+    rm -f "${link_stderr}"
+    return "${link_status}"
 }

@@ -52,6 +52,32 @@ class HerdrIntegrationTest(unittest.TestCase):
             text=True, capture_output=True, check=check,
         )
 
+    def test_tab_title_plugin_is_linked_once(self):
+        plugin_root = self.root / ".local" / "share" / "herdr-plugins" / "herdr-tab-title"
+        plugin_root.mkdir(parents=True)
+        (plugin_root / "herdr-plugin.toml").write_text('id = "shunk031.herdr-tab-title"\n')
+        fake_herdr = self.root / "fake-herdr"
+        fake_herdr.write_text(
+            "#!/bin/sh\n"
+            "if [ \"$1\" = plugin ] && [ \"$2\" = list ]; then\n"
+            "  if [ -f \"$HOME/linked\" ]; then\n"
+            "    printf '%s\\n' '{\"result\":{\"plugins\":[{\"id\":\"shunk031.herdr-tab-title\"}]}}'\n"
+            "  else\n"
+            "    printf '%s\\n' '{\"result\":{\"plugins\":[]}}'\n"
+            "  fi\n"
+            "elif [ \"$1\" = plugin ] && [ \"$2\" = link ]; then\n"
+            "  printf '%s\\n' \"$3\" >> \"$HOME/linked\"\n"
+            "else exit 1; fi\n"
+        )
+        fake_herdr.chmod(0o755)
+        for _ in range(2):
+            subprocess.run(
+                ["bash", "-c", 'source "$1"; sync_herdr_tab_title_plugin "$2"',
+                 "herdr-test", str(SYNC_SCRIPT), str(fake_herdr)],
+                env=self.env, capture_output=True, text=True, check=True,
+            )
+        self.assertEqual((self.root / "linked").read_text().splitlines(), [str(plugin_root)])
+
     def test_binary_matches_mise_pin(self):
         config = (REPO_ROOT / "home" / "dot_mise" / "config.toml").read_text()
         version = re.search(r'^herdr = "([^"]+)"', config, re.MULTILINE)[1]

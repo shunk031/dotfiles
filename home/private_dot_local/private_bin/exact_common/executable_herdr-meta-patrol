@@ -35,7 +35,9 @@
 #   that could not be read keep their previous state. A digest that cannot be queued
 #   is retried on the next run. The installed meta patrol skill handles a visible
 #   meta usage limit once per episode, notifying the user and telling eligible
-#   meta workers to hold periodic STATUS while waiting for review.
+#   meta workers to hold periodic STATUS while waiting for review. Limit-handler
+#   calls share this script's process group, with per-call timeouts set to one sixth
+#   of the handler's total timeout; worker notices run concurrently within that budget.
 # @option HERDR_META_PATROL_META Name of the meta agent, which the scan skips (default `meta`).
 # @option HERDR_META_PATROL_STATE_DIR State directory, shared with the queue (default `~/.local/state/herdr-meta-patrol`).
 # @option HERDR_META_PATROL_QUEUE Queue command (default `herdr-meta-patrol-queue` next to this script).
@@ -75,6 +77,8 @@ else
 fi
 limit_hold_handler="${HERDR_META_PATROL_LIMIT_HANDLER:-${HOME}/.agents/skills/shunk031-herdr-meta-orchestrate/scripts/herdr-meta-patrol.sh}"
 limit_hold_timeout="${HERDR_META_PATROL_LIMIT_HOLD_TIMEOUT:-90}"
+limit_call_timeout=$((limit_hold_timeout / 6))
+((limit_call_timeout > 0)) || limit_call_timeout=1
 # Only lines shaped like an agent's own error output count: a Codex error cell
 # starts with `■ ` at column 0, and a Claude Code API or usage-limit error is a
 # `⎿` result line that starts with one of these phrases. Agents quote error
@@ -517,7 +521,8 @@ fi
 if [[ -x "${limit_hold_handler}" ]]; then
     if ! run_with_timeout "${limit_hold_timeout}" env \
         HERDR_ENV=1 HERDR_META_PATROL_META="${meta}" HERDR_META_PATROL_STATE_DIR="${state_dir}" \
-        HERDR_META_PATROL_CALL_TIMEOUT="${timeout_seconds}" "${limit_hold_handler}" --limit-hold; then
+        HERDR_META_PATROL_CALL_TIMEOUT="${limit_call_timeout}" HERDR_META_PATROL_SHARE_PROCESS_GROUP=1 \
+        "${limit_hold_handler}" --limit-hold; then
         printf '[%s] meta usage-limit handler failed\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" >&2
     fi
 else

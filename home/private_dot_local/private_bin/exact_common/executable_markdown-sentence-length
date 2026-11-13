@@ -15,6 +15,13 @@ const DISCOVERY_LIMIT = 100;
 const JAPANESE_LIMIT = 100;
 const OTHER_LIMIT = 200;
 const GITHUB_BODY_BLOCK_LIMIT = 600;
+const GITHUB_BODY_PROSE_LIMIT = 1500;
+const GITHUB_BODY_TOTAL_LIMIT_COMMANDS = new Set([
+    "pr create",
+    "pr edit",
+    "issue create",
+    "issue edit",
+]);
 const RULE = "sentence-length";
 const BODY_RULE = "github-body-paragraph-length";
 const BODY_RULE_SOURCE = String.raw`module.exports = (context) => {
@@ -29,6 +36,16 @@ const BODY_RULE_SOURCE = String.raw`module.exports = (context) => {
         return (node.children || [])
             .map((child) => prose(child, rootListItem))
             .join(node.type === "ListItem" ? " " : "");
+    }
+
+    function bodyProse(node) {
+        if (ignored.has(node.type)) return "";
+        if (node.type === "Str") return node.value.replace(urlPattern, " ");
+        const children = node.children || [];
+        const separator = ["Document", "BlockQuote", "List", "ListItem"].includes(node.type)
+            ? "\n"
+            : "";
+        return children.map(bodyProse).join(separator);
     }
 
     function report(node, continuations = []) {
@@ -54,6 +71,15 @@ const BODY_RULE_SOURCE = String.raw`module.exports = (context) => {
 
     return {
         [context.Syntax.DocumentExit](document) {
+            const bodyText = bodyProse(document).replace(/\s+/gu, " ").trim();
+            const bodyLength = [...bodyText].length;
+            if (bodyLength > __BODY_LIMIT__) {
+                context.report(
+                    document,
+                    new context.RuleError(JSON.stringify({ bodyLength })),
+                );
+            }
+
             const continuations = new Map();
             const skip = new Set();
             function findLazy(parent) {
@@ -288,7 +314,10 @@ async function lintTexts(records, includeGithubBody = false) {
         if (includeGithubBody) {
             await fs.writeFile(
                 bodyRulePath,
-                BODY_RULE_SOURCE.replace("__LIMIT__", GITHUB_BODY_BLOCK_LIMIT),
+                BODY_RULE_SOURCE.replace("__LIMIT__", GITHUB_BODY_BLOCK_LIMIT).replace(
+                    "__BODY_LIMIT__",
+                    GITHUB_BODY_PROSE_LIMIT,
+                ),
             );
         }
         await fs.writeFile(
@@ -353,7 +382,12 @@ async function lintTexts(records, includeGithubBody = false) {
             throw new Error("textlint returned an unexpected JSON report");
         }
 
-        const diagnostics = records.map(() => ({ baseline: [], current: [], blocks: [] }));
+        const diagnostics = records.map(() => ({
+            baseline: [],
+            current: [],
+            blocks: [],
+            bodyLength: 0,
+        }));
         for (const report of reports) {
             const source = sources.get(path.resolve(report.filePath));
             if (!source) {
@@ -362,6 +396,18 @@ async function lintTexts(records, includeGithubBody = false) {
             for (const message of report.messages || []) {
                 if (message.ruleId === BODY_RULE) {
                     const diagnostic = JSON.parse(message.message);
+                    if (Object.hasOwn(diagnostic, "bodyLength")) {
+                        if (
+                            !Number.isInteger(diagnostic.bodyLength) ||
+                            diagnostic.bodyLength <= GITHUB_BODY_PROSE_LIMIT
+                        ) {
+                            throw new Error("textlint body-length output was invalid");
+                        }
+                        if (source.kind === "current") {
+                            diagnostics[source.index].bodyLength = diagnostic.bodyLength;
+                        }
+                        continue;
+                    }
                     if (
                         !Number.isInteger(diagnostic.length) ||
                         diagnostic.length <= GITHUB_BODY_BLOCK_LIMIT ||
@@ -469,9 +515,24 @@ function formatReason(violations) {
 }
 
 function formatGithubBodyReason(violations) {
-    const sentences = violations.filter((item) => item.kind !== "paragraph");
+    const bodyLengths = violations.filter((item) => item.kind === "total");
+    const sentences = violations.filter(
+        (item) => item.kind !== "paragraph" && item.kind !== "total",
+    );
     const paragraphs = violations.filter((item) => item.kind === "paragraph");
     const reason = [];
+    for (const item of bodyLengths.slice(0, 5)) {
+        reason.push(
+            `The edited GitHub body in ${item.filePath} contains ${item.length} prose codepoints; ` +
+                `limit: ${item.limit}.`,
+        );
+        reason.push(
+            "Fix: cut design records, reference lists, and repeated descriptions of the diff.",
+        );
+    }
+    if (bodyLengths.length > 5) {
+        reason.push(`${bodyLengths.length - 5} more GitHub body length violation(s) remain.`);
+    }
     if (sentences.length > 0) {
         reason.push(formatReason(sentences));
     }
@@ -1074,7 +1135,12 @@ async function checkGithubCommand(event) {
         if (!stat?.isFile()) {
             return formatGithubCommandReason(call.name, `the body file ${filePath} is not a regular file`);
         }
-        records.push({ filePath, baseline: "", current: await fs.readFile(filePath, "utf8") });
+        records.push({
+            filePath,
+            commandName: call.name,
+            baseline: "",
+            current: await fs.readFile(filePath, "utf8"),
+        });
     }
     if (records.length === 0) {
         return null;
@@ -1083,6 +1149,20 @@ async function checkGithubCommand(event) {
     const diagnostics = await lintTexts(records, true);
     const violations = [
         ...changedViolations(records, diagnostics),
+        ...diagnostics.flatMap((diagnostic, index) => {
+            if (
+                !GITHUB_BODY_TOTAL_LIMIT_COMMANDS.has(records[index].commandName) ||
+                diagnostic.bodyLength <= GITHUB_BODY_PROSE_LIMIT
+            ) {
+                return [];
+            }
+            return [{
+                kind: "total",
+                filePath: records[index].filePath,
+                length: diagnostic.bodyLength,
+                limit: GITHUB_BODY_PROSE_LIMIT,
+            }];
+        }),
         ...diagnostics.flatMap((diagnostic, index) =>
             diagnostic.blocks.map((item) => ({ ...item, filePath: records[index].filePath })),
         ),

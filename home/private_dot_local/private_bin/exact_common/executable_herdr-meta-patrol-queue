@@ -1,0 +1,195 @@
+#!/usr/bin/env bash
+
+# @file home/private_dot_local/private_bin/exact_common/executable_herdr-meta-patrol-queue
+# @brief Queue meta patrol messages in a file and wait for them without typing into a pane.
+# @description
+#   The meta patrol and local root orchestrators append messages here instead of
+#   typing them into the meta agent's pane. The meta agent runs `wait` as a
+#   background command; it exits when an unread message exists, which wakes the
+#   agent through its harness. The agent then runs `read`, handles the messages,
+#   and runs `ack` with the highest sequence number it handled. Delivery is at
+#   least once: a record stays unread until it is acknowledged.
+#
+#   Files in the state directory: `queue.jsonl` holds one JSON record per line
+#   (`seq`, `t` epoch seconds, `at`, `kind`, `from`, `text`), `queue.seq` the last
+#   sequence number, `queue.ack` the highest acknowledged one, `waiter.heartbeat`
+#   the time of the last `wait` poll, and `queue.notified` the last sequence
+#   number announced by `notify-if-stale`.
+#
+#   Subcommands:
+#   - `add [--kind KIND] [--from NAME] TEXT` appends one record.
+#   - `wait [--max-seconds N]` blocks until an unread record exists, prints the
+#     unread count, and exits 0. It also exits 0 after N seconds (default 21600)
+#     with a re-arm notice.
+#   - `read` prints the unread records, one JSON object per line.
+#   - `ack SEQ` marks every record up to SEQ as handled.
+#   - `trim` drops acknowledged records older than the keep period.
+#   - `notify-if-stale` shows one Herdr notification for a batch of unread records
+#     that are old enough while no `wait` has polled recently.
+# @option HERDR_META_PATROL_STATE_DIR State directory (default `~/.local/state/herdr-meta-patrol`).
+# @option HERDR_META_PATROL_QUEUE_POLL Seconds between `wait` polls (default 5).
+# @option HERDR_META_PATROL_QUEUE_KEEP_DAYS Days to keep acknowledged records (default 7).
+# @option HERDR_META_PATROL_TIMEOUT Seconds before the notification call is killed (default 40).
+# @option HERDR_META_PATROL_STALE_SECONDS Age of unread records and of the waiter heartbeat that triggers a notification (default 600).
+# @exitcode 0 On success.
+# @exitcode 2 On a usage error.
+# @example
+#   herdr-meta-patrol-queue add --kind findings "$message"
+#   herdr-meta-patrol-queue wait
+#   herdr-meta-patrol-queue read
+#   herdr-meta-patrol-queue ack 12
+
+set -Eeuo pipefail
+
+state_dir="${HERDR_META_PATROL_STATE_DIR:-${HOME}/.local/state/herdr-meta-patrol}"
+poll_seconds="${HERDR_META_PATROL_QUEUE_POLL:-5}"
+keep_days="${HERDR_META_PATROL_QUEUE_KEEP_DAYS:-7}"
+stale_seconds="${HERDR_META_PATROL_STALE_SECONDS:-600}"
+queue="${state_dir}/queue.jsonl"
+seq_file="${state_dir}/queue.seq"
+ack_file="${state_dir}/queue.ack"
+heartbeat="${state_dir}/waiter.heartbeat"
+notified_file="${state_dir}/queue.notified"
+lock_file="${state_dir}/queue.lock"
+
+# @description Print a usage error and exit 2.
+function usage() {
+    printf '%s\n' 'usage: herdr-meta-patrol-queue add [--kind KIND] [--from NAME] TEXT | wait [--max-seconds N] | read | ack SEQ | trim | notify-if-stale' >&2
+    exit 2
+}
+
+# @description Print the number stored in a file, or 0.
+# @arg $1 string File path.
+function number_in() {
+    local value=""
+    value="$(cat "$1" 2> /dev/null)" || value=""
+    [[ "${value}" =~ ^[0-9]+$ ]] || value=0
+    printf '%s\n' "${value}"
+}
+
+# @description Run a command while holding the queue lock (perl ships with macOS).
+function with_lock() {
+    perl -MFcntl=:flock -e 'open(my $fh, ">>", shift) or die "lock: $!\n"; flock($fh, LOCK_EX) or die "lock: $!\n"; my $r = system(@ARGV); exit($r & 127 ? 128 + ($r & 127) : $r >> 8)' "${lock_file}" "$@"
+}
+
+# @description Append one record; runs under the queue lock.
+# @arg $1 string Kind.
+# @arg $2 string Sender name.
+# @arg $3 string Text.
+function append_locked() {
+    local seq now
+    seq=$(($(number_in "${seq_file}") + 1))
+    now="$(date +%s)"
+    # A line cut short by an earlier failed write must not swallow this record.
+    if [[ -s "${queue}" && -n "$(tail -c 1 "${queue}")" ]]; then
+        printf '\n' >> "${queue}" || return 1
+    fi
+    jq -cn --argjson seq "${seq}" --argjson t "${now}" --arg at "$(date '+%Y-%m-%dT%H:%M:%S%z')" \
+        --arg kind "$1" --arg from "$2" --arg text "$3" \
+        '{seq: $seq, t: $t, at: $at, kind: $kind, from: $from, text: $text}' >> "${queue}" || return 1
+    printf '%s\n' "${seq}" > "${seq_file}.tmp" || return 1
+    mv "${seq_file}.tmp" "${seq_file}"
+}
+
+# @description Drop acknowledged records older than the keep period; runs under the queue lock.
+function trim_locked() {
+    local ack cutoff
+    [[ -s "${queue}" ]] || return 0
+    ack="$(number_in "${ack_file}")"
+    cutoff=$(($(date +%s) - keep_days * 86400))
+    jq -cR --argjson ack "${ack}" --argjson cutoff "${cutoff}" 'fromjson? // empty | select(.seq > $ack or .t >= $cutoff)' "${queue}" > "${queue}.tmp" &&
+        mv "${queue}.tmp" "${queue}"
+}
+
+# @description Print the unread records.
+function read_unread() {
+    [[ -s "${queue}" ]] || return 0
+    jq -cR --argjson ack "$(number_in "${ack_file}")" 'fromjson? // empty | select(.seq > $ack)' "${queue}"
+}
+
+mkdir -p "${state_dir}"
+(($# > 0)) || usage
+command="$1"
+shift
+
+case "${command}" in
+add)
+    kind=message
+    from=patrol
+    while (($# > 1)); do
+        case "$1" in
+        --kind)
+            kind="$2"
+            shift 2
+            ;;
+        --from)
+            from="$2"
+            shift 2
+            ;;
+        *) usage ;;
+        esac
+    done
+    (($# == 1)) && [[ -n "$1" ]] || usage
+    export -f append_locked number_in
+    export queue seq_file
+    with_lock bash -c 'set -Eeuo pipefail; append_locked "$@"' _ "${kind}" "${from}" "$1"
+    ;;
+wait)
+    max_seconds=21600
+    if (($# == 2)) && [[ "$1" == --max-seconds && "$2" =~ ^[0-9]+$ ]]; then
+        max_seconds="$2"
+    elif (($# != 0)); then
+        usage
+    fi
+    start="$(date +%s)"
+    while :; do
+        touch "${heartbeat}"
+        unread=$(($(number_in "${seq_file}") - $(number_in "${ack_file}")))
+        if ((unread > 0)); then
+            printf 'unread %s: read, handle, then ack them\n' "${unread}"
+            exit 0
+        fi
+        if (($(date +%s) - start >= max_seconds)); then
+            printf '%s\n' 'no unread messages; restart wait'
+            exit 0
+        fi
+        sleep "${poll_seconds}"
+    done
+    ;;
+read)
+    (($# == 0)) || usage
+    read_unread
+    ;;
+ack)
+    (($# == 1)) && [[ "$1" =~ ^[0-9]+$ ]] || usage
+    last="$(number_in "${seq_file}")"
+    target="$1"
+    ((target <= last)) || target="${last}"
+    ((target > $(number_in "${ack_file}"))) || exit 0
+    printf '%s\n' "${target}" > "${ack_file}.tmp"
+    mv "${ack_file}.tmp" "${ack_file}"
+    ;;
+trim)
+    (($# == 0)) || usage
+    export -f trim_locked number_in
+    export queue ack_file keep_days
+    with_lock bash -c 'set -Eeuo pipefail; trim_locked'
+    ;;
+notify-if-stale)
+    (($# == 0)) || usage
+    now="$(date +%s)"
+    last="$(number_in "${seq_file}")"
+    (($(number_in "${ack_file}") < last)) || exit 0
+    (($(number_in "${notified_file}") < last)) || exit 0
+    oldest="$(read_unread | jq -s 'map(.t) | min // empty')"
+    [[ -n "${oldest}" ]] && ((now - oldest >= stale_seconds)) || exit 0
+    if [[ -e "${heartbeat}" ]]; then
+        beat="$(perl -e 'print +(stat shift)[9]' "${heartbeat}")"
+        ((now - beat >= stale_seconds)) || exit 0
+    fi
+    count="$(read_unread | wc -l | tr -d ' ')"
+    perl -e 'alarm shift; exec @ARGV' "${HERDR_META_PATROL_TIMEOUT:-40}" herdr notification show 'meta patrol' --body "未読 ${count} 件。meta の待機（herdr-meta-patrol-queue wait）が動いていません。" > /dev/null 2>&1 || exit 0
+    printf '%s\n' "${last}" > "${notified_file}"
+    ;;
+*) usage ;;
+esac

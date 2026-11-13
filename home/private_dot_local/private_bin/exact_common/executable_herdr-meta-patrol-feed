@@ -1,0 +1,278 @@
+#!/usr/bin/env bash
+
+# @file home/private_dot_local/private_bin/exact_common/executable_herdr-meta-patrol-feed
+# @brief Write Herdr root and worker snapshots to Inbox feed files.
+# @description
+#   Reads one agent-list and tab-list snapshot per machine and writes one
+#   atomic feed file per machine. Missing or invalid snapshots carry forward
+#   the previous entries and add a blocked machine entry.
+# @option --prune Remove feed files for machines absent from the supplied snapshots.
+# @option HERDR_META_PATROL_FEED_DIR Feed directory (default `~/.local/state/inbox/feeds`).
+# @arg $1 string Repeated triples of machine alias, agent-list JSON path, and tab-list JSON path.
+# @example
+#   herdr-meta-patrol-feed --prune local agents.json tabs.json remote remote-agents.json remote-tabs.json
+
+set -Eeuo pipefail
+umask 077
+
+feed_dir="${HERDR_META_PATROL_FEED_DIR:-${HOME}/.local/state/inbox/feeds}"
+roots_file="${XDG_STATE_HOME:-${HOME}/.local/state}/meta/roots.tsv"
+meta="${HERDR_META_PATROL_META:-meta}"
+now_ms="$(($(date +%s) * 1000))"
+prune=0
+scanned_machines=""
+failed=0
+
+# @description Print usage for the feed writer.
+function usage() {
+    printf 'Usage: herdr-meta-patrol-feed [--prune] <machine> <agent-json> <tab-json> [<machine> <agent-json> <tab-json> ...]\n' >&2
+    exit 2
+}
+
+# @description Return whether a machine-root pair is in the roots registry.
+# @arg $1 string Machine alias, using `Local` for this machine.
+# @arg $2 string Agent name.
+function is_registered_root() {
+    [[ -r "${roots_file}" ]] && LC_ALL=C awk -F '\t' -v machine="$1" -v name="$2" \
+        '$0 !~ /^#/ && NF == 2 && $1 == machine && $2 == name { found = 1 } END { exit !found }' \
+        "${roots_file}"
+}
+
+# @description Remove one leading emoji and its following whitespace from a label.
+# @arg $1 string Tab label.
+# @stdout Label with its leading emoji removed.
+function strip_leading_emoji() {
+    printf '%s\n' "$1" | perl -CSD -pe 's/\A(?:\p{Emoji_Presentation}|\p{Extended_Pictographic})(?:\x{FE0F}|\x{200D}(?:\p{Emoji_Presentation}|\p{Extended_Pictographic})|\p{Emoji_Modifier})*\s*//'
+}
+
+# @description Append one compact JSON entry to the current entry array.
+# @arg $1 string JSON object to append.
+function append_entry() {
+    entries_json="$(jq -cn --argjson entries "${entries_json}" --argjson entry "$1" '$entries + [$entry]')"
+}
+
+# @description Return whether a feed key exceeds the Inbox byte limit.
+# @arg $1 string Feed key.
+function key_exceeds_limit() {
+    local key="$1" byte_count
+    byte_count="$(LC_ALL=C printf '%s' "${key}" | wc -c | tr -d '[:space:]')"
+    ((byte_count > 100))
+}
+
+# @description Build root, ask, and named-worker entries from successful snapshots.
+# @arg $1 string Machine alias.
+# @arg $2 path Agent-list JSON snapshot.
+# @arg $3 path Tab-list JSON snapshot.
+function build_reachable_entries() {
+    local machine="$1" agents_file="$2" tabs_file="$3" registry_machine root agent name tab_id label clean_label focus state blocked count ask plural checksum key entry
+    entries_json='[]'
+    if [[ "${machine}" == local ]]; then registry_machine=Local; else registry_machine="${machine}"; fi
+
+    if [[ -r "${roots_file}" ]]; then
+        while IFS=$'\t' read -r root; do
+            [[ -n "${root}" && "${root}" != "${meta}" ]] || continue
+            agent="$(jq -c --arg name "${root}" '[.result.agents[]? | select(.name == $name)][0] // empty' "${agents_file}")"
+            [[ -n "${agent}" ]] || continue
+            tab_id="$(jq -r '.tab_id // empty' <<< "${agent}")"
+            label="$(jq -r --arg tab "${tab_id}" '[.result.tabs[]? | select(.tab_id == $tab) | .label][0] // ""' "${tabs_file}")"
+            clean_label="$(strip_leading_emoji "${label}")"
+            focus="$(jq -r '.tokens.inbox // "" | tostring' <<< "${agent}")"
+            blocked="$(jq -r '(.agent_status == "blocked") or ((.tokens["inbox-stop"] // "") | tostring | length > 0)' <<< "${agent}")"
+            state=working
+            [[ "${blocked}" != true ]] || state=blocked
+            key="herdr/${machine}/${root}"
+            if key_exceeds_limit "${key}"; then
+                printf 'feed key exceeds 100 bytes for %s on %s\n' "${root}" "${machine}" >&2
+            else
+                entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${root}: ${clean_label}" --arg detail "${focus}" \
+                    '{key:$key,state:$state,title:($title[:120]),detail:($detail[:600])}')"
+                append_entry "${entry}"
+            fi
+
+            count="$(jq -r '(.tokens["inbox-needs-you"] // "0") | tonumber? // 0' <<< "${agent}")"
+            if ((count > 0)); then
+                if ((count > 1)) && [[ "${focus}" != "${count} · "* ]]; then
+                    ask=""
+                else
+                    ask="$(printf '%s\n' "${focus}" | perl -CSD -pe 's/\A[0-9]+\s+\x{B7}\s*//')"
+                fi
+                if [[ -n "${ask}" ]]; then
+                    plural=asks
+                    if ((count == 1)); then plural=ask; fi
+                    checksum="$(printf '%s' "${ask}" | cksum | awk '{ printf "%08d", $1 % 100000000 }')"
+                    key="herdr/${machine}/${root}/ask/${checksum}"
+                    if key_exceeds_limit "${key}"; then
+                        printf 'feed key exceeds 100 bytes for ask on %s at %s\n' "${root}" "${machine}" >&2
+                    else
+                        entry="$(jq -cn --arg key "${key}" --arg title "⛔ ${root}: ${ask}" --arg detail "${count} waiting ${plural} on ${machine}; answer in that pane, or reply here for meta to relay" \
+                            '{key:$key,state:"blocked",title:($title[:120]),detail:($detail[:600])}')"
+                        append_entry "${entry}"
+                    fi
+                fi
+            fi
+        done < <(LC_ALL=C awk -F '\t' -v machine="${registry_machine}" \
+            '$0 !~ /^#/ && NF == 2 && $1 == machine && !seen[$2]++ { print $2 }' "${roots_file}" 2> /dev/null)
+    fi
+
+    while IFS= read -r agent; do
+        name="$(jq -r '.name // empty' <<< "${agent}")"
+        [[ -n "${name}" && "${name}" != "${meta}" ]] || continue
+        if is_registered_root "${registry_machine}" "${name}"; then continue; fi
+        tab_id="$(jq -r '.tab_id // empty' <<< "${agent}")"
+        label="$(jq -r --arg tab "${tab_id}" '[.result.tabs[]? | select(.tab_id == $tab) | .label][0] // ""' "${tabs_file}")"
+        case "${label}" in
+        🚧* | ✍*) state=working ;;
+        ⛔*) state=blocked ;;
+        ✅*) state="done" ;;
+        *) continue ;;
+        esac
+        key="herdr/${machine}/worker/${name}"
+        if key_exceeds_limit "${key}"; then
+            printf 'feed key exceeds 100 bytes for worker %s on %s\n' "${name}" "${machine}" >&2
+            continue
+        fi
+        focus="$(jq -r '.tokens.inbox // "" | tostring' <<< "${agent}")"
+        entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${name}: ${label}" --arg detail "${focus}" \
+            '{key:$key,state:$state,title:($title[:120]),detail:($detail[:600])}')"
+        append_entry "${entry}"
+    done < <(jq -c '.result.agents[]?' "${agents_file}")
+}
+
+# @description Finish a feed document, retaining recent timestamps for unchanged entries.
+# @arg $1 string Desired entry array.
+# @arg $2 string Previous feed document.
+# @arg $3 string Whether carried entries keep their old timestamps.
+# @arg $4 string Machine entry key.
+# @stdout Compact feed document.
+function finish_feed() {
+    jq -cn --argjson desired "$1" --argjson old "$2" --argjson now "${now_ms}" \
+        --argjson carry_at "$3" --arg machine_key "$4" '
+        ($old.entries // [] | map({key, value: .}) | from_entries) as $previous
+        | ($desired | map(
+            . as $entry
+            | ($previous[$entry.key] // null) as $prior
+            | (if ($carry_at and $entry.key != $machine_key and ($entry.at | type == "number")) then $entry.at
+               elif $prior != null
+                   and $prior.state == $entry.state
+                   and $prior.title == $entry.title
+                   and $prior.detail == $entry.detail
+                   and (($now - $prior.at) >= 0)
+                   and (($now - $prior.at) < 3600000)
+               then $prior.at
+               else $now
+               end) as $at
+            | . + {at: $at}
+        ) | sort_by((if .state == "blocked" then 0 elif .state == "working" then 1 else 2 end), .key) | .[:40]) as $entries
+        | {
+            version: 1,
+            source: "herdr-meta-patrol",
+            writtenAt: (if $entries == ($old.entries // []) then ($old.writtenAt // $now) else $now end),
+            entries: $entries
+        }
+    '
+}
+
+# @description Load a previous feed when its basic structure is valid.
+# @arg $1 path Feed file.
+# @stdout Previous feed or an empty feed document.
+function load_previous() {
+    local path="$1"
+    if [[ -r "${path}" ]] && jq -e '
+        .version == 1 and (.source | type == "string") and (.writtenAt | type == "number") and (.entries | type == "array")
+    ' "${path}" > /dev/null 2>&1; then
+        jq -c '{version,source,writtenAt,entries}' "${path}"
+    else
+        printf '%s\n' '{"version":1,"source":"herdr-meta-patrol","writtenAt":0,"entries":[]}'
+    fi
+}
+
+# @description Write the feed atomically unless its bytes already match.
+# @arg $1 path Destination file.
+# @arg $2 string Compact feed document.
+function write_atomic() {
+    local target="$1" content="$2" temp
+    temp="$(mktemp "${feed_dir}/.tmp.XXXXXX")" || return 1
+    if ! printf '%s\n' "${content}" > "${temp}"; then
+        rm -f "${temp}"
+        return 1
+    fi
+    if cmp -s "${temp}" "${target}"; then
+        rm -f "${temp}"
+        return 0
+    fi
+    if ! mv -f "${temp}" "${target}"; then
+        rm -f "${temp}"
+        return 1
+    fi
+}
+
+# @description Write one reachable machine's feed, or carry its previous entries forward when snapshots are invalid.
+# @arg $1 string Machine alias.
+# @arg $2 path Agent-list JSON snapshot, or a missing path.
+# @arg $3 path Tab-list JSON snapshot, or a missing path.
+function write_machine() {
+    local machine="$1" agents_file="$2" tabs_file="$3" target machine_key previous entries_json machine_detail machine_entry feed
+    [[ -n "${machine}" && "${machine}" != *'/'* && "${machine}" != *$'\n'* ]] || {
+        printf 'invalid Herdr machine alias for feed file\n' >&2
+        return 1
+    }
+    target="${feed_dir}/herdr-${machine}.json"
+    machine_key="herdr/${machine}/_machine"
+    previous="$(load_previous "${target}")"
+
+    if [[ -r "${agents_file}" && -r "${tabs_file}" ]] &&
+        jq -e '.result.agents | type == "array"' "${agents_file}" > /dev/null 2>&1 &&
+        jq -e '.result.tabs | type == "array"' "${tabs_file}" > /dev/null 2>&1; then
+        if ! build_reachable_entries "${machine}" "${agents_file}" "${tabs_file}"; then
+            return 1
+        fi
+        feed="$(finish_feed "${entries_json}" "${previous}" false "${machine_key}")" || return 1
+    else
+        machine_detail="$(jq -r --arg key "${machine_key}" '[.entries[]? | select(.key == $key)][0].detail // ""' <<< "${previous}")"
+        if [[ ! "${machine_detail}" =~ ^unreachable[[:space:]]since[[:space:]][0-9]{2}:[0-9]{2}$ ]]; then
+            machine_detail="unreachable since $(date +%H:%M)"
+        fi
+        machine_entry="$(jq -cn --arg key "${machine_key}" --arg title "${machine}: unreachable" --arg detail "${machine_detail}" \
+            '{key:$key,state:"blocked",title:($title[:120]),detail:($detail[:600])}')"
+        entries_json="$(jq -cn --argjson old "${previous}" --arg key "${machine_key}" --argjson machine "${machine_entry}" \
+            '([$old.entries[]? | select(.key != $key)] + [$machine])')"
+        feed="$(finish_feed "${entries_json}" "${previous}" true "${machine_key}")" || return 1
+    fi
+
+    write_atomic "${target}" "${feed}"
+}
+
+if [[ "${1:-}" == --help ]]; then
+    sed -n 's/^# //p' "${BASH_SOURCE[0]}" | head -n 12
+    exit 0
+fi
+if [[ "${1:-}" == --prune ]]; then
+    prune=1
+    shift
+elif [[ "${1:-}" == --* ]]; then
+    usage
+fi
+if (($# == 0 || $# % 3 != 0)); then usage; fi
+
+mkdir -p "${feed_dir}"
+while (($#)); do
+    machine="$1"
+    agents_file="$2"
+    tabs_file="$3"
+    shift 3
+    if ! write_machine "${machine}" "${agents_file}" "${tabs_file}"; then failed=1; fi
+    scanned_machines+="${machine}"$'\n'
+done
+
+if ((prune)); then
+    for file in "${feed_dir}"/herdr-*.json; do
+        [[ -f "${file}" ]] || continue
+        machine="${file##*/herdr-}"
+        machine="${machine%.json}"
+        if ! grep -qxF -- "${machine}" <<< "${scanned_machines}"; then
+            rm -f "${file}"
+        fi
+    done
+fi
+
+exit "${failed}"

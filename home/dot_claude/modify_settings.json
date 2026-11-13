@@ -178,4 +178,5 @@
   {{- end -}}
 {{- end -}}
 {{- $_ := set (get $managed "env") "CLAUDE_CODE_PLUGIN_DIRS" (join ":" $pluginDirs) -}}
+{{- $_ := set $managed "model" (dig "claude" "model" "fable" .) -}}
 {{- mergeOverwrite $current $managed | toPrettyJson -}}

@@ -643,6 +643,12 @@ EOF
     [[ "${output}" == *"This second numbered paragraph"* ]]
 }
 
+@test "help explains predominant form matching and report shares" {
+    run "${NEIGHBOR_LENGTH}" --help
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"Form checks compare only the predominant line kind; --report shows exact shares."* ]]
+}
+
 @test "reports codepoint lengths and skips fenced code and tables for an edited file" {
     local document="${BATS_TEST_TMPDIR}/neighbor-report.md"
     local edited="${BATS_TEST_TMPDIR}/edited-part.md"

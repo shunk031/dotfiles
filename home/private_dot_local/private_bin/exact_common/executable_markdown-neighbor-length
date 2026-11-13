@@ -158,14 +158,19 @@ const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
 });`;
 
 function usage() {
-    return "usage: markdown-neighbor-length [--report] <document.md> --heading <name>\n       markdown-neighbor-length [--report] <document.md> --edited-file <part.md>";
+    return [
+        "usage: markdown-neighbor-length [--report] <document.md> --heading <name>",
+        "       markdown-neighbor-length [--report] <document.md> --edited-file <part.md>",
+        "Form checks compare only the predominant line kind; --report shows exact shares.",
+    ].join("\n");
 }
 
 function parseArguments(args) {
-    const options = { report: false, document: null, heading: null, editedFile: null };
+    const options = { help: false, report: false, document: null, heading: null, editedFile: null };
     for (let index = 0; index < args.length; index += 1) {
         const argument = args[index];
-        if (argument === "--report") options.report = true;
+        if (argument === "--help" || argument === "-h") options.help = true;
+        else if (argument === "--report") options.report = true;
         else if (argument === "--heading" || argument === "--edited-file") {
             const key = argument === "--heading" ? "heading" : "editedFile";
             if (options[key] || !args[index + 1]) throw new Error(usage());
@@ -173,7 +178,7 @@ function parseArguments(args) {
         } else if (argument.startsWith("-") || options.document) throw new Error(usage());
         else options.document = argument;
     }
-    if (!options.document || Boolean(options.heading) === Boolean(options.editedFile)) {
+    if (!options.help && (!options.document || Boolean(options.heading) === Boolean(options.editedFile))) {
         throw new Error(usage());
     }
     return options;
@@ -338,6 +343,10 @@ function normalizedHeading(value) {
 function main() {
     try {
         const options = parseArguments(process.argv.slice(2));
+        if (options.help) {
+            process.stdout.write(`${usage()}\n`);
+            return;
+        }
         const documentPath = path.resolve(options.document);
         const document = fs.readFileSync(documentPath, "utf8");
         let neighborsAnalysis;

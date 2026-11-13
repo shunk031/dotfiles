@@ -80,7 +80,7 @@ minimum_release_age_excludes = [
 
 # Use GitHub CLI's configured token storage for GitHub API requests.
 [settings.github]
-credential_command = 'gh auth token --hostname "$MISE_CREDENTIAL_HOST" 2>/dev/null'
+credential_command = 'gh_dir="${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}/installs/aqua-cli-cli"; for gh_bin in "$gh_dir"/*/gh_*/bin/gh; do if [ -x "$gh_bin" ]; then exec "$gh_bin" auth token --hostname "$MISE_CREDENTIAL_HOST"; fi; done; exit 1'
 
 # Language runtimes: install precompiled binaries only; never build from source.
 [settings.python]

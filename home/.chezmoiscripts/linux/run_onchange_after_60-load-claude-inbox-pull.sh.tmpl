@@ -9,6 +9,12 @@
 
 set -Eeuo pipefail
 
-systemctl --user daemon-reload
-systemctl --user enable --now claude-inbox-pull.timer
+readonly SYSTEMCTL_COMMAND="${DOTFILES_SYSTEMCTL_COMMAND:-systemctl}"
+if ! command -v "${SYSTEMCTL_COMMAND}" > /dev/null 2>&1 || ! "${SYSTEMCTL_COMMAND}" --user show-environment > /dev/null 2>&1; then
+    echo "No systemd user manager; skipping claude-inbox-pull.timer."
+    exit 0
+fi
+
+"${SYSTEMCTL_COMMAND}" --user daemon-reload
+"${SYSTEMCTL_COMMAND}" --user enable --now claude-inbox-pull.timer
 {{- end }}

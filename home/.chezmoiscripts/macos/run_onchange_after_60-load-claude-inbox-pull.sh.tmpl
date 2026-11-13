@@ -14,6 +14,7 @@ if ! launchctl print "${domain}" > /dev/null 2>&1; then
     echo "No GUI session for ${domain}; skipping ${label} load (log in and re-apply)."
     exit 0
 fi
+mkdir -p "${HOME}/.local/state/claude-plugins"
 launchctl bootout "${domain}/${label}" 2> /dev/null || true
 for _ in 1 2 3 4 5; do
     launchctl bootstrap "${domain}" "${HOME}/Library/LaunchAgents/${label}.plist" && exit 0

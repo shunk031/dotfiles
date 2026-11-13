@@ -49,7 +49,7 @@
 # @option HERDR_META_PATROL_FINDINGS_DIR Directory of finding scripts (default `~/.config/herdr-meta-patrol/findings.d`).
 # @option HERDR_META_PATROL_FEED_COMMAND Inbox feed writer command (default the adjacent `herdr-meta-patrol-feed`).
 # @option HERDR_META_PATROL_LIMIT_HANDLER Meta patrol script with the usage-limit handler (default from the installed meta skill).
-# @option HERDR_META_PATROL_LIMIT_HOLD_TIMEOUT Seconds allowed for guarded worker notices (default 600).
+# @option HERDR_META_PATROL_LIMIT_HOLD_TIMEOUT Seconds allowed for the limit handler and its child processes (default 90).
 
 set -Eeuo pipefail
 
@@ -74,7 +74,7 @@ else
     feed_command="${script_dir}/executable_herdr-meta-patrol-feed"
 fi
 limit_hold_handler="${HERDR_META_PATROL_LIMIT_HANDLER:-${HOME}/.agents/skills/shunk031-herdr-meta-orchestrate/scripts/herdr-meta-patrol.sh}"
-limit_hold_timeout="${HERDR_META_PATROL_LIMIT_HOLD_TIMEOUT:-600}"
+limit_hold_timeout="${HERDR_META_PATROL_LIMIT_HOLD_TIMEOUT:-90}"
 # Only lines shaped like an agent's own error output count: a Codex error cell
 # starts with `■ ` at column 0, and a Claude Code API or usage-limit error is a
 # `⎿` result line that starts with one of these phrases. Agents quote error
@@ -89,9 +89,43 @@ api_error_pattern='exceeded retry limit|429|Too Many Requests|rate[ _-]?limit|us
 machine=local
 input_state_parser="${HERDR_META_PATROL_INPUT_PARSER:-${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts/herdr-visible-input-state.awk}"
 
-# @description Run herdr with a portable alarm-based timeout (perl ships with macOS).
+# @description Run a command in its own process group and terminate that group at the timeout.
+# @arg $1 number Seconds before the process group is terminated.
+# @arg $@ command Command and arguments to run.
+function run_with_timeout() {
+    local timeout="$1"
+    shift
+    perl -MPOSIX=setpgid -e '
+        my $timeout = shift;
+        my @command = @ARGV;
+        my $pid = fork();
+        defined($pid) or die "timeout fork: $!\n";
+        if ($pid == 0) {
+            setpgid(0, 0) == 0 or die "timeout process group: $!\n";
+            exec { $command[0] } @command or die "timeout exec: $!\n";
+        }
+        setpgid($pid, $pid);
+        local $SIG{ALRM} = sub {
+            kill "TERM", -$pid;
+            kill "TERM", $pid;
+            sleep 1;
+            kill "KILL", -$pid;
+            kill "KILL", $pid;
+            exit 124;
+        };
+        alarm $timeout;
+        waitpid($pid, 0);
+        my $status = $?;
+        alarm 0;
+        die "timeout wait: $!\n" if $status == -1;
+        exit($status & 127 ? 128 + ($status & 127) : $status >> 8);
+    ' "$timeout" "$@"
+}
+
+# @description Run herdr with an independent timeout for this call.
+# @arg $@ command Herdr subcommand and arguments.
 function hx() {
-    perl -e 'alarm shift; exec @ARGV' "${timeout_seconds}" herdr "$@"
+    run_with_timeout "${timeout_seconds}" herdr "$@"
 }
 
 # @description Run herdr against the machine being scanned.
@@ -481,8 +515,9 @@ if ((digest_due)); then
 fi
 
 if [[ -x "${limit_hold_handler}" ]]; then
-    if ! HERDR_ENV=1 HERDR_META_PATROL_META="${meta}" HERDR_META_PATROL_STATE_DIR="${state_dir}" \
-        perl -e 'alarm shift; exec @ARGV' "${limit_hold_timeout}" "${limit_hold_handler}" --limit-hold; then
+    if ! run_with_timeout "${limit_hold_timeout}" env \
+        HERDR_ENV=1 HERDR_META_PATROL_META="${meta}" HERDR_META_PATROL_STATE_DIR="${state_dir}" \
+        HERDR_META_PATROL_CALL_TIMEOUT="${timeout_seconds}" "${limit_hold_handler}" --limit-hold; then
         printf '[%s] meta usage-limit handler failed\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" >&2
     fi
 else

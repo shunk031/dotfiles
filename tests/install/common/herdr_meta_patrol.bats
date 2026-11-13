@@ -109,6 +109,26 @@ function blocked_agent() {
     [ -z "$(calls)" ]
 }
 
+@test "[common] herdr-meta-patrol runs the installed meta limit handler" {
+    export HERDR_META_PATROL_LIMIT_HANDLER="${BATS_TEST_TMPDIR}/limit-handler"
+    export HERDR_META_PATROL_LIMIT_HOLD_TIMEOUT=5
+    export HERDR_META_PATROL_TIMEOUT=3
+    export HANDLER_LOG="${BATS_TEST_TMPDIR}/handler.log"
+    cat > "${HERDR_META_PATROL_LIMIT_HANDLER}" << 'STUB'
+#!/usr/bin/env bash
+printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "${HERDR_ENV}" "${HERDR_META_PATROL_META}" "${HERDR_META_PATROL_STATE_DIR}" \
+    "${HERDR_META_PATROL_CALL_TIMEOUT}" "$*" "${HANDLER_LOG}" > "${HANDLER_LOG}"
+STUB
+    chmod +x "${HERDR_META_PATROL_LIMIT_HANDLER}"
+
+    run bash "${SCRIPT_PATH}"
+
+    [ "${status}" -eq 0 ]
+    expected="$(printf '%s\t%s\t%s\t%s\t%s\t%s' 1 meta "${HERDR_META_PATROL_STATE_DIR}" 3 --limit-hold "${HANDLER_LOG}")"
+    [ "$(cat "${HANDLER_LOG}")" = "${expected}" ]
+}
+
 @test "[common] herdr-meta-patrol still scans local when machine listing fails" {
     touch "${FAKE_MACHINE_LIST_DOWN}"
     blocked_agent

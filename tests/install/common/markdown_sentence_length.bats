@@ -749,6 +749,8 @@ EOF
 - Neighbor bullet five is deliberately longer than the changed bullets.
 1. Outer numbered step.
    1. Nested numbered step.
+      1. Deeper numbered step.
+         1. Deepest numbered step.
 
 ## Changed section
 - Short one.
@@ -758,6 +760,7 @@ EOF
 
     run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed section" --report
     [ "${status}" -eq 0 ]
+    [[ "${output}" == *"Nesting depth: median 1, max 4"* ]]
     [[ "${output}" == *"Bullet hierarchy: 5 bullets; 0 with children (0.0%); max depth 1"* ]]
 }
 
@@ -773,6 +776,8 @@ EOF
   - Child four is longer than the changed bullets.
 1. Outer numbered step.
    1. Nested numbered step.
+      1. Deeper numbered step.
+         1. Deepest numbered step.
 
 ## Changed section
 - Short one.

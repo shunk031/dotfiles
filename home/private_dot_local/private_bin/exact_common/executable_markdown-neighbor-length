@@ -401,7 +401,7 @@ function compare(neighbors, edited, editedLabel) {
                     : editedLabel;
                 failures.push(
                     `Bullet hierarchy differs: ${label} is flat (max depth ${formatNumber(section.maxDepth)}); ` +
-                        `neighbors nest (max depth ${formatNumber(neighbors.depthMax)}).`,
+                        `neighbors nest (max depth ${formatNumber(neighbors.structureDepthMax)}).`,
                 );
             }
         }

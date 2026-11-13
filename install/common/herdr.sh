@@ -134,7 +134,7 @@ function sync_herdr_tab_title_plugin() {
         required_version="$(sed -nE 's/^[[:space:]]*min_herdr_version[[:space:]]*=[[:space:]]*"([^"]+)"[[:space:]]*$/\1/p' "${plugin_root}/herdr-plugin.toml")"
         if [ -n "${required_version}" ]; then
             rm -f "${link_stderr}"
-            printf 'Warning: Herdr tab-title plugin requires Herdr %s. It was skipped; restart the Herdr server at a quiet time, then rerun chezmoi apply. Tab-title updates remain unavailable until the plugin is linked.\n' "${required_version}" >&2
+            printf 'Warning: Herdr tab-title plugin requires Herdr %s. It was skipped; restart the Herdr server at a quiet time, then rerun chezmoi apply. Only blocked/resume tab-label changes (to "⛔ 承認または入力待ち" and back to "🚧") are unavailable until the plugin is linked.\n' "${required_version}" >&2
             return 0
         fi
     fi

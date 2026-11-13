@@ -816,7 +816,7 @@ EOF
     [[ "${output}" == *'Herdr tab-title plugin requires Herdr 0.9.5'* ]]
     [[ "${output}" == *'restart the Herdr server at a quiet time'* ]]
     [[ "${output}" == *'rerun chezmoi apply'* ]]
-    [[ "${output}" == *'Tab-title updates remain unavailable until the plugin is linked.'* ]]
+    [[ "${output}" == *'Only blocked/resume tab-label changes (to "⛔ 承認または入力待ち" and back to "🚧") are unavailable until the plugin is linked.'* ]]
 
     expected_calls="$(printf '%s\n' \
         '--version' \

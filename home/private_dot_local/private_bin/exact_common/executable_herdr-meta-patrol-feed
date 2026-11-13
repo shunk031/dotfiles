@@ -151,17 +151,17 @@ function finish_feed() {
         | ($desired | map(
             . as $entry
             | ($previous[$entry.key] // null) as $prior
-            | . + {at:
-                if ($carry_at and $entry.key != $machine_key and ($entry.at | type == "number")) then $entry.at
-                elif $prior != null
-                    and $prior.state == $entry.state
-                    and $prior.title == $entry.title
-                    and $prior.detail == $entry.detail
-                    and (($now - $prior.at) >= 0)
-                    and (($now - $prior.at) < 3600000)
-                then $prior.at
-                else $now
-                end}
+            | (if ($carry_at and $entry.key != $machine_key and ($entry.at | type == "number")) then $entry.at
+               elif $prior != null
+                   and $prior.state == $entry.state
+                   and $prior.title == $entry.title
+                   and $prior.detail == $entry.detail
+                   and (($now - $prior.at) >= 0)
+                   and (($now - $prior.at) < 3600000)
+               then $prior.at
+               else $now
+               end) as $at
+            | . + {at: $at}
         ) | sort_by((if .state == "blocked" then 0 elif .state == "working" then 1 else 2 end), .key) | .[:40]) as $entries
         | {
             version: 1,

@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+
+# @file home/private_dot_local/private_bin/exact_common/executable_claude-inbox-pull
+# @brief Fast-forward the managed Claude inbox clone.
+# @description
+#   Validates the clone before fetching and refuses local or non-main changes.
+# @option --ensure Create the clone when it is missing and wait up to 30 seconds for the lock.
+# @exitcode 0 When the clone is current, safely updated, skipped, or created.
+# @exitcode 1 When the clone is unsafe or the update fails.
+# @exitcode 2 On a usage error.
+
+set -Eeuo pipefail
+
+readonly INBOX_PLUGIN_DIR="${HOME}/.local/share/claude/plugins/inbox"
+readonly INBOX_REPOSITORY_URL="https://github.com/shunk031/inbox"
+readonly INBOX_STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/claude-plugins"
+readonly INBOX_LOG_FILE="${INBOX_STATE_DIR}/inbox-pull.log"
+readonly INBOX_LOCK_FILE="${INBOX_STATE_DIR}/inbox-pull.lock"
+
+# @description Write a diagnostic to the inbox pull log and standard error.
+# @arg $1 message Diagnostic text.
+function fail() {
+    local message="$1"
+
+    mkdir -p "${INBOX_STATE_DIR}" 2> /dev/null || true
+    printf '%s\n' "${message}" >> "${INBOX_LOG_FILE}" 2> /dev/null || true
+    printf '%s\n' "${message}" >&2
+    exit 1
+}
+
+if [ "$#" -gt 1 ] || { [ "$#" -eq 1 ] && [ "${1}" != "--ensure" ]; }; then
+    printf 'Usage: %s [--ensure]\n' "${0##*/}" >&2
+    exit 2
+fi
+
+ensure_clone=0
+if [ "${1:-}" = "--ensure" ]; then
+    ensure_clone=1
+fi
+
+if [ -L "${INBOX_PLUGIN_DIR}" ]; then
+    fail 'Inbox plugin path is a symlink; refusing to update.'
+fi
+
+if [ ! -e "${INBOX_PLUGIN_DIR}" ] && [ "${ensure_clone}" -eq 0 ]; then
+    exit 0
+fi
+
+mkdir -p "${INBOX_STATE_DIR}" || fail 'Cannot create the inbox pull state directory.'
+if [ "${CLAUDE_INBOX_PULL_LOCK_HELD:-}" != '1' ]; then
+    lock_mode=try
+    if [ "${ensure_clone}" -eq 1 ]; then
+        lock_mode=ensure
+    fi
+    perl -MFcntl=:flock -e '
+        use Fcntl qw(:DEFAULT F_SETFD);
+        use Errno qw(EAGAIN EWOULDBLOCK);
+        use strict;
+
+        my ($lock_file, $mode, @command) = @ARGV;
+        sysopen my $lock, $lock_file, O_CREAT | O_RDWR | O_NOFOLLOW, 0600 or die "Cannot open inbox pull lock: $!\n";
+        if ($mode eq "ensure") {
+            local $SIG{ALRM} = sub { die "Timed out waiting for the inbox pull lock after 30 seconds.\n" };
+            alarm 30;
+            flock($lock, LOCK_EX) or die "Cannot acquire inbox pull lock: $!\n";
+            alarm 0;
+        } elsif (!flock($lock, LOCK_EX | LOCK_NB)) {
+            exit 0 if $! == EAGAIN || $! == EWOULDBLOCK;
+            die "Cannot acquire inbox pull lock: $!\n";
+        }
+
+        # The child inherits this lock so killing this wrapper cannot release it early.
+        defined fcntl($lock, F_SETFD, 0) or die "Cannot preserve inbox pull lock: $!\n";
+        $ENV{CLAUDE_INBOX_PULL_LOCK_HELD} = "1";
+        my $status = system(@command);
+        die "Cannot run inbox pull command: $!\n" if $status == -1;
+        exit($status & 127 ? 128 + ($status & 127) : $status >> 8);
+    ' "${INBOX_LOCK_FILE}" "${lock_mode}" "${BASH}" "${BASH_SOURCE[0]}" "$@" || exit "$?"
+    exit 0
+fi
+
+if [ ! -e "${INBOX_PLUGIN_DIR}" ]; then
+    mkdir -p "${INBOX_PLUGIN_DIR%/*}" || fail 'Cannot create the inbox plugin parent directory.'
+    if ! clone_output="$(GIT_TERMINAL_PROMPT=0 git clone --quiet --branch main --single-branch "${INBOX_REPOSITORY_URL}" "${INBOX_PLUGIN_DIR}" 2>&1)"; then
+        if [ -n "${clone_output}" ]; then
+            printf '%s\n' "${clone_output}" >> "${INBOX_LOG_FILE}" 2> /dev/null || true
+        fi
+        fail 'Could not create the inbox clone from main.'
+    fi
+    exit 0
+fi
+
+if [ ! -d "${INBOX_PLUGIN_DIR}/.git" ] || [ -L "${INBOX_PLUGIN_DIR}/.git" ]; then
+    fail 'Inbox plugin path is not the root of its own Git clone.'
+fi
+
+path_prefix="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse --show-prefix 2> /dev/null)" || fail 'Inbox plugin path is not a Git clone.'
+if [ -n "${path_prefix}" ]; then
+    fail 'Inbox plugin path is not the root of its own Git clone.'
+fi
+
+branch="$(git -C "${INBOX_PLUGIN_DIR}" branch --show-current 2> /dev/null)" || fail 'Cannot read the inbox clone branch.'
+if [ "${branch}" != "main" ]; then
+    fail 'Inbox clone must be on main; refusing to update.'
+fi
+
+remote="$(git -C "${INBOX_PLUGIN_DIR}" config --get remote.origin.url 2> /dev/null)" || remote=''
+if [ "${remote}" != "${INBOX_REPOSITORY_URL}" ]; then
+    fail 'Inbox clone origin is not the expected repository; refusing to update.'
+fi
+
+working_tree="$(git -C "${INBOX_PLUGIN_DIR}" status --porcelain --untracked-files=all 2> /dev/null)" || fail 'Cannot read the inbox clone status.'
+if [ -n "${working_tree}" ]; then
+    fail 'Inbox clone has local changes; refusing to update.'
+fi
+
+upstream="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2> /dev/null)" || upstream=''
+if [ "${upstream}" != "origin/main" ]; then
+    fail 'Inbox clone must track origin/main; refusing to update.'
+fi
+
+head_before="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse HEAD 2> /dev/null)" || fail 'Cannot read the inbox clone head.'
+if ! fetch_output="$(GIT_TERMINAL_PROMPT=0 git -C "${INBOX_PLUGIN_DIR}" fetch --quiet 2>&1)"; then
+    if [ -n "${fetch_output}" ]; then
+        printf '%s\n' "${fetch_output}" >> "${INBOX_LOG_FILE}" 2> /dev/null || true
+    fi
+    fail 'Inbox clone could not fetch origin/main.'
+fi
+if ! merge_output="$(git -C "${INBOX_PLUGIN_DIR}" merge --ff-only --quiet '@{upstream}' 2>&1)"; then
+    if [ -n "${merge_output}" ]; then
+        printf '%s\n' "${merge_output}" >> "${INBOX_LOG_FILE}" 2> /dev/null || true
+    fi
+    fail 'Inbox clone could not fast-forward origin/main; local commits were not reset.'
+fi
+
+head_after="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse HEAD 2> /dev/null)" || fail 'Cannot read the updated inbox clone head.'
+upstream_head="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse '@{upstream}' 2> /dev/null)" || fail 'Cannot read origin/main after the inbox merge.'
+if [ "${head_after}" != "${upstream_head}" ]; then
+    fail 'Inbox clone has commits outside origin/main; refusing to update.'
+fi
+
+if [ "${head_before}" != "${head_after}" ]; then
+    printf 'Fast-forwarded inbox clone to %s.\n' "${head_after}" >> "${INBOX_LOG_FILE}" || true
+fi

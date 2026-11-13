@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodically fast-forward the Claude inbox plugin clone
+
+[Timer]
+OnCalendar=*-*-* *:0/5:00
+Persistent=true
+Unit=claude-inbox-pull.service
+
+[Install]
+WantedBy=timers.target

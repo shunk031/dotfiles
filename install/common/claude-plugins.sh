@@ -13,8 +13,6 @@ if [ "${DOTFILES_DEBUG:-}" ]; then
 fi
 
 readonly MISE_BIN="${HOME}/.local/bin/mise"
-readonly INBOX_PLUGIN_DIR="${HOME}/.local/share/claude/plugins/inbox"
-readonly INBOX_REPOSITORY_URL="https://github.com/shunk031/inbox"
 readonly CLAUDE_CONFIG_DIR="${CLAUDE_CONFIG_DIR:-${HOME}/.claude}"
 readonly INBOX_STORE_BACKUP_ROOT="${XDG_STATE_HOME:-${HOME}/.local/state}/inbox-store-backup"
 
@@ -32,61 +30,6 @@ function run_claude_plugin() {
 #
 function run_jq() {
     "${MISE_BIN}" exec -- jq "$@"
-}
-
-#
-# @description Clone inbox main or fast-forward its clean main checkout.
-#
-function update_inbox_clone() {
-    local clone_parent="${INBOX_PLUGIN_DIR%/*}"
-    local path_prefix branch remote upstream head
-
-    mkdir -p "${clone_parent}"
-    if [ -L "${INBOX_PLUGIN_DIR}" ]; then
-        printf 'Inbox plugin path must not be a symlink: %s\n' "${INBOX_PLUGIN_DIR}" >&2
-        return 1
-    fi
-    if [ ! -e "${INBOX_PLUGIN_DIR}" ]; then
-        git clone --branch main --single-branch "${INBOX_REPOSITORY_URL}" "${INBOX_PLUGIN_DIR}"
-        return
-    fi
-
-    path_prefix="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse --show-prefix)"
-    if [ -n "${path_prefix}" ]; then
-        printf 'Inbox plugin path is not the root of its git clone: %s\n' "${INBOX_PLUGIN_DIR}" >&2
-        return 1
-    fi
-
-    branch="$(git -C "${INBOX_PLUGIN_DIR}" branch --show-current)"
-    if [ "${branch}" != "main" ]; then
-        printf 'Inbox clone must be on main, found %s\n' "${branch:-detached HEAD}" >&2
-        return 1
-    fi
-
-    remote="$(git -C "${INBOX_PLUGIN_DIR}" config --get remote.origin.url)"
-    if [ "${remote}" != "${INBOX_REPOSITORY_URL}" ]; then
-        printf 'Inbox clone origin must be %s, found %s\n' "${INBOX_REPOSITORY_URL}" "${remote}" >&2
-        return 1
-    fi
-
-    if [ -n "$(git -C "${INBOX_PLUGIN_DIR}" status --porcelain --untracked-files=all)" ]; then
-        printf 'Inbox clone has local changes: %s\n' "${INBOX_PLUGIN_DIR}" >&2
-        return 1
-    fi
-
-    upstream="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}')"
-    if [ "${upstream}" != "origin/main" ]; then
-        printf 'Inbox clone must track origin/main, found %s\n' "${upstream}" >&2
-        return 1
-    fi
-
-    git -C "${INBOX_PLUGIN_DIR}" pull --ff-only
-    head="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse HEAD)"
-    upstream="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse '@{upstream}')"
-    if [ "${head}" != "${upstream}" ]; then
-        printf 'Inbox clone has commits that are not on origin/main\n' >&2
-        return 1
-    fi
 }
 
 #
@@ -162,7 +105,7 @@ function remove_marketplace_inbox() {
 # @description Run the inbox plugin update workflow.
 #
 function main() {
-    update_inbox_clone
+    "${HOME}/.local/bin/common/claude-inbox-pull" --ensure
     remove_marketplace_inbox
 }
 

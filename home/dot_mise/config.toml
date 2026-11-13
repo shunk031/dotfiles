@@ -78,6 +78,10 @@ minimum_release_age_excludes = [
   "aqua:openai/codex",
 ]
 
+# Use GitHub CLI's configured token storage for GitHub API requests.
+[settings.github]
+credential_command = 'gh auth token --hostname "$MISE_CREDENTIAL_HOST" 2>/dev/null'
+
 # Language runtimes: install precompiled binaries only; never build from source.
 [settings.python]
 compile = false

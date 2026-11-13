@@ -136,7 +136,7 @@ JSON
 
 @test "[common] herdr-meta-patrol-feed keeps blocked entries first at the 40-entry limit" {
     jq -nc '{result:{agents:[range(0;45) as $i | {name:("worker-" + ($i|tostring)),tab_id:("tab-" + ($i|tostring)),agent_status:"working"}]}}' > "${AGENTS_JSON}"
-    jq -c '{result:{tabs:[range(0;45) as $i | {tab_id:("tab-" + ($i|tostring)),label:(if $i < 10 then "⛔ Blocked" elif $i < 40 then "🚧 Working" else "✅ Done" end)}]}}' > "${TABS_JSON}"
+    jq -nc '{result:{tabs:[range(0;45) as $i | {tab_id:("tab-" + ($i|tostring)),label:(if $i < 10 then "⛔ Blocked" elif $i < 40 then "🚧 Working" else "✅ Done" end)}]}}' > "${TABS_JSON}"
 
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]

@@ -33,7 +33,7 @@ function usage() {
 # @arg $1 string Machine alias, using `Local` for this machine.
 # @arg $2 string Agent name.
 function is_registered_root() {
-    [[ -r "${roots_file}" ]] && awk -F '\t' -v machine="$1" -v name="$2" \
+    [[ -r "${roots_file}" ]] && LC_ALL=C awk -F '\t' -v machine="$1" -v name="$2" \
         '$0 !~ /^#/ && NF == 2 && $1 == machine && $2 == name { found = 1 } END { exit !found }' \
         "${roots_file}"
 }
@@ -110,7 +110,7 @@ function build_reachable_entries() {
                     fi
                 fi
             fi
-        done < <(awk -F '\t' -v machine="${registry_machine}" \
+        done < <(LC_ALL=C awk -F '\t' -v machine="${registry_machine}" \
             '$0 !~ /^#/ && NF == 2 && $1 == machine && !seen[$2]++ { print $2 }' "${roots_file}" 2> /dev/null)
     fi
 

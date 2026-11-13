@@ -4,6 +4,7 @@ setup() {
     export SENTENCE_LENGTH_STATE_DIR="${BATS_TEST_TMPDIR}/sentence-length-state"
     mkdir -p "${SENTENCE_LENGTH_STATE_DIR}"
     HOOK="${BATS_TEST_DIRNAME}/../../../home/private_dot_local/private_bin/exact_common/executable_markdown-sentence-length"
+    NEIGHBOR_LENGTH="${BATS_TEST_DIRNAME}/../../../home/private_dot_local/private_bin/exact_common/executable_markdown-neighbor-length"
 }
 
 codex_event() {
@@ -618,4 +619,89 @@ EOF
     [[ "${output}" != *"${english_under_limit}"* ]]
     [[ "${output}" == *"${japanese}"* ]]
     [[ "${output}" == *"${mixed}"* ]]
+}
+
+@test "blocks long numbered prose beside short neighboring bullets" {
+    local file_path="${BATS_TEST_TMPDIR}/neighbor-length.md"
+    cat > "${file_path}" << 'EOF'
+## Surrounding style
+- Keep this brief.
+- Use short bullets.
+- State one point.
+- Keep it readable.
+
+## Changed section
+1. This newly edited sentence is a deliberately long numbered paragraph that continues far beyond the short surrounding bullet style and should exceed the median of the neighboring bullet lengths.
+2. This second numbered paragraph is also intentionally much longer than the surrounding bullets and should be named in the failure output.
+EOF
+
+    run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed section"
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"Form differs: neighbors are mostly bullets; section \"Changed section\""* ]]
+    [[ "${output}" == *"Sentence in section \"Changed section\""* ]]
+    [[ "${output}" == *"neighbor median limit:"* ]]
+    [[ "${output}" == *"This second numbered paragraph"* ]]
+}
+
+@test "help explains predominant form matching and report shares" {
+    run "${NEIGHBOR_LENGTH}" --help
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"Form checks compare only the predominant line kind; --report shows exact shares."* ]]
+}
+
+@test "reports codepoint lengths and skips fenced code and tables for an edited file" {
+    local document="${BATS_TEST_TMPDIR}/neighbor-report.md"
+    local edited="${BATS_TEST_TMPDIR}/edited-part.md"
+    local long
+
+    long="$(node -e 'process.stdout.write("x".repeat(250))')"
+    {
+        printf '%s\n' '- あ。' '- い。' '- う.'
+        printf '\n```text\n%s\n```\n\n' "${long}"
+        printf '%s\n' '| value |' '| --- |' "| ${long} |"
+    } > "${document}"
+    printf '%s\n' '- 😀。' > "${edited}"
+
+    run "${NEIGHBOR_LENGTH}" "${document}" --edited-file "${edited}" --report
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"Sentences/bullets: 3 (0 sentences, 3 bullets); median 2 chars; max 2 chars"* ]]
+    [[ "${output}" == *"Sentences/bullets: 1 (0 sentences, 1 bullets); median 2 chars; max 2 chars"* ]]
+}
+
+@test "reports form shares and nesting for a heading with inline code and HTML" {
+    local file_path="${BATS_TEST_TMPDIR}/neighbor-form.md"
+    cat > "${file_path}" << 'EOF'
+## Neighbors
+Lead.
+- One.
+- Two.
+  - Nested.
+1. Step.
+
+## Changed `part` <span>section</span>
+Edit.
+- A.
+  - B.
+1. C.
+EOF
+
+    run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed part section" --report
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"Form: mostly bullets (bullets 3/5 (60.0%), prose 1/5 (20.0%), numbered steps 1/5 (20.0%))"* ]]
+    [[ "${output}" == *"Nesting depth: median 1, max 2"* ]]
+    [[ "${output}" == *"Form: mostly bullets (bullets 2/4 (50.0%), prose 1/4 (25.0%), numbered steps 1/4 (25.0%))"* ]]
+}
+
+@test "names every edited bullet longer than the neighboring median" {
+    local document="${BATS_TEST_TMPDIR}/neighbor-bullets.md"
+    local edited="${BATS_TEST_TMPDIR}/edited-bullets.md"
+
+    printf '%s\n' '- One.' '- Two.' '- Three.' > "${document}"
+    printf '%s\n' '- This edited bullet is much longer than each neighboring bullet.' '- This second edited bullet is also longer than the neighboring median.' > "${edited}"
+
+    run "${NEIGHBOR_LENGTH}" "${document}" --edited-file "${edited}"
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"Bullet in edited file edited-bullets.md at line 1"* ]]
+    [[ "${output}" == *"Bullet in edited file edited-bullets.md at line 2"* ]]
+    [[ "${output}" == *"neighbor median limit:"* ]]
 }

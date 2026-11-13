@@ -106,6 +106,15 @@
             "async": true
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.local/bin/common/herdr-tab-title",
+            "async": true
+          }
+        ]
       }
     ],
     "Stop": [
@@ -115,6 +124,11 @@
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length stop claude",
             "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "python3 ~/.local/bin/common/herdr-tab-title",
+            "async": true
           }
         ]
       }
@@ -149,6 +163,11 @@
           {
             "type": "command",
             "command": "if [ -f \"$HOME/.agents/date_context.py\" ] && command -v python3 >/dev/null 2>&1; then python3 \"$HOME/.agents/date_context.py\"; else exit 0; fi"
+          },
+          {
+            "type": "command",
+            "command": "python3 ~/.local/bin/common/herdr-tab-title",
+            "async": true
           }
         ]
       }

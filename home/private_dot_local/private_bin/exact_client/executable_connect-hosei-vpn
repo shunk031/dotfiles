@@ -11,18 +11,18 @@ readonly HOSEI_VPN_HOST="vpn.hosei.ac.jp"
 
 # @description Read the VPN username from the credential JSON file.
 function get-username() {
-    jq < "${HOSEI_VPN_CREDENTIAL_JSON}" -r ".username"
+    jq < "${HOSEI_VPN_CREDENTIAL_JSON}" -er ".username"
 }
 
 # @description Read the VPN password from the credential JSON file.
 function get-password() {
-    jq < "${HOSEI_VPN_CREDENTIAL_JSON}" -r ".password"
+    jq < "${HOSEI_VPN_CREDENTIAL_JSON}" -er ".password"
 }
 
 # @description Connect to the Hosei VPN using the stored credentials.
 function connect-hosei-vpn() {
-    username=$(get-username)
-    password=$(get-password)
+    username=$(get-username) && test -n "${username}" || return 1
+    password=$(get-password) && test -n "${password}" || return 1
 
     printf "%s\n%s\ny" "${username}" "${password}" | /opt/cisco/anyconnect/bin/vpn -s connect "${HOSEI_VPN_HOST}"
 }

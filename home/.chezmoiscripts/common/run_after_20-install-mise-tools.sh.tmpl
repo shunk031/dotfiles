@@ -33,4 +33,5 @@ fi
 if "${MISE_BIN}" exec -- herdr --version > /dev/null 2>&1; then
     sync_herdr_integrations "${MISE_BIN}" exec -- herdr
     sync_herdr_skill
+    sync_herdr_tab_title_plugin "${MISE_BIN}" exec -- herdr
 fi

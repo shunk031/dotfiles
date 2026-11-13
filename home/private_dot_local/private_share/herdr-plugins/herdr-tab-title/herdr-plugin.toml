@@ -1,0 +1,10 @@
+id = "shunk031.herdr-tab-title"
+name = "Herdr Tab Title"
+version = "0.1.0"
+min_herdr_version = "0.9.5"
+description = "Keep coding-agent tab progress labels current without agent-side rename calls."
+platforms = ["macos", "linux"]
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["python3", "event.py"]

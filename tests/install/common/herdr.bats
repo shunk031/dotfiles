@@ -23,6 +23,54 @@ function teardown() {
     export PATH
 }
 
+@test "[common] sync_herdr_tab_title_plugin links once and preserves a disabled plugin" {
+    local plugin_root="${HOME}/.local/share/herdr-plugins/herdr-tab-title"
+    local herdr_bin="${BATS_TEST_TMPDIR}/herdr"
+
+    cat > "${herdr_bin}" << 'EOF'
+#!/usr/bin/env bash
+case "$1 $2" in
+    'plugin list')
+        if [ -f "${HOME}/plugin-list-fails" ]; then
+            exit 17
+        elif [ -f "${HOME}/plugin-present" ] || [ -f "${HOME}/plugin-linked" ]; then
+            printf '%s\n' '{"result":{"plugins":[{"id":"shunk031.herdr-tab-title","enabled":false}]}}'
+        else
+            printf '%s\n' '{"result":{"plugins":[]}}'
+        fi
+        ;;
+    'plugin link') printf '%s\n' "$3" > "${HOME}/plugin-linked" ;;
+    *) exit 1 ;;
+esac
+EOF
+    chmod +x "${herdr_bin}"
+
+    run sync_herdr_tab_title_plugin "${herdr_bin}"
+    [ "${status}" -eq 0 ]
+    [ ! -e "${HOME}/plugin-linked" ]
+
+    mkdir -p "${plugin_root}"
+    touch "${plugin_root}/herdr-plugin.toml" "${HOME}/plugin-present"
+    run sync_herdr_tab_title_plugin "${herdr_bin}"
+    [ "${status}" -eq 0 ]
+    [ ! -e "${HOME}/plugin-linked" ]
+
+    rm "${HOME}/plugin-present"
+    touch "${HOME}/plugin-list-fails"
+    run sync_herdr_tab_title_plugin "${herdr_bin}"
+    [ "${status}" -eq 17 ]
+    [ ! -e "${HOME}/plugin-linked" ]
+
+    rm "${HOME}/plugin-list-fails"
+    run sync_herdr_tab_title_plugin "${herdr_bin}"
+    [ "${status}" -eq 0 ]
+    [ "$(< "${HOME}/plugin-linked")" = "${plugin_root}" ]
+
+    run sync_herdr_tab_title_plugin "${herdr_bin}"
+    [ "${status}" -eq 0 ]
+    [ "$(< "${HOME}/plugin-linked")" = "${plugin_root}" ]
+}
+
 @test "[common] sync_herdr_skill succeeds when the named npm runner is stale" {
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
     MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"

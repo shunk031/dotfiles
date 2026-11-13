@@ -63,10 +63,6 @@ function install_codex_plugins() {
         "${installed_json}" \
         Imbad0202/academic-research-skills-codex \
         ars-codex@ars-codex
-    ensure_codex_plugin \
-        "${installed_json}" \
-        DietrichGebert/ponytail \
-        ponytail@ponytail
 }
 
 #

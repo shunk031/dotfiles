@@ -107,3 +107,18 @@ function sync_herdr_skill() {
 
     mv "${temp}" "${HERDR_SKILL_PATH}"
 }
+
+#
+# @description Link the managed tab-title plugin once; leave a manually disabled plugin disabled.
+# @arg $@ string Herdr command and any prefix arguments.
+function sync_herdr_tab_title_plugin() {
+    local plugin_root installed
+
+    plugin_root="${HOME}/.local/share/herdr-plugins/herdr-tab-title"
+    [ -f "${plugin_root}/herdr-plugin.toml" ] || return 0
+    installed="$("$@" plugin list --plugin shunk031.herdr-tab-title --json)" || return
+    if printf '%s\n' "${installed}" | jq -e '.result.plugins | length > 0' > /dev/null; then
+        return 0
+    fi
+    "$@" plugin link "${plugin_root}" --enabled
+}

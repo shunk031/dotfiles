@@ -63,7 +63,7 @@ const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
     function analysisRule(context) {
         return {
             [context.Syntax.DocumentExit](document) {
-                const analysis = { headers: [], lines: [], units: [] };
+                const analysis = { headers: [], lines: [], units: [], bullets: [] };
                 const lines = new Map();
 
                 function visit(node, lists = [], item = null) {
@@ -87,6 +87,13 @@ const TEXTLINT_API_RUNNER_SOURCE = String.raw`(async () => {
                         };
                         if (!current.ordered) {
                             const bullet = text(node, node);
+                            analysis.bullets.push({
+                                line: node.loc.start.line,
+                                depth: lists.filter((list) => !list.ordered).length,
+                                hasChildren: (node.children || []).some(
+                                    (child) => child.type === "List" && !child.ordered,
+                                ),
+                            });
                             if (bullet) {
                                 analysis.units.push({
                                     kind: "bullet",
@@ -161,7 +168,8 @@ function usage() {
     return [
         "usage: markdown-neighbor-length [--report] <document.md> --heading <name>",
         "       markdown-neighbor-length [--report] <document.md> --edited-file <part.md>",
-        "Form checks compare only the predominant line kind; --report shows exact shares.",
+        "Form compares the predominant line kind; structure fails above neighbors' median + 2 bullets or above 4 when neighbors nest.",
+        "Flat edited bullets fail when neighbors nest; --report shows shares and hierarchy measurements.",
     ].join("\n");
 }
 
@@ -258,6 +266,42 @@ function summarize(analysis) {
         : kindCounts[0][1] === kindCounts[1][1]
           ? "mixed"
           : kindCounts[0][0];
+    const bulletSections = new Map();
+    function headerForLine(line) {
+        let current = null;
+        for (const header of analysis.headers) {
+            if (header.line > line) break;
+            current = header;
+        }
+        return current;
+    }
+    function sectionForLine(line) {
+        const header = headerForLine(line);
+        const key = header ? header.line : 0;
+        if (!bulletSections.has(key)) {
+            bulletSections.set(key, {
+                headerLine: header ? header.line : null,
+                name: header ? header.text : "before first heading",
+                bulletCount: 0,
+                nestedBulletCount: 0,
+                topLevelBullets: 0,
+                maxDepth: 0,
+            });
+        }
+        return bulletSections.get(key);
+    }
+    for (const bullet of analysis.bullets) {
+        const section = sectionForLine(bullet.line);
+        section.bulletCount += 1;
+        if (bullet.hasChildren) {
+            section.nestedBulletCount += 1;
+            section.maxDepth = Math.max(section.maxDepth, bullet.depth + 1);
+        }
+        if (bullet.depth === 1) section.topLevelBullets += 1;
+        section.maxDepth = Math.max(section.maxDepth, bullet.depth);
+    }
+    const bulletSectionList = [...bulletSections.values()];
+    const sectionBulletCounts = bulletSectionList.map((section) => section.topLevelBullets);
     const lengths = analysis.units.map((unit) => unit.length);
     return {
         analysis,
@@ -271,6 +315,13 @@ function summarize(analysis) {
         unitMax: lengths.length ? lengths.reduce((maximum, length) => Math.max(maximum, length), 0) : null,
         sentenceCount: analysis.units.filter((unit) => unit.kind === "sentence").length,
         bulletCount: analysis.units.filter((unit) => unit.kind === "bullet").length,
+        structuralBulletCount: analysis.bullets.length,
+        nestedBulletCount: analysis.bullets.filter((bullet) => bullet.hasChildren).length,
+        structureDepthMax: bulletSectionList.length
+            ? bulletSectionList.reduce((maximum, section) => Math.max(maximum, section.maxDepth), 0)
+            : null,
+        topLevelBulletMedian: median(sectionBulletCounts),
+        bulletSections: bulletSectionList,
     };
 }
 
@@ -300,11 +351,26 @@ function formatForm(summary) {
 }
 
 function formatSummary(label, summary) {
+    const nestedShare = summary.structuralBulletCount
+        ? `${((summary.nestedBulletCount / summary.structuralBulletCount) * 100).toFixed(1)}%`
+        : "0.0%";
+    const sectionCounts = summary.bulletSections.length
+        ? summary.bulletSections
+              .map((section) =>
+                  section.headerLine
+                      ? `"${section.name}" at line ${section.headerLine}: ${section.topLevelBullets}`
+                      : `before first heading: ${section.topLevelBullets}`,
+              )
+              .join(", ")
+        : "none";
     return [
         `${label}:`,
         `  Content lines: ${summary.totalLines}`,
         `  Form: ${formatForm(summary)}`,
         `  Nesting depth: median ${formatNumber(summary.depthMedian)}, max ${formatNumber(summary.depthMax)}`,
+        `  Bullet hierarchy: ${summary.structuralBulletCount} bullets; ${summary.nestedBulletCount} with children ` +
+            `(${nestedShare}); max depth ${formatNumber(summary.structureDepthMax)}`,
+        `  Top-level bullets per section: ${sectionCounts}; median ${formatNumber(summary.topLevelBulletMedian)}`,
         `  Sentences/bullets: ${summary.unitCount} (${summary.sentenceCount} sentences, ${summary.bulletCount} bullets); ` +
             `median ${formatNumber(summary.unitMedian)} chars; max ${formatNumber(summary.unitMax)} chars`,
     ].join("\n");
@@ -312,8 +378,10 @@ function formatSummary(label, summary) {
 
 function selectAnalysis(analysis, includeLine) {
     return {
+        headers: analysis.headers.filter((header) => includeLine(header.line)),
         lines: analysis.lines.filter((line) => includeLine(line.line)),
         units: analysis.units.filter((unit) => includeLine(unit.line)),
+        bullets: analysis.bullets.filter((bullet) => includeLine(bullet.line)),
     };
 }
 
@@ -323,6 +391,35 @@ function compare(neighbors, edited, editedLabel) {
         failures.push(
             `Form differs: neighbors are ${formName(neighbors.dominant)}; ${editedLabel} is ${formName(edited.dominant)}.`,
         );
+    }
+    const neighborsNest = neighbors.structureDepthMax !== null && neighbors.structureDepthMax > 1;
+    if (neighborsNest) {
+        for (const section of edited.bulletSections) {
+            if (section.bulletCount > 0 && section.maxDepth <= 1) {
+                const label = section.headerLine
+                    ? `section "${section.name}" at line ${section.headerLine}`
+                    : editedLabel;
+                failures.push(
+                    `Bullet hierarchy differs: ${label} is flat (max depth ${formatNumber(section.maxDepth)}); ` +
+                        `neighbors nest (max depth ${formatNumber(neighbors.structureDepthMax)}).`,
+                );
+            }
+        }
+    }
+    if (neighbors.topLevelBulletMedian !== null) {
+        const siblingLimit = neighbors.topLevelBulletMedian + 2;
+        const limit = neighborsNest ? Math.min(siblingLimit, 4) : siblingLimit;
+        for (const section of edited.bulletSections) {
+            if (section.topLevelBullets <= limit) continue;
+            const label = section.headerLine
+                ? `section "${section.name}" at line ${section.headerLine}`
+                : editedLabel;
+            failures.push(
+                `Top-level bullet siblings in ${label}: ${section.topLevelBullets}; limit: ${formatNumber(limit)} ` +
+                    `(neighbors' median: ${formatNumber(neighbors.topLevelBulletMedian)}; ` +
+                    `${neighborsNest ? "neighbors nest" : "neighbors are flat"}).`,
+            );
+        }
     }
     for (const unit of edited.analysis.units) {
         if (unit.length > neighbors.unitMedian) {

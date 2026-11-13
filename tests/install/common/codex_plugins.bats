@@ -99,10 +99,7 @@ EOF
     [ "${lines[2]}" = "exec -- codex plugin marketplace remove ars-codex" ]
     [ "${lines[3]}" = "exec -- codex plugin marketplace add Imbad0202/academic-research-skills-codex --ref main" ]
     [ "${lines[4]}" = "exec -- codex plugin add ars-codex@ars-codex" ]
-    [ "${lines[5]}" = "exec -- codex plugin marketplace remove ponytail" ]
-    [ "${lines[6]}" = "exec -- codex plugin marketplace add DietrichGebert/ponytail --ref main" ]
-    [ "${lines[7]}" = "exec -- codex plugin add ponytail@ponytail" ]
-    [ "${#lines[@]}" -eq 8 ]
+    [ "${#lines[@]}" -eq 5 ]
 
     run cat "${BATS_TEST_TMPDIR}/codex_args.txt"
     [ "${status}" -eq 0 ]
@@ -110,10 +107,7 @@ EOF
     [ "${lines[1]}" = "1|plugin marketplace remove ars-codex" ]
     [ "${lines[2]}" = "1|plugin marketplace add Imbad0202/academic-research-skills-codex --ref main" ]
     [ "${lines[3]}" = "1|plugin add ars-codex@ars-codex" ]
-    [ "${lines[4]}" = "1|plugin marketplace remove ponytail" ]
-    [ "${lines[5]}" = "1|plugin marketplace add DietrichGebert/ponytail --ref main" ]
-    [ "${lines[6]}" = "1|plugin add ponytail@ponytail" ]
-    [ "${#lines[@]}" -eq 7 ]
+    [ "${#lines[@]}" -eq 4 ]
 }
 
 @test "[common] codex plugins script skips when the configured model catalog is missing" {
@@ -143,7 +137,7 @@ EOF
     run env \
         CODEX_CALLS_PATH="${BATS_TEST_TMPDIR}/codex_args.txt" \
         CODEX_PLUGINS_TEST_BIN="${BATS_TEST_TMPDIR}/bin" \
-        CODEX_PLUGIN_LIST_JSON='{"installed":[{"pluginId":"ars-codex@ars-codex","enabled":true},{"pluginId":"ponytail@ponytail","enabled":true}]}' \
+        CODEX_PLUGIN_LIST_JSON='{"installed":[{"pluginId":"ars-codex@ars-codex","enabled":true},{"pluginId":"ponytail@ponytail","enabled":false}]}' \
         HOME="${HOME}" \
         MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt" \
         bash "${SCRIPT_PATH}"

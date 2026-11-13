@@ -414,7 +414,7 @@ GIT_CONFIG
 
     run_claude_plugin_script
     [ "${status}" -ne 0 ]
-    run grep -Fx -- "Inbox clone must be on main; refusing to update." "$(inbox_pull_state_dir)/inbox-pull.log"
+    run grep -Fx -- "Inbox plugin path is a symlink; refusing to update." "$(inbox_pull_state_dir)/inbox-pull.log"
     [ "${status}" -eq 0 ]
     [ ! -e "${MOCK_CLAUDE_CALLS_PATH}" ]
 }
@@ -426,7 +426,7 @@ GIT_CONFIG
 
     run_claude_plugin_script
     [ "${status}" -ne 0 ]
-    run grep -Fx -- "Inbox clone origin is not the expected repository; refusing to update." "$(inbox_pull_state_dir)/inbox-pull.log"
+    run grep -Fx -- "Inbox clone must be on main; refusing to update." "$(inbox_pull_state_dir)/inbox-pull.log"
     [ "${status}" -eq 0 ]
     [ ! -e "${MOCK_CLAUDE_CALLS_PATH}" ]
 }
@@ -438,7 +438,7 @@ GIT_CONFIG
 
     run_claude_plugin_script
     [ "${status}" -ne 0 ]
-    run grep -Fx -- "Inbox clone must track origin/main; refusing to update." "$(inbox_pull_state_dir)/inbox-pull.log"
+    run grep -Fx -- "Inbox clone origin is not the expected repository; refusing to update." "$(inbox_pull_state_dir)/inbox-pull.log"
     [ "${status}" -eq 0 ]
     [ ! -e "${MOCK_CLAUDE_CALLS_PATH}" ]
 }

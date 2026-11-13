@@ -486,7 +486,7 @@ function formatGithubBodyReason(violations) {
                 .slice(0, 5)
                 .map(
                     (item) =>
-                        "- File: GitHub body\n" +
+                        `- File: ${item.filePath}\n` +
                         "  Paragraph/list item: " +
                         item.preview +
                         "\n" +
@@ -538,7 +538,161 @@ async function checkRecords(event, client, requestedPaths = null) {
     return changedViolations(records, await lintTexts(records));
 }
 
-// shortcut: shell expansions, compound commands, stdin body files, and unclassified gh flags fail open; extend when real gh invocations need it.
+// GitHub text must come from a --body-file this hook can read and lint, so
+// every other form of these gh commands is denied before Bash runs.
+const GITHUB_REPO_FLAG = String.raw`(?:\s+(?:-R(?:=|\s+)?|--repo(?:=|\s+))[^\s;&|()<>]*)*`;
+const GITHUB_TEXT_COMMAND = new RegExp(
+    String.raw`(?:^|[^\w./-])((?:[\w./-]*\/)?gh${GITHUB_REPO_FLAG}\s+(pr|issue)${GITHUB_REPO_FLAG}\s+(create|new|edit|comment|review|close|reopen)(?![\w-])[^;&|\n()<>\x60]*)`,
+    "gu",
+);
+const GITHUB_BODY_REQUIRED = new Set(["pr create", "issue create", "pr comment", "issue comment"]);
+const GITHUB_OTHER_BODY_SOURCES = new Set([
+    "--fill", "-f", "--fill-first", "--fill-verbose", "--editor", "-e",
+    "--web", "-w", "--template", "-T", "--recover",
+]);
+
+// Blank out comments, quoted text and quoted heredoc bodies, keeping every
+// offset, so gh mentioned in prose, such as a prompt sent to another agent, is
+// not taken for a command. Command substitutions that bash runs, inside double
+// quotes or unquoted heredocs, stay visible.
+// Returns the index just past the "))" that closes the arithmetic "((" at start.
+function arithmeticEnd(command, start) {
+    let depth = 0;
+    for (let index = start; index < command.length; index += 1) {
+        if (command[index] === "(") {
+            depth += 1;
+        } else if (command[index] === ")") {
+            depth -= 1;
+            if (depth === 0) {
+                return index + 1;
+            }
+        }
+    }
+    return command.length;
+}
+
+function unquotedWord(word) {
+    return word.replace(/\\(.)|'([^']*)'|"([^"]*)"/gsu, (_, escaped, single, double) => escaped ?? single ?? double);
+}
+
+function shellCodeText(command) {
+    let out = "";
+    const stack = [{ type: "code", parens: 0, closer: null }];
+    const heredocs = [];
+    for (let index = 0; index < command.length; index += 1) {
+        const context = stack.at(-1);
+        const character = command[index];
+        if (context.type === "double") {
+            if (character === "\\") {
+                out += "  ";
+                index += 1;
+            } else if (character === '"') {
+                stack.pop();
+                out += " ";
+            } else if (command.startsWith("$((", index)) {
+                const stop = arithmeticEnd(command, index + 1);
+                out += command.slice(index, stop);
+                index = stop - 1;
+            } else if (character === "$" && command[index + 1] === "(") {
+                stack.push({ type: "code", parens: 0, closer: ")" });
+                out += "$(";
+                index += 1;
+            } else if (character === "`") {
+                stack.push({ type: "code", parens: 0, closer: "`" });
+                out += "`";
+            } else {
+                out += character === "\n" ? "\n" : " ";
+            }
+            continue;
+        }
+
+        const wordStart = index === 0 || /[\s;&|()]/u.test(command[index - 1]);
+        if (character === "#" && wordStart) {
+            const lineEnd = command.indexOf("\n", index);
+            const stop = lineEnd < 0 ? command.length : lineEnd;
+            out += " ".repeat(stop - index);
+            index = stop - 1;
+        } else if (character === "$" && command[index + 1] === "'") {
+            let stop = index + 2;
+            while (stop < command.length && command[stop] !== "'") {
+                stop += command[stop] === "\\" ? 2 : 1;
+            }
+            stop = Math.min(stop, command.length - 1);
+            out += command.slice(index, stop + 1).replace(/[^\n]/g, " ");
+            index = stop;
+        } else if (character === "'") {
+            const end = command.indexOf("'", index + 1);
+            const stop = end < 0 ? command.length : end;
+            out += command.slice(index, stop + 1).replace(/[^\n]/g, " ");
+            index = stop;
+        } else if (character === '"') {
+            stack.push({ type: "double" });
+            out += " ";
+        } else if (character === "\\") {
+            out += "  ";
+            index += 1;
+        } else if (character === "`" && context.closer === "`") {
+            stack.pop();
+            out += character;
+        } else if (character === "`") {
+            stack.push({ type: "code", parens: 0, closer: "`" });
+            out += character;
+        } else if (command.startsWith("$((", index) || (command.startsWith("((", index) && wordStart)) {
+            const stop = arithmeticEnd(command, index + (character === "$" ? 1 : 0));
+            out += command.slice(index, stop);
+            index = stop - 1;
+        } else if (character === "(") {
+            context.parens += 1;
+            out += character;
+        } else if (character === ")" && context.parens === 0 && context.closer === ")") {
+            stack.pop();
+            out += character;
+        } else if (character === ")") {
+            context.parens = Math.max(0, context.parens - 1);
+            out += character;
+        } else if (command.startsWith("<<<", index)) {
+            out += "<<<";
+            index += 2;
+        } else if (command.startsWith("<<", index)) {
+            const heredoc = /^<<(-?)[ \t]*((?:\\.|'[^']*'|"[^"]*"|[^\s<>;&|()'"\\])+)/su.exec(command.slice(index));
+            if (heredoc) {
+                heredocs.push({
+                    strip: heredoc[1] === "-",
+                    quoted: /['"\\]/u.test(heredoc[2]),
+                    delimiter: unquotedWord(heredoc[2]),
+                });
+                out += " ".repeat(heredoc[0].length);
+                index += heredoc[0].length - 1;
+            } else {
+                out += character;
+            }
+        } else if (character === "\n" && heredocs.length > 0) {
+            out += "\n";
+            let lineStart = index + 1;
+            for (const heredoc of heredocs.splice(0)) {
+                const bodyStart = lineStart;
+                while (lineStart <= command.length) {
+                    const lineEnd = command.indexOf("\n", lineStart);
+                    const end = lineEnd < 0 ? command.length : lineEnd;
+                    const line = command.slice(lineStart, end);
+                    lineStart = end + 1;
+                    if ((heredoc.strip ? line.replace(/^\t+/u, "") : line) === heredoc.delimiter) {
+                        break;
+                    }
+                }
+                const body = command.slice(bodyStart, Math.min(lineStart, command.length));
+                out += heredoc.quoted
+                    ? body.replace(/[^\n]/g, " ")
+                    : shellCodeText(`"${body.replace(/"/g, " ")}"`).slice(1, -1);
+            }
+            index = Math.min(lineStart, command.length) - 1;
+        } else {
+            out += character;
+        }
+    }
+    return out;
+}
+
 function parseSimpleShellCommand(command) {
     const args = [];
     let argument = "";
@@ -595,8 +749,12 @@ function parseSimpleShellCommand(command) {
             active = true;
         } else if (character === "\\") {
             const next = command[index + 1];
-            if (next === undefined || next === "\n") {
+            if (next === undefined) {
                 return null;
+            }
+            if (next === "\n") {
+                index += 1;
+                continue;
             }
             argument += next;
             index += 1;
@@ -608,7 +766,9 @@ function parseSimpleShellCommand(command) {
             }
             argument += process.env.HOME || os.homedir();
             active = true;
-        } else if (/[;&|<>()\[\]{}*?!$`]/u.test(character) || (character === "#" && !active)) {
+        } else if (character === "#" && !active) {
+            break;
+        } else if (/[;&|<>()\[\]{}*?!$`]/u.test(character)) {
             return null;
         } else {
             argument += character;
@@ -646,6 +806,14 @@ const githubCommandFlags = {
         value: "--title -t --base -B --add-reviewer --remove-reviewer --add-assignee --remove-assignee --add-label --remove-label --add-project --remove-project --milestone -m",
         boolean: "--remove-milestone",
     },
+    "pr comment": {
+        value: "",
+        boolean: "--editor -e --web -w --edit-last --delete-last --yes --create-if-none",
+    },
+    "pr review": {
+        value: "",
+        boolean: "--approve -a --comment -c --request-changes -r",
+    },
     "issue create": {
         value: "--title -t --assignee -a --label -l --project -p --milestone -m --recover --template -T --type --parent --blocked-by --blocking",
         boolean: "--editor -e --web -w",
@@ -670,19 +838,74 @@ function parsePflagBoolean(value) {
     return null;
 }
 
-function githubBodySource(command) {
-    const args = parseSimpleShellCommand(command);
-    if (!args || args[0] !== "gh") {
-        return null;
-    }
+// Returns one entry per gh call that can post GitHub text: { name, problem }
+// when it must be denied, and { name, bodyFile } or { name } when it may run.
+function githubTextCalls(command) {
+    const code = shellCodeText(command);
+    const changesDirectory = /(?:^|[^\w./-])(?:cd|pushd)(?:\s|$)/u.test(code);
+    return [...code.matchAll(GITHUB_TEXT_COMMAND)]
+        .filter((match) => `${match[2]} ${match[3]}` !== "issue review")
+        .map((match) => {
+            const name = `${match[2]} ${match[3] === "new" ? "create" : match[3]}`;
+            const start = match.index + match[0].length - match[1].length;
+            const args = parseSimpleShellCommand(command.slice(start, start + match[1].length));
+            const words = (args || []).filter(
+                (arg, index, all) =>
+                    !/^(?:-R.*|--repo(?:=.*)?)$/u.test(arg) && !/^(?:-R|--repo)$/u.test(all[index - 1] || ""),
+            );
+            if (["close", "reopen"].includes(match[3])) {
+                return closingComment(args ? words.slice(3) : null, match[1]) ? { name, problem: "it posts a comment with --comment" } : null;
+            }
+            if (!args || path.basename(words[0]) !== "gh" || `${words[1]} ${words[2]}` !== `${match[2]} ${match[3]}`) {
+                return {
+                    name,
+                    problem: "its arguments need shell expansion, such as a variable, $(...), a glob, or a heredoc",
+                };
+            }
+            const call = githubTextCall(words.slice(3), name);
+            if (call?.bodyFile && changesDirectory && !path.isAbsolute(call.bodyFile)) {
+                return { name, problem: "the command changes directory, so the --body-file path must be absolute" };
+            }
+            if (call?.bodyFile && command.slice(0, start).includes(path.basename(call.bodyFile))) {
+                return {
+                    name,
+                    problem: "the command names the body file before gh, so it may change the file after this check",
+                };
+            }
+            return call;
+        })
+        .filter(Boolean);
+}
 
-    const [kind, subcommand] = args.slice(1, 3);
-    const commandFlags = githubCommandFlags[`${kind} ${subcommand}`];
-    if (!commandFlags) {
-        return null;
+// close and reopen accept only inline comment text, so any --comment is denied.
+function closingComment(args, segment) {
+    if (!args) {
+        return /(?:^|\s)(?:--comment|-[A-Za-z]*c)/u.test(segment);
     }
+    for (const arg of args) {
+        if (arg === "--") {
+            return false;
+        }
+        if (/^--comment(?:=|$)/u.test(arg)) {
+            return true;
+        }
+        if (/^-[A-Za-z]/u.test(arg)) {
+            for (const flag of arg.slice(1)) {
+                if (flag === "c") {
+                    return true;
+                }
+                if (flag === "r" || flag === "=") {
+                    break;
+                }
+            }
+        }
+    }
+    return false;
+}
 
+function githubTextCall(args, name) {
     const flags = new Map(githubCommonFlags);
+    const commandFlags = githubCommandFlags[name];
     for (const flag of commandFlags.value.split(/\s+/u).filter(Boolean)) {
         flags.set(flag, "value");
     }
@@ -690,18 +913,35 @@ function githubBodySource(command) {
         flags.set(flag, "boolean");
     }
 
-    let body;
+    let inline = false;
     let bodyFile;
+    let deleteLast = false;
+    let attach = false;
     let helpRequested = false;
-    const setValue = (type, value) => {
-        if (type === "body") {
-            body = value;
-        } else if (type === "file") {
-            bodyFile = value;
+    const otherSources = new Set();
+    const setBoolean = (flag, value) => {
+        if (flag === "--help" || flag === "-h") {
+            helpRequested = value;
+        } else if (flag === "--delete-last") {
+            deleteLast = value;
+        } else if (value && GITHUB_OTHER_BODY_SOURCES.has(flag)) {
+            otherSources.add(flag);
         }
     };
+    const setValue = (flag, type, value) => {
+        if (type === "body") {
+            inline = true;
+        } else if (type === "file") {
+            bodyFile = value;
+        } else if (flag === "--attach") {
+            attach = true;
+        } else if (GITHUB_OTHER_BODY_SOURCES.has(flag)) {
+            otherSources.add(flag);
+        }
+    };
+    const unsupported = (flag) => ({ name, problem: `the hook does not recognize the option ${flag}` });
 
-    for (let index = 3; index < args.length; index += 1) {
+    for (let index = 0; index < args.length; index += 1) {
         const option = args[index];
         if (option === "--") {
             break;
@@ -715,24 +955,22 @@ function githubBodySource(command) {
             const flag = equalIndex < 0 ? option : option.slice(0, equalIndex);
             const type = flags.get(flag);
             if (!type) {
-                return null;
+                return unsupported(flag);
             }
             if (type === "boolean") {
                 const value = equalIndex < 0 ? true : parsePflagBoolean(option.slice(equalIndex + 1));
                 if (value === null) {
-                    return null;
+                    return unsupported(option);
                 }
-                if (flag === "--help") {
-                    helpRequested = value;
-                }
+                setBoolean(flag, value);
                 continue;
             }
 
             const value = equalIndex < 0 ? args[++index] : option.slice(equalIndex + 1);
             if (value === undefined) {
-                return null;
+                return unsupported(flag);
             }
-            setValue(type, value);
+            setValue(flag, type, value);
             continue;
         }
 
@@ -741,26 +979,19 @@ function githubBodySource(command) {
             const flag = `-${shorthand[0]}`;
             const type = flags.get(flag);
             if (!type) {
-                return null;
+                return unsupported(flag);
             }
             const attached = shorthand.slice(1);
             if (type === "boolean") {
                 if (attached.startsWith("=")) {
-                    if (attached.length === 1) {
-                        return null;
-                    }
                     const value = parsePflagBoolean(attached.slice(1));
                     if (value === null) {
-                        return null;
+                        return unsupported(option);
                     }
-                    if (flag === "-h") {
-                        helpRequested = value;
-                    }
+                    setBoolean(flag, value);
                     break;
                 }
-                if (flag === "-h") {
-                    helpRequested = true;
-                }
+                setBoolean(flag, true);
                 shorthand = attached;
                 continue;
             }
@@ -770,9 +1001,9 @@ function githubBodySource(command) {
                     ? attached.slice(1)
                     : attached || args[++index];
             if (value === undefined) {
-                return null;
+                return unsupported(flag);
             }
-            setValue(type, value);
+            setValue(flag, type, value);
             break;
         }
     }
@@ -780,38 +1011,83 @@ function githubBodySource(command) {
     if (helpRequested) {
         return null;
     }
-    const source = bodyFile ? { type: "file", value: bodyFile } : body === undefined ? null : { type: "body", value: body };
-    return source ? { ...source, kind } : null;
+    if (inline) {
+        return { name, problem: "it passes inline text with --body or -b" };
+    }
+    if (otherSources.size > 0) {
+        return { name, problem: `it takes the body from ${[...otherSources].join(", ")}` };
+    }
+    if (bodyFile === "-") {
+        return { name, problem: "it reads the body from standard input" };
+    }
+    if (bodyFile === "") {
+        return { name, problem: "its --body-file path is empty" };
+    }
+    if (bodyFile === undefined && GITHUB_BODY_REQUIRED.has(name) && !deleteLast && !attach) {
+        return { name, problem: "it has no --body-file" };
+    }
+    return { name, bodyFile };
 }
 
-async function checkGithubBody(event) {
+function formatGithubCommandReason(name, problem) {
+    const [kind, subcommand] = name.split(" ");
+    if (subcommand === "close" || subcommand === "reopen") {
+        return (
+            `Blocked \`gh ${name}\`: ${problem}.\n` +
+            "GitHub text must come from a Markdown file that this hook can lint. " +
+            "Write the comment to a .md file with the file-editing tool, then run:\n" +
+            `gh ${kind} comment <number> -R <owner>/<repo> --body-file /absolute/path/body.md\n` +
+            `Then run \`gh ${name}\` without --comment.`
+        );
+    }
+    const target = name.endsWith("create") ? "" : " <number>";
+    const extra = {
+        "pr create": ' --head <branch> --title "<title>"',
+        "issue create": ' --title "<title>"',
+        "pr review": " --comment",
+    }[name] || "";
+    return (
+        `Blocked \`gh ${name}\`: ${problem}.\n` +
+        "GitHub text must come from a Markdown file that this hook can lint. " +
+        "Write the body to a .md file with the file-editing tool, then run:\n" +
+        `gh ${name}${target} -R <owner>/<repo>${extra} --body-file /absolute/path/body.md\n` +
+        "Give every gh argument literally. Do not use --body, -b, --fill, --template, --editor, --web, stdin, a heredoc, a variable, or $(...) in the gh call."
+    );
+}
+
+async function checkGithubCommand(event) {
     const input = event.tool_input || {};
-    if (event.tool_name !== "Bash" || typeof input.command !== "string") {
-        return [];
+    if (typeof input.command !== "string") {
+        return null;
     }
 
-    const source = githubBodySource(input.command);
-    if (!source) {
-        return [];
+    const calls = githubTextCalls(input.command);
+    const denied = calls.find((call) => call.problem);
+    if (denied) {
+        return formatGithubCommandReason(denied.name, denied.problem);
     }
 
-    let content = source.value;
-    let filePath = `GitHub ${source.kind} body`;
-    if (source.type === "file") {
-        if (!content || content === "-") {
-            return [];
+    const records = [];
+    for (const call of calls.filter((entry) => entry.bodyFile !== undefined)) {
+        const filePath = path.resolve(event.cwd || process.cwd(), call.bodyFile);
+        const stat = await fs.stat(filePath).catch(() => null);
+        if (!stat?.isFile()) {
+            return formatGithubCommandReason(call.name, `the body file ${filePath} is not a regular file`);
         }
-        const cwd = path.resolve(event.cwd || process.cwd());
-        filePath = path.resolve(cwd, content);
-        content = await fs.readFile(filePath, "utf8");
+        records.push({ filePath, baseline: "", current: await fs.readFile(filePath, "utf8") });
+    }
+    if (records.length === 0) {
+        return null;
     }
 
-    const records = [{ filePath, baseline: "", current: content }];
     const diagnostics = await lintTexts(records, true);
-    return [
+    const violations = [
         ...changedViolations(records, diagnostics),
-        ...diagnostics[0].blocks,
+        ...diagnostics.flatMap((diagnostic, index) =>
+            diagnostic.blocks.map((item) => ({ ...item, filePath: records[index].filePath })),
+        ),
     ];
+    return violations.length > 0 ? formatGithubBodyReason(violations) : null;
 }
 
 async function removeSession(event, client) {
@@ -832,9 +1108,9 @@ async function main() {
 
     if (action === "pre") {
         if (event.tool_name === "Bash") {
-            const violations = await checkGithubBody(event);
-            if (violations.length > 0) {
-                block(formatGithubBodyReason(violations));
+            const reason = await checkGithubCommand(event);
+            if (reason) {
+                block(reason);
             }
             return;
         }

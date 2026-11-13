@@ -488,6 +488,6 @@ for ((i = 0; i < ${#machines[@]}; i++)); do
     fi
 done
 ((machine_list_succeeded == 0)) || feed_options+=(--prune)
-if ! "${feed_command}" "${feed_options[@]}" "${feed_args[@]}"; then
+if ! "${feed_command}" ${feed_options[@]+"${feed_options[@]}"} "${feed_args[@]}"; then
     printf '[%s] inbox feed writer failed\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" >&2
 fi

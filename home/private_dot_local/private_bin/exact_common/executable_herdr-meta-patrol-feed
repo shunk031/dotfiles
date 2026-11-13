@@ -51,6 +51,14 @@ function append_entry() {
     entries_json="$(jq -cn --argjson entries "${entries_json}" --argjson entry "$1" '$entries + [$entry]')"
 }
 
+# @description Return whether a feed key exceeds the Inbox byte limit.
+# @arg $1 string Feed key.
+function key_exceeds_limit() {
+    local key="$1" byte_count
+    byte_count="$(LC_ALL=C printf '%s' "${key}" | wc -c | tr -d '[:space:]')"
+    ((byte_count > 100))
+}
+
 # @description Build root, ask, and named-worker entries from successful snapshots.
 # @arg $1 string Machine alias.
 # @arg $2 path Agent-list JSON snapshot.
@@ -73,29 +81,33 @@ function build_reachable_entries() {
             state=working
             [[ "${blocked}" != true ]] || state=blocked
             key="herdr/${machine}/${root}"
-            if ((${#key} > 100)); then
-                printf 'feed key exceeds 100 characters for %s on %s\n' "${root}" "${machine}" >&2
-                return 1
+            if key_exceeds_limit "${key}"; then
+                printf 'feed key exceeds 100 bytes for %s on %s\n' "${root}" "${machine}" >&2
+            else
+                entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${root}: ${clean_label}" --arg detail "${focus}" \
+                    '{key:$key,state:$state,title:($title[:120]),detail:($detail[:600])}')"
+                append_entry "${entry}"
             fi
-            entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${root}: ${clean_label}" --arg detail "${focus}" \
-                '{key:$key,state:$state,title:($title[:120]),detail:($detail[:600])}')"
-            append_entry "${entry}"
 
             count="$(jq -r '(.tokens["inbox-needs-you"] // "0") | tonumber? // 0' <<< "${agent}")"
             if ((count > 0)); then
-                ask="$(printf '%s\n' "${focus}" | perl -CSD -pe 's/\A[0-9]+\s+·\s*//')"
+                if ((count > 1)) && [[ "${focus}" != "${count} · "* ]]; then
+                    ask=""
+                else
+                    ask="$(printf '%s\n' "${focus}" | perl -CSD -pe 's/\A[0-9]+\s+\x{B7}\s*//')"
+                fi
                 if [[ -n "${ask}" ]]; then
                     plural=asks
                     if ((count == 1)); then plural=ask; fi
                     checksum="$(printf '%s' "${ask}" | cksum | awk '{ printf "%08d", $1 % 100000000 }')"
                     key="herdr/${machine}/${root}/ask/${checksum}"
-                    if ((${#key} > 100)); then
-                        printf 'feed key exceeds 100 characters for ask on %s at %s\n' "${root}" "${machine}" >&2
-                        return 1
+                    if key_exceeds_limit "${key}"; then
+                        printf 'feed key exceeds 100 bytes for ask on %s at %s\n' "${root}" "${machine}" >&2
+                    else
+                        entry="$(jq -cn --arg key "${key}" --arg title "⛔ ${root}: ${ask}" --arg detail "${count} waiting ${plural} on ${machine}; answer in that pane, or reply here for meta to relay" \
+                            '{key:$key,state:"blocked",title:($title[:120]),detail:($detail[:600])}')"
+                        append_entry "${entry}"
                     fi
-                    entry="$(jq -cn --arg key "${key}" --arg title "⛔ ${root}: ${ask}" --arg detail "${count} waiting ${plural} on ${machine}; answer in that pane, or reply here for meta to relay" \
-                        '{key:$key,state:"blocked",title:($title[:120]),detail:($detail[:600])}')"
-                    append_entry "${entry}"
                 fi
             fi
         done < <(awk -F '\t' -v machine="${registry_machine}" \
@@ -115,9 +127,9 @@ function build_reachable_entries() {
         *) continue ;;
         esac
         key="herdr/${machine}/worker/${name}"
-        if ((${#key} > 100)); then
-            printf 'feed key exceeds 100 characters for worker %s on %s\n' "${name}" "${machine}" >&2
-            return 1
+        if key_exceeds_limit "${key}"; then
+            printf 'feed key exceeds 100 bytes for worker %s on %s\n' "${name}" "${machine}" >&2
+            continue
         fi
         focus="$(jq -r '.tokens.inbox // "" | tostring' <<< "${agent}")"
         entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${name}: ${label}" --arg detail "${focus}" \

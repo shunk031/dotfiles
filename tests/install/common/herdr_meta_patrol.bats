@@ -18,6 +18,7 @@ function setup() {
     export FAKE_RECENT_PANE="${BATS_TEST_TMPDIR}/recent.txt"
     export FAKE_TAB_LIST_CALLS="${BATS_TEST_TMPDIR}/tab_list_calls"
     export FAKE_FEED_LOG="${BATS_TEST_TMPDIR}/feed_args"
+    export FAKE_FEED_VALIDATION_FAILED="${BATS_TEST_TMPDIR}/feed-validation-failed"
     export FAKE_FEED_VALIDATE_SNAPSHOTS=0
     export FAKE_FEED_EXIT=0
     export HERDR_META_PATROL_FEED_COMMAND="${BATS_TEST_TMPDIR}/feed-writer"
@@ -72,9 +73,9 @@ if [[ "${FAKE_FEED_VALIDATE_SNAPSHOTS:-0}" == 1 ]]; then
         agents="$2"
         tabs="$3"
         shift 3
-        [[ -s "${agents}" && -s "${tabs}" ]] || exit 1
-        jq -e '.result.agents | type == "array"' "${agents}" >/dev/null || exit 1
-        jq -e '.result.tabs | type == "array"' "${tabs}" >/dev/null || exit 1
+        [[ -s "${agents}" && -s "${tabs}" ]] || { touch "${FAKE_FEED_VALIDATION_FAILED}"; exit 1; }
+        jq -e '.result.agents | type == "array"' "${agents}" > /dev/null || { touch "${FAKE_FEED_VALIDATION_FAILED}"; exit 1; }
+        jq -e '.result.tabs | type == "array"' "${tabs}" > /dev/null || { touch "${FAKE_FEED_VALIDATION_FAILED}"; exit 1; }
     done
 fi
 exit "${FAKE_FEED_EXIT:-0}"
@@ -747,6 +748,7 @@ function age_still() {
     digest_roots working 0 working
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
+    [ ! -e "${FAKE_FEED_VALIDATION_FAILED}" ]
     [ "$(wc -c < "${FAKE_TAB_LIST_CALLS}" | tr -d '[:space:]')" -eq 1 ]
 }
 
@@ -765,8 +767,8 @@ function age_still() {
 @test "[common] herdr-meta-patrol keeps the queue working when the feed writer fails" {
     export FAKE_FEED_EXIT=1
     blocked_agent
-    run bash "${SCRIPT_PATH}" 2> "${BATS_TEST_TMPDIR}/stderr.txt"
+    run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
     grep -Fq '[local] blocked: w1 p1' <(calls)
-    grep -q 'inbox feed writer failed' "${BATS_TEST_TMPDIR}/stderr.txt"
+    grep -q 'inbox feed writer failed' <<< "${output}"
 }

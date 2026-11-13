@@ -27,13 +27,14 @@ STUB
 }
 
 function state_snapshots() {
-    printf 'Local\torch\nLocal\torch-blocked\nLocal\torch-dialog\nLocal\torch-focus\nLocal\tmeta\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    printf 'Local\torch\nLocal\torch-blocked\nLocal\torch-dialog\nLocal\torch-focus\nLocal\torch-single\nLocal\tmeta\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
     cat > "${AGENTS_JSON}" << 'JSON'
 {"result":{"agents":[
   {"name":"orch","tab_id":"t-root","agent_status":"working","tokens":{"inbox":"2 · Merge release?","inbox-needs-you":"2"}},
   {"name":"orch-blocked","tab_id":"t-stop","agent_status":"idle","tokens":{"inbox":"! Usage limit reached","inbox-stop":"! Usage limit reached","inbox-needs-you":"0"}},
-  {"name":"orch-dialog","tab_id":"t-dialog","agent_status":"blocked","tokens":{"inbox":"Allow command?"}},
+  {"name":"orch-dialog","tab_id":"t-dialog","agent_status":"blocked","tokens":{"inbox":"Allow command?","inbox-needs-you":"2"}},
   {"name":"orch-focus","tab_id":"t-focus","agent_status":"idle","tokens":{"inbox":"Review architecture","inbox-needs-you":"0"}},
+  {"name":"orch-single","tab_id":"t-single","agent_status":"working","tokens":{"inbox":"Review release?","inbox-needs-you":"1"}},
   {"name":"worker-build","tab_id":"t-build","agent_status":"working","tokens":{"inbox":"Build the feature"}},
   {"name":"worker-write","tab_id":"t-write","agent_status":"working"},
   {"name":"worker-stop","tab_id":"t-stop-worker","agent_status":"blocked"},
@@ -47,6 +48,7 @@ JSON
   {"tab_id":"t-stop","label":"🤖 Root stop"},
   {"tab_id":"t-dialog","label":"🤖 Root dialog"},
   {"tab_id":"t-focus","label":"🤖 Root focus"},
+  {"tab_id":"t-single","label":"🤖 Root single"},
   {"tab_id":"t-build","label":"🚧 Build feature"},
   {"tab_id":"t-write","label":"✍️ Write documentation"},
   {"tab_id":"t-stop-worker","label":"⛔ Waiting for review"},
@@ -62,16 +64,18 @@ JSON
     [ "${status}" -eq 0 ]
     feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
 
-    jq -e '[.entries[] | select(.key == "herdr/local/orch")][0] | .state == "working" and .title == "orch: Root label" and .detail == "2 · Merge release?"' "${feed}" >/dev/null
-    jq -e '[.entries[] | select(.key | startswith("herdr/local/orch/ask/"))][0] | .state == "blocked" and .title == "⛔ orch: Merge release?" and (.detail | contains("2") and contains("local") and contains("answer in that pane, or reply here for meta to relay"))' "${feed}" >/dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/orch-blocked")][0] | .state == "blocked"' "${feed}" >/dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/orch-dialog")][0] | .state == "blocked"' "${feed}" >/dev/null
-    ! jq -e '.entries[] | select(.key | startswith("herdr/local/orch-focus/ask/"))' "${feed}" >/dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-build")][0] | .state == "working" and .title == "worker-build: 🚧 Build feature"' "${feed}" >/dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-write")][0] | .state == "working" and .title == "worker-write: ✍️ Write documentation"' "${feed}" >/dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-stop")][0] | .state == "blocked"' "${feed}" >/dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-done")][0] | .state == "done"' "${feed}" >/dev/null
-    ! jq -e '.entries[] | select(.key | contains("meta"))' "${feed}" >/dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/orch")][0] | .state == "working" and .title == "orch: Root label" and .detail == "2 · Merge release?"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key | startswith("herdr/local/orch/ask/"))][0] | .state == "blocked" and .title == "⛔ orch: Merge release?" and (.detail | contains("2") and contains("local") and contains("answer in that pane, or reply here for meta to relay"))' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/orch-blocked")][0] | .state == "blocked"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/orch-dialog")][0] | .state == "blocked"' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key | startswith("herdr/local/orch-dialog/ask/"))] | length) == 0' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key | startswith("herdr/local/orch-focus/ask/"))] | length) == 0' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key | startswith("herdr/local/orch-single/ask/"))][0] | .state == "blocked" and .title == "⛔ orch-single: Review release?"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-build")][0] | .state == "working" and .title == "worker-build: 🚧 Build feature"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-write")][0] | .state == "working" and .title == "worker-write: ✍️ Write documentation"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-stop")][0] | .state == "blocked"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-done")][0] | .state == "done"' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key | contains("meta"))] | length) == 0' "${feed}" > /dev/null
 }
 
 @test "[common] herdr-meta-patrol-feed carries entries forward when a machine is unreachable" {
@@ -82,8 +86,52 @@ JSON
 
     run bash "${SCRIPT_PATH}" local "${BATS_TEST_TMPDIR}/missing-agents.json" "${BATS_TEST_TMPDIR}/missing-tabs.json"
     [ "${status}" -eq 0 ]
-    jq -e --argjson at "${old_at}" '.entries[] | select(.key == "herdr/local/orch") | .at == $at' "${feed}" >/dev/null
-    jq -e '.entries[] | select(.key == "herdr/local/_machine") | .state == "blocked" and (.detail | startswith("unreachable since "))' "${feed}" >/dev/null
+    jq -e --argjson at "${old_at}" '.entries[] | select(.key == "herdr/local/orch") | .at == $at' "${feed}" > /dev/null
+    jq -e '.entries[] | select(.key == "herdr/local/_machine") | .state == "blocked" and (.detail | startswith("unreachable since "))' "${feed}" > /dev/null
+}
+
+@test "[common] herdr-meta-patrol-feed keeps an ask key when its waiting count changes" {
+    state_snapshots
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
+    ask_key="$(jq -r '.entries[] | select(.key | startswith("herdr/local/orch/ask/")) | .key' "${feed}")"
+    [ -n "${ask_key}" ]
+
+    jq '(.result.agents[] | select(.name == "orch") | .tokens.inbox) = "3 · Merge release?"
+        | (.result.agents[] | select(.name == "orch") | .tokens["inbox-needs-you"]) = "3"' "${AGENTS_JSON}" > "${AGENTS_JSON}.updated"
+    mv "${AGENTS_JSON}.updated" "${AGENTS_JSON}"
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.entries[] | select(.key | startswith("herdr/local/orch/ask/")) | .key' "${feed}")" = "${ask_key}" ]
+    jq -e --arg key "${ask_key}" '.entries[] | select(.key == $key) | .title == "⛔ orch: Merge release?"' "${feed}" > /dev/null
+}
+
+@test "[common] herdr-meta-patrol-feed skips an overlong key without losing other entries" {
+    long_name="$(printf 'r%.0s' {1..100})"
+    long_worker="$(printf 'w%.0s' {1..100})"
+    printf 'Local\t%s\n' "${long_name}" > "${XDG_STATE_HOME}/meta/roots.tsv"
+    jq -nc --arg name "${long_name}" --arg long_worker "${long_worker}" '{result:{agents:[{name:$name,tab_id:"long",agent_status:"working"},{name:$long_worker,tab_id:"long-worker",agent_status:"working"},{name:"worker-ok",tab_id:"ok",agent_status:"working"}]}}' > "${AGENTS_JSON}"
+    jq -nc '{result:{tabs:[{tab_id:"long",label:"🤖 Long root"},{tab_id:"long-worker",label:"🚧 Long worker"},{tab_id:"ok",label:"🚧 Valid worker"}]}}' > "${TABS_JSON}"
+
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
+    jq -e '([.entries[] | select(.key == "herdr/local/worker/worker-ok")] | length) == 1' "${feed}" > /dev/null
+    jq -e --arg prefix "herdr/local/${long_name}" '([.entries[] | select(.key | startswith($prefix))] | length) == 0' "${feed}" > /dev/null
+    jq -e --arg prefix "herdr/local/worker/${long_worker}" '([.entries[] | select(.key | startswith($prefix))] | length) == 0' "${feed}" > /dev/null
+    [[ "${output}" == *"feed key exceeds 100 bytes for ${long_name} on local"* ]]
+    [[ "${output}" == *"feed key exceeds 100 bytes for worker ${long_worker} on local"* ]]
+}
+
+@test "[common] herdr-meta-patrol-feed prunes files absent from supplied snapshots" {
+    state_snapshots
+    touch "${HERDR_META_PATROL_FEED_DIR}/herdr-stale.json"
+
+    run bash "${SCRIPT_PATH}" --prune local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    [ -f "${HERDR_META_PATROL_FEED_DIR}/herdr-local.json" ]
+    [ ! -e "${HERDR_META_PATROL_FEED_DIR}/herdr-stale.json" ]
 }
 
 @test "[common] herdr-meta-patrol-feed keeps blocked entries first at the 40-entry limit" {

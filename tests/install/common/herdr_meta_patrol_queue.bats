@@ -124,9 +124,17 @@ function queue() {
 
 @test "[common] herdr-meta-patrol-queue fails an append it cannot write and keeps the sequence number" {
     queue add first
-    chmod a-w "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+    # A failing record writer stands in for an unwritable file; CI may run as root.
+    local real_jq
+    real_jq="$(command -v jq)"
+    cat > "${BATS_TEST_TMPDIR}/bin/jq" << STUB
+#!/usr/bin/env bash
+[[ "\$1" != -cn ]] || exit 1
+exec "${real_jq}" "\$@"
+STUB
+    chmod +x "${BATS_TEST_TMPDIR}/bin/jq"
     run queue add second
-    chmod u+w "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+    rm "${BATS_TEST_TMPDIR}/bin/jq"
     [ "${status}" -ne 0 ]
     [ "$(cat "${HERDR_META_PATROL_STATE_DIR}/queue.seq")" = 1 ]
     [ "$(queue read | jq -r '.text')" = first ]

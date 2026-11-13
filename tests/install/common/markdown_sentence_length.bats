@@ -646,7 +646,8 @@ EOF
 @test "help explains predominant form matching and report shares" {
     run "${NEIGHBOR_LENGTH}" --help
     [ "${status}" -eq 0 ]
-    [[ "${output}" == *"Form checks compare only the predominant line kind; --report shows exact shares."* ]]
+    [[ "${output}" == *"Form compares the predominant line kind; structure fails above neighbors' median + 2 bullets or above 4 when neighbors nest."* ]]
+    [[ "${output}" == *"Flat edited bullets fail when neighbors nest; --report shows shares and hierarchy measurements."* ]]
 }
 
 @test "reports codepoint lengths and skips fenced code and tables for an edited file" {
@@ -690,6 +691,8 @@ EOF
     [[ "${output}" == *"Form: mostly bullets (bullets 3/5 (60.0%), prose 1/5 (20.0%), numbered steps 1/5 (20.0%))"* ]]
     [[ "${output}" == *"Nesting depth: median 1, max 2"* ]]
     [[ "${output}" == *"Form: mostly bullets (bullets 2/4 (50.0%), prose 1/4 (25.0%), numbered steps 1/4 (25.0%))"* ]]
+    [[ "${output}" == *"Bullet hierarchy: 3 bullets; 1 with children (33.3%); max depth 2"* ]]
+    [[ "${output}" == *"Top-level bullets per section: \"Neighbors\" at line 1: 2; median 2"* ]]
 }
 
 @test "names every edited bullet longer than the neighboring median" {
@@ -704,4 +707,88 @@ EOF
     [[ "${output}" == *"Bullet in edited file edited-bullets.md at line 1"* ]]
     [[ "${output}" == *"Bullet in edited file edited-bullets.md at line 2"* ]]
     [[ "${output}" == *"neighbor median limit:"* ]]
+}
+
+@test "rejects seven flat bullets beside nested neighbors" {
+    local file_path="${BATS_TEST_TMPDIR}/neighbor-hierarchy.md"
+    cat > "${file_path}" << 'EOF'
+## Neighbor style
+- Parent one.
+  - Child one.
+  - Child two.
+- Parent two.
+  - Child three.
+  - Child four.
+
+## Changed section
+- A.
+- B.
+- C.
+- D.
+- E.
+- F.
+- G.
+EOF
+
+    run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed section" --report
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"Bullet hierarchy: 6 bullets; 2 with children (33.3%); max depth 2"* ]]
+    [[ "${output}" == *"Top-level bullets per section:"*"\"Neighbor style\""*"median 2"* ]]
+    [[ "${output}" == *"Bullet hierarchy differs: section \"Changed section\""*"is flat (max depth 1); neighbors nest"* ]]
+    [[ "${output}" == *"Top-level bullet siblings in section \"Changed section\""*"7; limit: 4"*"neighbors' median: 2"* ]]
+}
+
+@test "does not treat nested numbered steps as nested bullets" {
+    local file_path="${BATS_TEST_TMPDIR}/numbered-neighbor-hierarchy.md"
+    cat > "${file_path}" << 'EOF'
+## Neighbor style
+- Neighbor bullet one is deliberately longer than the changed bullets.
+- Neighbor bullet two is deliberately longer than the changed bullets.
+- Neighbor bullet three is deliberately longer than the changed bullets.
+- Neighbor bullet four is deliberately longer than the changed bullets.
+- Neighbor bullet five is deliberately longer than the changed bullets.
+1. Outer numbered step.
+   1. Nested numbered step.
+      1. Deeper numbered step.
+         1. Deepest numbered step.
+
+## Changed section
+- Short one.
+- Short two.
+- Short three.
+EOF
+
+    run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed section" --report
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == *"Nesting depth: median 1, max 4"* ]]
+    [[ "${output}" == *"Bullet hierarchy: 5 bullets; 0 with children (0.0%); max depth 1"* ]]
+}
+
+@test "numbered nesting does not hide flat edited bullets" {
+    local file_path="${BATS_TEST_TMPDIR}/numbered-edited-hierarchy.md"
+    cat > "${file_path}" << 'EOF'
+## Neighbor style
+- Parent one has a nested bullet hierarchy.
+  - Child one is longer than the changed bullets.
+  - Child two is longer than the changed bullets.
+- Parent two has a nested bullet hierarchy.
+  - Child three is longer than the changed bullets.
+  - Child four is longer than the changed bullets.
+1. Outer numbered step.
+   1. Nested numbered step.
+      1. Deeper numbered step.
+         1. Deepest numbered step.
+
+## Changed section
+- Short one.
+- Short two.
+- Short three.
+1. Outer changed step.
+   1. Nested changed step.
+EOF
+
+    run "${NEIGHBOR_LENGTH}" "${file_path}" --heading "Changed section" --report
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"Bullet hierarchy: 3 bullets; 0 with children (0.0%); max depth 1"* ]]
+    [[ "${output}" == *"Bullet hierarchy differs: section \"Changed section\""*"is flat (max depth 1); neighbors nest (max depth 2)"* ]]
 }

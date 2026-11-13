@@ -6,9 +6,11 @@
 #   The meta patrol and local root orchestrators append messages here instead of
 #   typing them into the meta agent's pane. The meta agent runs `wait` as a
 #   background command; it exits when an unread message exists, which wakes the
-#   agent through its harness. The agent then runs `read`, handles the messages,
-#   and runs `ack` with the highest sequence number it handled. Delivery is at
-#   least once: a record stays unread until it is acknowledged.
+#   agent through its harness. `read` shows at most ten unread records by default;
+#   the agent handles that batch and acknowledges its highest sequence number.
+#   `read --compact-status` omits older STATUS updates from the same sender within
+#   that batch. The original records remain on disk until the agent acknowledges
+#   the batch. Delivery is at least once: an unacknowledged record stays unread.
 #
 #   Files in the state directory: `queue.jsonl` holds one JSON record per line
 #   (`seq`, `t` epoch seconds, `at`, `kind`, `from`, `text`), `queue.seq` the last
@@ -21,7 +23,9 @@
 #   - `wait [--max-seconds N]` blocks until an unread record exists, prints the
 #     unread count, and exits 0. It also exits 0 after N seconds (default 21600)
 #     with a re-arm notice.
-#   - `read` prints the unread records, one JSON object per line.
+#   - `read [--limit N] [--compact-status]` prints up to N unread records (default
+#     10, maximum 50), one JSON object per line. Compaction retains the latest
+#     STATUS from each sender and every other record in the selected batch.
 #   - `ack SEQ` marks every record up to SEQ as handled.
 #   - `trim` drops acknowledged records older than the keep period.
 #   - `notify-if-stale` shows one Herdr notification for a batch of unread records
@@ -31,12 +35,14 @@
 # @option HERDR_META_PATROL_QUEUE_KEEP_DAYS Days to keep acknowledged records (default 7).
 # @option HERDR_META_PATROL_TIMEOUT Seconds before the notification call is killed (default 40).
 # @option HERDR_META_PATROL_STALE_SECONDS Age of unread records and of the waiter heartbeat that triggers a notification (default 600).
+# @option --limit N Number of raw unread records to include in a read batch (1-50; default 10).
+# @option --compact-status Show only the latest STATUS per sender within a read batch.
 # @exitcode 0 On success.
 # @exitcode 2 On a usage error.
 # @example
 #   herdr-meta-patrol-queue add --kind findings "$message"
 #   herdr-meta-patrol-queue wait
-#   herdr-meta-patrol-queue read
+#   herdr-meta-patrol-queue read --compact-status
 #   herdr-meta-patrol-queue ack 12
 
 set -Eeuo pipefail
@@ -54,7 +60,7 @@ lock_file="${state_dir}/queue.lock"
 
 # @description Print a usage error and exit 2.
 function usage() {
-    printf '%s\n' 'usage: herdr-meta-patrol-queue add [--kind KIND] [--from NAME] TEXT | wait [--max-seconds N] | read | ack SEQ | trim | notify-if-stale' >&2
+    printf '%s\n' 'usage: herdr-meta-patrol-queue add [--kind KIND] [--from NAME] TEXT | wait [--max-seconds N] | read [--limit N] [--compact-status] | ack SEQ | trim | notify-if-stale' >&2
     exit 2
 }
 
@@ -107,6 +113,27 @@ function read_unread() {
     jq -cR --argjson ack "$(number_in "${ack_file}")" 'fromjson? // empty | select(.seq > $ack)' "${queue}"
 }
 
+# @description Print a bounded unread batch, optionally omitting superseded STATUS updates.
+# @arg $1 number Maximum number of raw unread records.
+# @arg $2 boolean Whether to compact STATUS updates from the same sender.
+function read_batch() {
+    local limit="$1" compact="$2"
+    read_unread | jq -sc --argjson limit "${limit}" --argjson compact "${compact}" '
+        def is_status:
+            . as $record |
+            ($record.kind == "message") and
+            ($record.from | type == "string") and
+            ($record.text | type == "string") and
+            ($record.text | startswith("STATUS " + $record.from + ":"));
+        .[:$limit] as $batch |
+        $batch | to_entries[] |
+        .key as $index | .value as $record |
+        if $compact and ($record | is_status) and
+            any($batch[($index + 1):][]; .from == $record.from and is_status)
+        then empty else $record end
+    '
+}
+
 mkdir -p "${state_dir}"
 (($# > 0)) || usage
 command="$1"
@@ -157,8 +184,25 @@ wait)
     done
     ;;
 read)
-    (($# == 0)) || usage
-    read_unread
+    limit=10
+    compact=false
+    while (($# > 0)); do
+        case "$1" in
+        --limit)
+            if (($# < 2)) || [[ ! "$2" =~ ^[1-9][0-9]?$ ]] || ((10#$2 > 50)); then
+                usage
+            fi
+            limit="$2"
+            shift 2
+            ;;
+        --compact-status)
+            compact=true
+            shift
+            ;;
+        *) usage ;;
+        esac
+    done
+    read_batch "${limit}" "${compact}"
     ;;
 ack)
     (($# == 1)) && [[ "$1" =~ ^[0-9]+$ ]] || usage

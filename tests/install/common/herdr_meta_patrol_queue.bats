@@ -39,7 +39,47 @@ function queue() {
         queue add "item ${i}" &
     done
     wait
-    [ "$(queue read | jq -s '[length, (map(.seq) | unique | length), (map(.seq) | max)]' -c)" = '[20,20,20]' ]
+    [ "$(queue read --limit 20 | jq -s '[length, (map(.seq) | unique | length), (map(.seq) | max)]' -c)" = '[20,20,20]' ]
+}
+
+@test "[common] herdr-meta-patrol-queue reads at most ten records by default and advances in batches" {
+    local i
+    for i in $(seq 1 12); do queue add "item ${i}"; done
+
+    [ "$(queue read | jq -s '[length, .[0].seq, .[-1].seq]' -c)" = '[10,1,10]' ]
+    queue ack 10
+    [ "$(queue read | jq -s '[length, .[0].seq, .[-1].seq]' -c)" = '[2,11,12]' ]
+}
+
+@test "[common] herdr-meta-patrol-queue compact read keeps the latest sender status and every other message" {
+    queue add --from worker-a 'STATUS worker-a: task preparing'
+    queue add --from worker-b 'STATUS worker-b: task reviewing'
+    queue add --from worker-a 'STATUS worker-a: task testing'
+    queue add --from worker-a 'BLOCKED worker-a: need input'
+    queue add --from worker-a 'STATUS worker-a: task done'
+    queue add --from worker-a 'ordinary message'
+    queue add --from worker-a 'DONE worker-a: task complete'
+
+    [ "$(queue read --compact-status | jq -s '[.[].seq]' -c)" = '[2,4,5,6,7]' ]
+    queue ack "$(queue read --compact-status | jq -r '.seq' | tail -n 1)"
+    [ -z "$(queue read)" ]
+    [ "$(jq -s 'length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = 7 ]
+}
+
+@test "[common] herdr-meta-patrol-queue compacts only inside the selected batch" {
+    queue add --from worker-a 'STATUS worker-a: step one'
+    queue add --from worker-a 'STATUS worker-a: step two'
+    queue add --from worker-a 'STATUS worker-a: step three'
+
+    [ "$(queue read --limit 2 --compact-status | jq -s '[.[].seq]' -c)" = '[2]' ]
+    queue ack 2
+    [ "$(queue read --limit 2 --compact-status | jq -s '[.[].seq]' -c)" = '[3]' ]
+}
+
+@test "[common] herdr-meta-patrol-queue does not compact a status with a mismatched sender" {
+    queue add --from worker-a 'STATUS worker-b: unrelated'
+    queue add --from worker-a 'STATUS worker-a: task changed'
+    [ "$(queue read --compact-status | jq -s '[.[].seq]' -c)" = '[1,2]' ]
 }
 
 @test "[common] herdr-meta-patrol-queue reads only unacknowledged records and caps acks" {
@@ -117,6 +157,10 @@ function queue() {
     run queue add
     [ "${status}" -eq 2 ]
     run queue ack nope
+    [ "${status}" -eq 2 ]
+    run queue read --limit 0
+    [ "${status}" -eq 2 ]
+    run queue read --limit 51
     [ "${status}" -eq 2 ]
     run queue frobnicate
     [ "${status}" -eq 2 ]

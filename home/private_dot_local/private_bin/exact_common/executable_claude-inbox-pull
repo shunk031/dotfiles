@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+
+# @file home/private_dot_local/private_bin/exact_common/executable_claude-inbox-pull
+# @brief Fast-forward the managed Claude inbox clone.
+# @description
+#   Validates the clone before fetching and refuses local or non-main changes.
+#   shortcut: SIGKILL can leave a stale lock; add recovery if that causes missed updates.
+# @option --ensure Create the clone when it is missing.
+# @exitcode 0 When the clone is current, safely updated, skipped, or created.
+# @exitcode 1 When the clone is unsafe or the pull fails.
+
+set -Eeuo pipefail
+
+readonly INBOX_PLUGIN_DIR="${HOME}/.local/share/claude/plugins/inbox"
+readonly INBOX_REPOSITORY_URL="https://github.com/shunk031/inbox"
+readonly INBOX_STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/claude-plugins"
+readonly INBOX_LOG_FILE="${INBOX_STATE_DIR}/inbox-pull.log"
+readonly INBOX_LOCK_DIR="${INBOX_STATE_DIR}/inbox-pull.lock"
+
+# @description Write a diagnostic to the inbox pull log and standard error.
+# @arg $1 message Diagnostic text.
+function fail() {
+    local message="$1"
+
+    mkdir -p "${INBOX_STATE_DIR}" 2> /dev/null || true
+    printf '%s\n' "${message}" >> "${INBOX_LOG_FILE}" 2> /dev/null || true
+    printf '%s\n' "${message}" >&2
+    exit 1
+}
+
+if [ "$#" -gt 1 ] || { [ "$#" -eq 1 ] && [ "${1}" != "--ensure" ]; }; then
+    printf 'Usage: %s [--ensure]\n' "${0##*/}" >&2
+    exit 2
+fi
+
+ensure_clone=0
+if [ "${1:-}" = "--ensure" ]; then
+    ensure_clone=1
+fi
+
+if [ -L "${INBOX_PLUGIN_DIR}" ]; then
+    fail 'Inbox plugin path is a symlink; refusing to update.'
+fi
+
+if [ ! -e "${INBOX_PLUGIN_DIR}" ] && [ "${ensure_clone}" -eq 0 ]; then
+    exit 0
+fi
+
+mkdir -p "${INBOX_STATE_DIR}" || fail 'Cannot create the inbox pull state directory.'
+if ! mkdir "${INBOX_LOCK_DIR}" 2> /dev/null; then
+    if [ -d "${INBOX_LOCK_DIR}" ] && [ ! -L "${INBOX_LOCK_DIR}" ]; then
+        exit 0
+    fi
+    fail 'Cannot acquire the inbox pull lock.'
+fi
+trap 'rmdir "${INBOX_LOCK_DIR}" 2> /dev/null || true' EXIT
+
+if [ ! -e "${INBOX_PLUGIN_DIR}" ]; then
+    mkdir -p "${INBOX_PLUGIN_DIR%/*}" || fail 'Cannot create the inbox plugin parent directory.'
+    if ! clone_output="$(GIT_TERMINAL_PROMPT=0 git clone --quiet --branch main --single-branch "${INBOX_REPOSITORY_URL}" "${INBOX_PLUGIN_DIR}" 2>&1)"; then
+        if [ -n "${clone_output}" ]; then
+            printf '%s\n' "${clone_output}" >> "${INBOX_LOG_FILE}" 2> /dev/null || true
+        fi
+        fail 'Could not create the inbox clone from main.'
+    fi
+    exit 0
+fi
+
+if [ ! -d "${INBOX_PLUGIN_DIR}/.git" ] || [ -L "${INBOX_PLUGIN_DIR}/.git" ]; then
+    fail 'Inbox plugin path is not the root of its own Git clone.'
+fi
+
+path_prefix="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse --show-prefix 2> /dev/null)" || fail 'Inbox plugin path is not a Git clone.'
+if [ -n "${path_prefix}" ]; then
+    fail 'Inbox plugin path is not the root of its own Git clone.'
+fi
+
+branch="$(git -C "${INBOX_PLUGIN_DIR}" branch --show-current 2> /dev/null)" || fail 'Cannot read the inbox clone branch.'
+if [ "${branch}" != "main" ]; then
+    fail 'Inbox clone must be on main; refusing to update.'
+fi
+
+remote="$(git -C "${INBOX_PLUGIN_DIR}" config --get remote.origin.url 2> /dev/null)" || remote=''
+if [ "${remote}" != "${INBOX_REPOSITORY_URL}" ]; then
+    fail 'Inbox clone origin is not the expected repository; refusing to update.'
+fi
+
+working_tree="$(git -C "${INBOX_PLUGIN_DIR}" status --porcelain --untracked-files=all 2> /dev/null)" || fail 'Cannot read the inbox clone status.'
+if [ -n "${working_tree}" ]; then
+    fail 'Inbox clone has local changes; refusing to update.'
+fi
+
+upstream="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2> /dev/null)" || upstream=''
+if [ "${upstream}" != "origin/main" ]; then
+    fail 'Inbox clone must track origin/main; refusing to update.'
+fi
+
+head_before="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse HEAD 2> /dev/null)" || fail 'Cannot read the inbox clone head.'
+if ! pull_output="$(GIT_TERMINAL_PROMPT=0 git -C "${INBOX_PLUGIN_DIR}" pull --ff-only --quiet 2>&1)"; then
+    if [ -n "${pull_output}" ]; then
+        printf '%s\n' "${pull_output}" >> "${INBOX_LOG_FILE}" 2> /dev/null || true
+    fi
+    fail 'Inbox clone could not fast-forward origin/main; local commits were not reset.'
+fi
+
+head_after="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse HEAD 2> /dev/null)" || fail 'Cannot read the updated inbox clone head.'
+upstream_head="$(git -C "${INBOX_PLUGIN_DIR}" rev-parse '@{upstream}' 2> /dev/null)" || fail 'Cannot read origin/main after the inbox pull.'
+if [ "${head_after}" != "${upstream_head}" ]; then
+    fail 'Inbox clone has commits outside origin/main; refusing to update.'
+fi
+
+if [ "${head_before}" != "${head_after}" ]; then
+    printf 'Fast-forwarded inbox clone to %s.\n' "${head_after}" >> "${INBOX_LOG_FILE}" || true
+fi

@@ -1,0 +1,7 @@
+[Unit]
+Description=Fast-forward the Claude inbox plugin clone
+
+[Service]
+Type=oneshot
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/.local/bin/common/claude-inbox-pull

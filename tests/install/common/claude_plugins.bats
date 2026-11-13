@@ -1,12 +1,14 @@
 #!/usr/bin/env bats
 
 readonly SCRIPT_PATH="./install/common/claude-plugins.sh"
+readonly INBOX_PULL_SCRIPT_PATH="./home/private_dot_local/private_bin/exact_common/executable_claude-inbox-pull"
 readonly TMPL_SCRIPT_PATH="./home/.chezmoiscripts/common/run_after_25-install-claude-plugins.sh.tmpl"
 readonly CLAUDE_SETTINGS_PATH="./home/private_dot_config/claude/settings.json"
 readonly CLAUDE_SETTINGS_MODIFIER_PATH="./home/dot_claude/modify_settings.json"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
+    export XDG_STATE_HOME="${HOME}/.local/state"
     REAL_GIT_BIN="$(command -v git)"
     export REAL_GIT_BIN
     mkdir -p "${HOME}/.local/bin"
@@ -38,7 +40,12 @@ function write_claude_workflow_mocks() {
     export MOCK_GIT_DIRTY=0 MOCK_GIT_FAIL_PULL=0
     export MOCK_GIT_BRANCH=main MOCK_GIT_UPSTREAM=origin/main
     export MOCK_GIT_HEAD=main-commit MOCK_GIT_UPSTREAM_HEAD=main-commit
+    export MOCK_GIT_PULL_HEAD="" MOCK_GIT_HEAD_FILE="${BATS_TEST_TMPDIR}/git_head"
+    export MOCK_GIT_PREFIX=""
     export MOCK_CLAUDE_REQUIRE_BACKUP=0
+    rm -f "${MOCK_GIT_HEAD_FILE}"
+    mkdir -p "${HOME}/.local/bin/common"
+    ln -s "${PWD}/${INBOX_PULL_SCRIPT_PATH#./}" "${HOME}/.local/bin/common/claude-inbox-pull"
 
     cat > "${HOME}/.local/bin/mise" << 'MOCK_MISE'
 #!/usr/bin/env bash
@@ -54,26 +61,30 @@ MOCK_MISE
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${MOCK_GIT_CALLS_PATH}"
 if [ "${1:-}" = "clone" ]; then
-    [ "$#" -eq 6 ] || exit 2
-    [ "$2" = "--branch" ] && [ "$3" = "main" ] && [ "$4" = "--single-branch" ] || exit 2
-    [ "$5" = "https://github.com/shunk031/inbox" ] || exit 2
-    mkdir -p "$6/.git"
+    [ "$#" -eq 7 ] || exit 2
+    [ "$2" = "--quiet" ] && [ "$3" = "--branch" ] && [ "$4" = "main" ] && [ "$5" = "--single-branch" ] || exit 2
+    [ "$6" = "https://github.com/shunk031/inbox" ] || exit 2
+    mkdir -p "$7/.git"
     exit
 fi
 [ "${1:-}" = "-C" ] || exit 2
 repo_dir="$2"
 shift 2
 case "$*" in
-    "rev-parse --show-prefix") printf '' ;;
+    "rev-parse --show-prefix") printf '%s' "${MOCK_GIT_PREFIX}" ;;
     "branch --show-current") printf '%s\n' "${MOCK_GIT_BRANCH}" ;;
     "config --get remote.origin.url") "${REAL_GIT_BIN}" -C "${repo_dir}" config --get remote.origin.url ;;
-    "remote get-url origin") "${REAL_GIT_BIN}" -C "${repo_dir}" remote get-url origin ;;
     "status --porcelain --untracked-files=all")
         if [ "${MOCK_GIT_DIRTY}" = "1" ]; then printf ' M local-change\n'; fi
         ;;
     "rev-parse --abbrev-ref --symbolic-full-name @{upstream}") printf '%s\n' "${MOCK_GIT_UPSTREAM}" ;;
-    "pull --ff-only") [ "${MOCK_GIT_FAIL_PULL}" != "1" ] ;;
-    "rev-parse HEAD") printf '%s\n' "${MOCK_GIT_HEAD}" ;;
+    "pull --ff-only --quiet")
+        [ "${MOCK_GIT_FAIL_PULL}" != "1" ] || exit 1
+        if [ -n "${MOCK_GIT_PULL_HEAD}" ]; then printf '%s\n' "${MOCK_GIT_PULL_HEAD}" > "${MOCK_GIT_HEAD_FILE}"; fi
+        ;;
+    "rev-parse HEAD")
+        if [ -f "${MOCK_GIT_HEAD_FILE}" ]; then cat "${MOCK_GIT_HEAD_FILE}"; else printf '%s\n' "${MOCK_GIT_HEAD}"; fi
+        ;;
     "rev-parse @{upstream}") printf '%s\n' "${MOCK_GIT_UPSTREAM_HEAD}" ;;
     *) printf 'Unexpected git command: %s\n' "$*" >&2; exit 2 ;;
 esac
@@ -149,6 +160,117 @@ function run_claude_plugin_script() {
     run env HOME="${HOME}" bash "${SCRIPT_PATH}"
 }
 
+function run_inbox_pull() {
+    run env HOME="${HOME}" bash "${INBOX_PULL_SCRIPT_PATH}" "$@"
+}
+
+function inbox_pull_state_dir() {
+    printf '%s\n' "${HOME}/.local/state/claude-plugins"
+}
+
+@test "[common] Claude inbox pull is a no-op when the clone is missing" {
+    write_claude_workflow_mocks
+
+    run_inbox_pull
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+    [ ! -e "$(inbox_pull_state_dir)" ]
+    [ ! -e "${MOCK_GIT_CALLS_PATH}" ]
+}
+
+@test "[common] Claude inbox pull fast-forwards a clean clone" {
+    write_claude_workflow_mocks
+    create_existing_clone
+    export MOCK_GIT_HEAD=old-commit MOCK_GIT_UPSTREAM_HEAD=new-commit MOCK_GIT_PULL_HEAD=new-commit
+
+    run_inbox_pull
+    [ "${status}" -eq 0 ]
+    [ "$(cat "${MOCK_GIT_HEAD_FILE}")" = "new-commit" ]
+    run grep -Fx -- "-C $(inbox_plugin_dir) pull --ff-only --quiet" "${MOCK_GIT_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -Fx -- "Fast-forwarded inbox clone to new-commit." "$(inbox_pull_state_dir)/inbox-pull.log"
+    [ "${status}" -eq 0 ]
+    [ ! -e "$(inbox_pull_state_dir)/inbox-pull.lock" ]
+}
+
+@test "[common] Claude inbox pull is quiet when the clone is up to date" {
+    write_claude_workflow_mocks
+    create_existing_clone
+
+    run_inbox_pull
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+    [ ! -e "$(inbox_pull_state_dir)/inbox-pull.log" ]
+    [ ! -e "$(inbox_pull_state_dir)/inbox-pull.lock" ]
+}
+
+@test "[common] Claude inbox pull refuses a dirty clone and leaves its files untouched" {
+    write_claude_workflow_mocks
+    create_existing_clone
+    printf 'preserve\n' > "$(inbox_plugin_dir)/local-change"
+    export MOCK_GIT_DIRTY=1
+
+    run_inbox_pull
+    [ "${status}" -ne 0 ]
+    [[ "${output}" == *"Inbox clone has local changes"* ]]
+    [ "$(cat "$(inbox_plugin_dir)/local-change")" = "preserve" ]
+    run grep -Fx -- "Inbox clone has local changes; refusing to update." "$(inbox_pull_state_dir)/inbox-pull.log"
+    [ "${status}" -eq 0 ]
+    run grep -F -- "pull --ff-only" "${MOCK_GIT_CALLS_PATH}"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] Claude inbox pull refuses a divergent clone" {
+    write_claude_workflow_mocks
+    create_existing_clone
+    export MOCK_GIT_HEAD=local-commit MOCK_GIT_UPSTREAM_HEAD=remote-commit MOCK_GIT_FAIL_PULL=1
+
+    run_inbox_pull
+    [ "${status}" -ne 0 ]
+    [[ "${output}" == *"could not fast-forward"* ]]
+    [ "${MOCK_GIT_HEAD}" = "local-commit" ]
+    run grep -F -- "pull --ff-only" "${MOCK_GIT_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    run grep -Fx -- "Inbox clone could not fast-forward origin/main; local commits were not reset." "$(inbox_pull_state_dir)/inbox-pull.log"
+    [ "${status}" -eq 0 ]
+    [ ! -e "$(inbox_pull_state_dir)/inbox-pull.lock" ]
+}
+
+@test "[common] Claude inbox pull refuses an unexpected origin" {
+    write_claude_workflow_mocks
+    create_existing_clone
+    "${REAL_GIT_BIN}" -C "$(inbox_plugin_dir)" config remote.origin.url https://example.invalid/inbox
+
+    run_inbox_pull
+    [ "${status}" -ne 0 ]
+    [[ "${output}" == *"origin is not the expected repository"* ]]
+    run grep -F -- "pull --ff-only" "${MOCK_GIT_CALLS_PATH}"
+    [ "${status}" -ne 0 ]
+}
+
+@test "[common] Claude inbox pull skips when the lock is held" {
+    write_claude_workflow_mocks
+    create_existing_clone
+    mkdir -p "$(inbox_pull_state_dir)/inbox-pull.lock"
+
+    run_inbox_pull
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+    [ ! -e "${MOCK_GIT_CALLS_PATH}" ]
+}
+
+@test "[common] Claude inbox pull refuses a clone below its root" {
+    write_claude_workflow_mocks
+    create_existing_clone
+    export MOCK_GIT_PREFIX=nested/
+
+    run_inbox_pull
+    [ "${status}" -ne 0 ]
+    [[ "${output}" == *"not the root of its own Git clone"* ]]
+    run grep -F -- "pull --ff-only" "${MOCK_GIT_CALLS_PATH}"
+    [ "${status}" -ne 0 ]
+}
+
 function file_mode() {
     if stat -f '%Lp' "$1" > /dev/null 2>&1; then
         stat -f '%Lp' "$1"
@@ -171,7 +293,7 @@ function file_mode() {
     [ -d "$(inbox_plugin_dir)/.git" ]
 
     run cat "${MOCK_GIT_CALLS_PATH}"
-    [ "${lines[0]}" = "clone --branch main --single-branch https://github.com/shunk031/inbox $(inbox_plugin_dir)" ]
+    [ "${lines[0]}" = "clone --quiet --branch main --single-branch https://github.com/shunk031/inbox $(inbox_plugin_dir)" ]
 
     run cat "${MOCK_CLAUDE_CALLS_PATH}"
     [ "${lines[0]}" = "plugin list --json" ]
@@ -184,7 +306,7 @@ function file_mode() {
 
     run_claude_plugin_script
     [ "${status}" -eq 0 ]
-    run grep -Fx -- "-C $(inbox_plugin_dir) pull --ff-only" "${MOCK_GIT_CALLS_PATH}"
+    run grep -Fx -- "-C $(inbox_plugin_dir) pull --ff-only --quiet" "${MOCK_GIT_CALLS_PATH}"
     [ "${status}" -eq 0 ]
 }
 
@@ -212,6 +334,8 @@ GIT_CONFIG
 
     run_claude_plugin_script
     [ "${status}" -ne 0 ]
+    run grep -Fx -- "Inbox clone must be on main; refusing to update." "$(inbox_pull_state_dir)/inbox-pull.log"
+    [ "${status}" -eq 0 ]
     [ ! -e "${MOCK_CLAUDE_CALLS_PATH}" ]
 }
 
@@ -222,6 +346,8 @@ GIT_CONFIG
 
     run_claude_plugin_script
     [ "${status}" -ne 0 ]
+    run grep -Fx -- "Inbox clone origin is not the expected repository; refusing to update." "$(inbox_pull_state_dir)/inbox-pull.log"
+    [ "${status}" -eq 0 ]
     [ ! -e "${MOCK_CLAUDE_CALLS_PATH}" ]
 }
 
@@ -232,6 +358,8 @@ GIT_CONFIG
 
     run_claude_plugin_script
     [ "${status}" -ne 0 ]
+    run grep -Fx -- "Inbox clone must track origin/main; refusing to update." "$(inbox_pull_state_dir)/inbox-pull.log"
+    [ "${status}" -eq 0 ]
     [ ! -e "${MOCK_CLAUDE_CALLS_PATH}" ]
 }
 
@@ -252,7 +380,7 @@ GIT_CONFIG
 
     run_claude_plugin_script
     [ "${status}" -ne 0 ]
-    run grep -Fx -- "-C $(inbox_plugin_dir) pull --ff-only" "${MOCK_GIT_CALLS_PATH}"
+    run grep -Fx -- "-C $(inbox_plugin_dir) pull --ff-only --quiet" "${MOCK_GIT_CALLS_PATH}"
     [ "${status}" -eq 0 ]
     [ ! -e "${MOCK_CLAUDE_CALLS_PATH}" ]
 }
@@ -478,7 +606,7 @@ MOCK_CP
     [ "${output}" = "1" ]
     run find "${state_dir}/inbox-store-backup" -mindepth 1 -maxdepth 1 -type d
     [ "${#lines[@]}" -eq 1 ]
-    run grep -Fc -- "-C $(inbox_plugin_dir) pull --ff-only" "${MOCK_GIT_CALLS_PATH}"
+    run grep -Fc -- "-C $(inbox_plugin_dir) pull --ff-only --quiet" "${MOCK_GIT_CALLS_PATH}"
     [ "${output}" = "2" ]
 }
 

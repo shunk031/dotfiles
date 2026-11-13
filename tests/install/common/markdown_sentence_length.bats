@@ -71,53 +71,186 @@ run_github_body_hook() {
     run --separate-stderr "${HOOK}" pre "${client}" <<< "${payload}"
 }
 
-@test "blocks an overlong gh pr create --body before Bash runs" {
-    local long_sentence command reason
+run_github_body_file_hook() {
+    local body="$1"
+    local client="${2:-claude}"
+    local body_file="${BATS_TEST_TMPDIR}/github-body.md"
 
-    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
-    command="gh pr create --body '${long_sentence}'"
-
-    run_github_body_hook "${command}"
-    [ "${status}" -eq 0 ]
-    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
-    reason="$(jq -r '.reason' <<< "${output}")"
-    [[ "${reason}" == "The edited Markdown contains 1 sentence(s) over the limit."* ]]
-    [[ "${reason}" == *"Length: 201 codepoints; limit: 200"* ]]
+    printf '%s\n' "${body}" > "${body_file}"
+    run_github_body_hook "gh issue create --title t --body-file '${body_file}'" "${client}"
 }
 
-@test "blocks attached -b values containing equals signs like pflag" {
+assert_github_command_denied() {
+    local problem="$1"
+
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "$(jq -r '.reason' <<< "${output}")" == *"${problem}"* ]]
+    [[ "$(jq -r '.reason' <<< "${output}")" == *"--body-file /absolute/path/body.md"* ]]
+}
+
+@test "denies inline GitHub text of any length" {
+    local command
+
+    for command in \
+        "gh pr create --title t --body 'Short.'" \
+        "gh pr create -b'Short.'" \
+        "gh pr create -db'Short.'" \
+        "gh pr edit 42 --body=Short." \
+        "gh pr comment 42 --body 'Short.'" \
+        "gh pr review 42 --comment -b 'Short.'" \
+        "gh issue comment 42 -b 'Short.'"; do
+        run_github_body_hook "${command}"
+        assert_github_command_denied "it passes inline text with --body or -b"
+        run_github_body_hook "${command}" codex
+        assert_github_command_denied "it passes inline text with --body or -b"
+    done
+}
+
+@test "denies GitHub bodies from other sources or without a body file" {
+    local command
+
+    for command in "gh pr create --fill" "gh pr create -f" "gh pr create --web" \
+        "gh issue create --template bug" "gh issue comment 42 --editor" "gh pr create --recover state.json"; do
+        run_github_body_hook "${command}"
+        assert_github_command_denied "it takes the body from"
+    done
+
+    for command in "gh issue comment 42 -F-" "gh pr edit 42 --body-file -"; do
+        run_github_body_hook "${command}"
+        assert_github_command_denied "it reads the body from standard input"
+    done
+
+    for command in "gh pr create --title t" "gh issue comment 42" "gh pr create -- '-bShort.'"; do
+        run_github_body_hook "${command}"
+        assert_github_command_denied "it has no --body-file"
+    done
+
+    run_github_body_hook "gh pr create --unknown value --body-file body.md"
+    assert_github_command_denied "the hook does not recognize the option --unknown"
+
+    for command in "gh pr create --title t --body-file missing.md" "gh pr comment 42 -F /dev/stdin"; do
+        run_github_body_hook "${command}"
+        assert_github_command_denied "is not a regular file"
+    done
+}
+
+@test "denies the compound command that published an unchecked PR body" {
+    local body_file="${BATS_TEST_TMPDIR}/pr-body.md"
+    local item command
+
+    item="$(node -e 'process.stdout.write("- " + ("Long list item sentence. ").repeat(30))')"
+    printf '## Changes\n\n%s\n' "${item}" > "${body_file}"
+    command="D=${BATS_TEST_TMPDIR}; cd \"${BATS_TEST_TMPDIR}\" && su=\$(gh pr create -R o/r --base main --head x --title \"feat(x): y\" --body-file \"\$D/pr-body.md\") && echo \"\$su\""
+
+    for client in claude codex; do
+        run_github_body_hook "${command}" "${client}"
+        assert_github_command_denied "its arguments need shell expansion"
+    done
+
+    run_github_body_hook "gh pr create -R o/r --head x --title t --body-file '${body_file}'"
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "${output}" == *"Fix: split the paragraph or list item."* ]]
+}
+
+@test "denies gh calls in aliases, repo flag positions, and shell forms bash runs" {
+    local command
+
+    for command in \
+        "gh pr new --title t --body 'Short.'" \
+        "gh -R o/r pr comment 42 --body 'Short.'" \
+        "gh pr --repo=o/r comment 42 --body 'Short.'" \
+        "gh -R \"o/r\" pr comment 42 --body 'Short.'" \
+        "gh pr --repo='o/r' comment 42 --body 'Short.'" \
+        "gh -Ro/r pr comment 42 --body 'Short.'" \
+        "echo \$'don\\'t' && gh pr comment 42 --body 'Short.'" \
+        "echo \"\$((1<<3))\"
+gh pr comment 42 --body 'Short.'" \
+        "(( x <<= 2 ))
+gh pr comment 42 --body 'Short.'" \
+        "cat <<\\EOF
+hi
+EOF
+gh pr comment 42 --body 'Short.'" \
+        "jq . <<< \"\$json\"
+gh pr comment 42 --body 'Short.'" \
+        "n=\$((1<<3))
+gh pr comment 42 --body 'Short.'" \
+        "# don't forget
+gh pr comment 42 --body 'Short.'" \
+        "echo \"\`gh pr comment 42 --body 'Short.'\`\"" \
+        "cat <<EOF
+\$(gh pr comment 42 --body 'Short.')
+EOF"; do
+        run_github_body_hook "${command}"
+        assert_github_command_denied "it passes inline text with --body or -b"
+    done
+}
+
+@test "denies close and reopen comments and allows them without one" {
+    local command
+
+    for command in "gh pr close 42 --comment 'Superseded.'" "gh issue close 42 -c 'Done.'" \
+        "gh pr close 42 -dc 'Done.'" "gh issue reopen 42 --comment=Again." "gh pr close \"\$n\" --comment x"; do
+        run_github_body_hook "${command}"
+        assert_github_command_denied "it posts a comment with --comment"
+        [[ "$(jq -r '.reason' <<< "${output}")" == *"--body-file /absolute/path/body.md"* ]]
+    done
+
+    for command in "gh pr close 42 -d" "gh issue close 42 -r completed" "gh pr close \"\$n\"" "gh pr reopen 42"; do
+        run_github_body_hook "${command}"
+        [ "${status}" -eq 0 ]
+        [ -z "${output}" ]
+    done
+}
+
+@test "denies a body file written or named earlier in the same command" {
+    local body_file="${BATS_TEST_TMPDIR}/same-command.md"
+    local command
+
+    printf 'Old short body.\n' > "${body_file}"
+    command="cat > '${body_file}' <<'EOF'
+New body.
+EOF
+gh pr create --title t --body-file '${body_file}'"
+    run_github_body_hook "${command}"
+    assert_github_command_denied "the command names the body file before gh"
+
+    run_github_body_hook "cd /tmp && gh pr create --title t --body-file same-command.md"
+    assert_github_command_denied "the command changes directory, so the --body-file path must be absolute"
+}
+
+@test "lints a literal body file inside a compound command" {
+    local body_file="${BATS_TEST_TMPDIR}/compound.md"
     local long_sentence command
 
-    long_sentence="$(node -e 'process.stdout.write("x".repeat(199) + "=.")')"
+    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
+    printf '%s\n' "${long_sentence}" > "${body_file}"
+    command="git push -u origin x && gh pr create -R o/r --head x --title \"feat(x): y\" \\
+    --body-file '${body_file}' 2>&1 | tail -1"
 
-    for command in "gh pr create -b'${long_sentence}'" "gh pr create -b='${long_sentence}'"; do
-        run_github_body_hook "${command}"
+    for client in claude codex; do
+        run_github_body_hook "${command}" "${client}"
         [ "${status}" -eq 0 ]
         [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
         [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
     done
-}
 
-@test "does not treat a title value beginning with a body shorthand as a body" {
-    local long_sentence command
-
-    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
-    command="gh pr create -t '-b${long_sentence}'"
-
+    printf 'Short body.\n' > "${body_file}"
     run_github_body_hook "${command}"
     [ "${status}" -eq 0 ]
     [ -z "${output}" ]
 }
 
-@test "blocks overlong gh body files through --body-file and -F" {
+@test "blocks overlong gh body files through --body-file and -F forms" {
     local body_file="${BATS_TEST_TMPDIR}/github=body.md"
     local long_sentence command
 
     long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
     printf '%s\n' "${long_sentence}" > "${body_file}"
 
-    for option in --body-file -F; do
-        command="gh issue comment 42 ${option} '${body_file}'"
+    for command in "gh issue comment 42 --body-file '${body_file}'" "gh issue comment 42 -F '${body_file}'" \
+        "gh issue comment 42 -F'${body_file}'" "gh pr review 42 --request-changes -F '${body_file}'"; do
         run_github_body_hook "${command}" codex
         [ "${status}" -eq 0 ]
         [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
@@ -125,90 +258,48 @@ run_github_body_hook() {
     done
 }
 
-@test "blocks an overlong gh issue comment body passed with attached -F path containing equals" {
-    local body_file="${BATS_TEST_TMPDIR}/github=body.md"
-    local long_sentence command
+@test "allows gh commands that post no text or only mention gh in prose" {
+    local body_file="${BATS_TEST_TMPDIR}/short.md"
+    local command
 
-    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
-    printf '%s\n' "${long_sentence}" > "${body_file}"
-    command="gh issue comment 42 -F'${body_file}'"
+    printf 'Short body.\n' > "${body_file}"
 
-    run_github_body_hook "${command}"
-    [ "${status}" -eq 0 ]
-    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
-    [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
-}
-
-@test "blocks an overlong gh pr create body passed in a short flag cluster" {
-    local long_sentence command
-
-    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
-    command="gh pr create -db'${long_sentence}'"
-
-    run_github_body_hook "${command}"
-    [ "${status}" -eq 0 ]
-    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
-    [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
-}
-
-@test "fails open for unclassified gh options and options after --" {
-    local long_sentence
-
-    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
-    run_github_body_hook "gh pr create --unknown value --body '${long_sentence}'"
-    [ "${status}" -eq 0 ]
-    [ -z "${output}" ]
-
-    run_github_body_hook "gh pr create -- '-b${long_sentence}'"
-    [ "${status}" -eq 0 ]
-    [ -z "${output}" ]
-}
-
-@test "honors parsed help boolean values before linting GitHub bodies" {
-    local long_sentence option command
-
-    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
-
-    for option in --help=false -h=false; do
-        command="gh pr create ${option} --body '${long_sentence}'"
-        run_github_body_hook "${command}"
-        [ "${status}" -eq 0 ]
-        [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
-        [[ "${output}" == *"Length: 201 codepoints; limit: 200"* ]]
-    done
-
-    for option in --help=true -h=true --help -h; do
-        command="gh pr create ${option} --body '${long_sentence}'"
+    for command in \
+        "gh pr edit 42 --add-label rebase >/dev/null" \
+        "gh pr review 42 --approve" \
+        "gh issue comment 42 --delete-last --yes" \
+        "gh pr edit --help | head -5" \
+        "gh pr create --help=true --body 'Short.'" \
+        "gh pr create -t '-bShort.' --body-file '${body_file}'" \
+        "gh issue comment 42 --attach shot.png" \
+        "gh pr create --title t --body-file '${body_file}' # it's linted" \
+        "git commit -m 'fix: gh pr create --body parsing'" \
+        "herdr agent send w 'Open it with \`gh pr create --body-file <draft>\`.'" \
+        "# gh pr create --body 'Short.'" \
+        "cat > notes.txt <<'EOF'
+gh pr create --body 'Short.'
+EOF"; do
         run_github_body_hook "${command}"
         [ "${status}" -eq 0 ]
         [ -z "${output}" ]
     done
+
+    run_github_body_hook "gh pr create --help=false --body 'Short.'"
+    assert_github_command_denied "it passes inline text with --body or -b"
 }
 
-@test "fails open for gh issue comment with attached -F- stdin body" {
-    run_github_body_hook "gh issue comment 42 -F-"
-    [ "${status}" -eq 0 ]
-    [ -z "${output}" ]
-}
-
-@test "allows a passing GitHub body" {
-    local sentence command
-
-    sentence="$(node -e 'process.stdout.write("x".repeat(199) + ".")')"
-    command="gh pr edit 42 --body '${sentence}'"
-
-    run_github_body_hook "${command}"
+@test "allows a passing GitHub body file" {
+    run_github_body_file_hook "$(node -e 'process.stdout.write("x".repeat(199) + ".")')"
     [ "${status}" -eq 0 ]
     [ -z "${output}" ]
 }
 
 @test "blocks a GitHub prose paragraph over 600 codepoints" {
-    local paragraph command reason prefix
+    local paragraph reason prefix
 
     paragraph="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(6) + "😀")')"
-    command="gh pr create --body '${paragraph}'"
 
-    run_github_body_hook "${command}"
+    run_github_body_file_hook "${paragraph}"
     [ "${status}" -eq 0 ]
     [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
     reason="$(jq -r '.reason' <<< "${output}")"
@@ -219,109 +310,80 @@ run_github_body_hook() {
 }
 
 @test "allows a long GitHub list item when URLs and inline code make it long" {
-    local prose inline_code url_item code_item item command
+    local prose inline_code item
 
     prose="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(5) + "p".repeat(89) + ".")')"
     inline_code="$(node -e 'process.stdout.write(String.fromCharCode(96) + "c".repeat(20) + String.fromCharCode(96))')"
-    url_item="- ${prose} https://example.com/a-long-url"
-    code_item="- ${prose} ${inline_code}"
 
-    for item in "${url_item}" "${code_item}"; do
-        command="gh issue create --body '${item}'"
-        run_github_body_hook "${command}"
+    for item in "- ${prose} https://example.com/a-long-url" "- ${prose} ${inline_code}"; do
+        run_github_body_file_hook "${item}"
         [ "${status}" -eq 0 ]
         [ -z "${output}" ]
     done
 }
 
 @test "excludes fenced code from GitHub paragraph length" {
-    local prose code body_file command
+    local prose code
 
     prose="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(5) + "p".repeat(89) + ".")')"
     code="$(node -e 'process.stdout.write("c".repeat(50))')"
-    body_file="$BATS_TEST_TMPDIR/long-fenced-code.md"
-    {
-        printf '%s\n' "$prose"
-        printf '\140\140\140text\n'
-        printf '%s\n' "$code"
-        printf '\140\140\140\n'
-    } > "$body_file"
-    command="gh issue create --body-file '$body_file'"
 
-    run_github_body_hook "$command"
-    [ "$status" -eq 0 ]
-    [ -z "$output" ]
+    run_github_body_file_hook "${prose}
+\`\`\`text
+${code}
+\`\`\`"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
 }
 
 @test "allows long HTML and Markdown tables in GitHub bodies" {
-    local cell html_table body_file command
+    local cell rows
 
     cell="$(node -e 'process.stdout.write("t".repeat(140) + ".")')"
-    html_table="<table><tr><td>${cell}</td><td>${cell}</td><td>${cell}</td><td>${cell}</td><td>${cell}</td></tr></table>"
-    command="gh issue create --body '${html_table}'"
-    run_github_body_hook "${command}"
+    run_github_body_file_hook "<table><tr><td>${cell}</td><td>${cell}</td><td>${cell}</td><td>${cell}</td><td>${cell}</td></tr></table>"
     [ "${status}" -eq 0 ]
     [ -z "${output}" ]
 
-    body_file="${BATS_TEST_TMPDIR}/long-markdown-table.md"
-    {
-        printf '| value |\n| --- |\n'
-        for _ in 1 2 3 4 5; do
-            printf '| %s |\n' "${cell}"
-        done
-    } > "${body_file}"
-    command="gh issue create --body-file '${body_file}'"
-    run_github_body_hook "${command}"
+    rows="$(for _ in 1 2 3 4 5; do printf '| %s |\n' "${cell}"; done)"
+    run_github_body_file_hook "| value |
+| --- |
+${rows}"
     [ "${status}" -eq 0 ]
     [ -z "${output}" ]
 }
 
 @test "allows a GitHub prose paragraph of 599 codepoints" {
-    local paragraph command
-
-    paragraph="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(5) + "p".repeat(99))')"
-    command="gh issue edit 42 --body '${paragraph}'"
-
-    run_github_body_hook "${command}"
+    run_github_body_file_hook "$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(5) + "p".repeat(99))')"
     [ "${status}" -eq 0 ]
     [ -z "${output}" ]
 }
 
 @test "allows a 301-codepoint paragraph after a 301-codepoint heading" {
-    local heading paragraph body command
+    local heading paragraph
 
     heading="$(node -e 'process.stdout.write(("h".repeat(98) + ". ").repeat(3) + "h")')"
     paragraph="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(3) + "p")')"
-    body="# ${heading}
-${paragraph}"
-    command="gh pr create --body '${body}'"
 
-    run_github_body_hook "${command}"
+    run_github_body_file_hook "# ${heading}
+${paragraph}"
     [ "${status}" -eq 0 ]
     [ -z "${output}" ]
 }
 
 @test "allows a long GitHub HTML comment" {
-    local comment command
-
-    comment="$(node -e 'process.stdout.write("c".repeat(700))')"
-    command="gh issue create --body '<!-- ${comment} -->'"
-
-    run_github_body_hook "${command}"
+    run_github_body_file_hook "<!-- $(node -e 'process.stdout.write("c".repeat(700))') -->"
     [ "${status}" -eq 0 ]
     [ -z "${output}" ]
 }
 
 @test "counts a lazy continuation as part of its GitHub list item" {
-    local first continuation body command
+    local first continuation
 
     first="$(node -e 'process.stdout.write(("l".repeat(98) + ". ").repeat(3) + "l")')"
     continuation="$(node -e 'process.stdout.write(("c".repeat(98) + ". ").repeat(3) + "c")')"
-    body="- ${first}
-${continuation}"
-    command="gh issue create --body '${body}'"
 
-    run_github_body_hook "${command}"
+    run_github_body_file_hook "- ${first}
+${continuation}"
     [ "${status}" -eq 0 ]
     [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
     [[ "${output}" == *"Length: 603 codepoints; limit: 600"* ]]
@@ -329,19 +391,17 @@ ${continuation}"
 }
 
 @test "does not merge a paragraph after a GitHub list item ending in fenced code" {
-    local first paragraph fence body command
+    local first paragraph fence
 
     first="$(node -e 'process.stdout.write(("l".repeat(98) + ". ").repeat(3) + "l")')"
     paragraph="$(node -e 'process.stdout.write(("p".repeat(98) + ". ").repeat(3) + "p")')"
     fence="$(printf '\140\140\140')"
-    body="- ${first}
+
+    run_github_body_file_hook "- ${first}
   ${fence}text
   code
   ${fence}
 ${paragraph}"
-    command="gh issue create --body '${body}'"
-
-    run_github_body_hook "${command}"
     [ "${status}" -eq 0 ]
     [ -z "${output}" ]
 }
@@ -361,37 +421,11 @@ ${paragraph}"
     [ -z "${output}" ]
 }
 
-@test "does not expand a tilde after equals in a GitHub body argument" {
-    local home="${BATS_TEST_TMPDIR}/home-directory-that-would-expand" sentence command
-
-    mkdir -p "${home}"
-    sentence="~/$(node -e 'process.stdout.write("x".repeat(190) + ".")')"
-    [ "${#sentence}" -eq 193 ]
-    command="gh pr create --body=${sentence}"
-
-    HOME="${home}" run_github_body_hook "${command}"
-    [ "${status}" -eq 0 ]
-    [ -z "${output}" ]
-}
-
 @test "allows a non-gh Bash command unchanged" {
     local long_sentence command
 
     long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
     command="printf '%s\\n' '${long_sentence}'"
-
-    run_github_body_hook "${command}"
-    [ "${status}" -eq 0 ]
-    [ -z "${output}" ]
-}
-
-@test "fails open when the gh body command needs shell expansion" {
-    local body_file="${BATS_TEST_TMPDIR}/github-body.md"
-    local long_sentence command
-
-    long_sentence="$(node -e 'process.stdout.write("x".repeat(200) + ".")')"
-    printf '%s\n' "${long_sentence}" > "${body_file}"
-    command="gh issue create --body \"\$(cat ${body_file})\""
 
     run_github_body_hook "${command}"
     [ "${status}" -eq 0 ]

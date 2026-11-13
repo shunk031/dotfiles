@@ -6,10 +6,12 @@
 #   Scans the local Herdr server and every enabled `herdr machine list` machine
 #   for blocked agents, inbox tokens, leftover input in root agents'
 #   input boxes, agents stopped by an API error, and finished or orphaned panes.
-#   An agent counts as stopped when it is neither working nor blocked and the last
+#   An agent of any status counts as stopped when the last
 #   `HERDR_META_PATROL_ERROR_LINES` lines of its pane hold a Codex or Claude Code
 #   error line about a retry limit, 429, rate limit, usage limit, spending limit,
-#   budget, or quota. Each executable in
+#   budget, or quota, or a Codex `Reconnecting... N/M` status line with a retry
+#   limit or 429 on it or the two lines below. Herdr can keep reporting such an
+#   agent as working. A Claude Code error line that is still retrying is skipped. Each executable in
 #   `HERDR_META_PATROL_FINDINGS_DIR` also runs once per patrol, and each line it
 #   prints is treated as a finding. Findings go to `latest.txt`.
 #   A root is an agent listed in `${XDG_STATE_HOME:-$HOME/.local/state}/meta/roots.tsv`
@@ -53,6 +55,10 @@ findings_dir="${HERDR_META_PATROL_FINDINGS_DIR:-${XDG_CONFIG_HOME:-${HOME}/.conf
 # `⎿` result line that starts with one of these phrases. Agents quote error
 # texts, tool output, and file names that contain the same words in other lines.
 api_error_line='^(■ |[[:space:]]*⎿[[:space:]]+(API Error|Claude usage limit|[0-9]+-hour limit|You.{1,3}ve hit your|Weekly limit|Session limit))'
+# Codex shows this status line while it retries a failed request; a retry limit
+# or 429 on it or the two lines below means the agent is stuck even while Herdr
+# reports it as working.
+api_reconnect_line='^[[:space:]]*[^[:alnum:][:space:]]+ Reconnecting\.\.\. [0-9]+/[0-9]+([[:space:]]+\(|[[:space:]]*$)'
 # Error texts within those lines that end an agent's turn.
 api_error_pattern='exceeded retry limit|429|Too Many Requests|rate[ _-]?limit|usage limit|hit your ([a-z]+ )?limit|limit reached|spend(ing)?[ _-]limit[ _-]exceeded|budget[ _-](exceeded|exhausted)|insufficient_quota|quota[ _-]exceeded'
 machine=local
@@ -139,8 +145,14 @@ function write_digest_records() {
 # @description Print why a pane's text shows an agent stopped by an API error, or nothing.
 # @stdin Recent pane text.
 function api_error_cause() {
-    local matched cause suffix=""
-    matched="$(LC_ALL=C grep -E -- "${api_error_line}" | LC_ALL=C grep -iE -- "${api_error_pattern}")" || return 0
+    local text matched cause suffix=""
+    text="$(cat)"
+    # A Claude Code line that is still retrying has not stopped the agent yet.
+    matched="$(LC_ALL=C grep -E -- "${api_error_line}" <<< "${text}" | LC_ALL=C grep -v -- 'Retrying in' | LC_ALL=C grep -iE -- "${api_error_pattern}")" || matched=""
+    if [[ -z "${matched}" ]]; then
+        matched="$(R="${api_reconnect_line}" LC_ALL=C awk '$0 ~ ENVIRON["R"] { n = 3 } n > 0 { print; n-- }' <<< "${text}" | LC_ALL=C grep -iE -- 'exceeded retry limit|429|Too Many Requests')" || matched=""
+    fi
+    [[ -n "${matched}" ]] || return 0
     if LC_ALL=C grep -qiE -- '429|Too Many Requests' <<< "${matched}"; then
         cause='429 '
     elif LC_ALL=C grep -qiE -- 'usage limit|hit your|limit reached' <<< "${matched}"; then
@@ -179,8 +191,7 @@ function scan_machine() {
         inbox="$(jq -r '.tokens.inbox // empty' <<< "${agent}")"
         has_inbox="$(jq -r '(.tokens // {}) | has("inbox")' <<< "${agent}")"
         status="$(jq -r '.agent_status // empty' <<< "${agent}")"
-        # A blocked agent already has its own finding line.
-        if [[ -n "${pane}" && "${status}" != working && "${status}" != blocked ]]; then
+        if [[ -n "${pane}" ]]; then
             cause="$(hr pane read "${pane}" --source recent --lines "${error_lines}" --format text 2> /dev/null | api_error_cause)" || cause=""
             if [[ -n "${cause}" ]]; then
                 if [[ "${a}" == - ]]; then label="${pane}"; else label="${a}"; fi

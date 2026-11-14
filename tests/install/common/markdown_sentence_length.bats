@@ -322,7 +322,7 @@ gh pr create --title t --body-file '${body_file}'"
 @test "allows template-only PR bodies from every documented template location and casing" {
     local repo_dir="${BATS_TEST_TMPDIR}/target-repo"
     local body_file="${BATS_TEST_TMPDIR}/template-only.md"
-    local template_path template_file
+    local template_path template_file template_dir
 
     setup_github_body_repo "${repo_dir}"
     for template_path in \
@@ -341,6 +341,11 @@ gh pr create --title t --body-file '${body_file}'"
         [ "${status}" -eq 0 ]
         [ -z "${output}" ]
         rm "${template_file}"
+        template_dir="$(dirname "${template_file}")"
+        while [ "${template_dir}" != "${repo_dir}" ]; do
+            rmdir "${template_dir}" 2> /dev/null || break
+            template_dir="$(dirname "${template_dir}")"
+        done
     done
 }
 

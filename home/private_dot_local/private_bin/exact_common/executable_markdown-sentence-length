@@ -332,8 +332,23 @@ async function lintTexts(records, includeGithubBody = false) {
             for (const kind of ["baseline", "current"]) {
                 const filePath = path.join(directory, `${index}-${kind}.md`);
                 inputFiles.push(filePath);
-                sources.set(filePath, { index, kind, content: record[kind] });
+                sources.set(filePath, {
+                    index,
+                    kind,
+                    content: record[kind],
+                    overrideBodyLength: kind === "current" && record.bodyLengthText !== undefined,
+                });
                 writes.push(fs.writeFile(filePath, record[kind]));
+                if (kind === "current" && record.bodyLengthText !== undefined) {
+                    const bodyLengthPath = path.join(directory, `${index}-body-length.md`);
+                    inputFiles.push(bodyLengthPath);
+                    sources.set(bodyLengthPath, {
+                        index,
+                        kind: "bodyLength",
+                        content: record.bodyLengthText,
+                    });
+                    writes.push(fs.writeFile(bodyLengthPath, record.bodyLengthText));
+                }
             }
         });
         await Promise.all(writes);
@@ -403,9 +418,15 @@ async function lintTexts(records, includeGithubBody = false) {
                         ) {
                             throw new Error("textlint body-length output was invalid");
                         }
-                        if (source.kind === "current") {
+                        if (
+                            source.kind === "bodyLength" ||
+                            (source.kind === "current" && !source.overrideBodyLength)
+                        ) {
                             diagnostics[source.index].bodyLength = diagnostic.bodyLength;
                         }
+                        continue;
+                    }
+                    if (source.kind === "bodyLength") {
                         continue;
                     }
                     if (
@@ -421,6 +442,9 @@ async function lintTexts(records, includeGithubBody = false) {
                         length: diagnostic.length,
                         limit: GITHUB_BODY_BLOCK_LIMIT,
                     });
+                    continue;
+                }
+                if (source.kind === "bodyLength") {
                     continue;
                 }
                 if (message.ruleId !== RULE) {
@@ -933,9 +957,365 @@ function githubTextCalls(command) {
                     problem: "the command names the body file before gh, so it may change the file after this check",
                 };
             }
-            return call;
+            return call ? { ...call, repository: githubRepositoryArgument(args) } : call;
         })
         .filter(Boolean);
+}
+
+function githubRepositoryArgument(args) {
+    for (let index = 0; index < args.length; index += 1) {
+        const option = args[index];
+        if (option === "--") {
+            break;
+        }
+        if (option === "-R" || option === "--repo") {
+            return args[index + 1] || null;
+        }
+        if (option.startsWith("--repo=")) {
+            return option.slice("--repo=".length) || null;
+        }
+        if (option.startsWith("-R")) {
+            return option.slice(option[2] === "=" ? 3 : 2) || null;
+        }
+    }
+    return process.env.GH_REPO || null;
+}
+
+function githubRepositoryAddress(value) {
+    if (typeof value !== "string") {
+        return null;
+    }
+    let hostname = process.env.GH_HOST || "github.com";
+    let repositoryPath = value.trim();
+    let hasExplicitHostname = false;
+    const scpRemote = /^[^@/]+@([^:/]+):(.+)$/u.exec(repositoryPath);
+    if (scpRemote) {
+        hostname = scpRemote[1];
+        repositoryPath = scpRemote[2];
+        hasExplicitHostname = true;
+    } else {
+        try {
+            const url = new URL(repositoryPath);
+            hostname = url.hostname;
+            repositoryPath = url.pathname;
+            hasExplicitHostname = true;
+        } catch {
+            repositoryPath = repositoryPath.replace(/^[^/]+:\/\//u, "");
+        }
+    }
+    repositoryPath = repositoryPath.replace(/\.git$/iu, "").replace(/\/+$/u, "");
+    const parts = repositoryPath.split("/").filter(Boolean);
+    if (parts.length >= 3 && !hasExplicitHostname) {
+        hostname = parts.at(-3);
+    }
+    if (parts.length < 2) {
+        return null;
+    }
+    return {
+        hostname: hostname.toLowerCase(),
+        owner: parts.at(-2),
+        name: parts.at(-1),
+    };
+}
+
+function repositoryAddressFromRemote(remoteUrl) {
+    const address = githubRepositoryAddress(remoteUrl);
+    return address ? `${address.hostname}/${address.owner}/${address.name}`.toLowerCase() : "";
+}
+
+function localGitRemotes(root) {
+    const result = spawnSync("git", ["-C", root, "remote", "-v"], {
+        encoding: "utf8",
+        timeout: 1000,
+    });
+    const remotes = new Map();
+    for (const line of (result.stdout || "").split("\n")) {
+        const match = /^(\S+)\s+(\S+)/u.exec(line);
+        if (match && !remotes.has(match[1])) {
+            remotes.set(match[1], repositoryAddressFromRemote(match[2]));
+        }
+    }
+    return remotes;
+}
+
+function localRepositoryRoot(directory, targetRepository) {
+    const rootResult = spawnSync("git", ["-C", directory, "rev-parse", "--show-toplevel"], {
+        encoding: "utf8",
+        timeout: 1000,
+    });
+    if (rootResult.status !== 0 || !rootResult.stdout.trim()) {
+        return null;
+    }
+    const root = path.resolve(rootResult.stdout.trim());
+    if (!targetRepository) {
+        return root;
+    }
+
+    const target = githubRepositoryAddress(targetRepository);
+    if (!target) {
+        return null;
+    }
+    const remotes = localGitRemotes(root);
+    const targetAddress = `${target.hostname}/${target.owner}/${target.name}`.toLowerCase();
+    return remotes.size > 0 && [...remotes.values()].includes(targetAddress) ? root : null;
+}
+
+async function caseInsensitiveChildDirectory(parent, name) {
+    const entries = await fs.readdir(parent, { withFileTypes: true }).catch(() => []);
+    const entry = entries.find(
+        (candidate) => candidate.isDirectory() && candidate.name.toLowerCase() === name.toLowerCase(),
+    );
+    return entry ? path.join(parent, entry.name) : null;
+}
+
+async function pullRequestTemplateContents(repositoryRoot) {
+    const locations = [
+        repositoryRoot,
+        ...(await Promise.all(
+            ["docs", ".github"].map((name) => caseInsensitiveChildDirectory(repositoryRoot, name)),
+        )),
+    ].filter(Boolean);
+
+    const templateFiles = new Set();
+    for (const directory of locations) {
+        const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
+        for (const entry of entries) {
+            if (entry.isFile() && /^pull_request_template\.(?:md|txt)$/iu.test(entry.name)) {
+                templateFiles.add(path.join(directory, entry.name));
+            }
+        }
+
+        const multipleTemplates = await caseInsensitiveChildDirectory(
+            directory,
+            "PULL_REQUEST_TEMPLATE",
+        );
+        if (!multipleTemplates) {
+            continue;
+        }
+        const multipleTemplateEntries = await fs
+            .readdir(multipleTemplates, { withFileTypes: true })
+            .catch(() => []);
+        for (const entry of multipleTemplateEntries) {
+            if (entry.isFile() && /\.(?:md|txt)$/iu.test(entry.name)) {
+                templateFiles.add(path.join(multipleTemplates, entry.name));
+            }
+        }
+    }
+
+    return Promise.all([...templateFiles].map((filePath) => fs.readFile(filePath, "utf8")));
+}
+
+function localDefaultBranchTemplateContents(repositoryRoot, targetRepository) {
+    const remotes = localGitRemotes(repositoryRoot);
+    let remoteName;
+    if (targetRepository) {
+        const target = githubRepositoryAddress(targetRepository);
+        if (!target) {
+            return null;
+        }
+        const targetAddress = `${target.hostname}/${target.owner}/${target.name}`.toLowerCase();
+        remoteName = [...remotes].find(([, address]) => address === targetAddress)?.[0];
+    } else if (remotes.has("origin")) {
+        remoteName = "origin";
+    }
+    if (!remoteName) {
+        return null;
+    }
+
+    const defaultRef = spawnSync(
+        "git",
+        ["-C", repositoryRoot, "symbolic-ref", "--quiet", `refs/remotes/${remoteName}/HEAD`],
+        { encoding: "utf8", timeout: 1000 },
+    );
+    if (defaultRef.status !== 0 || !defaultRef.stdout.trim()) {
+        return null;
+    }
+    const ref = defaultRef.stdout.trim();
+    const tree = spawnSync("git", ["-C", repositoryRoot, "ls-tree", "-r", "--name-only", ref], {
+        encoding: "utf8",
+        timeout: 1000,
+        maxBuffer: 8 * 1024 * 1024,
+    });
+    if (tree.status !== 0) {
+        return null;
+    }
+
+    const templates = [];
+    for (const templatePath of tree.stdout.split("\n").filter(isPullRequestTemplatePath)) {
+        const content = spawnSync("git", ["-C", repositoryRoot, "show", `${ref}:${templatePath}`], {
+            encoding: "utf8",
+            timeout: 1000,
+            maxBuffer: 8 * 1024 * 1024,
+        });
+        if (content.status === 0) {
+            templates.push(content.stdout);
+        }
+    }
+    return templates;
+}
+
+function githubApiJson(hostname, endpoint, cwd) {
+    const result = spawnSync("gh", ["api", "--hostname", hostname, endpoint], {
+        cwd,
+        encoding: "utf8",
+        timeout: 5000,
+        maxBuffer: 8 * 1024 * 1024,
+    });
+    if (result.status !== 0) {
+        return null;
+    }
+    try {
+        return JSON.parse(result.stdout);
+    } catch {
+        return null;
+    }
+}
+
+function isPullRequestTemplatePath(filePath) {
+    const parts = filePath.split("/").map((part) => part.toLowerCase());
+    const file = parts.at(-1);
+    if (!/\.(?:md|txt)$/u.test(file)) {
+        return false;
+    }
+    const defaultTemplate = file === "pull_request_template.md" || file === "pull_request_template.txt";
+    if (parts.length === 1 || (parts.length === 2 && ["docs", ".github"].includes(parts[0]))) {
+        return defaultTemplate;
+    }
+    const multipleTemplateDirectory =
+        (parts.length === 2 && parts[0] === "pull_request_template") ||
+        (parts.length === 3 && ["docs", ".github"].includes(parts[0]) && parts[1] === "pull_request_template");
+    return multipleTemplateDirectory;
+}
+
+async function remotePullRequestTemplateContents(repository, cwd) {
+    const address = githubRepositoryAddress(repository);
+    if (
+        !address ||
+        !/^[\w.-]+$/u.test(address.hostname) ||
+        !/^[\w.-]+$/u.test(address.owner) ||
+        !/^[\w.-]+$/u.test(address.name)
+    ) {
+        return [];
+    }
+    const repositoryPath = `repos/${address.owner}/${address.name}`;
+    const metadata = githubApiJson(address.hostname, repositoryPath, cwd);
+    if (typeof metadata?.default_branch !== "string" || !metadata.default_branch) {
+        return [];
+    }
+    const branch = encodeURIComponent(metadata.default_branch);
+    const tree = githubApiJson(
+        address.hostname,
+        `${repositoryPath}/git/trees/${branch}?recursive=1`,
+        cwd,
+    );
+    if (!Array.isArray(tree?.tree)) {
+        return [];
+    }
+    const templatePaths = tree.tree
+        .filter((entry) => entry.type === "blob" && isPullRequestTemplatePath(entry.path))
+        .map((entry) => entry.path);
+    const contents = [];
+    for (const templatePath of templatePaths) {
+        const encodedPath = templatePath.split("/").map(encodeURIComponent).join("/");
+        const file = githubApiJson(
+            address.hostname,
+            `${repositoryPath}/contents/${encodedPath}?ref=${branch}`,
+            cwd,
+        );
+        if (file?.encoding === "base64" && typeof file.content === "string") {
+            contents.push(Buffer.from(file.content, "base64").toString("utf8"));
+        }
+    }
+    return contents;
+}
+
+function markdownLineParts(line) {
+    const heading = /^([ \t]{0,3}#{1,6}[ \t]+)/u.exec(line);
+    if (heading) {
+        return { kind: "heading", marker: heading[0].trim(), prefix: heading[0], content: line.slice(heading[0].length) };
+    }
+    const list = /^([ \t]*(?:[-+*]|\d+[.)])[ \t]+)(?:\[[ xX]\][ \t]+)?/u.exec(line);
+    if (list) {
+        const marker = list[1].trim().match(/(?:[-+*]|\d+[.)])$/u)?.[0] || "";
+        return { kind: "list", marker, prefix: list[0], content: line.slice(list[0].length) };
+    }
+    const quote = /^([ \t]{0,3}(?:>[ \t]?)+)/u.exec(line);
+    if (quote) {
+        return { kind: "quote", marker: quote[0].replace(/[ \t]/gu, ""), prefix: quote[0], content: line.slice(quote[0].length) };
+    }
+    return { kind: "plain", marker: "", prefix: "", content: line };
+}
+
+function removeTemplateLine(bodyLine, templateLine) {
+    if (/^ {0,3}(?:`{3,}|~{3,})/u.test(templateLine) || templateLine.includes("|")) {
+        return null;
+    }
+    const bodyParts = markdownLineParts(bodyLine);
+    const templateParts = markdownLineParts(templateLine);
+    if (
+        bodyParts.kind !== templateParts.kind ||
+        bodyParts.marker !== templateParts.marker ||
+        !templateParts.content.trim()
+    ) {
+        return null;
+    }
+    const matchAt = bodyParts.content.indexOf(templateParts.content);
+    if (matchAt < 0) {
+        return null;
+    }
+    const content =
+        bodyParts.content.slice(0, matchAt) +
+        bodyParts.content.slice(matchAt + templateParts.content.length);
+    return bodyParts.prefix + (content.trim() ? content : "<!-- template boilerplate -->");
+}
+
+function removePullRequestTemplateProse(body, templates) {
+    const bodyLines = body.replace(/\r\n?/gu, "\n").split("\n");
+    const maximumLineCounts = new Map();
+    for (const template of templates) {
+        const counts = new Map();
+        for (const line of template.replace(/\r\n?/gu, "\n").split("\n")) {
+            if (line.trim()) {
+                counts.set(line, (counts.get(line) || 0) + 1);
+            }
+        }
+        for (const [line, count] of counts) {
+            maximumLineCounts.set(line, Math.max(maximumLineCounts.get(line) || 0, count));
+        }
+    }
+
+    for (const [templateLine, count] of maximumLineCounts) {
+        for (let occurrence = 0; occurrence < count; occurrence += 1) {
+            const index = bodyLines.findIndex((line) => removeTemplateLine(line, templateLine) !== null);
+            if (index < 0) {
+                break;
+            }
+            bodyLines[index] = removeTemplateLine(bodyLines[index], templateLine);
+        }
+    }
+    return bodyLines.join("\n");
+}
+
+async function githubBodyLengthText(event, call, body) {
+    if (!call.name.startsWith("pr ") || !GITHUB_BODY_TOTAL_LIMIT_COMMANDS.has(call.name)) {
+        return undefined;
+    }
+    const cwd = path.resolve(event.cwd || process.cwd());
+    const repositoryRoot = localRepositoryRoot(cwd, call.repository);
+    let templates;
+    if (repositoryRoot) {
+        templates = localDefaultBranchTemplateContents(repositoryRoot, call.repository);
+        if (templates === null) {
+            templates = call.repository
+                ? await remotePullRequestTemplateContents(call.repository, cwd)
+                : await pullRequestTemplateContents(repositoryRoot);
+        }
+    } else {
+        templates = call.repository
+            ? await remotePullRequestTemplateContents(call.repository, cwd)
+            : [];
+    }
+    return templates.length > 0 ? removePullRequestTemplateProse(body, templates) : undefined;
 }
 
 // close and reopen accept only inline comment text, so any --comment is denied.
@@ -1135,11 +1515,14 @@ async function checkGithubCommand(event) {
         if (!stat?.isFile()) {
             return formatGithubCommandReason(call.name, `the body file ${filePath} is not a regular file`);
         }
+        const current = await fs.readFile(filePath, "utf8");
+        const bodyLengthText = await githubBodyLengthText(event, call, current);
         records.push({
             filePath,
             commandName: call.name,
             baseline: "",
-            current: await fs.readFile(filePath, "utf8"),
+            current,
+            ...(bodyLengthText === undefined ? {} : { bodyLengthText }),
         });
     }
     if (records.length === 0) {

@@ -66,10 +66,44 @@ run_stop_hook() {
 run_github_body_hook() {
     local command="$1"
     local client="${2:-claude}"
+    local cwd="${3:-${BATS_TEST_TMPDIR}}"
     local payload
 
-    payload="$(jq -cn --arg command "${command}" --arg cwd "${BATS_TEST_TMPDIR}" '{hook_event_name: "PreToolUse", tool_name: "Bash", tool_use_id: "test-tool-use", cwd: $cwd, tool_input: {command: $command}}')"
+    payload="$(jq -cn --arg command "${command}" --arg cwd "${cwd}" '{hook_event_name: "PreToolUse", tool_name: "Bash", tool_use_id: "test-tool-use", cwd: $cwd, tool_input: {command: $command}}')"
     run --separate-stderr "${HOOK}" pre "${client}" <<< "${payload}"
+}
+
+setup_github_body_repo() {
+    local repo_dir="$1"
+
+    mkdir -p "${repo_dir}"
+    git -C "${repo_dir}" init -q
+}
+
+write_large_pr_template() {
+    local template_file="$1"
+    local item
+
+    item="$(node -e 'process.stdout.write("t".repeat(140))')"
+    {
+        printf '## Checklist\n\n<!-- Complete the checklist before submitting. -->\n\n'
+        for _ in 1 2 3 4 5 6 7 8 9 10 11; do
+            printf -- '- [ ] %s\n\n' "${item}"
+        done
+    } > "${template_file}"
+}
+
+write_author_body() {
+    local last_length="$1"
+    local regular final
+
+    regular="$(node -e 'process.stdout.write("a".repeat(149))')"
+    final="$(node -e "process.stdout.write('a'.repeat(${last_length}))")"
+    : > "${BATS_TEST_TMPDIR}/author-body.md"
+    for _ in 1 2 3 4 5 6 7 8 9; do
+        printf '%s\n\n' "${regular}" >> "${BATS_TEST_TMPDIR}/author-body.md"
+    done
+    printf '%s\n' "${final}" >> "${BATS_TEST_TMPDIR}/author-body.md"
 }
 
 run_github_body_file_hook() {
@@ -283,6 +317,119 @@ gh pr create --title t --body-file '${body_file}'"
         [[ "${reason}" == *"1501 prose codepoints; limit: 1500"* ]]
         [[ "${reason}" == *"Fix: cut design records, reference lists, and repeated descriptions of the diff."* ]]
     done
+}
+
+@test "allows template-only PR bodies from every documented template location and casing" {
+    local repo_dir="${BATS_TEST_TMPDIR}/target-repo"
+    local body_file="${BATS_TEST_TMPDIR}/template-only.md"
+    local template_path template_file
+
+    setup_github_body_repo "${repo_dir}"
+    for template_path in \
+        "PULL_REQUEST_TEMPLATE.MD" \
+        "DoCs/PuLl_ReQuEsT_TeMpLaTe.TxT" \
+        ".GITHUB/PULL_REQUEST_TEMPLATE.md" \
+        "PULL_REQUEST_TEMPLATE/custom.MD" \
+        "docs/PULL_REQUEST_TEMPLATE/custom.txt" \
+        ".github/PULL_REQUEST_TEMPLATE/custom.md"; do
+        template_file="${repo_dir}/${template_path}"
+        mkdir -p "$(dirname "${template_file}")"
+        write_large_pr_template "${template_file}"
+        cp "${template_file}" "${body_file}"
+
+        run_github_body_hook "gh pr create --head x --title t --body-file '${body_file}'" claude "${repo_dir}"
+        [ "${status}" -eq 0 ]
+        [ -z "${output}" ]
+        rm "${template_file}"
+    done
+}
+
+@test "reads the pull request template from the repository selected with -R" {
+    local caller_dir="${BATS_TEST_TMPDIR}/unrelated-repo"
+    local bin_dir="${BATS_TEST_TMPDIR}/bin"
+    local template_file="${BATS_TEST_TMPDIR}/target-template.md"
+    local body_file="${BATS_TEST_TMPDIR}/template-plus-author.md"
+
+    mkdir -p "${caller_dir}" "${bin_dir}"
+    write_large_pr_template "${template_file}"
+    write_author_body 150
+    {
+        cat "${template_file}"
+        printf '\n'
+        cat "${BATS_TEST_TMPDIR}/author-body.md"
+    } > "${body_file}"
+    cat > "${bin_dir}/gh" << 'SH'
+#!/bin/sh
+case "$4" in
+    repos/o/r) printf '{"default_branch":"main"}' ;;
+    repos/o/r/git/trees/main\?recursive=1) printf '{"tree":[{"type":"blob","path":".GITHUB/PULL_REQUEST_TEMPLATE.MD"}]}' ;;
+    repos/o/r/contents/.GITHUB/PULL_REQUEST_TEMPLATE.MD\?ref=main)
+        content="$(base64 < "${TEST_TEMPLATE_FILE}" | tr -d '\n')"
+        jq -cn --arg content "${content}" '{encoding:"base64",content:$content}'
+        ;;
+    *) exit 1 ;;
+esac
+SH
+    chmod +x "${bin_dir}/gh"
+
+    PATH="${bin_dir}:${PATH}" TEST_TEMPLATE_FILE="${template_file}" \
+        run_github_body_hook "gh pr create -R o/r --head x --title t --body-file '${body_file}'" claude "${caller_dir}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "allows a PR template plus 1,500 author-written prose codepoints" {
+    local repo_dir="${BATS_TEST_TMPDIR}/target-repo"
+    local template_file="${repo_dir}/.github/pull_request_template.md"
+    local body_file="${BATS_TEST_TMPDIR}/template-plus-author.md"
+
+    setup_github_body_repo "${repo_dir}"
+    mkdir -p "$(dirname "${template_file}")"
+    write_large_pr_template "${template_file}"
+    write_author_body 150
+    {
+        cat "${template_file}"
+        printf '\n'
+        cat "${BATS_TEST_TMPDIR}/author-body.md"
+    } > "${body_file}"
+
+    run_github_body_hook "gh pr create --head x --title t --body-file '${body_file}'" claude "${repo_dir}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "blocks a PR template plus 1,501 author-written prose codepoints" {
+    local repo_dir="${BATS_TEST_TMPDIR}/target-repo"
+    local template_file="${repo_dir}/.github/pull_request_template.md"
+    local body_file="${BATS_TEST_TMPDIR}/template-plus-author.md"
+
+    setup_github_body_repo "${repo_dir}"
+    mkdir -p "$(dirname "${template_file}")"
+    write_large_pr_template "${template_file}"
+    write_author_body 151
+    {
+        cat "${template_file}"
+        printf '\n'
+        cat "${BATS_TEST_TMPDIR}/author-body.md"
+    } > "${body_file}"
+
+    run_github_body_hook "gh pr create --head x --title t --body-file '${body_file}'" claude "${repo_dir}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "$(jq -r '.reason' <<< "${output}")" == *"1501 prose codepoints; limit: 1500"* ]]
+}
+
+@test "keeps the 1,500-codepoint PR body cap when the target repository has no template" {
+    local repo_dir="${BATS_TEST_TMPDIR}/target-repo"
+    local body_file="${BATS_TEST_TMPDIR}/author-body.md"
+
+    setup_github_body_repo "${repo_dir}"
+    write_author_body 151
+
+    run_github_body_hook "gh pr create --head x --title t --body-file '${body_file}'" claude "${repo_dir}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "$(jq -r '.reason' <<< "${output}")" == *"1501 prose codepoints; limit: 1500"* ]]
 }
 
 @test "allows long comments and reviews without applying the PR description cap" {

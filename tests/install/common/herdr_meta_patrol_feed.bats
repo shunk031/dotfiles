@@ -185,9 +185,9 @@ JSON
 @test "[common] herdr-meta-patrol-feed indexes the account's PRs and summarizes bots" {
     cat > "${GH_PR_JSON}" << 'JSON'
 [
-  {"number":12,"title":"A skills change","isDraft":false,"url":"https://github.com/acme-user/skills/pull/12","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
-  {"number":17,"title":"Someone else's change","isDraft":false,"url":"https://github.com/acme-user/skills/pull/17","author":{"login":"other-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
-  {"number":83,"title":"A dependency update","isDraft":true,"url":"https://github.com/acme-user/dotfiles/pull/83","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}}
+  {"number":12,"title":"A skills change","isDraft":false,"url":"https://github.com/acme-user/skills/pull/12","author":{"login":"acme-user","is_bot":false},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":17,"title":"Someone else's change","isDraft":false,"url":"https://github.com/acme-user/skills/pull/17","author":{"login":"other-user","is_bot":false},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":83,"title":"A dependency update","isDraft":true,"url":"https://github.com/acme-user/dotfiles/pull/83","author":{"login":"renovate[bot]","is_bot":true},"repository":{"nameWithOwner":"acme-user/dotfiles"}}
 ]
 JSON
 
@@ -218,19 +218,19 @@ JSON
 @test "[common] herdr-meta-patrol-feed includes today's 13 PRs as account PRs or one Renovate summary" {
     cat > "${GH_PR_JSON}" << 'JSON'
 [
-  {"number":188,"title":"OKR rules","isDraft":false,"url":"https://github.com/acme-user/skills/pull/188","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
-  {"number":187,"title":"Meta patrol recovery","isDraft":false,"url":"https://github.com/acme-user/skills/pull/187","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
-  {"number":179,"title":"Small document edits","isDraft":false,"url":"https://github.com/acme-user/skills/pull/179","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
-  {"number":110,"title":"Merge handoffs","isDraft":false,"url":"https://github.com/acme-user/skills/pull/110","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
-  {"number":808,"title":"Dotfiles work","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/808","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
-  {"number":800,"title":"More dotfiles work","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/800","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
-  {"number":253,"title":"Private work one","isDraft":false,"url":"https://github.com/acme-user/dotfiles-private/pull/253","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/dotfiles-private"}},
-  {"number":149,"title":"Private work two","isDraft":true,"url":"https://github.com/acme-user/dotfiles-private/pull/149","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/dotfiles-private"}},
-  {"number":837,"title":"Update one","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/837","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
-  {"number":826,"title":"Update two","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/826","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
-  {"number":815,"title":"Update three","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/815","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
-  {"number":794,"title":"Update four","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/794","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
-  {"number":780,"title":"Update five","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/780","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}}
+  {"number":188,"title":"OKR rules","isDraft":false,"url":"https://github.com/acme-user/skills/pull/188","author":{"login":"acme-user","is_bot":false},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":187,"title":"Meta patrol recovery","isDraft":false,"url":"https://github.com/acme-user/skills/pull/187","author":{"login":"acme-user","is_bot":false},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":179,"title":"Small document edits","isDraft":false,"url":"https://github.com/acme-user/skills/pull/179","author":{"login":"acme-user","is_bot":false},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":110,"title":"Merge handoffs","isDraft":false,"url":"https://github.com/acme-user/skills/pull/110","author":{"login":"acme-user","is_bot":false},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":808,"title":"Dotfiles work","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/808","author":{"login":"acme-user","is_bot":false},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":800,"title":"More dotfiles work","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/800","author":{"login":"acme-user","is_bot":false},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":253,"title":"Private work one","isDraft":false,"url":"https://github.com/acme-user/dotfiles-private/pull/253","author":{"login":"acme-user","is_bot":false},"repository":{"nameWithOwner":"acme-user/dotfiles-private"}},
+  {"number":149,"title":"Private work two","isDraft":true,"url":"https://github.com/acme-user/dotfiles-private/pull/149","author":{"login":"acme-user","is_bot":false},"repository":{"nameWithOwner":"acme-user/dotfiles-private"}},
+  {"number":837,"title":"Update one","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/837","author":{"login":"renovate[bot]","is_bot":true},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":826,"title":"Update two","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/826","author":{"login":"renovate[bot]","is_bot":true},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":815,"title":"Update three","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/815","author":{"login":"renovate[bot]","is_bot":true},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":794,"title":"Update four","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/794","author":{"login":"renovate[bot]","is_bot":true},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":780,"title":"Update five","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/780","author":{"login":"renovate[bot]","is_bot":true},"repository":{"nameWithOwner":"acme-user/dotfiles"}}
 ]
 JSON
 

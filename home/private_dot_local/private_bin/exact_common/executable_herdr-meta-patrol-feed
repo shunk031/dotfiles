@@ -261,7 +261,7 @@ function write_open_prs() {
         return 0
     fi
     if ! prs="$(gh search prs --owner "${viewer}" --state open --json number,title,author,isDraft,url,repository --limit 1000 2> /dev/null)" ||
-        ! jq -e 'type == "array" and all(.[]; (.number | type == "number") and (.title | type == "string") and (.url | type == "string") and ((.author | type == "null") or (.author.login | type == "string")) and (.repository.nameWithOwner | type == "string"))' <<< "${prs}" > /dev/null; then
+        ! jq -e 'type == "array" and all(.[]; (.number | type == "number") and (.title | type == "string") and (.url | type == "string") and ((.author | type == "null") or ((.author.login | type == "string") and (.author.is_bot | type == "boolean"))) and (.repository.nameWithOwner | type == "string"))' <<< "${prs}" > /dev/null; then
         printf '%s\n' 'GitHub open-PR search failed; keeping the previous open-PR feeds' >&2
         return 0
     fi
@@ -272,7 +272,7 @@ function write_open_prs() {
 
     # Show the authenticated account's own PRs individually. Bot PRs remain
     # visible as one count per bot; PRs opened by other people are not inbox work.
-    prs="$(jq -c --arg viewer "${viewer}" '[.[] | select(.author.login == $viewer or ((.author.login // "") | endswith("[bot]")))]' <<< "${prs}")" || return 1
+    prs="$(jq -c --arg viewer "${viewer}" '[.[] | select(.author.login == $viewer or .author.is_bot == true)]' <<< "${prs}")" || return 1
     prefix="github-prs-${viewer}-"
     written_files=$'\n'
     repositories_json="$(jq -r --arg viewer "${viewer}" '[.[] | select(.author.login == $viewer) | .repository.nameWithOwner] | unique[]' <<< "${prs}")"
@@ -303,7 +303,7 @@ function write_open_prs() {
     done <<< "${repositories_json}"
 
     bot_entries="$(jq -cn --argjson prs "${prs}" --arg viewer "${viewer}" --argjson now "${now_ms}" '
-        [$prs[] | select(.author.login != $viewer and (.author.login // "" | endswith("[bot]")))]
+        [$prs[] | select(.author.login != $viewer and .author.is_bot == true)]
         | sort_by(.author.login) | group_by(.author.login)
         | map({
             key: ("github/bot/" + .[0].author.login),

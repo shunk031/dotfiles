@@ -69,51 +69,56 @@ function build_reachable_entries() {
     entries_json='[]'
     if [[ "${machine}" == local ]]; then registry_machine=Local; else registry_machine="${machine}"; fi
 
-    if [[ -r "${roots_file}" ]]; then
-        while IFS=$'\t' read -r root; do
-            [[ -n "${root}" && "${root}" != "${meta}" ]] || continue
-            agent="$(jq -c --arg name "${root}" '[.result.agents[]? | select(.name == $name)][0] // empty' "${agents_file}")"
-            [[ -n "${agent}" ]] || continue
-            tab_id="$(jq -r '.tab_id // empty' <<< "${agent}")"
-            label="$(jq -r --arg tab "${tab_id}" '[.result.tabs[]? | select(.tab_id == $tab) | .label][0] // ""' "${tabs_file}")"
-            clean_label="$(strip_leading_emoji "${label}")"
-            focus="$(jq -r '.tokens.inbox // "" | tostring' <<< "${agent}")"
-            blocked="$(jq -r '(.agent_status == "blocked") or ((.tokens["inbox-stop"] // "") | tostring | length > 0)' <<< "${agent}")"
-            state=working
-            [[ "${blocked}" != true ]] || state=blocked
-            key="herdr/${machine}/${root}"
-            if key_exceeds_limit "${key}"; then
-                printf 'feed key exceeds 100 bytes for %s on %s\n' "${root}" "${machine}" >&2
-            else
-                entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${root}: ${clean_label}" --arg detail "${focus}" \
-                    '{key:$key,state:$state,title:($title[:120]),detail:($detail[:600])}')"
-                append_entry "${entry}"
-            fi
+    while IFS=$'\t' read -r root; do
+        [[ -n "${root}" ]] || continue
+        agent="$(jq -c --arg name "${root}" '[.result.agents[]? | select(.name == $name)][0] // empty' "${agents_file}")"
+        [[ -n "${agent}" ]] || continue
+        tab_id="$(jq -r '.tab_id // empty' <<< "${agent}")"
+        label="$(jq -r --arg tab "${tab_id}" '[.result.tabs[]? | select(.tab_id == $tab) | .label][0] // ""' "${tabs_file}")"
+        clean_label="$(strip_leading_emoji "${label}")"
+        focus="$(jq -r '.tokens.inbox // "" | tostring' <<< "${agent}")"
+        blocked="$(jq -r '(.agent_status == "blocked") or ((.tokens["inbox-stop"] // "") | tostring | length > 0)' <<< "${agent}")"
+        state=working
+        [[ "${blocked}" != true ]] || state=blocked
+        key="herdr/${machine}/${root}"
+        if key_exceeds_limit "${key}"; then
+            printf 'feed key exceeds 100 bytes for %s on %s\n' "${root}" "${machine}" >&2
+        else
+            entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${root}: ${clean_label}" --arg detail "${focus}" \
+                '{key:$key,state:$state,title:($title[:120]),detail:($detail[:600])}')"
+            append_entry "${entry}"
+        fi
 
-            count="$(jq -r '(.tokens["inbox-needs-you"] // "0") | tonumber? // 0' <<< "${agent}")"
-            if ((count > 0)); then
-                if ((count > 1)) && [[ "${focus}" != "${count} · "* ]]; then
-                    ask=""
+        count="$(jq -r '(.tokens["inbox-needs-you"] // "0") | tonumber? // 0' <<< "${agent}")"
+        if ((count > 0)); then
+            if ((count > 1)) && [[ "${focus}" != "${count} · "* ]]; then
+                ask=""
+            else
+                ask="$(printf '%s\n' "${focus}" | perl -CSD -pe 's/\A[0-9]+\s+\x{B7}\s*//')"
+            fi
+            if [[ -n "${ask}" ]]; then
+                plural=asks
+                if ((count == 1)); then plural=ask; fi
+                checksum="$(printf '%s' "${ask}" | cksum | awk '{ printf "%08d", $1 % 100000000 }')"
+                key="herdr/${machine}/${root}/ask/${checksum}"
+                if key_exceeds_limit "${key}"; then
+                    printf 'feed key exceeds 100 bytes for ask on %s at %s\n' "${root}" "${machine}" >&2
                 else
-                    ask="$(printf '%s\n' "${focus}" | perl -CSD -pe 's/\A[0-9]+\s+\x{B7}\s*//')"
-                fi
-                if [[ -n "${ask}" ]]; then
-                    plural=asks
-                    if ((count == 1)); then plural=ask; fi
-                    checksum="$(printf '%s' "${ask}" | cksum | awk '{ printf "%08d", $1 % 100000000 }')"
-                    key="herdr/${machine}/${root}/ask/${checksum}"
-                    if key_exceeds_limit "${key}"; then
-                        printf 'feed key exceeds 100 bytes for ask on %s at %s\n' "${root}" "${machine}" >&2
-                    else
-                        entry="$(jq -cn --arg key "${key}" --arg title "⛔ ${root}: ${ask}" --arg detail "${count} waiting ${plural} on ${machine}; answer in that pane, or reply here for meta to relay" \
-                            '{key:$key,state:"blocked",title:($title[:120]),detail:($detail[:600])}')"
-                        append_entry "${entry}"
-                    fi
+                    entry="$(jq -cn --arg key "${key}" --arg title "⛔ ${root}: ${ask}" --arg detail "${count} waiting ${plural} on ${machine}; answer in that pane, or reply here for meta to relay" \
+                        '{key:$key,state:"blocked",title:($title[:120]),detail:($detail[:600])}')"
+                    append_entry "${entry}"
                 fi
             fi
-        done < <(LC_ALL=C awk -F '\t' -v machine="${registry_machine}" \
-            '$0 !~ /^#/ && NF == 2 && $1 == machine && !seen[$2]++ { print $2 }' "${roots_file}" 2> /dev/null)
-    fi
+        fi
+    done < <(
+        {
+            if [[ -r "${roots_file}" ]]; then
+                LC_ALL=C awk -F '\t' -v machine="${registry_machine}" \
+                    '$0 !~ /^#/ && NF == 2 && $1 == machine { print $2 }' "${roots_file}" 2> /dev/null
+            fi
+            printf '%s\n' "${meta}"
+        } | awk '!seen[$0]++'
+    )
 
     while IFS= read -r agent; do
         name="$(jq -r '.name // empty' <<< "${agent}")"

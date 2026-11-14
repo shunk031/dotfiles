@@ -41,7 +41,7 @@ STUB
 }
 
 function state_snapshots() {
-    printf 'Local\torch\nLocal\torch-blocked\nLocal\torch-dialog\nLocal\torch-focus\nLocal\torch-single\nLocal\tmeta\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    printf 'Local\torch\nLocal\torch-blocked\nLocal\torch-dialog\nLocal\torch-focus\nLocal\torch-single\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
     cat > "${AGENTS_JSON}" << 'JSON'
 {"result":{"agents":[
   {"name":"orch","tab_id":"t-root","agent_status":"working","tokens":{"inbox":"2 · Merge release?","inbox-needs-you":"2"}},
@@ -82,6 +82,7 @@ JSON
     jq -e '[.entries[] | select(.key | startswith("herdr/local/orch/ask/"))][0] | .state == "blocked" and .title == "⛔ orch: Merge release?" and (.detail | contains("2") and contains("local") and contains("answer in that pane, or reply here for meta to relay"))' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/orch-blocked")][0] | .state == "blocked"' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/orch-dialog")][0] | .state == "blocked"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/meta")][0] | .state == "blocked" and .title == "meta: Meta" and .detail == "internal ask"' "${feed}" > /dev/null
     jq -e '([.entries[] | select(.key | startswith("herdr/local/orch-dialog/ask/"))] | length) == 0' "${feed}" > /dev/null
     jq -e '([.entries[] | select(.key | startswith("herdr/local/orch-focus/ask/"))] | length) == 0' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key | startswith("herdr/local/orch-single/ask/"))][0] | .state == "blocked" and .title == "⛔ orch-single: Review release?"' "${feed}" > /dev/null

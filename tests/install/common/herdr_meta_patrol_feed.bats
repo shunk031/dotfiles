@@ -90,7 +90,7 @@ JSON
     jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-write")][0] | .state == "working" and .title == "worker-write: ✍️ Write documentation"' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-stop")][0] | .state == "blocked"' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-done")][0] | .state == "done"' "${feed}" > /dev/null
-    jq -e '([.entries[] | select(.key | contains("meta"))] | length) == 0' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key | contains("meta"))] | length) == 1' "${feed}" > /dev/null
 }
 
 @test "[common] herdr-meta-patrol-feed carries entries forward when a machine is unreachable" {

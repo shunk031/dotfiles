@@ -251,7 +251,7 @@ function write_machine() {
 
 # @description Write open PRs to per-repository feeds, preserving the last snapshot when GitHub cannot be read.
 function write_open_prs() {
-    local viewer prs repositories_json repository repo_name repo_prs total chunks chunk start end target previous entries_json feed file written_files prefix
+    local viewer prs repositories_json repository repo_name repo_prs total chunks chunk start end target previous entries_json feed file written_files prefix bot_entries bot_total bot_chunks bot_chunk bots_target
     if ! command -v gh > /dev/null 2>&1; then
         printf '%s\n' 'GitHub CLI is unavailable; keeping the previous open-PR feeds' >&2
         return 0
@@ -270,13 +270,16 @@ function write_open_prs() {
         return 0
     fi
 
+    # Show the authenticated account's own PRs individually. Bot PRs remain
+    # visible as one count per bot; PRs opened by other people are not inbox work.
+    prs="$(jq -c --arg viewer "${viewer}" '[.[] | select(.author.login == $viewer or ((.author.login // "") | endswith("[bot]")))]' <<< "${prs}")" || return 1
     prefix="github-prs-${viewer}-"
     written_files=$'\n'
-    repositories_json="$(jq -r '[.[].repository.nameWithOwner] | unique[]' <<< "${prs}")"
+    repositories_json="$(jq -r --arg viewer "${viewer}" '[.[] | select(.author.login == $viewer) | .repository.nameWithOwner] | unique[]' <<< "${prs}")"
     while IFS= read -r repository; do
         [[ -n "${repository}" ]] || continue
         repo_name="${repository##*/}"
-        repo_prs="$(jq -c --arg repository "${repository}" '[.[] | select(.repository.nameWithOwner == $repository)] | sort_by(.number)' <<< "${prs}")"
+        repo_prs="$(jq -c --arg repository "${repository}" --arg viewer "${viewer}" '[.[] | select(.repository.nameWithOwner == $repository and .author.login == $viewer)] | sort_by(.number)' <<< "${prs}")"
         total="$(jq 'length' <<< "${repo_prs}")"
         chunks=$(((total + 39) / 40))
         for ((chunk = 0; chunk < chunks; chunk++)); do
@@ -299,7 +302,31 @@ function write_open_prs() {
         done
     done <<< "${repositories_json}"
 
-    for file in "${feed_dir}/${prefix}"*.json; do
+    bot_entries="$(jq -cn --argjson prs "${prs}" --arg viewer "${viewer}" --argjson now "${now_ms}" '
+        [$prs[] | select(.author.login != $viewer and (.author.login // "" | endswith("[bot]")))]
+        | sort_by(.author.login) | group_by(.author.login)
+        | map({
+            key: ("github/bot/" + .[0].author.login),
+            state: "working",
+            title: ((.[0].author.login | sub("\\[bot\\]$"; "")) + ": " + (length | tostring) + " open PRs"),
+            detail: (map(.repository.nameWithOwner + "#" + (.number | tostring) + " · " + .url) | join("; ")[:600]),
+            at: $now
+        })
+    ')" || return 1
+    bot_total="$(jq 'length' <<< "${bot_entries}")"
+    bot_chunks=$(((bot_total + 39) / 40))
+    for ((bot_chunk = 0; bot_chunk < bot_chunks; bot_chunk++)); do
+        start=$((bot_chunk * 40))
+        end=$((start + 40))
+        bots_target="${feed_dir}/github-bots-${viewer}-${bot_chunk}.json"
+        previous="$(load_previous "${bots_target}")"
+        entries_json="$(jq -cn --argjson entries "${bot_entries}" --argjson start "${start}" --argjson end "${end}" '$entries[$start:$end]')" || return 1
+        feed="$(finish_feed "${entries_json}" "${previous}" false "" "github-open-prs")" || return 1
+        write_atomic "${bots_target}" "${feed}" || return 1
+        written_files+="${bots_target}"$'\n'
+    done
+
+    for file in "${feed_dir}/${prefix}"*.json "${feed_dir}/github-bots-${viewer}-"*.json; do
         [[ -f "${file}" ]] || continue
         if grep -Fqx -- "${file}" <<< "${written_files}"; then continue; fi
         previous="$(load_previous "${file}")"

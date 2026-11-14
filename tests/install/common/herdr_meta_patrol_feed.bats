@@ -182,10 +182,11 @@ JSON
     [ "$(wc -l < "${MV_LOG}" | tr -d '[:space:]')" -eq 1 ]
 }
 
-@test "[common] herdr-meta-patrol-feed indexes open PRs from every author and clears closed PRs" {
+@test "[common] herdr-meta-patrol-feed indexes the account's PRs and summarizes bots" {
     cat > "${GH_PR_JSON}" << 'JSON'
 [
   {"number":12,"title":"A skills change","isDraft":false,"url":"https://github.com/acme-user/skills/pull/12","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":17,"title":"Someone else's change","isDraft":false,"url":"https://github.com/acme-user/skills/pull/17","author":{"login":"other-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
   {"number":83,"title":"A dependency update","isDraft":true,"url":"https://github.com/acme-user/dotfiles/pull/83","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}}
 ]
 JSON
@@ -193,23 +194,61 @@ JSON
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]
     skills_feed="${HERDR_META_PATROL_FEED_DIR}/github-prs-acme-user-skills-0.json"
-    dotfiles_feed="${HERDR_META_PATROL_FEED_DIR}/github-prs-acme-user-dotfiles-0.json"
     jq -e '.source == "github-open-prs" and .entries[0].key == "github/pr/12" and (.entries[0].detail | contains("https://github.com/acme-user/skills/pull/12"))' "${skills_feed}" > /dev/null
-    jq -e '.entries[0].title | startswith("acme-user/dotfiles#83")' "${dotfiles_feed}" > /dev/null
-    jq -e '.entries[0].detail | startswith("Draft · renovate[bot]")' "${dotfiles_feed}" > /dev/null
+    [ "$(jq '.entries | length' "${skills_feed}")" -eq 1 ]
+    bots_feed="${HERDR_META_PATROL_FEED_DIR}/github-bots-acme-user-0.json"
+    jq -e '.entries[0].title == "renovate: 1 open PRs" and (.entries[0].detail | contains("https://github.com/acme-user/dotfiles/pull/83"))' "${bots_feed}" > /dev/null
 
     previous_skills_feed="$(cat "${skills_feed}")"
+    previous_bots_feed="$(cat "${bots_feed}")"
     export GH_FAIL=1
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]
     [ "$(cat "${skills_feed}")" = "${previous_skills_feed}" ]
+    [ "$(cat "${bots_feed}")" = "${previous_bots_feed}" ]
     unset GH_FAIL
 
     printf '[]\n' > "${GH_PR_JSON}"
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]
     [ "$(jq '.entries | length' "${skills_feed}")" -eq 0 ]
-    [ "$(jq '.entries | length' "${dotfiles_feed}")" -eq 0 ]
+    [ "$(jq '.entries | length' "${bots_feed}")" -eq 0 ]
+}
+
+@test "[common] herdr-meta-patrol-feed includes today's 13 PRs as account PRs or one Renovate summary" {
+    cat > "${GH_PR_JSON}" << 'JSON'
+[
+  {"number":188,"title":"OKR rules","isDraft":false,"url":"https://github.com/acme-user/skills/pull/188","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":187,"title":"Meta patrol recovery","isDraft":false,"url":"https://github.com/acme-user/skills/pull/187","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":179,"title":"Small document edits","isDraft":false,"url":"https://github.com/acme-user/skills/pull/179","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":110,"title":"Merge handoffs","isDraft":false,"url":"https://github.com/acme-user/skills/pull/110","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":808,"title":"Dotfiles work","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/808","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":800,"title":"More dotfiles work","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/800","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":253,"title":"Private work one","isDraft":false,"url":"https://github.com/acme-user/dotfiles-private/pull/253","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/dotfiles-private"}},
+  {"number":149,"title":"Private work two","isDraft":true,"url":"https://github.com/acme-user/dotfiles-private/pull/149","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/dotfiles-private"}},
+  {"number":837,"title":"Update one","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/837","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":826,"title":"Update two","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/826","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":815,"title":"Update three","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/815","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":794,"title":"Update four","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/794","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}},
+  {"number":780,"title":"Update five","isDraft":false,"url":"https://github.com/acme-user/dotfiles/pull/780","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}}
+]
+JSON
+
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    for repository in skills dotfiles dotfiles-private; do
+        feed="${HERDR_META_PATROL_FEED_DIR}/github-prs-acme-user-${repository}-0.json"
+        [ -f "${feed}" ]
+    done
+    skills_feed="${HERDR_META_PATROL_FEED_DIR}/github-prs-acme-user-skills-0.json"
+    dotfiles_feed="${HERDR_META_PATROL_FEED_DIR}/github-prs-acme-user-dotfiles-0.json"
+    private_feed="${HERDR_META_PATROL_FEED_DIR}/github-prs-acme-user-dotfiles-private-0.json"
+    for number in 188 187 179 110; do jq -e --arg n "skills#${number}" '[.entries[].title | select(contains($n))] | length == 1' "${skills_feed}" > /dev/null; done
+    for number in 808 800; do jq -e --arg n "dotfiles#${number}" '[.entries[].title | select(contains($n))] | length == 1' "${dotfiles_feed}" > /dev/null; done
+    for number in 253 149; do jq -e --arg n "dotfiles-private#${number}" '[.entries[].title | select(contains($n))] | length == 1' "${private_feed}" > /dev/null; done
+    bots_feed="${HERDR_META_PATROL_FEED_DIR}/github-bots-acme-user-0.json"
+    jq -e '.entries | length == 1 and .[0].title == "renovate: 5 open PRs"' "${bots_feed}" > /dev/null
+    for number in 837 826 815 794 780; do jq -e --arg n "dotfiles#${number}" '.entries[0].detail | contains($n)' "${bots_feed}" > /dev/null; done
 }
 
 @test "[common] herdr-meta-patrol-feed splits a repository with more than 40 open PRs" {

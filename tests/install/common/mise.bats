@@ -15,6 +15,8 @@ readonly SHELDON_SERVER_SOURCE="./home/private_dot_config/exact_sheldon/plugin_s
 readonly SHELDON_TEMPLATE_SOURCE="./home/private_dot_config/exact_sheldon/plugins.toml.tmpl"
 # shellcheck disable=SC2155
 readonly CHEZMOI_BIN_DIR="$(dirname "$(command -v chezmoi 2> /dev/null || printf '/nonexistent/chezmoi')")"
+# shellcheck disable=SC2155
+readonly JQ_BIN_DIR="$(dirname "$(command -v jq 2> /dev/null || printf '/nonexistent/jq')")"
 readonly MISE_SETUP_WORKFLOWS=(
     "./.github/workflows/e2e-ubuntu.yaml"
     "./.github/workflows/e2e-rockylinux.yaml"
@@ -41,7 +43,7 @@ function setup() {
     export MISE_CONFIG_PATH="${BATS_TEST_TMPDIR}/mise_config.toml"
     export RUN_AFTER_SCRIPT="${BATS_TEST_TMPDIR}/run_after_20-install-mise-tools.sh"
     export BATS_TEST_TMPDIR
-    PATH="${TEST_BIN_DIR}:${HOME}/.local/bin:${CHEZMOI_BIN_DIR}:$(getconf PATH)"
+    PATH="${TEST_BIN_DIR}:${HOME}/.local/bin:${CHEZMOI_BIN_DIR}:${JQ_BIN_DIR}:$(getconf PATH)"
     export PATH
 
     mkdir -p "${HOME}/.local/bin" "${TEST_BIN_DIR}"

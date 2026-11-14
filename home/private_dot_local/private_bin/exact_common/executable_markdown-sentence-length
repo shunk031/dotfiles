@@ -1062,21 +1062,21 @@ function localRepositoryRoot(directory, targetRepository) {
     return remotes.size > 0 && [...remotes.values()].includes(targetAddress) ? root : null;
 }
 
-async function caseInsensitiveChildDirectory(parent, name) {
+async function caseInsensitiveChildDirectories(parent, name) {
     const entries = await fs.readdir(parent, { withFileTypes: true }).catch(() => []);
-    const entry = entries.find(
-        (candidate) => candidate.isDirectory() && candidate.name.toLowerCase() === name.toLowerCase(),
-    );
-    return entry ? path.join(parent, entry.name) : null;
+    return entries
+        .filter(
+            (candidate) =>
+                candidate.isDirectory() && candidate.name.toLowerCase() === name.toLowerCase(),
+        )
+        .map((entry) => path.join(parent, entry.name));
 }
 
 async function pullRequestTemplateContents(repositoryRoot) {
-    const locations = [
-        repositoryRoot,
-        ...(await Promise.all(
-            ["docs", ".github"].map((name) => caseInsensitiveChildDirectory(repositoryRoot, name)),
-        )),
-    ].filter(Boolean);
+    const repositorySubdirectories = await Promise.all(
+        ["docs", ".github"].map((name) => caseInsensitiveChildDirectories(repositoryRoot, name)),
+    );
+    const locations = [repositoryRoot, ...repositorySubdirectories.flat()];
 
     const templateFiles = new Set();
     for (const directory of locations) {
@@ -1087,19 +1087,18 @@ async function pullRequestTemplateContents(repositoryRoot) {
             }
         }
 
-        const multipleTemplates = await caseInsensitiveChildDirectory(
+        const multipleTemplateDirectories = await caseInsensitiveChildDirectories(
             directory,
             "PULL_REQUEST_TEMPLATE",
         );
-        if (!multipleTemplates) {
-            continue;
-        }
-        const multipleTemplateEntries = await fs
-            .readdir(multipleTemplates, { withFileTypes: true })
-            .catch(() => []);
-        for (const entry of multipleTemplateEntries) {
-            if (entry.isFile() && /\.(?:md|txt)$/iu.test(entry.name)) {
-                templateFiles.add(path.join(multipleTemplates, entry.name));
+        for (const multipleTemplates of multipleTemplateDirectories) {
+            const multipleTemplateEntries = await fs
+                .readdir(multipleTemplates, { withFileTypes: true })
+                .catch(() => []);
+            for (const entry of multipleTemplateEntries) {
+                if (entry.isFile() && /\.(?:md|txt)$/iu.test(entry.name)) {
+                    templateFiles.add(path.join(multipleTemplates, entry.name));
+                }
             }
         }
     }

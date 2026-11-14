@@ -349,6 +349,22 @@ gh pr create --title t --body-file '${body_file}'"
     done
 }
 
+@test "finds a template when an empty case-insensitive directory match comes first" {
+    local repo_dir="${BATS_TEST_TMPDIR}/target-repo"
+    local template_file="${repo_dir}/.github/pull_request_template.md"
+    local body_file="${BATS_TEST_TMPDIR}/template-only.md"
+
+    setup_github_body_repo "${repo_dir}"
+    mkdir -p "${repo_dir}/.GitHub"
+    mkdir -p "$(dirname "${template_file}")"
+    write_large_pr_template "${template_file}"
+    cp "${template_file}" "${body_file}"
+
+    run_github_body_hook "gh pr create --head x --title t --body-file '${body_file}'" claude "${repo_dir}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
 @test "allows checked checklist items in a template-only PR body" {
     local repo_dir="${BATS_TEST_TMPDIR}/target-repo"
     local template_file="${repo_dir}/.github/pull_request_template.md"

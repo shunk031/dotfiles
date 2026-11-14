@@ -419,6 +419,45 @@ SH
     [[ "$(jq -r '.reason' <<< "${output}")" == *"1501 prose codepoints; limit: 1500"* ]]
 }
 
+@test "does not remove a template word from an author paragraph" {
+    local repo_dir="${BATS_TEST_TMPDIR}/target-repo"
+    local template_file="${repo_dir}/.github/pull_request_template.md"
+    local body_file="${BATS_TEST_TMPDIR}/summary-plus-author.md"
+    local first regular
+
+    setup_github_body_repo "${repo_dir}"
+    mkdir -p "$(dirname "${template_file}")"
+    printf 'Summary\n' > "${template_file}"
+    first="$(node -e 'process.stdout.write("Summary " + "a".repeat(143))')"
+    regular="$(node -e 'process.stdout.write("a".repeat(149))')"
+    printf '%s\n\n' "${first}" > "${body_file}"
+    for _ in 1 2 3 4 5 6 7 8 9; do
+        printf '%s\n\n' "${regular}" >> "${body_file}"
+    done
+
+    run_github_body_hook "gh pr create --head x --title t --body-file '${body_file}'" claude "${repo_dir}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq -r '.decision' <<< "${output}")" = "block" ]
+    [[ "$(jq -r '.reason' <<< "${output}")" == *"1501 prose codepoints; limit: 1500"* ]]
+}
+
+@test "reads the template from the repository entered before gh runs" {
+    local caller_dir="${BATS_TEST_TMPDIR}/repo-a"
+    local target_dir="${BATS_TEST_TMPDIR}/repo-b"
+    local template_file="${target_dir}/.github/pull_request_template.md"
+    local body_file="${BATS_TEST_TMPDIR}/target-template.md"
+
+    setup_github_body_repo "${caller_dir}"
+    setup_github_body_repo "${target_dir}"
+    mkdir -p "$(dirname "${template_file}")"
+    write_large_pr_template "${template_file}"
+    cp "${template_file}" "${body_file}"
+
+    run_github_body_hook "cd ../repo-b && gh pr create --head x --title t --body-file '${body_file}'" claude "${caller_dir}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
 @test "keeps the 1,500-codepoint PR body cap when the target repository has no template" {
     local repo_dir="${BATS_TEST_TMPDIR}/target-repo"
     local body_file="${BATS_TEST_TMPDIR}/author-body.md"

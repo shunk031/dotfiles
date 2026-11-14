@@ -957,7 +957,9 @@ function githubTextCalls(command) {
                     problem: "the command names the body file before gh, so it may change the file after this check",
                 };
             }
-            return call ? { ...call, repository: githubRepositoryArgument(args) } : call;
+            return call
+                ? { ...call, commandStart: start, repository: githubRepositoryArgument(args) }
+                : call;
         })
         .filter(Boolean);
 }
@@ -1229,44 +1231,16 @@ async function remotePullRequestTemplateContents(repository, cwd) {
     return contents;
 }
 
-function markdownLineParts(line) {
-    const heading = /^([ \t]{0,3}#{1,6}[ \t]+)/u.exec(line);
-    if (heading) {
-        return { kind: "heading", marker: heading[0].trim(), prefix: heading[0], content: line.slice(heading[0].length) };
-    }
-    const list = /^([ \t]*(?:[-+*]|\d+[.)])[ \t]+)(?:\[[ xX]\][ \t]+)?/u.exec(line);
-    if (list) {
-        const marker = list[1].trim().match(/(?:[-+*]|\d+[.)])$/u)?.[0] || "";
-        return { kind: "list", marker, prefix: list[0], content: line.slice(list[0].length) };
-    }
-    const quote = /^([ \t]{0,3}(?:>[ \t]?)+)/u.exec(line);
-    if (quote) {
-        return { kind: "quote", marker: quote[0].replace(/[ \t]/gu, ""), prefix: quote[0], content: line.slice(quote[0].length) };
-    }
-    return { kind: "plain", marker: "", prefix: "", content: line };
-}
-
 function removeTemplateLine(bodyLine, templateLine) {
-    if (/^ {0,3}(?:`{3,}|~{3,})/u.test(templateLine) || templateLine.includes("|")) {
-        return null;
-    }
-    const bodyParts = markdownLineParts(bodyLine);
-    const templateParts = markdownLineParts(templateLine);
     if (
-        bodyParts.kind !== templateParts.kind ||
-        bodyParts.marker !== templateParts.marker ||
-        !templateParts.content.trim()
+        bodyLine !== templateLine ||
+        /^ {0,3}(?:`{3,}|~{3,})/u.test(templateLine) ||
+        templateLine.includes("|")
     ) {
         return null;
     }
-    const matchAt = bodyParts.content.indexOf(templateParts.content);
-    if (matchAt < 0) {
-        return null;
-    }
-    const content =
-        bodyParts.content.slice(0, matchAt) +
-        bodyParts.content.slice(matchAt + templateParts.content.length);
-    return bodyParts.prefix + (content.trim() ? content : "<!-- template boilerplate -->");
+    const prefix = /^([ \t]{0,3}#{1,6}[ \t]+|[ \t]*(?:[-+*]|\d+[.)])[ \t]+(?:\[[ xX]\][ \t]+)?|[ \t]{0,3}(?:>[ \t]?)+)/u.exec(bodyLine)?.[0] || "";
+    return prefix + "<!-- template boilerplate -->";
 }
 
 function removePullRequestTemplateProse(body, templates) {
@@ -1296,11 +1270,30 @@ function removePullRequestTemplateProse(body, templates) {
     return bodyLines.join("\n");
 }
 
+function githubCommandWorkingDirectory(command, commandStart, directory) {
+    const prefix = command.slice(0, commandStart);
+    const code = shellCodeText(prefix);
+    let cwd = path.resolve(directory || process.cwd());
+    for (const match of code.matchAll(/(?:^|[;&|\n])\s*cd(?=\s|$)/gu)) {
+        const start = match.index + match[0].lastIndexOf("cd");
+        const end = /[;&|\n]/u.exec(code.slice(start))?.index;
+        const args = parseSimpleShellCommand(prefix.slice(start, end === undefined ? prefix.length : start + end));
+        if (args?.[0] === "cd" && args.length <= 2) {
+            cwd = path.resolve(cwd, args[1] || os.homedir());
+        }
+    }
+    return cwd;
+}
+
 async function githubBodyLengthText(event, call, body) {
     if (!call.name.startsWith("pr ") || !GITHUB_BODY_TOTAL_LIMIT_COMMANDS.has(call.name)) {
         return undefined;
     }
-    const cwd = path.resolve(event.cwd || process.cwd());
+    const cwd = githubCommandWorkingDirectory(
+        event.tool_input.command,
+        call.commandStart,
+        event.cwd,
+    );
     const repositoryRoot = localRepositoryRoot(cwd, call.repository);
     let templates;
     if (repositoryRoot) {

@@ -8,10 +8,12 @@ function setup() {
     export HERDR_META_PATROL_FEED_DIR="${BATS_TEST_TMPDIR}/feeds"
     export AGENTS_JSON="${BATS_TEST_TMPDIR}/agents.json"
     export TABS_JSON="${BATS_TEST_TMPDIR}/tabs.json"
+    export GH_PR_JSON="${BATS_TEST_TMPDIR}/open-prs.json"
     export MV_LOG="${BATS_TEST_TMPDIR}/mv.log"
     REAL_MV="$(command -v mv)"
     export REAL_MV
     mkdir -p "${HERDR_META_PATROL_FEED_DIR}" "${XDG_STATE_HOME}/meta" "${BATS_TEST_TMPDIR}/bin"
+    printf '[]\n' > "${GH_PR_JSON}"
     cat > "${BATS_TEST_TMPDIR}/bin/mv" << 'STUB'
 #!/usr/bin/env bash
 if [[ "$1" == -f ]]; then
@@ -22,6 +24,18 @@ fi
 exec "${REAL_MV}" "$@"
 STUB
     chmod +x "${BATS_TEST_TMPDIR}/bin/mv"
+    cat > "${BATS_TEST_TMPDIR}/bin/gh" << 'STUB'
+#!/usr/bin/env bash
+if [[ "${GH_FAIL:-0}" == 1 ]]; then exit 1; fi
+if [[ "$1" == api ]]; then
+    printf '%s\n' acme-user
+elif [[ "$1" == search && "$2" == prs ]]; then
+    cat "${GH_PR_JSON}"
+else
+    exit 2
+fi
+STUB
+    chmod +x "${BATS_TEST_TMPDIR}/bin/gh"
     PATH="${BATS_TEST_TMPDIR}/bin:${PATH}"
     export PATH
 }
@@ -165,4 +179,45 @@ JSON
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]
     [ "$(wc -l < "${MV_LOG}" | tr -d '[:space:]')" -eq 1 ]
+}
+
+@test "[common] herdr-meta-patrol-feed indexes open PRs from every author and clears closed PRs" {
+    cat > "${GH_PR_JSON}" << 'JSON'
+[
+  {"number":12,"title":"A skills change","isDraft":false,"url":"https://github.com/acme-user/skills/pull/12","author":{"login":"acme-user"},"repository":{"nameWithOwner":"acme-user/skills"}},
+  {"number":83,"title":"A dependency update","isDraft":true,"url":"https://github.com/acme-user/dotfiles/pull/83","author":{"login":"renovate[bot]"},"repository":{"nameWithOwner":"acme-user/dotfiles"}}
+]
+JSON
+
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    skills_feed="${HERDR_META_PATROL_FEED_DIR}/github-prs-acme-user-skills-0.json"
+    dotfiles_feed="${HERDR_META_PATROL_FEED_DIR}/github-prs-acme-user-dotfiles-0.json"
+    jq -e '.source == "github-open-prs" and .entries[0].key == "github/pr/12" and (.entries[0].detail | contains("https://github.com/acme-user/skills/pull/12"))' "${skills_feed}" > /dev/null
+    jq -e '.entries[0].title | startswith("acme-user/dotfiles#83")' "${dotfiles_feed}" > /dev/null
+    jq -e '.entries[0].detail | startswith("Draft · renovate[bot]")' "${dotfiles_feed}" > /dev/null
+
+    previous_skills_feed="$(cat "${skills_feed}")"
+    export GH_FAIL=1
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    [ "$(cat "${skills_feed}")" = "${previous_skills_feed}" ]
+    unset GH_FAIL
+
+    printf '[]\n' > "${GH_PR_JSON}"
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    [ "$(jq '.entries | length' "${skills_feed}")" -eq 0 ]
+    [ "$(jq '.entries | length' "${dotfiles_feed}")" -eq 0 ]
+}
+
+@test "[common] herdr-meta-patrol-feed splits a repository with more than 40 open PRs" {
+    jq -nc '[range(1;42) as $n | {number:$n,title:("PR " + ($n | tostring)),isDraft:false,url:("https://github.com/acme-user/large/pull/" + ($n | tostring)),author:{login:"acme-user"},repository:{nameWithOwner:"acme-user/large"}}]' > "${GH_PR_JSON}"
+
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    feed_zero="${HERDR_META_PATROL_FEED_DIR}/github-prs-acme-user-large-0.json"
+    feed_one="${HERDR_META_PATROL_FEED_DIR}/github-prs-acme-user-large-1.json"
+    [ "$(jq '.entries | length' "${feed_zero}")" -eq 40 ]
+    [ "$(jq '.entries | length' "${feed_one}")" -eq 1 ]
 }

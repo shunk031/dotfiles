@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
 # @file home/private_dot_local/private_bin/exact_common/executable_herdr-meta-patrol-feed
-# @brief Write Herdr root and worker snapshots to Inbox feed files.
+# @brief Write Herdr activity and open pull requests to Inbox feed files.
 # @description
 #   Reads one agent-list and tab-list snapshot per machine and writes one
-#   atomic feed file per machine. Missing or invalid snapshots carry forward
-#   the previous entries and add a blocked machine entry.
+#   atomic feed file per machine. Also writes authenticated-account open pull
+#   requests in per-repository files. Missing or invalid snapshots carry
+#   forward previous entries and add a blocked machine entry.
 # @option --prune Remove feed files for machines absent from the supplied snapshots.
 # @option HERDR_META_PATROL_FEED_DIR Feed directory (default `~/.local/state/inbox/feeds`).
 # @arg $1 string Repeated triples of machine alias, agent-list JSON path, and tab-list JSON path.
@@ -143,10 +144,11 @@ function build_reachable_entries() {
 # @arg $2 string Previous feed document.
 # @arg $3 string Whether carried entries keep their old timestamps.
 # @arg $4 string Machine entry key.
+# @arg $5 string Feed source.
 # @stdout Compact feed document.
 function finish_feed() {
     jq -cn --argjson desired "$1" --argjson old "$2" --argjson now "${now_ms}" \
-        --argjson carry_at "$3" --arg machine_key "$4" '
+        --argjson carry_at "$3" --arg machine_key "$4" --arg source "$5" '
         ($old.entries // [] | map({key, value: .}) | from_entries) as $previous
         | ($desired | map(
             . as $entry
@@ -165,7 +167,7 @@ function finish_feed() {
         ) | sort_by((if .state == "blocked" then 0 elif .state == "working" then 1 else 2 end), .key) | .[:40]) as $entries
         | {
             version: 1,
-            source: "herdr-meta-patrol",
+            source: $source,
             writtenAt: (if $entries == ($old.entries // []) then ($old.writtenAt // $now) else $now end),
             entries: $entries
         }
@@ -226,7 +228,7 @@ function write_machine() {
         if ! build_reachable_entries "${machine}" "${agents_file}" "${tabs_file}"; then
             return 1
         fi
-        feed="$(finish_feed "${entries_json}" "${previous}" false "${machine_key}")" || return 1
+        feed="$(finish_feed "${entries_json}" "${previous}" false "${machine_key}" "herdr-meta-patrol")" || return 1
     else
         machine_detail="$(jq -r --arg key "${machine_key}" '[.entries[]? | select(.key == $key)][0].detail // ""' <<< "${previous}")"
         if [[ ! "${machine_detail}" =~ ^unreachable[[:space:]]since[[:space:]][0-9]{2}:[0-9]{2}$ ]]; then
@@ -236,10 +238,69 @@ function write_machine() {
             '{key:$key,state:"blocked",title:($title[:120]),detail:($detail[:600])}')"
         entries_json="$(jq -cn --argjson old "${previous}" --arg key "${machine_key}" --argjson machine "${machine_entry}" \
             '([$old.entries[]? | select(.key != $key)] + [$machine])')"
-        feed="$(finish_feed "${entries_json}" "${previous}" true "${machine_key}")" || return 1
+        feed="$(finish_feed "${entries_json}" "${previous}" true "${machine_key}" "herdr-meta-patrol")" || return 1
     fi
 
     write_atomic "${target}" "${feed}"
+}
+
+# @description Write open PRs to per-repository feeds, preserving the last snapshot when GitHub cannot be read.
+function write_open_prs() {
+    local viewer prs repositories_json repository repo_name repo_prs total chunks chunk start end target previous entries_json feed file written_files prefix
+    if ! command -v gh > /dev/null 2>&1; then
+        printf '%s\n' 'GitHub CLI is unavailable; keeping the previous open-PR feeds' >&2
+        return 0
+    fi
+    if ! viewer="$(gh api user --jq '.login' 2> /dev/null)" || [[ ! "${viewer}" =~ ^[A-Za-z0-9-]+$ ]]; then
+        printf '%s\n' 'GitHub CLI has no readable account; keeping the previous open-PR feeds' >&2
+        return 0
+    fi
+    if ! prs="$(gh search prs --owner "${viewer}" --state open --json number,title,author,isDraft,url,repository --limit 1000 2> /dev/null)" ||
+        ! jq -e 'type == "array" and all(.[]; (.number | type == "number") and (.title | type == "string") and (.url | type == "string") and ((.author | type == "null") or (.author.login | type == "string")) and (.repository.nameWithOwner | type == "string"))' <<< "${prs}" > /dev/null; then
+        printf '%s\n' 'GitHub open-PR search failed; keeping the previous open-PR feeds' >&2
+        return 0
+    fi
+    if (($(jq 'length' <<< "${prs}") >= 1000)); then
+        printf '%s\n' 'GitHub open-PR search reached its 1000-result limit; some PRs may be missing' >&2
+        return 0
+    fi
+
+    prefix="github-prs-${viewer}-"
+    written_files=$'\n'
+    repositories_json="$(jq -r '[.[].repository.nameWithOwner] | unique[]' <<< "${prs}")"
+    while IFS= read -r repository; do
+        [[ -n "${repository}" ]] || continue
+        repo_name="${repository##*/}"
+        repo_prs="$(jq -c --arg repository "${repository}" '[.[] | select(.repository.nameWithOwner == $repository)] | sort_by(.number)' <<< "${prs}")"
+        total="$(jq 'length' <<< "${repo_prs}")"
+        chunks=$(((total + 39) / 40))
+        for ((chunk = 0; chunk < chunks; chunk++)); do
+            start=$((chunk * 40))
+            end=$((start + 40))
+            target="${feed_dir}/${prefix}${repo_name}-${chunk}.json"
+            previous="$(load_previous "${target}")"
+            entries_json="$(jq -cn --argjson prs "${repo_prs}" --argjson start "${start}" --argjson end "${end}" --argjson now "${now_ms}" '
+                [$prs[$start:$end][] | {
+                    key: ("github/pr/" + (.number | tostring)),
+                    state: "working",
+                    title: ((.repository.nameWithOwner + "#" + (.number | tostring) + " · " + .title)[:120]),
+                    detail: (((if .isDraft then "Draft · " else "" end) + (.author.login // "unknown") + " · [Open PR](" + .url + ")")[:600]),
+                    at: $now
+                }]
+            ')" || return 1
+            feed="$(finish_feed "${entries_json}" "${previous}" false "" "github-open-prs")" || return 1
+            write_atomic "${target}" "${feed}" || return 1
+            written_files+="${target}"$'\n'
+        done
+    done <<< "${repositories_json}"
+
+    for file in "${feed_dir}/${prefix}"*.json; do
+        [[ -f "${file}" ]] || continue
+        if grep -Fqx -- "${file}" <<< "${written_files}"; then continue; fi
+        previous="$(load_previous "${file}")"
+        feed="$(finish_feed '[]' "${previous}" false "" "github-open-prs")" || return 1
+        write_atomic "${file}" "${feed}" || return 1
+    done
 }
 
 if [[ "${1:-}" == --help ]]; then
@@ -274,5 +335,7 @@ if ((prune)); then
         fi
     done
 fi
+
+if ! write_open_prs; then failed=1; fi
 
 exit "${failed}"

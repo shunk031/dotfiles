@@ -344,6 +344,21 @@ gh pr create --title t --body-file '${body_file}'"
     done
 }
 
+@test "allows checked checklist items in a template-only PR body" {
+    local repo_dir="${BATS_TEST_TMPDIR}/target-repo"
+    local template_file="${repo_dir}/.github/pull_request_template.md"
+    local body_file="${BATS_TEST_TMPDIR}/checked-template.md"
+
+    setup_github_body_repo "${repo_dir}"
+    mkdir -p "$(dirname "${template_file}")"
+    write_large_pr_template "${template_file}"
+    sed 's/- \[ \]/- [x]/g' "${template_file}" > "${body_file}"
+
+    run_github_body_hook "gh pr create --head x --title t --body-file '${body_file}'" claude "${repo_dir}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
 @test "reads the pull request template from the repository selected with -R" {
     local caller_dir="${BATS_TEST_TMPDIR}/unrelated-repo"
     local bin_dir="${BATS_TEST_TMPDIR}/bin"
@@ -454,6 +469,28 @@ SH
     cp "${template_file}" "${body_file}"
 
     run_github_body_hook "cd ../repo-b && gh pr create --head x --title t --body-file '${body_file}'" claude "${caller_dir}"
+    [ "${status}" -eq 0 ]
+    [ -z "${output}" ]
+}
+
+@test "reads the template from the repository entered with pushd" {
+    local caller_dir="${BATS_TEST_TMPDIR}/repo-a"
+    local target_dir="${BATS_TEST_TMPDIR}/repo-b"
+    local template_file="${target_dir}/.github/pull_request_template.md"
+    local body_file="${BATS_TEST_TMPDIR}/template-plus-author.md"
+
+    setup_github_body_repo "${caller_dir}"
+    setup_github_body_repo "${target_dir}"
+    mkdir -p "$(dirname "${template_file}")"
+    write_large_pr_template "${template_file}"
+    write_author_body 150
+    {
+        cat "${template_file}"
+        printf '\n'
+        cat "${BATS_TEST_TMPDIR}/author-body.md"
+    } > "${body_file}"
+
+    run_github_body_hook "pushd ../repo-b && gh pr create --head x --title t --body-file '${body_file}'" claude "${caller_dir}"
     [ "${status}" -eq 0 ]
     [ -z "${output}" ]
 }

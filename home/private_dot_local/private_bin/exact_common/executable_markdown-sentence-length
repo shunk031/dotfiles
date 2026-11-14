@@ -1232,8 +1232,10 @@ async function remotePullRequestTemplateContents(repository, cwd) {
 }
 
 function removeTemplateLine(bodyLine, templateLine) {
+    const normalizeTaskMarker = (line) =>
+        line.replace(/^([ \t]*(?:[-+*]|\d+[.)])[ \t]+)\[[ xX]\]([ \t]+)/u, "$1[ ]$2");
     if (
-        bodyLine !== templateLine ||
+        normalizeTaskMarker(bodyLine) !== normalizeTaskMarker(templateLine) ||
         /^ {0,3}(?:`{3,}|~{3,})/u.test(templateLine) ||
         templateLine.includes("|")
     ) {
@@ -1274,11 +1276,14 @@ function githubCommandWorkingDirectory(command, commandStart, directory) {
     const prefix = command.slice(0, commandStart);
     const code = shellCodeText(prefix);
     let cwd = path.resolve(directory || process.cwd());
-    for (const match of code.matchAll(/(?:^|[;&|\n])\s*cd(?=\s|$)/gu)) {
-        const start = match.index + match[0].lastIndexOf("cd");
+    for (const match of code.matchAll(/(?:^|[;&|\n])\s*(cd|pushd)(?=\s|$)/gu)) {
+        const start = match.index + match[0].lastIndexOf(match[1]);
         const end = /[;&|\n]/u.exec(code.slice(start))?.index;
         const args = parseSimpleShellCommand(prefix.slice(start, end === undefined ? prefix.length : start + end));
-        if (args?.[0] === "cd" && args.length <= 2) {
+        if (
+            args?.[0] === match[1] &&
+            (match[1] === "cd" ? args.length <= 2 : args.length === 2)
+        ) {
             cwd = path.resolve(cwd, args[1] || os.homedir());
         }
     }

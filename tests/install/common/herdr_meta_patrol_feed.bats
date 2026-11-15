@@ -131,6 +131,12 @@ JSON
     jq -e '.warnings[] | select(.key == "herdr/local/orch/untracked-asks") | .detail | contains("1 of 2 asks")' "${feed}" > /dev/null
     jq -e '([.warnings[] | select(.key == "herdr/local/orch-signal/untracked-asks")] | length) == 0' "${feed}" > /dev/null
     jq -e '([.entries[] | select(.key | contains("meta-build"))] | length) == 0' "${feed}" > /dev/null
+
+    jq '.result.agents |= map(if .name == "orch" then .tokens["inbox-needs-you"] = "0" else . end | select(.name != "meta-blocked"))' "${AGENTS_JSON}" > "${AGENTS_JSON}.updated"
+    mv "${AGENTS_JSON}.updated" "${AGENTS_JSON}"
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    jq -e '(.warnings | length) == 0' "${feed}" > /dev/null
 }
 
 @test "[common] herdr-meta-patrol-feed skips an overlong key without losing other entries" {

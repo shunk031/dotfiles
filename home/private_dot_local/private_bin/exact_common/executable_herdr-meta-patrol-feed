@@ -83,12 +83,12 @@ function check_root_asks() {
     local machine="$1" root="$2" agent="$3" count tracked missing key warning label
     count="$(jq -r '(.tokens["inbox-needs-you"] // "0") | tonumber? // 0' <<< "${agent}")"
     ((count > 0)) || return 0
-    tracked="$(tracked_count "${machine}" "${root}" task)"
-    missing=$((count - tracked))
-    ((missing > 0)) || return 0
     label="${machine}"
     [[ -n "${label}" ]] || label=local
     key="herdr/${label}/${root}/untracked-asks"
+    tracked="$(tracked_count "${machine}" "${root}" task "${key}")"
+    missing=$((count - tracked))
+    ((missing > 0)) || return 0
     if key_exceeds_limit "${key}"; then
         printf 'warning key exceeds 100 bytes for root %s\n' "${root}" >&2
         return 0

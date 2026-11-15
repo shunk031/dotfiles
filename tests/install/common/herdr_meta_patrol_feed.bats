@@ -107,17 +107,19 @@ JSON
 }
 
 @test "[common] herdr-meta-patrol-feed warns only for meta workers and user asks with no matching source items" {
-    printf 'Local\torch\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    printf 'Local\torch\nLocal\torch-signal\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
     jq -nc '{result:{agents:[
         {name:"meta-build",agent_status:"working"},
         {name:"meta-blocked",agent_status:"blocked"},
         {name:"meta-idle",agent_status:"idle"},
-        {name:"orch",agent_status:"working",tokens:{"inbox-needs-you":"2"}}
+        {name:"orch",agent_status:"working",tokens:{"inbox-needs-you":"2"}},
+        {name:"orch-signal",agent_status:"working",tokens:{"inbox-needs-you":"1"}}
     ]}}' > "${AGENTS_JSON}"
     jq -nc '{result:{tabs:[]}}' > "${TABS_JSON}"
     jq -nc '{version:1,source:"meta-open-items",writtenAt:1,entries:[
         {key:"work/build",kind:"work",state:"working",title:"Build",detail:"",at:1,owner:{machine:"local",agent:"meta-build"}},
-        {key:"task/review",kind:"task",state:"blocked",title:"Review",detail:"",at:1,owner:{machine:"local",agent:"orch"}}
+        {key:"task/review",kind:"task",state:"blocked",title:"Review",detail:"",at:1,owner:{machine:"local",agent:"orch"}},
+        {key:"task/signal",kind:"task",state:"working",title:"Signal task",detail:"",at:1,signalKey:"herdr/local/orch-signal/untracked-asks"}
     ]}' > "${HERDR_META_PATROL_FEED_DIR}/meta-open-items.json"
 
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
@@ -127,6 +129,7 @@ JSON
     jq -e '.warnings[] | select(.key == "herdr/local/meta-blocked/untracked-work") | .detail | contains("blocked")' "${feed}" > /dev/null
     jq -e '([.warnings[] | select(.key == "herdr/local/meta-idle/untracked-work")] | length) == 0' "${feed}" > /dev/null
     jq -e '.warnings[] | select(.key == "herdr/local/orch/untracked-asks") | .detail | contains("1 of 2 asks")' "${feed}" > /dev/null
+    jq -e '([.warnings[] | select(.key == "herdr/local/orch-signal/untracked-asks")] | length) == 0' "${feed}" > /dev/null
     jq -e '([.entries[] | select(.key | contains("meta-build"))] | length) == 0' "${feed}" > /dev/null
 }
 

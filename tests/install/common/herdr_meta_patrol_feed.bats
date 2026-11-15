@@ -58,19 +58,17 @@ JSON
 JSON
 }
 
-@test "[common] herdr-meta-patrol-feed maps roots and worker labels and detects asks by count token" {
+@test "[common] herdr-meta-patrol-feed keeps worker snapshots and warns about untracked root asks" {
     state_snapshots
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]
     feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
 
-    jq -e '[.entries[] | select(.key == "herdr/local/orch")][0] | .state == "working" and .title == "orch: Root label" and .detail == "2 · Merge release?"' "${feed}" > /dev/null
-    jq -e '[.entries[] | select(.key | startswith("herdr/local/orch/ask/"))][0] | .state == "blocked" and .title == "⛔ orch: Merge release?" and (.detail | contains("2") and contains("local") and contains("answer in that pane, or reply here for meta to relay"))' "${feed}" > /dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/orch-blocked")][0] | .state == "blocked"' "${feed}" > /dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/orch-dialog")][0] | .state == "blocked"' "${feed}" > /dev/null
-    jq -e '([.entries[] | select(.key | startswith("herdr/local/orch-dialog/ask/"))] | length) == 0' "${feed}" > /dev/null
-    jq -e '([.entries[] | select(.key | startswith("herdr/local/orch-focus/ask/"))] | length) == 0' "${feed}" > /dev/null
-    jq -e '[.entries[] | select(.key | startswith("herdr/local/orch-single/ask/"))][0] | .state == "blocked" and .title == "⛔ orch-single: Review release?"' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key | startswith("herdr/local/orch"))] | length) == 0' "${feed}" > /dev/null
+    jq -e '[.warnings[] | select(.key == "herdr/local/orch/untracked-asks")][0] | .title == "orch: user asks" and (.detail | contains("2 of 2 asks"))' "${feed}" > /dev/null
+    jq -e '[.warnings[] | select(.key == "herdr/local/orch-dialog/untracked-asks")][0] | .detail | contains("2 of 2 asks")' "${feed}" > /dev/null
+    jq -e '([.warnings[] | select(.key == "herdr/local/orch-focus/untracked-asks")] | length) == 0' "${feed}" > /dev/null
+    jq -e '[.warnings[] | select(.key == "herdr/local/orch-single/untracked-asks")][0] | .detail | contains("1 of 1 asks")' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-build")][0] | .state == "working" and .title == "worker-build: 🚧 Build feature"' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-write")][0] | .state == "working" and .title == "worker-write: ✍️ Write documentation"' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-stop")][0] | .state == "blocked"' "${feed}" > /dev/null
@@ -82,36 +80,70 @@ JSON
     state_snapshots
     bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
-    old_at="$(jq -r '.entries[] | select(.key == "herdr/local/orch") | .at' "${feed}")"
+    old_at="$(jq -r '.entries[] | select(.key == "herdr/local/worker/worker-build") | .at' "${feed}")"
 
     run bash "${SCRIPT_PATH}" local "${BATS_TEST_TMPDIR}/missing-agents.json" "${BATS_TEST_TMPDIR}/missing-tabs.json"
     [ "${status}" -eq 0 ]
-    jq -e --argjson at "${old_at}" '.entries[] | select(.key == "herdr/local/orch") | .at == $at' "${feed}" > /dev/null
+    jq -e --argjson at "${old_at}" '.entries[] | select(.key == "herdr/local/worker/worker-build") | .at == $at' "${feed}" > /dev/null
     jq -e '.entries[] | select(.key == "herdr/local/_machine") | .state == "blocked" and (.detail | startswith("unreachable since "))' "${feed}" > /dev/null
+    jq -e '.warnings[] | select(.key == "herdr/local/orch/untracked-asks")' "${feed}" > /dev/null
 }
 
-@test "[common] herdr-meta-patrol-feed keeps an ask key when its waiting count changes" {
+@test "[common] herdr-meta-patrol-feed keeps a root warning key and updates its unmatched count" {
     state_snapshots
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]
     feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
-    ask_key="$(jq -r '.entries[] | select(.key | startswith("herdr/local/orch/ask/")) | .key' "${feed}")"
-    [ -n "${ask_key}" ]
+    warning_key="$(jq -r '.warnings[] | select(.key == "herdr/local/orch/untracked-asks") | .key' "${feed}")"
+    [ -n "${warning_key}" ]
 
     jq '(.result.agents[] | select(.name == "orch") | .tokens.inbox) = "3 · Merge release?"
         | (.result.agents[] | select(.name == "orch") | .tokens["inbox-needs-you"]) = "3"' "${AGENTS_JSON}" > "${AGENTS_JSON}.updated"
     mv "${AGENTS_JSON}.updated" "${AGENTS_JSON}"
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]
-    [ "$(jq -r '.entries[] | select(.key | startswith("herdr/local/orch/ask/")) | .key' "${feed}")" = "${ask_key}" ]
-    jq -e --arg key "${ask_key}" '.entries[] | select(.key == $key) | .title == "⛔ orch: Merge release?"' "${feed}" > /dev/null
+    [ "$(jq -r '.warnings[] | select(.key == "herdr/local/orch/untracked-asks") | .key' "${feed}")" = "${warning_key}" ]
+    jq -e --arg key "${warning_key}" '.warnings[] | select(.key == $key) | .detail | contains("3 of 3 asks")' "${feed}" > /dev/null
+}
+
+@test "[common] herdr-meta-patrol-feed warns only for meta workers and user asks with no matching source items" {
+    printf 'Local\torch\nLocal\torch-signal\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    jq -nc '{result:{agents:[
+        {name:"meta-build",agent_status:"working"},
+        {name:"meta-blocked",agent_status:"blocked"},
+        {name:"meta-idle",agent_status:"idle"},
+        {name:"orch",agent_status:"working",tokens:{"inbox-needs-you":"2"}},
+        {name:"orch-signal",agent_status:"working",tokens:{"inbox-needs-you":"1"}}
+    ]}}' > "${AGENTS_JSON}"
+    jq -nc '{result:{tabs:[]}}' > "${TABS_JSON}"
+    jq -nc '{version:1,source:"meta-open-items",writtenAt:1,entries:[
+        {key:"work/build",kind:"work",state:"working",title:"Build",detail:"",at:1,owner:{machine:"local",agent:"meta-build"}},
+        {key:"task/review",kind:"task",state:"blocked",title:"Review",detail:"",at:1,owner:{machine:"local",agent:"orch"}},
+        {key:"task/signal",kind:"task",state:"working",title:"Signal task",detail:"",at:1,signalKey:"herdr/local/orch-signal/untracked-asks"}
+    ]}' > "${HERDR_META_PATROL_FEED_DIR}/meta-open-items.json"
+
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
+    jq -e '([.warnings[] | select(.key == "herdr/local/meta-build/untracked-work")] | length) == 0' "${feed}" > /dev/null
+    jq -e '.warnings[] | select(.key == "herdr/local/meta-blocked/untracked-work") | .detail | contains("blocked")' "${feed}" > /dev/null
+    jq -e '([.warnings[] | select(.key == "herdr/local/meta-idle/untracked-work")] | length) == 0' "${feed}" > /dev/null
+    jq -e '.warnings[] | select(.key == "herdr/local/orch/untracked-asks") | .detail | contains("1 of 2 asks")' "${feed}" > /dev/null
+    jq -e '([.warnings[] | select(.key == "herdr/local/orch-signal/untracked-asks")] | length) == 0' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key | contains("meta-build"))] | length) == 0' "${feed}" > /dev/null
+
+    jq '.result.agents |= map(if .name == "orch" then .tokens["inbox-needs-you"] = "0" else . end | select(.name != "meta-blocked"))' "${AGENTS_JSON}" > "${AGENTS_JSON}.updated"
+    mv "${AGENTS_JSON}.updated" "${AGENTS_JSON}"
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    jq -e '(.warnings | length) == 0' "${feed}" > /dev/null
 }
 
 @test "[common] herdr-meta-patrol-feed skips an overlong key without losing other entries" {
     long_name="$(printf 'r%.0s' {1..100})"
     long_worker="$(printf 'w%.0s' {1..100})"
     printf 'Local\t%s\n' "${long_name}" > "${XDG_STATE_HOME}/meta/roots.tsv"
-    jq -nc --arg name "${long_name}" --arg long_worker "${long_worker}" '{result:{agents:[{name:$name,tab_id:"long",agent_status:"working"},{name:$long_worker,tab_id:"long-worker",agent_status:"working"},{name:"worker-ok",tab_id:"ok",agent_status:"working"}]}}' > "${AGENTS_JSON}"
+    jq -nc --arg name "${long_name}" --arg long_worker "${long_worker}" '{result:{agents:[{name:$name,tab_id:"long",agent_status:"working",tokens:{"inbox-needs-you":"1"}},{name:$long_worker,tab_id:"long-worker",agent_status:"working"},{name:"worker-ok",tab_id:"ok",agent_status:"working"}]}}' > "${AGENTS_JSON}"
     jq -nc '{result:{tabs:[{tab_id:"long",label:"🤖 Long root"},{tab_id:"long-worker",label:"🚧 Long worker"},{tab_id:"ok",label:"🚧 Valid worker"}]}}' > "${TABS_JSON}"
 
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
@@ -120,7 +152,7 @@ JSON
     jq -e '([.entries[] | select(.key == "herdr/local/worker/worker-ok")] | length) == 1' "${feed}" > /dev/null
     jq -e --arg prefix "herdr/local/${long_name}" '([.entries[] | select(.key | startswith($prefix))] | length) == 0' "${feed}" > /dev/null
     jq -e --arg prefix "herdr/local/worker/${long_worker}" '([.entries[] | select(.key | startswith($prefix))] | length) == 0' "${feed}" > /dev/null
-    [[ "${output}" == *"feed key exceeds 100 bytes for ${long_name} on local"* ]]
+    [[ "${output}" == *"warning key exceeds 100 bytes for root ${long_name}"* ]]
     [[ "${output}" == *"feed key exceeds 100 bytes for worker ${long_worker} on local"* ]]
 }
 
@@ -145,6 +177,16 @@ JSON
     [ "$(jq '[.entries[] | select(.state == "blocked")] | length' "${feed}")" -eq 10 ]
     [ "$(jq '[.entries[] | select(.state == "working")] | length' "${feed}")" -eq 30 ]
     [ "$(jq '[.entries[] | select(.state == "done")] | length' "${feed}")" -eq 0 ]
+}
+
+@test "[common] herdr-meta-patrol-feed keeps every live-work warning" {
+    jq -nc '{result:{agents:[range(0;45) as $i | {name:("meta-worker-" + ($i|tostring)),agent_status:"working"}]}}' > "${AGENTS_JSON}"
+    jq -nc '{result:{tabs:[]}}' > "${TABS_JSON}"
+
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
+    [ "$(jq '.warnings | length' "${feed}")" -eq 45 ]
 }
 
 @test "[common] herdr-meta-patrol-feed uses a same-directory dot temp without a JSON suffix" {

@@ -170,6 +170,16 @@ JSON
     [ "$(jq '[.entries[] | select(.state == "done")] | length' "${feed}")" -eq 0 ]
 }
 
+@test "[common] herdr-meta-patrol-feed keeps every live-work warning" {
+    jq -nc '{result:{agents:[range(0;45) as $i | {name:("meta-worker-" + ($i|tostring)),agent_status:"working"}]}}' > "${AGENTS_JSON}"
+    jq -nc '{result:{tabs:[]}}' > "${TABS_JSON}"
+
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
+    [ "$(jq '.warnings | length' "${feed}")" -eq 45 ]
+}
+
 @test "[common] herdr-meta-patrol-feed uses a same-directory dot temp without a JSON suffix" {
     state_snapshots
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"

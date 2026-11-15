@@ -210,7 +210,7 @@ function finish_feed() {
             | ($previous_warnings[$warning.key] // null) as $prior
             | (if $prior != null and $prior.title == $warning.title and $prior.detail == $warning.detail then $prior.at else $now end) as $at
             | . + {at: $at}
-        ) | sort_by(.key) | .[:40]) as $warnings
+        ) | sort_by(.key)) as $warnings
         | {
             version: 1,
             source: "herdr-meta-patrol",

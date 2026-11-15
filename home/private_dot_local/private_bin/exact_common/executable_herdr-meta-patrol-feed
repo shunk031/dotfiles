@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 
 # @file home/private_dot_local/private_bin/exact_common/executable_herdr-meta-patrol-feed
-# @brief Write Herdr root and worker snapshots to Inbox feed files.
+# @brief Write Herdr root snapshots to Inbox feed files.
 # @description
 #   Reads one agent-list and tab-list snapshot per machine and writes one
-#   atomic feed file per machine. Missing or invalid snapshots carry forward
-#   the previous entries and add a blocked machine entry.
+#   atomic feed file per machine. Each registered root with a supported status
+#   in the agent list gets one entry with its lifecycle state and inbox ask. A
+#   nonzero `inbox-stop` token marks a root blocked; otherwise `idle` maps to
+#   `done` and other feed states come from `agent_status`. Missing or invalid
+#   snapshots carry forward the previous entries and add a blocked machine
+#   entry.
 # @option --prune Remove feed files for machines absent from the supplied snapshots.
 # @option HERDR_META_PATROL_FEED_DIR Feed directory (default `~/.local/state/inbox/feeds`).
 # @arg $1 string Repeated triples of machine alias, agent-list JSON path, and tab-list JSON path.
@@ -39,13 +43,6 @@ function is_registered_root() {
         "${roots_file}"
 }
 
-# @description Remove one leading emoji and its following whitespace from a label.
-# @arg $1 string Tab label.
-# @stdout Label with its leading emoji removed.
-function strip_leading_emoji() {
-    printf '%s\n' "$1" | perl -CSD -pe 's/\A(?:\p{Emoji_Presentation}|\p{Extended_Pictographic})(?:\x{FE0F}|\x{200D}(?:\p{Emoji_Presentation}|\p{Extended_Pictographic})|\p{Emoji_Modifier})*\s*//'
-}
-
 # @description Append one compact JSON entry to the current entry array.
 # @arg $1 string JSON object to append.
 function append_entry() {
@@ -56,6 +53,39 @@ function append_entry() {
 # @arg $1 string JSON warning object to append.
 function append_warning() {
     warnings_json="$(jq -cn --argjson warnings "${warnings_json}" --argjson warning "$1" '$warnings + [$warning]')"
+}
+
+# @description Add one feed entry for a registered root agent.
+# @arg $1 string Machine alias.
+# @arg $2 string Root agent name.
+# @arg $3 JSON Root agent object.
+function append_root_entry() {
+    local machine="$1" root="$2" agent="$3" state stop ask key entry
+    state="$(jq -r '.agent_status // empty' <<< "${agent}")"
+    stop="$(jq -r '.tokens["inbox-stop"] // "" | tostring' <<< "${agent}")"
+    if [[ -n "${stop}" && "${stop}" != 0 ]]; then
+        state=blocked
+    elif [[ "${state}" == idle ]]; then
+        state=done
+    fi
+    case "${state}" in
+    working | blocked | done) ;;
+    *) return 0 ;;
+    esac
+
+    ask="$(jq -r '
+        (.tokens["inbox-stop"] // "" | tostring) as $stop
+        | if $stop != "" and $stop != "0" then $stop else (.tokens.inbox // "" | tostring) end
+    ' <<< "${agent}")"
+    [[ "${ask}" != 0 ]] || ask=""
+    key="herdr/${machine}/root/${root}"
+    if key_exceeds_limit "${key}"; then
+        printf 'feed key exceeds 100 bytes for root %s on %s\n' "${root}" "${machine}" >&2
+        return 0
+    fi
+    entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${root}: ${state}" --arg detail "${ask}" \
+        '{key:$key,state:$state,title:($title[:120]),detail:($detail[:600])}')"
+    append_entry "${entry}"
 }
 
 # @description Return the count of open items owned by an agent in the active-items file.
@@ -127,12 +157,11 @@ function key_exceeds_limit() {
     ((byte_count > 100))
 }
 
-# @description Build ordinary worker entries and separate warnings from successful snapshots.
+# @description Build registered-root entries and untracked-work warnings from a successful snapshot.
 # @arg $1 string Machine alias.
 # @arg $2 path Agent-list JSON snapshot.
-# @arg $3 path Tab-list JSON snapshot.
 function build_reachable_entries() {
-    local machine="$1" agents_file="$2" tabs_file="$3" registry_machine root agent name tab_id label focus state key entry
+    local machine="$1" agents_file="$2" registry_machine root agent name
     entries_json='[]'
     warnings_json='[]'
     if [[ "${machine}" == local ]]; then registry_machine=Local; else registry_machine="${machine}"; fi
@@ -142,39 +171,26 @@ function build_reachable_entries() {
             [[ -n "${root}" && "${root}" != "${meta}" ]] || continue
             agent="$(jq -c --arg name "${root}" '[.result.agents[]? | select(.name == $name)][0] // empty' "${agents_file}")"
             [[ -n "${agent}" ]] || continue
+            append_root_entry "${machine}" "${root}" "${agent}"
             check_root_asks "${machine}" "${root}" "${agent}"
         done < <(LC_ALL=C awk -F '\t' -v machine="${registry_machine}" \
             '$0 !~ /^#/ && NF == 2 && $1 == machine && !seen[$2]++ { print $2 }' "${roots_file}" 2> /dev/null)
     fi
 
     agent="$(jq -c --arg name "${meta}" '[.result.agents[]? | select(.name == $name)][0] // empty' "${agents_file}")"
-    [[ -z "${agent}" ]] || check_root_asks "${machine}" "${meta}" "${agent}"
+    if [[ -n "${agent}" ]]; then
+        if is_registered_root "${registry_machine}" "${meta}"; then
+            append_root_entry "${machine}" "${meta}" "${agent}"
+        fi
+        check_root_asks "${machine}" "${meta}" "${agent}"
+    fi
 
     while IFS= read -r agent; do
         name="$(jq -r '.name // empty' <<< "${agent}")"
-        [[ -n "${name}" && "${name}" != "${meta}" ]] || continue
+        [[ -n "${name}" ]] || continue
         if [[ "${name}" == meta-* ]]; then
             check_meta_worker "${machine}" "${agent}"
-            continue
         fi
-        if is_registered_root "${registry_machine}" "${name}"; then continue; fi
-        tab_id="$(jq -r '.tab_id // empty' <<< "${agent}")"
-        label="$(jq -r --arg tab "${tab_id}" '[.result.tabs[]? | select(.tab_id == $tab) | .label][0] // ""' "${tabs_file}")"
-        case "${label}" in
-        🚧* | ✍*) state=working ;;
-        ⛔*) state=blocked ;;
-        ✅*) state="done" ;;
-        *) continue ;;
-        esac
-        key="herdr/${machine}/worker/${name}"
-        if key_exceeds_limit "${key}"; then
-            printf 'feed key exceeds 100 bytes for worker %s on %s\n' "${name}" "${machine}" >&2
-            continue
-        fi
-        focus="$(jq -r '.tokens.inbox // "" | tostring' <<< "${agent}")"
-        entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${name}: ${label}" --arg detail "${focus}" \
-            '{key:$key,state:$state,title:($title[:120]),detail:($detail[:600])}')"
-        append_entry "${entry}"
     done < <(jq -c '.result.agents[]?' "${agents_file}")
 }
 
@@ -272,7 +288,7 @@ function write_machine() {
     if [[ -r "${agents_file}" && -r "${tabs_file}" ]] &&
         jq -e '.result.agents | type == "array"' "${agents_file}" > /dev/null 2>&1 &&
         jq -e '.result.tabs | type == "array"' "${tabs_file}" > /dev/null 2>&1; then
-        if ! build_reachable_entries "${machine}" "${agents_file}" "${tabs_file}"; then
+        if ! build_reachable_entries "${machine}" "${agents_file}"; then
             return 1
         fi
         feed="$(finish_feed "${entries_json}" "${previous}" false "${machine_key}" "${warnings_json}")" || return 1

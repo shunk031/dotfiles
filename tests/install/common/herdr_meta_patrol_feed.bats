@@ -27,7 +27,7 @@ STUB
 }
 
 function state_snapshots() {
-    printf 'Local\torch\nLocal\torch-blocked\nLocal\torch-dialog\nLocal\torch-focus\nLocal\torch-single\nLocal\tmeta\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    printf 'Local\torch\nLocal\torch\nLocal\torch-blocked\nLocal\torch-dialog\nLocal\torch-focus\nLocal\torch-single\nLocal\tmeta\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
     cat > "${AGENTS_JSON}" << 'JSON'
 {"result":{"agents":[
   {"name":"orch","tab_id":"t-root","agent_status":"working","tokens":{"inbox":"2 · Merge release?","inbox-needs-you":"2"}},
@@ -44,7 +44,7 @@ function state_snapshots() {
 JSON
     cat > "${TABS_JSON}" << 'JSON'
 {"result":{"tabs":[
-  {"tab_id":"t-root","label":"🤖 Root label"},
+  {"tab_id":"t-root","label":"✅ Incorrectly finished"},
   {"tab_id":"t-stop","label":"🤖 Root stop"},
   {"tab_id":"t-dialog","label":"🤖 Root dialog"},
   {"tab_id":"t-focus","label":"🤖 Root focus"},
@@ -58,33 +58,34 @@ JSON
 JSON
 }
 
-@test "[common] herdr-meta-patrol-feed keeps worker snapshots and warns about untracked root asks" {
+@test "[common] herdr-meta-patrol-feed emits registered roots and warns about untracked asks" {
     state_snapshots
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]
     feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
 
-    jq -e '([.entries[] | select(.key | startswith("herdr/local/orch"))] | length) == 0' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key | startswith("herdr/local/root/"))] | length) == 6' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/root/orch")][0] | .state == "working" and .title == "orch: working" and .detail == "2 · Merge release?"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/root/orch-blocked")][0] | .state == "blocked" and .detail == "! Usage limit reached"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/root/orch-dialog")][0] | .state == "blocked" and .detail == "Allow command?"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/root/orch-focus")][0] | .state == "done" and .detail == "Review architecture"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/root/meta")][0] | .state == "blocked" and .detail == "internal ask"' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key | startswith("herdr/local/worker/"))] | length) == 0' "${feed}" > /dev/null
     jq -e '[.warnings[] | select(.key == "herdr/local/orch/untracked-asks")][0] | .title == "orch: user asks" and (.detail | contains("2 of 2 asks"))' "${feed}" > /dev/null
     jq -e '[.warnings[] | select(.key == "herdr/local/orch-dialog/untracked-asks")][0] | .detail | contains("2 of 2 asks")' "${feed}" > /dev/null
     jq -e '([.warnings[] | select(.key == "herdr/local/orch-focus/untracked-asks")] | length) == 0' "${feed}" > /dev/null
     jq -e '[.warnings[] | select(.key == "herdr/local/orch-single/untracked-asks")][0] | .detail | contains("1 of 1 asks")' "${feed}" > /dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-build")][0] | .state == "working" and .title == "worker-build: 🚧 Build feature"' "${feed}" > /dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-write")][0] | .state == "working" and .title == "worker-write: ✍️ Write documentation"' "${feed}" > /dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-stop")][0] | .state == "blocked"' "${feed}" > /dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/worker/worker-done")][0] | .state == "done"' "${feed}" > /dev/null
-    jq -e '([.entries[] | select(.key | contains("meta"))] | length) == 0' "${feed}" > /dev/null
 }
 
 @test "[common] herdr-meta-patrol-feed carries entries forward when a machine is unreachable" {
     state_snapshots
     bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
-    old_at="$(jq -r '.entries[] | select(.key == "herdr/local/worker/worker-build") | .at' "${feed}")"
+    old_at="$(jq -r '.entries[] | select(.key == "herdr/local/root/orch") | .at' "${feed}")"
 
     run bash "${SCRIPT_PATH}" local "${BATS_TEST_TMPDIR}/missing-agents.json" "${BATS_TEST_TMPDIR}/missing-tabs.json"
     [ "${status}" -eq 0 ]
-    jq -e --argjson at "${old_at}" '.entries[] | select(.key == "herdr/local/worker/worker-build") | .at == $at' "${feed}" > /dev/null
+    jq -e --argjson at "${old_at}" '.entries[] | select(.key == "herdr/local/root/orch") | .at == $at' "${feed}" > /dev/null
     jq -e '.entries[] | select(.key == "herdr/local/_machine") | .state == "blocked" and (.detail | startswith("unreachable since "))' "${feed}" > /dev/null
     jq -e '.warnings[] | select(.key == "herdr/local/orch/untracked-asks")' "${feed}" > /dev/null
 }
@@ -149,11 +150,10 @@ JSON
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]
     feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
-    jq -e '([.entries[] | select(.key == "herdr/local/worker/worker-ok")] | length) == 1' "${feed}" > /dev/null
-    jq -e --arg prefix "herdr/local/${long_name}" '([.entries[] | select(.key | startswith($prefix))] | length) == 0' "${feed}" > /dev/null
-    jq -e --arg prefix "herdr/local/worker/${long_worker}" '([.entries[] | select(.key | startswith($prefix))] | length) == 0' "${feed}" > /dev/null
+    jq -e --arg prefix "herdr/local/root/${long_name}" '([.entries[] | select(.key | startswith($prefix))] | length) == 0' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key | startswith("herdr/local/worker/"))] | length) == 0' "${feed}" > /dev/null
     [[ "${output}" == *"warning key exceeds 100 bytes for root ${long_name}"* ]]
-    [[ "${output}" == *"feed key exceeds 100 bytes for worker ${long_worker} on local"* ]]
+    [[ "${output}" == *"feed key exceeds 100 bytes for root ${long_name} on local"* ]]
 }
 
 @test "[common] herdr-meta-patrol-feed prunes files absent from supplied snapshots" {
@@ -166,9 +166,10 @@ JSON
     [ ! -e "${HERDR_META_PATROL_FEED_DIR}/herdr-stale.json" ]
 }
 
-@test "[common] herdr-meta-patrol-feed keeps blocked entries first at the 40-entry limit" {
-    jq -nc '{result:{agents:[range(0;45) as $i | {name:("worker-" + ($i|tostring)),tab_id:("tab-" + ($i|tostring)),agent_status:"working"}]}}' > "${AGENTS_JSON}"
-    jq -nc '{result:{tabs:[range(0;45) as $i | {tab_id:("tab-" + ($i|tostring)),label:(if $i < 10 then "⛔ Blocked" elif $i < 40 then "🚧 Working" else "✅ Done" end)}]}}' > "${TABS_JSON}"
+@test "[common] herdr-meta-patrol-feed keeps blocked roots first at the 40-entry limit" {
+    jq -nc '{result:{agents:[range(0;45) as $i | {name:("root-" + ($i|tostring)),agent_status:(if $i < 10 then "blocked" elif $i < 40 then "working" else "done" end)}]}}' > "${AGENTS_JSON}"
+    jq -nc '{result:{tabs:[]}}' > "${TABS_JSON}"
+    jq -nr '[range(0;45) as $i | "Local\troot-\($i)"] | .[]' > "${XDG_STATE_HOME}/meta/roots.tsv"
 
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
     [ "${status}" -eq 0 ]

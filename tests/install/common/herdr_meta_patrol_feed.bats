@@ -27,14 +27,17 @@ STUB
 }
 
 function state_snapshots() {
-    printf 'Local\torch\nLocal\torch\nLocal\torch-blocked\nLocal\torch-blocked-no-ask\nLocal\torch-dialog\nLocal\torch-focus\nLocal\torch-idle\nLocal\torch-done\nLocal\torch-single\nLocal\tmeta\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    printf 'Local\torch\nLocal\torch\nLocal\torch-blocked\nLocal\torch-blocked-no-ask\nLocal\torch-dialog\nLocal\torch-focus\nLocal\torch-needs-you\nLocal\torch-noninteger\nLocal\torch-stop-zero\nLocal\torch-idle\nLocal\torch-done\nLocal\torch-single\nLocal\tmeta\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
     cat > "${AGENTS_JSON}" << 'JSON'
 {"result":{"agents":[
   {"name":"orch","tab_id":"t-root","agent_status":"working","tokens":{"inbox":"2 · Merge release?","inbox-needs-you":"2"}},
-  {"name":"orch-blocked","tab_id":"t-stop","agent_status":"idle","tokens":{"inbox":"! Usage limit reached","inbox-stop":"! Usage limit reached","inbox-needs-you":"0"}},
+  {"name":"orch-blocked","tab_id":"t-stop","agent_status":"idle","tokens":{"inbox":"Status detail · 4 findings","inbox-stop":"! Usage limit reached","inbox-needs-you":"0"}},
   {"name":"orch-blocked-no-ask","tab_id":"t-blocked-no-ask","agent_status":"blocked"},
   {"name":"orch-dialog","tab_id":"t-dialog","agent_status":"blocked","tokens":{"inbox":"Allow command?","inbox-needs-you":"2"}},
-  {"name":"orch-focus","tab_id":"t-focus","agent_status":"idle","tokens":{"inbox":"Review architecture","inbox-needs-you":"0"}},
+  {"name":"orch-focus","tab_id":"t-focus","agent_status":"idle","tokens":{"inbox":"4 findings","inbox-needs-you":"0"}},
+  {"name":"orch-needs-you","tab_id":"t-needs-you","agent_status":"idle","tokens":{"inbox":"Review architecture","inbox-needs-you":"2"}},
+  {"name":"orch-noninteger","tab_id":"t-noninteger","agent_status":"idle","tokens":{"inbox":"Invalid count","inbox-needs-you":"1.5"}},
+  {"name":"orch-stop-zero","tab_id":"t-stop-zero","agent_status":"idle","tokens":{"inbox":"2 findings","inbox-stop":"0","inbox-needs-you":"0"}},
   {"name":"orch-idle","tab_id":"t-idle","agent_status":"idle"},
   {"name":"orch-done","tab_id":"t-done-root","agent_status":"done"},
   {"name":"orch-single","tab_id":"t-single","agent_status":"working","tokens":{"inbox":"Review release?","inbox-needs-you":"1"}},
@@ -52,6 +55,9 @@ JSON
   {"tab_id":"t-blocked-no-ask","label":"🤖 Root blocked"},
   {"tab_id":"t-dialog","label":"🤖 Root dialog"},
   {"tab_id":"t-focus","label":"🤖 Root focus"},
+  {"tab_id":"t-needs-you","label":"🤖 Root needs you"},
+  {"tab_id":"t-noninteger","label":"🤖 Root fractional count"},
+  {"tab_id":"t-stop-zero","label":"🤖 Root zero stop"},
   {"tab_id":"t-idle","label":"🤖 Root idle"},
   {"tab_id":"t-done-root","label":"🤖 Root done"},
   {"tab_id":"t-single","label":"🤖 Root single"},
@@ -72,15 +78,16 @@ JSON
 
     jq -e '([.entries[] | select(.key | startswith("herdr/local/root/"))] | length) == 7' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/root/orch")][0] | .state == "working" and .title == "orch: working" and .detail == "2 · Merge release?"' "${feed}" > /dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/root/orch-blocked")][0] | .state == "blocked" and .detail == "! Usage limit reached"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/root/orch-blocked")][0] | .state == "blocked" and .detail == "Status detail · 4 findings"' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/root/orch-blocked-no-ask")][0] | .state == "blocked"' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/root/orch-dialog")][0] | .state == "blocked" and .detail == "Allow command?"' "${feed}" > /dev/null
-    jq -e '[.entries[] | select(.key == "herdr/local/root/orch-focus")][0] | .state == "done" and .detail == "Review architecture"' "${feed}" > /dev/null
-    jq -e '([.entries[] | select(.key == "herdr/local/root/orch-idle" or .key == "herdr/local/root/orch-done")] | length) == 0' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/root/orch-needs-you")][0] | .state == "done" and .detail == "Review architecture"' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key == "herdr/local/root/orch-focus" or .key == "herdr/local/root/orch-noninteger" or .key == "herdr/local/root/orch-stop-zero" or .key == "herdr/local/root/orch-idle" or .key == "herdr/local/root/orch-done")] | length) == 0' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/root/meta")][0] | .state == "blocked" and .detail == "internal ask"' "${feed}" > /dev/null
     jq -e '([.entries[] | select(.key | startswith("herdr/local/worker/"))] | length) == 0' "${feed}" > /dev/null
     jq -e '[.warnings[] | select(.key == "herdr/local/orch/untracked-asks")][0] | .title == "orch: user asks" and (.detail | contains("2 of 2 asks"))' "${feed}" > /dev/null
     jq -e '[.warnings[] | select(.key == "herdr/local/orch-dialog/untracked-asks")][0] | .detail | contains("2 of 2 asks")' "${feed}" > /dev/null
+    jq -e '[.warnings[] | select(.key == "herdr/local/orch-needs-you/untracked-asks")][0] | .detail | contains("2 of 2 asks")' "${feed}" > /dev/null
     jq -e '([.warnings[] | select(.key == "herdr/local/orch-focus/untracked-asks")] | length) == 0' "${feed}" > /dev/null
     jq -e '[.warnings[] | select(.key == "herdr/local/orch-single/untracked-asks")][0] | .detail | contains("1 of 1 asks")' "${feed}" > /dev/null
 }

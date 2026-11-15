@@ -5,10 +5,10 @@
 # @description
 #   Reads one agent-list and tab-list snapshot per machine and writes one
 #   atomic feed file per machine. Registered roots get an entry when working,
-#   blocked, or holding an inbox ask. A nonzero `inbox-stop` token marks a root
-#   blocked; an included idle root maps to `done`, and other feed states come
-#   from `agent_status`. Missing or invalid snapshots carry forward the
-#   previous entries and add a blocked machine entry.
+#   blocked, with a positive integer `inbox-needs-you` count, or with an active
+#   `inbox-stop` token. The `inbox` token is entry detail only. An included
+#   inactive root maps to `done`; a stop marks it `blocked`. Missing or invalid
+#   snapshots carry forward the previous entries and add a blocked machine entry.
 # @option --prune Remove feed files for machines absent from the supplied snapshots.
 # @option HERDR_META_PATROL_FEED_DIR Feed directory (default `~/.local/state/inbox/feeds`).
 # @arg $1 string Repeated triples of machine alias, agent-list JSON path, and tab-list JSON path.
@@ -59,23 +59,25 @@ function append_warning() {
 # @arg $2 string Root agent name.
 # @arg $3 JSON Root agent object.
 function append_root_entry() {
-    local machine="$1" root="$2" agent="$3" state stop ask key entry
+    local machine="$1" root="$2" agent="$3" state stop detail needs_you key entry
     state="$(jq -r '.agent_status // empty' <<< "${agent}")"
     stop="$(jq -r '.tokens["inbox-stop"] // "" | tostring' <<< "${agent}")"
-    ask="$(jq -r '
-        (.tokens["inbox-stop"] // "" | tostring) as $stop
-        | if $stop != "" and $stop != "0" then $stop else (.tokens.inbox // "" | tostring) end
+    detail="$(jq -r '.tokens.inbox // "" | tostring' <<< "${agent}")"
+    needs_you="$(jq -r '
+        ((.tokens["inbox-needs-you"] // "0") | tonumber? // 0) as $count
+        | if $count > 0 and ($count | floor) == $count then "true" else "false" end
     ' <<< "${agent}")"
-    [[ "${ask}" != 0 ]] || ask=""
     if [[ -n "${stop}" && "${stop}" != 0 ]]; then
         state=blocked
     elif [[ "${state}" == idle ]]; then
-        state=done
+        state='done'
     fi
     case "${state}" in
     working | blocked) ;;
-    done) [[ -n "${ask}" ]] || return 0 ;;
-    *) return 0 ;;
+    *)
+        [[ "${needs_you}" == true ]] || return 0
+        state='done'
+        ;;
     esac
 
     key="herdr/${machine}/root/${root}"
@@ -83,7 +85,7 @@ function append_root_entry() {
         printf 'feed key exceeds 100 bytes for root %s on %s\n' "${root}" "${machine}" >&2
         return 0
     fi
-    entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${root}: ${state}" --arg detail "${ask}" \
+    entry="$(jq -cn --arg key "${key}" --arg state "${state}" --arg title "${root}: ${state}" --arg detail "${detail}" \
         '{key:$key,state:$state,title:($title[:120]),detail:($detail[:600])}')"
     append_entry "${entry}"
 }

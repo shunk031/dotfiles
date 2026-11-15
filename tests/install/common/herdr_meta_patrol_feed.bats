@@ -134,7 +134,7 @@ JSON
     long_name="$(printf 'r%.0s' {1..100})"
     long_worker="$(printf 'w%.0s' {1..100})"
     printf 'Local\t%s\n' "${long_name}" > "${XDG_STATE_HOME}/meta/roots.tsv"
-    jq -nc --arg name "${long_name}" --arg long_worker "${long_worker}" '{result:{agents:[{name:$name,tab_id:"long",agent_status:"working"},{name:$long_worker,tab_id:"long-worker",agent_status:"working"},{name:"worker-ok",tab_id:"ok",agent_status:"working"}]}}' > "${AGENTS_JSON}"
+    jq -nc --arg name "${long_name}" --arg long_worker "${long_worker}" '{result:{agents:[{name:$name,tab_id:"long",agent_status:"working",tokens:{"inbox-needs-you":"1"}},{name:$long_worker,tab_id:"long-worker",agent_status:"working"},{name:"worker-ok",tab_id:"ok",agent_status:"working"}]}}' > "${AGENTS_JSON}"
     jq -nc '{result:{tabs:[{tab_id:"long",label:"🤖 Long root"},{tab_id:"long-worker",label:"🚧 Long worker"},{tab_id:"ok",label:"🚧 Valid worker"}]}}' > "${TABS_JSON}"
 
     run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
@@ -143,7 +143,7 @@ JSON
     jq -e '([.entries[] | select(.key == "herdr/local/worker/worker-ok")] | length) == 1' "${feed}" > /dev/null
     jq -e --arg prefix "herdr/local/${long_name}" '([.entries[] | select(.key | startswith($prefix))] | length) == 0' "${feed}" > /dev/null
     jq -e --arg prefix "herdr/local/worker/${long_worker}" '([.entries[] | select(.key | startswith($prefix))] | length) == 0' "${feed}" > /dev/null
-    [[ "${output}" == *"feed key exceeds 100 bytes for ${long_name} on local"* ]]
+    [[ "${output}" == *"warning key exceeds 100 bytes for root ${long_name}"* ]]
     [[ "${output}" == *"feed key exceeds 100 bytes for worker ${long_worker} on local"* ]]
 }
 

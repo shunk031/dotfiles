@@ -27,13 +27,16 @@ STUB
 }
 
 function state_snapshots() {
-    printf 'Local\torch\nLocal\torch\nLocal\torch-blocked\nLocal\torch-dialog\nLocal\torch-focus\nLocal\torch-single\nLocal\tmeta\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    printf 'Local\torch\nLocal\torch\nLocal\torch-blocked\nLocal\torch-blocked-no-ask\nLocal\torch-dialog\nLocal\torch-focus\nLocal\torch-idle\nLocal\torch-done\nLocal\torch-single\nLocal\tmeta\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
     cat > "${AGENTS_JSON}" << 'JSON'
 {"result":{"agents":[
   {"name":"orch","tab_id":"t-root","agent_status":"working","tokens":{"inbox":"2 · Merge release?","inbox-needs-you":"2"}},
   {"name":"orch-blocked","tab_id":"t-stop","agent_status":"idle","tokens":{"inbox":"! Usage limit reached","inbox-stop":"! Usage limit reached","inbox-needs-you":"0"}},
+  {"name":"orch-blocked-no-ask","tab_id":"t-blocked-no-ask","agent_status":"blocked"},
   {"name":"orch-dialog","tab_id":"t-dialog","agent_status":"blocked","tokens":{"inbox":"Allow command?","inbox-needs-you":"2"}},
   {"name":"orch-focus","tab_id":"t-focus","agent_status":"idle","tokens":{"inbox":"Review architecture","inbox-needs-you":"0"}},
+  {"name":"orch-idle","tab_id":"t-idle","agent_status":"idle"},
+  {"name":"orch-done","tab_id":"t-done-root","agent_status":"done"},
   {"name":"orch-single","tab_id":"t-single","agent_status":"working","tokens":{"inbox":"Review release?","inbox-needs-you":"1"}},
   {"name":"worker-build","tab_id":"t-build","agent_status":"working","tokens":{"inbox":"Build the feature"}},
   {"name":"worker-write","tab_id":"t-write","agent_status":"working"},
@@ -46,8 +49,11 @@ JSON
 {"result":{"tabs":[
   {"tab_id":"t-root","label":"✅ Incorrectly finished"},
   {"tab_id":"t-stop","label":"🤖 Root stop"},
+  {"tab_id":"t-blocked-no-ask","label":"🤖 Root blocked"},
   {"tab_id":"t-dialog","label":"🤖 Root dialog"},
   {"tab_id":"t-focus","label":"🤖 Root focus"},
+  {"tab_id":"t-idle","label":"🤖 Root idle"},
+  {"tab_id":"t-done-root","label":"🤖 Root done"},
   {"tab_id":"t-single","label":"🤖 Root single"},
   {"tab_id":"t-build","label":"🚧 Build feature"},
   {"tab_id":"t-write","label":"✍️ Write documentation"},
@@ -64,11 +70,13 @@ JSON
     [ "${status}" -eq 0 ]
     feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
 
-    jq -e '([.entries[] | select(.key | startswith("herdr/local/root/"))] | length) == 6' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key | startswith("herdr/local/root/"))] | length) == 7' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/root/orch")][0] | .state == "working" and .title == "orch: working" and .detail == "2 · Merge release?"' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/root/orch-blocked")][0] | .state == "blocked" and .detail == "! Usage limit reached"' "${feed}" > /dev/null
+    jq -e '[.entries[] | select(.key == "herdr/local/root/orch-blocked-no-ask")][0] | .state == "blocked"' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/root/orch-dialog")][0] | .state == "blocked" and .detail == "Allow command?"' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/root/orch-focus")][0] | .state == "done" and .detail == "Review architecture"' "${feed}" > /dev/null
+    jq -e '([.entries[] | select(.key == "herdr/local/root/orch-idle" or .key == "herdr/local/root/orch-done")] | length) == 0' "${feed}" > /dev/null
     jq -e '[.entries[] | select(.key == "herdr/local/root/meta")][0] | .state == "blocked" and .detail == "internal ask"' "${feed}" > /dev/null
     jq -e '([.entries[] | select(.key | startswith("herdr/local/worker/"))] | length) == 0' "${feed}" > /dev/null
     jq -e '[.warnings[] | select(.key == "herdr/local/orch/untracked-asks")][0] | .title == "orch: user asks" and (.detail | contains("2 of 2 asks"))' "${feed}" > /dev/null

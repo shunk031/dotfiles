@@ -16,6 +16,22 @@
       {
         "id": "2ee158d1-3893-4d7f-a9d4-6333d4b777d9",
         "type": "claude-account-email"
+      },
+      {
+        "id": "80d6d1f6-d4a0-4f7b-b585-4d688e207b06",
+        "type": "separator"
+      },
+      {
+        "id": "2e7ba4b6-625e-41d9-aebb-88b61417ae13",
+        "type": "weekly-usage"
+      },
+      {
+        "id": "d72ac95e-26a8-4e18-b46e-041c6db5f2ed",
+        "type": "separator"
+      },
+      {
+        "id": "3aa4649a-8416-4e79-8b8a-761fada2864c",
+        "type": "fable-weekly-usage"
       }
     ],
     [
@@ -128,11 +144,14 @@
       }
     ]
   ],
-  "flexMode": "full-minus-40",
-  "compactThreshold": 60,
   "colorLevel": 2,
+  "defaultPaddingSide": "both",
   "inheritSeparatorColors": false,
   "globalBold": false,
+  "gitCacheTtlSeconds": 5,
+  "terminalWidthCacheTtlSeconds": 5,
+  "customCommandCacheTtlSeconds": 0,
+  "minimalistMode": false,
   "powerline": {
     "enabled": false,
     "separators": [
@@ -143,6 +162,7 @@
     ],
     "startCaps": [],
     "endCaps": [],
-    "autoAlign": false
+    "autoAlign": false,
+    "continueThemeAcrossLines": false
   }
 }

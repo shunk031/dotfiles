@@ -821,10 +821,10 @@ EOF
 }
 
 @test "[common] Claude settings modifier preserves user state and overrides managed keys" {
-    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"model":"sonnet","runtimeOnly":{"enabled":true},"env":{"USER_VALUE":"keep"},"alwaysThinkingEnabled":false}'
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"model":"sonnet","runtimeOnly":{"enabled":true},"env":{"USER_VALUE":"keep"},"alwaysThinkingEnabled":false,"feedbackDrafts":"notify"}'
     [ "${status}" -eq 0 ]
 
-    run jq -e '.model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .runtimeOnly.enabled == true and .env.USER_VALUE == "keep" and .alwaysThinkingEnabled == true' <<< "${output}"
+    run jq -e '.model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .runtimeOnly.enabled == true and .env.USER_VALUE == "keep" and .alwaysThinkingEnabled == true and .feedbackDrafts == "off"' <<< "${output}"
     [ "${status}" -eq 0 ]
 }
 

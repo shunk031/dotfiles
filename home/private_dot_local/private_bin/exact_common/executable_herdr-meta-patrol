@@ -4,7 +4,7 @@
 # @brief Poll Herdr machines without an LLM and queue news for the meta agent.
 # @description
 #   Scans the local Herdr server and every enabled `herdr machine list` machine
-#   for blocked agents, inbox tokens, leftover input in root agents'
+#   for blocked agents, inbox tokens, due reminders, leftover input in root agents'
 #   input boxes, agents stopped by an API error, and finished or orphaned panes.
 #   An agent of any status counts as stopped when the last
 #   `HERDR_META_PATROL_ERROR_LINES` lines of its pane hold a Codex or Claude Code
@@ -20,9 +20,13 @@
 #   A root is an agent listed in `${XDG_STATE_HOME:-$HOME/.local/state}/meta/roots.tsv`
 #   for its machine alias (`Local` for this machine); inbox tokens alone do not
 #   define roots.
-#   Lines whose normalized form is new since the previous run are appended as one
-#   message to the queue of `herdr-meta-patrol-queue`, which the meta agent waits
-#   on; nothing is typed into any pane, and nothing is queued when nothing is new.
+#   Registered roots may publish a timezone-qualified RFC 3339 timestamp in
+#   `tokens.due`; each overdue value is queued once, and its reminder state is
+#   cleared when the root removes or changes that value.
+#   Findings whose normalized form is new since the previous run are appended as
+#   one message to the queue of `herdr-meta-patrol-queue`, which the meta agent
+#   waits on; nothing is typed into any pane, and no findings message is queued
+#   when no new finding appears.
 #   Leftover input is re-reported after `HERDR_META_PATROL_REPEAT_SECONDS`.
 #   State is saved only after the message is queued, so a failed append is retried
 #   on the next run. After each run, acknowledged messages past their keep period
@@ -241,7 +245,7 @@ function pane_progress_sum() {
 # @arg $3 string File for this machine's `still.tsv` records; it is created only when the agent list was read.
 # @arg $4 path Prefix for this machine's agent and tab JSON snapshots.
 function scan_machine() {
-    local machine="$1" digest_file="$2" still_file="$3" snapshot_prefix="$4" registry_machine list tabs agent a pane inbox relay refs input_state has_inbox registered status fin del panes cause label sum since
+    local machine="$1" digest_file="$2" still_file="$3" snapshot_prefix="$4" registry_machine list tabs agent a pane inbox relay refs input_state has_inbox registered status fin del panes cause label sum since roots due_file
     list="$(hr agent list 2> /dev/null)" || {
         log_attempt_failure "$?"
         sleep "${retry_sleep}"
@@ -252,6 +256,15 @@ function scan_machine() {
         }
     }
     printf '%s\n' "${list}" > "${snapshot_prefix}.agents.json"
+    if [[ "${machine}" == local ]]; then registry_machine=Local; else registry_machine="${machine}"; fi
+    roots="$(if [[ -r "${roots_file}" ]]; then LC_ALL=C awk -F '\t' -v machine="${registry_machine}" '$0 !~ /^#/ && NF == 2 && $1 == machine { print $2 }' "${roots_file}"; fi | jq -R . | jq -sc --arg meta "${meta}" 'unique - [$meta]')"
+    due_file="${snapshot_prefix}.due.tsv"
+    jq -r --argjson roots "${roots}" '
+        .result.agents[]?
+        | select((.name // "") as $name | $roots | index($name))
+        | select((.tokens.due? | type) == "string")
+        | [(.name // ""), "due", .tokens.due] | @tsv
+    ' <<< "${list}" > "${due_file}"
     tabs=""
     if tabs="$(hr tab list 2> /dev/null)" && jq -e '.result.tabs | type == "array"' <<< "${tabs}" > /dev/null 2>&1; then
         printf '%s\n' "${tabs}" > "${snapshot_prefix}.tabs.json"
@@ -259,7 +272,6 @@ function scan_machine() {
         tabs=""
     fi
     jq -r --arg m "${machine}" --arg meta "${meta}" '.result.agents[] | select(.agent_status=="blocked") | select((.name // "") != $meta) | "[\($m)] blocked: \(.name // "-") \(.pane_id)"' <<< "${list}"
-    if [[ "${machine}" == local ]]; then registry_machine=Local; else registry_machine="${machine}"; fi
     : > "${still_file}"
     if [[ -n "${digest_file}" ]]; then
         write_digest_records "${machine}" "${registry_machine}" "${list}" "${digest_file}" "${tabs}"
@@ -357,6 +369,7 @@ function digest_changes() {
 
 mkdir -p "${state_dir}"
 touch "${state_dir}/keys.txt" "${state_dir}/leftover.tsv" "${state_dir}/still.tsv"
+touch "${state_dir}/due.tsv"
 now="$(date +%s)"
 last_digest="$(cat "${state_dir}/digest.epoch" 2> /dev/null)" || last_digest=""
 digest_due=0
@@ -390,8 +403,17 @@ for pid in "${pids[@]}"; do
     if ! wait "${pid}"; then scan_failed=1; fi
 done
 ((scan_failed == 0)) || exit 1
+due_entries=""
+due_success=""
 for ((i = 0; i < ${#machines[@]}; i++)); do
     findings+="$(cat "${scan_dir}/${i}.out")"$'\n'
+    if [[ -f "${scan_dir}/${i}.agents.json" ]]; then
+        due_success+="${machines[$i]}"$'\n'
+        while IFS= read -r line; do
+            [[ -n "${line}" ]] || continue
+            due_entries+="${machines[$i]}"$'\t'"${line}"$'\n'
+        done < "${scan_dir}/${i}.due.tsv"
+    fi
 done
 if [[ -d "${findings_dir}" ]]; then
     for script in "${findings_dir}"/*; do
@@ -447,12 +469,67 @@ function queue_message() {
     }
 }
 
+# @description Convert a timezone-qualified RFC 3339 timestamp to its due epoch second.
+# @arg $1 string Due timestamp.
+# @stdout Epoch second, rounded up when the timestamp has a fractional second.
+function due_epoch() {
+    perl -MTime::Local=timegm -e '
+        my $value = shift;
+        $value =~ /\A(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)\z/ or exit 1;
+        my ($year, $month, $day, $hour, $minute, $second, $fraction, $zone) = ($1, $2, $3, $4, $5, $6, $7, $8);
+        ($month >= 1 && $month <= 12 && $day >= 1 && $day <= 31 && $hour <= 23 && $minute <= 59 && $second <= 59) or exit 1;
+        my $local = eval { timegm($second, $minute, $hour, $day, $month - 1, $year) };
+        defined($local) or exit 1;
+        my @roundtrip = gmtime($local);
+        ($roundtrip[5] + 1900 == $year && $roundtrip[4] + 1 == $month && $roundtrip[3] == $day && $roundtrip[2] == $hour && $roundtrip[1] == $minute && $roundtrip[0] == $second) or exit 1;
+        my $offset = 0;
+        if ($zone ne "Z") {
+            $zone =~ /\A([+-])(\d{2}):(\d{2})\z/;
+            $offset = ($2 * 60 + $3) * 60;
+            $offset *= -1 if $1 eq "-";
+        }
+        my $epoch = $local - $offset;
+        $epoch++ if defined($fraction) && $fraction =~ /[1-9]/;
+        print "$epoch\n";
+    ' "$1"
+}
+
+# @description Queue overdue root metadata and retain one record per active due value.
+# @arg $1 string Current machine, agent, token, and timestamp records.
+# @arg $2 string Machine aliases whose agent lists were read successfully.
+function process_due_entries() {
+    local current="$1" successful="$2" next_file="${state_dir}/due.tsv.next" saved_machine saved_agent saved_token saved_value line machine_label agent token due record epoch message
+    : > "${next_file}"
+    while IFS=$'\t' read -r saved_machine saved_agent saved_token saved_value; do
+        [[ -n "${saved_machine}" ]] || continue
+        record="${saved_machine}"$'\t'"${saved_agent}"$'\t'"${saved_token}"$'\t'"${saved_value}"
+        if ! grep -Fqx -- "${saved_machine}" <<< "${successful}" || grep -Fqx -- "${record}" <<< "${current}"; then
+            printf '%s\n' "${record}" >> "${next_file}"
+        fi
+    done < "${state_dir}/due.tsv"
+
+    while IFS=$'\t' read -r machine_label agent token due; do
+        [[ -n "${machine_label}" && -n "${agent}" && -n "${token}" ]] || continue
+        epoch="$(due_epoch "${due}" 2> /dev/null)" || continue
+        record="${machine_label}"$'\t'"${agent}"$'\t'"${token}"$'\t'"${due}"
+        if ((epoch <= now)) && ! grep -Fqx -- "${record}" "${next_file}"; then
+            message="Due reminder: [${machine_label}] ${agent} has ${token}=${due}."
+            if queue_message due "${message}"; then
+                printf '%s\n' "${record}" >> "${next_file}"
+            fi
+        fi
+    done <<< "${current}"
+    mv -f "${next_file}" "${state_dir}/due.tsv"
+}
+
 # @description Persist this run's digest as the baseline for the next one.
 # @arg $1 string Current digest file.
 function commit_digest() {
     cat "$1" > "${state_dir}/digest.tsv"
     printf '%s\n' "${now}" > "${state_dir}/digest.epoch"
 }
+
+process_due_entries "${due_entries}" "${due_success}"
 
 # @description Queue the progress digest when a registered root changed since the last digest.
 function send_digest() {

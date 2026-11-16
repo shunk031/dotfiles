@@ -99,6 +99,23 @@ function register_root() {
     printf '%s\t%s\n' "$1" "$2" >> "${XDG_STATE_HOME}/meta/roots.tsv"
 }
 
+function due_agent() {
+    jq -n --arg due "$1" '{result:{agents:[{name:"orch",pane_id:"p1",agent_status:"working",tokens:{due:$due}}]}}' > "${FAKE_AGENTS}"
+}
+
+function timestamp_at_offset() {
+    perl -MPOSIX=strftime -e '
+        my ($delta, $offset) = @ARGV;
+        my $local = time() + $delta + $offset * 3600;
+        printf "%s%+03d:00\n", strftime("%Y-%m-%dT%H:%M:%S", gmtime($local)), $offset;
+    ' -- "$1" "$2"
+}
+
+function due_count() {
+    [[ -r "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]] || { printf '0\n'; return; }
+    jq -sc '[.[] | select(.kind == "due")] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+}
+
 function blocked_agent() {
     echo '{"result":{"agents":[{"name":"w1","pane_id":"p1","agent_status":"blocked"}]}}' > "${FAKE_AGENTS}"
 }
@@ -169,6 +186,68 @@ STUB
     ack_all
     bash "${SCRIPT_PATH}"
     [ -z "$(calls)" ]
+}
+
+@test "[common] herdr-meta-patrol parses due offsets, queues once, and clears changed or removed entries" {
+    register_root Local orch
+    future="$(timestamp_at_offset 3600 -12)"
+    due_agent "${future}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 0 ]
+
+    past="$(timestamp_at_offset -3600 +14)"
+    due_agent "${past}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 1 ]
+    grep -Fq "[local] orch has due=${past}" <(calls)
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 1 ]
+
+    changed="$(timestamp_at_offset -1800 +14)"
+    due_agent "${changed}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+
+    echo '{"result":{"agents":[{"name":"orch","pane_id":"p1","agent_status":"working"}]}}' > "${FAKE_AGENTS}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+    [ ! -s "${HERDR_META_PATROL_STATE_DIR}/due.tsv" ]
+
+    due_agent "${changed}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 3 ]
+}
+
+@test "[common] herdr-meta-patrol retains due dedupe state when a machine scan fails" {
+    register_root Local orch
+    register_root remote orch
+    export FAKE_MACHINE_LIST='[{"label":"remote","enabled":true}]'
+    due="$(timestamp_at_offset -3600 +14)"
+    due_agent "${due}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+    grep -Fq '[local] orch has due=' <(calls)
+    grep -Fq '[remote] orch has due=' <(calls)
+
+    touch "${FAKE_REMOTE_DOWN}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+    grep -Fqx local "${HERDR_META_PATROL_STATE_DIR}/due.tsv"
+    grep -Fqx remote "${HERDR_META_PATROL_STATE_DIR}/due.tsv"
+
+    rm "${FAKE_REMOTE_DOWN}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
 }
 
 # @description Make queue appends fail while the other queue subcommands still work.

@@ -29,7 +29,7 @@ readonly CONNECT_TIMEOUT_SECONDS=8
 readonly REMOTE_COMMAND_TIMEOUT_SECONDS="${CLAUDE_INBOX_PULL_FANOUT_TIMEOUT_SECONDS:-45}"
 readonly FAILURE_ALERT_THRESHOLD=3
 readonly ALERT_REMINDER_SECONDS=3600
-readonly REMOTE_UPDATE_COMMAND="\"\$HOME/.local/bin/common/claude-inbox-pull\" --ensure && git -C \"\$HOME/.local/share/claude/plugins/inbox\" rev-parse HEAD"
+readonly REMOTE_UPDATE_COMMAND="\"\$HOME/.local/bin/common/claude-inbox-pull\" --ensure >/dev/null && git -C \"\$HOME/.local/share/claude/plugins/inbox\" rev-parse HEAD"
 
 # @description Acquire a nonblocking lock and re-run the script under it.
 function acquire_lock() {
@@ -178,7 +178,7 @@ function update_machine() {
     fi
 
     if [[ "${machine}" == 'local' ]]; then
-        local_update_command="\"\$1\" --ensure && git -C \"\$2\" rev-parse HEAD"
+        local_update_command="\"\$1\" --ensure >/dev/null && git -C \"\$2\" rev-parse HEAD"
         if output="$(run_with_timeout "${REMOTE_COMMAND_TIMEOUT_SECONDS}" /bin/bash -c \
             "${local_update_command}" \
             _ "${INBOX_PULL_COMMAND}" "${INBOX_PLUGIN_DIR}" 2> /dev/null)"; then

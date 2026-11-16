@@ -33,6 +33,7 @@ readonly queue_log="${test_dir}/queue.log"
 mkdir -p "${test_dir}/bin"
 cat > "${helper}" << 'EOF'
 #!/usr/bin/env bash
+printf '%s\n' 'Fast-forwarded inbox clone to 0123456789abcdef0123456789abcdef01234567.'
 exit 0
 EOF
 cat > "${queue}" << 'EOF'
@@ -46,6 +47,7 @@ set -Eeuo pipefail
 arguments="$*"
 [[ "${arguments}" == *'-o BatchMode=yes'* ]] || exit 90
 [[ "${arguments}" == *'-o ConnectTimeout=8'* ]] || exit 91
+[[ "${arguments}" == *'--ensure >/dev/null && git -C'* ]] || exit 92
 
 machine=''
 previous=''

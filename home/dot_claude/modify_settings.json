@@ -30,6 +30,7 @@
   },
   "autoMemoryEnabled": false,
   "disableClaudeAiConnectors": true,
+  "feedbackDrafts": "off",
   "promptSuggestionEnabled": false,
   "env": {
     "DISABLE_UPDATES": "1",

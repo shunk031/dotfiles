@@ -759,7 +759,7 @@ MOCK_CP
     run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" < /dev/null
     [ "${status}" -eq 0 ]
 
-    run jq -e 'type == "object" and .model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .modelSettings["claude-opus-5-5"].effortLevel == "high" and .alwaysThinkingEnabled == true and .promptSuggestionEnabled == false and (.enabledPlugins | has("inbox@inbox") | not) and .env.CLAUDE_CODE_PLUGIN_DIR_WATCH == "1" and .env.INBOX_RECORDED_ITEMS_ONLY == "1"' <<< "${output}"
+    run jq -e 'type == "object" and .model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .modelSettings["claude-opus-5-5"].effortLevel == "high" and .alwaysThinkingEnabled == true and .feedbackDrafts == "off" and .promptSuggestionEnabled == false and (.enabledPlugins | has("inbox@inbox") | not) and .env.CLAUDE_CODE_PLUGIN_DIR_WATCH == "1" and .env.INBOX_RECORDED_ITEMS_ONLY == "1"' <<< "${output}"
     [ "${status}" -eq 0 ]
 }
 
@@ -821,10 +821,10 @@ EOF
 }
 
 @test "[common] Claude settings modifier preserves user state and overrides managed keys" {
-    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"model":"sonnet","runtimeOnly":{"enabled":true},"env":{"USER_VALUE":"keep"},"alwaysThinkingEnabled":false}'
+    run chezmoi "${CHEZMOI_TEMPLATE_ARGS[@]}" execute-template --with-stdin --file "${CLAUDE_SETTINGS_MODIFIER_PATH}" <<< '{"model":"sonnet","runtimeOnly":{"enabled":true},"env":{"USER_VALUE":"keep"},"alwaysThinkingEnabled":false,"feedbackDrafts":"notify"}'
     [ "${status}" -eq 0 ]
 
-    run jq -e '.model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .runtimeOnly.enabled == true and .env.USER_VALUE == "keep" and .alwaysThinkingEnabled == true' <<< "${output}"
+    run jq -e '.model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .runtimeOnly.enabled == true and .env.USER_VALUE == "keep" and .alwaysThinkingEnabled == true and .feedbackDrafts == "off"' <<< "${output}"
     [ "${status}" -eq 0 ]
 }
 
@@ -843,6 +843,8 @@ EOF
 
     mkdir -p "${apply_source}/dot_claude" "${apply_source}/private_dot_config/claude" "${HOME}/.config/claude" "${HOME}/.claude"
     cp "${CLAUDE_SETTINGS_MODIFIER_PATH}" "${apply_source}/dot_claude/modify_settings.json"
+    run jq -e '.feedbackDrafts == "off"' "${CLAUDE_SETTINGS_PATH}"
+    [ "${status}" -eq 0 ]
     jq '.model = "sonnet" | .runtimeOnly.enabled = true' "${CLAUDE_SETTINGS_PATH}" > "${source_settings}"
     cp "${source_settings}" "${source_settings_before}"
     ln -s "${source_settings}" "${old_link_target}"
@@ -860,7 +862,7 @@ EOF
     [ -f "${settings}" ]
     [ ! -L "${settings}" ]
 
-    run jq -e '.model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .runtimeOnly.enabled == true' "${settings}"
+    run jq -e '.model == "fable" and .modelSettings["claude-fable-5-2"].effortLevel == "low" and .feedbackDrafts == "off" and .runtimeOnly.enabled == true' "${settings}"
     [ "${status}" -eq 0 ]
 
     run cmp "${source_settings_before}" "${source_settings}"

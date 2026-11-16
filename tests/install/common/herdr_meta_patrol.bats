@@ -244,17 +244,18 @@ STUB
         '2026-02-30T12:00:00Z'
         '2016-12-31T23:59:60Z'
     )
+    expected_invalid_count=0
     for invalid in "${invalid_values[@]}"; do
         due_agent "${invalid}"
         run bash "${SCRIPT_PATH}"
         [ "${status}" -eq 0 ]
-    done
-    [ "$(invalid_due_count)" -eq "${#invalid_values[@]}" ]
+        expected_invalid_count=$((expected_invalid_count + 1))
+        [ "$(invalid_due_count)" -eq "${expected_invalid_count}" ]
 
-    due_agent "${invalid_values[0]}"
-    run bash "${SCRIPT_PATH}"
-    [ "${status}" -eq 0 ]
-    [ "$(invalid_due_count)" -eq "${#invalid_values[@]}" ]
+        run bash "${SCRIPT_PATH}"
+        [ "${status}" -eq 0 ]
+        [ "$(invalid_due_count)" -eq "${expected_invalid_count}" ]
+    done
 
     due="$(timestamp_at_delta -3600)"
     due_agent "${due}"
@@ -263,6 +264,12 @@ STUB
     [ "${status}" -eq 0 ]
     [ "$(due_count)" -eq 1 ]
     grep -Fq "[local] orch has due=${due}" <(calls)
+    [ ! -s "${HERDR_META_PATROL_STATE_DIR}/invalid-due.tsv" ]
+
+    due_agent "${invalid_values[0]}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_due_count)" -eq "$((expected_invalid_count + 1))" ]
 }
 
 @test "[common] herdr-meta-patrol retains due dedupe state when a machine scan fails" {

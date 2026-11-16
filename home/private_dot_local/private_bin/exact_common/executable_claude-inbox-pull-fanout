@@ -1,0 +1,275 @@
+#!/usr/bin/env bash
+
+# @file home/private_dot_local/private_bin/exact_common/executable_claude-inbox-pull-fanout
+# @brief Keep local and configured remote Claude inbox clones current.
+# @description
+#   Runs from the existing Mac LaunchAgent every five minutes. Each update uses
+#   the shared verified fast-forward helper. Remote aliases come from the
+#   private dotfiles config. SSH checks run concurrently with a short
+#   connection timeout and a hard command limit. Per-machine state records the
+#   last successful time and HEAD, the latest failure time, and consecutive
+#   failures. Three consecutive failures create a meta patrol queue message.
+# @option --locked Internal invocation made while the fan-out lock is held.
+# @exitcode 0 Every configured machine was checked, or an overlapping run was skipped.
+# @exitcode 1 At least one check failed or its patrol alert could not be queued.
+# @exitcode 2 On a usage or state error.
+
+set -Eeuo pipefail
+
+readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/claude-inbox-pull"
+readonly REMOTE_STATE_DIR="${STATE_DIR}/remotes"
+readonly LOCK_FILE="${STATE_DIR}/fanout.lock"
+readonly MACHINE_LIST_FILE="${CLAUDE_INBOX_PULL_FANOUT_MACHINE_LIST:-${HOME}/.config/claude-inbox-pull/remotes}"
+readonly SSH_COMMAND="${CLAUDE_INBOX_PULL_FANOUT_SSH_COMMAND:-/usr/bin/ssh}"
+readonly PERL_COMMAND='/usr/bin/perl'
+readonly INBOX_PULL_COMMAND="${CLAUDE_INBOX_PULL_FANOUT_HELPER_COMMAND:-${HOME}/.local/bin/common/claude-inbox-pull}"
+readonly PATROL_QUEUE_COMMAND="${CLAUDE_INBOX_PULL_FANOUT_QUEUE_COMMAND:-${HOME}/.local/bin/common/herdr-meta-patrol-queue}"
+readonly INBOX_PLUGIN_DIR="${CLAUDE_INBOX_PULL_FANOUT_PLUGIN_DIR:-${HOME}/.local/share/claude/plugins/inbox}"
+readonly CONNECT_TIMEOUT_SECONDS=8
+readonly REMOTE_COMMAND_TIMEOUT_SECONDS="${CLAUDE_INBOX_PULL_FANOUT_TIMEOUT_SECONDS:-45}"
+readonly FAILURE_ALERT_THRESHOLD=3
+readonly ALERT_REMINDER_SECONDS=3600
+readonly REMOTE_UPDATE_COMMAND="\"\$HOME/.local/bin/common/claude-inbox-pull\" --ensure >/dev/null && git -C \"\$HOME/.local/share/claude/plugins/inbox\" rev-parse HEAD"
+
+# @description Acquire a nonblocking lock and re-run the script under it.
+function acquire_lock() {
+    mkdir -p "${STATE_DIR}" "${REMOTE_STATE_DIR}" || {
+        printf 'inbox fanout: cannot create state directories\n' >&2
+        exit 2
+    }
+    chmod 700 "${STATE_DIR}" "${REMOTE_STATE_DIR}" || {
+        printf 'inbox fanout: cannot secure state directories\n' >&2
+        exit 2
+    }
+
+    "${PERL_COMMAND}" -MFcntl=:flock - "${LOCK_FILE}" "${BASH}" "${BASH_SOURCE[0]}" --locked << 'PERL'
+        use Fcntl qw(:DEFAULT F_SETFD);
+        use strict;
+
+        my ($lock_file, @command) = @ARGV;
+        sysopen my $lock, $lock_file, O_CREAT | O_RDWR | O_NOFOLLOW, 0600
+            or die "Cannot open inbox fanout lock: $!\n";
+        if (!flock($lock, LOCK_EX | LOCK_NB)) {
+            print "inbox fanout: another run is active; skipped overlapping run.\n";
+            exit 0;
+        }
+        defined fcntl($lock, F_SETFD, 0) or die "Cannot preserve inbox fanout lock: $!\n";
+        $ENV{CLAUDE_INBOX_FANOUT_LOCK_HELD} = "1";
+        my $status = system(@command);
+        die "Cannot run inbox fanout: $!\n" if $status == -1;
+        exit($status & 127 ? 128 + ($status & 127) : $status >> 8);
+PERL
+    exit "$?"
+}
+
+if [[ "${CLAUDE_INBOX_FANOUT_LOCK_HELD:-}" != '1' ]]; then
+    acquire_lock
+fi
+
+if [[ "${1:-}" == '--locked' && "${CLAUDE_INBOX_FANOUT_LOCK_HELD:-}" == '1' ]]; then
+    shift
+fi
+if [[ "$#" -ne 0 ]]; then
+    printf 'Usage: %s\n' "${0##*/}" >&2
+    exit 2
+fi
+
+if [[ ! -x "${SSH_COMMAND}" || ! -x "${PERL_COMMAND}" || ! -x "${INBOX_PULL_COMMAND}" || ! -x "${PATROL_QUEUE_COMMAND}" ]] || ! command -v git > /dev/null 2>&1; then
+    printf 'inbox fanout: a required command is missing or not executable\n' >&2
+    exit 2
+fi
+if [[ ! "${REMOTE_COMMAND_TIMEOUT_SECONDS}" =~ ^[1-9][0-9]*$ ]]; then
+    printf 'inbox fanout: timeout must be a positive integer\n' >&2
+    exit 2
+fi
+
+# @description Run one command in a process group and kill it after a timeout.
+# @arg $1 number Maximum runtime in seconds.
+# @arg $2 command Executable and its arguments.
+# @exitcode 124 The command exceeded its time limit.
+function run_with_timeout() {
+    local timeout_seconds="$1"
+    shift
+
+    "${PERL_COMMAND}" - "${timeout_seconds}" "$@" << 'PERL'
+        use strict;
+
+        my ($seconds, @command) = @ARGV;
+        my $pid = fork();
+        die "Cannot fork timed command: $!\n" if !defined $pid;
+        if ($pid == 0) {
+            setpgrp(0, 0) or exit 126;
+            exec @command;
+            exit 127;
+        }
+
+        my $timed_out = 0;
+        local $SIG{ALRM} = sub {
+            $timed_out = 1;
+            kill "TERM", -$pid;
+            sleep 2;
+            kill "KILL", -$pid;
+        };
+        alarm $seconds;
+        my $waited = waitpid($pid, 0);
+        my $status = $?;
+        alarm 0;
+        exit 124 if $timed_out;
+        exit 127 if $waited < 0;
+        exit($status & 127 ? 128 + ($status & 127) : $status >> 8);
+PERL
+}
+
+# @description Write one machine state atomically with private file permissions.
+# @arg $1 string Machine alias.
+# @arg $2 number Last successful update time in epoch seconds.
+# @arg $3 string Last successful update time in ISO-8601 format.
+# @arg $4 string Last successful inbox HEAD.
+# @arg $5 number Consecutive failure count.
+# @arg $6 string Last failure time in ISO-8601 format.
+# @arg $7 number Last successful alert time in epoch seconds.
+function write_machine_state() {
+    local machine="$1" last_success_epoch="$2" last_success_at="$3" last_head="$4"
+    local failures="$5" last_failure_at="$6" last_alert_epoch="$7"
+    local state_file="${REMOTE_STATE_DIR}/${machine}.tsv" temp_file
+
+    if [[ -L "${state_file}" ]]; then
+        printf 'inbox fanout: refusing symlinked state for %s\n' "${machine}" >&2
+        return 1
+    fi
+    temp_file="$(mktemp "${REMOTE_STATE_DIR}/.${machine}.XXXXXX")" || return 1
+    if ! printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "${last_success_epoch}" "${last_success_at}" "${last_head}" \
+        "${failures}" "${last_failure_at}" "${last_alert_epoch}" > "${temp_file}"; then
+        rm -f "${temp_file}"
+        return 1
+    fi
+    chmod 600 "${temp_file}" && mv -f "${temp_file}" "${state_file}"
+}
+
+# @description Check and record one configured remote machine.
+# @arg $1 string SSH alias.
+# @exitcode 0 The machine was updated or a queue alert was added.
+# @exitcode 1 The update or queue alert failed.
+function update_machine() {
+    local machine="$1" state_file output now now_iso
+    local local_update_command
+    local last_success_epoch=0 last_success_at=never last_head=never
+    local failures=0 last_failure_at=never last_alert_epoch=0
+
+    if [[ ! "${machine}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+        printf 'inbox fanout: refusing invalid SSH alias\n' >&2
+        return 1
+    fi
+
+    state_file="${REMOTE_STATE_DIR}/${machine}.tsv"
+    if [[ -L "${state_file}" ]]; then
+        printf 'inbox fanout: refusing symlinked state for %s\n' "${machine}" >&2
+        return 1
+    fi
+    if [[ -r "${state_file}" ]]; then
+        IFS=$'\t' read -r last_success_epoch last_success_at last_head failures last_failure_at last_alert_epoch < "${state_file}" || true
+        [[ "${last_success_epoch}" =~ ^[0-9]+$ ]] || last_success_epoch=0
+        [[ -n "${last_success_at}" ]] || last_success_at=never
+        [[ "${last_head}" =~ ^[[:xdigit:]]{40}$ ]] || last_head=never
+        [[ "${failures}" =~ ^[0-9]+$ ]] || failures=0
+        [[ -n "${last_failure_at}" ]] || last_failure_at=never
+        [[ "${last_alert_epoch}" =~ ^[0-9]+$ ]] || last_alert_epoch=0
+    fi
+
+    if [[ "${machine}" == 'local' ]]; then
+        local_update_command="\"\$1\" --ensure >/dev/null && git -C \"\$2\" rev-parse HEAD"
+        if output="$(run_with_timeout "${REMOTE_COMMAND_TIMEOUT_SECONDS}" /bin/bash -c \
+            "${local_update_command}" \
+            _ "${INBOX_PULL_COMMAND}" "${INBOX_PLUGIN_DIR}" 2> /dev/null)"; then
+            :
+        else
+            output=''
+        fi
+    elif output="$(run_with_timeout "${REMOTE_COMMAND_TIMEOUT_SECONDS}" "${SSH_COMMAND}" \
+        -o BatchMode=yes \
+        -o ConnectTimeout="${CONNECT_TIMEOUT_SECONDS}" \
+        -o NumberOfPasswordPrompts=0 \
+        "${machine}" "${REMOTE_UPDATE_COMMAND}" 2> /dev/null)"; then
+        :
+    else
+        output=''
+    fi
+
+    if [[ "${output}" =~ ^[[:xdigit:]]{40}$ ]]; then
+        now="$(date +%s)"
+        now_iso="$(date '+%Y-%m-%dT%H:%M:%S%z')"
+        if [[ "${output}" != "${last_head}" || "${failures}" -gt 0 ]]; then
+            printf 'inbox fanout: %s is current at %s\n' "${machine}" "${output}"
+        fi
+        write_machine_state "${machine}" "${now}" "${now_iso}" "${output}" 0 never 0
+        return "$?"
+    fi
+
+    now="$(date +%s)"
+    now_iso="$(date '+%Y-%m-%dT%H:%M:%S%z')"
+    failures=$((failures + 1))
+    last_failure_at="${now_iso}"
+    if ! write_machine_state "${machine}" "${last_success_epoch}" "${last_success_at}" \
+        "${last_head}" "${failures}" "${last_failure_at}" "${last_alert_epoch}"; then
+        printf 'inbox fanout: could not record failure state for %s\n' "${machine}" >&2
+        return 1
+    fi
+    printf 'inbox fanout: %s check failed (%s consecutive; last success %s, HEAD %s)\n' \
+        "${machine}" "${failures}" "${last_success_at}" "${last_head}" >&2
+
+    if ((failures >= FAILURE_ALERT_THRESHOLD)) &&
+        { ((last_alert_epoch == 0)) || ((now - last_alert_epoch >= ALERT_REMINDER_SECONDS)); }; then
+        local message
+        message="Remote inbox update failed for ${machine} ${failures} times in a row; last success ${last_success_at}, HEAD ${last_head}."
+        if "${PATROL_QUEUE_COMMAND}" add --from meta-inboxpull "${message}"; then
+            if ! write_machine_state "${machine}" "${last_success_epoch}" "${last_success_at}" \
+                "${last_head}" "${failures}" "${last_failure_at}" "${now}"; then
+                return 1
+            fi
+            return 1
+        fi
+        printf 'inbox fanout: could not queue the failure alert for %s\n' "${machine}" >&2
+        return 1
+    fi
+    return 1
+}
+
+remote_machines=()
+config_status=0
+if [[ -e "${MACHINE_LIST_FILE}" ]]; then
+    if [[ ! -r "${MACHINE_LIST_FILE}" ]]; then
+        printf 'inbox fanout: remote alias list is not readable\n' >&2
+        config_status=1
+    else
+        line_number=0
+        while IFS= read -r machine || [[ -n "${machine}" ]]; do
+            line_number=$((line_number + 1))
+            [[ -z "${machine}" || "${machine}" == \#* ]] && continue
+            if [[ "${machine}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+                remote_machines+=("${machine}")
+            else
+                printf 'inbox fanout: skipped invalid SSH alias on config line %s\n' "${line_number}" >&2
+                config_status=1
+            fi
+        done < "${MACHINE_LIST_FILE}"
+    fi
+else
+    printf 'inbox fanout: no private remote alias list; checking the local clone only\n'
+fi
+
+machine_pids=()
+update_machine local &
+machine_pids+=("$!")
+if [[ "${#remote_machines[@]}" -gt 0 ]]; then
+    for machine in "${remote_machines[@]}"; do
+        update_machine "${machine}" &
+        machine_pids+=("$!")
+    done
+fi
+
+run_status="${config_status}"
+for machine_pid in "${machine_pids[@]}"; do
+    wait "${machine_pid}" || run_status=1
+done
+exit "${run_status}"

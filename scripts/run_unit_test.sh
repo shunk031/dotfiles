@@ -3,8 +3,8 @@
 # @file scripts/run_unit_test.sh
 # @brief Run the repository's shell unit tests.
 # @description
-#   Dispatches the common Bats suite and the OS-specific Bats suite selected by
-#   the explicit `TARGET_OS` environment variable.
+#   Runs the offline inbox fan-out smoke check, then dispatches the common Bats
+#   suite and the OS-specific suite selected by `TARGET_OS`.
 
 # Keep this wrapper minimal: CI invokes this script through `bashcov`.
 # `-u` is intentionally omitted because strict nounset can propagate through
@@ -16,6 +16,7 @@ set -Eeo pipefail
 #
 function run_common_test() {
     # Common install tests executed on every matrix target.
+    bash "tests/install/common/claude_inbox_pull_fanout.sh"
     bats -r "tests/install/common/"
 }
 
@@ -44,9 +45,18 @@ function run_os_specific_test() {
 }
 
 #
-# @description Run the full unit test flow used by CI.
+# @description Validate the target and run the full unit test flow used by CI.
 #
 function main() {
+    case "${TARGET_OS:-}" in
+    macos-14 | ubuntu | ubuntu-latest | rockylinux)
+        ;;
+    *)
+        echo "${TARGET_OS:-<unset>} are not supported" >&2
+        exit 1
+        ;;
+    esac
+
     run_common_test
     run_os_specific_test
 }

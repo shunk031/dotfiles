@@ -7,10 +7,18 @@ readonly GEMINI_SKILLS_CONFIG_PATH="./home/dot_gemini/config/skills.json"
 
 function setup() {
     export HOME="${BATS_TEST_TMPDIR}/home"
-    mkdir -p "${HOME}/.local/bin" "${HOME}/.agents/skills"
+    mkdir -p "${HOME}/.local/bin/common" "${HOME}/.agents/skills"
 
     MISE_CALLS_PATH="${BATS_TEST_TMPDIR}/mise_args.txt"
     export MISE_CALLS_PATH
+    INBOX_PULL_CALLS_PATH="${BATS_TEST_TMPDIR}/inbox_pull_args.txt"
+    export INBOX_PULL_CALLS_PATH
+    cat > "${HOME}/.local/bin/common/claude-inbox-pull" << 'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${INBOX_PULL_CALLS_PATH}"
+exit "${INBOX_PULL_EXIT_CODE:-0}"
+EOF
+    chmod +x "${HOME}/.local/bin/common/claude-inbox-pull"
 
     source "${SCRIPT_PATH}"
 }
@@ -318,6 +326,25 @@ EOF
 
     run reconcile_agent_skills
     [ "${status}" -eq 0 ]
+}
+
+@test "[common] reconcile verifies the inbox clone before skills work" {
+    write_mise_stub
+
+    run reconcile_agent_skills
+    [ "${status}" -eq 0 ]
+    [ "$(cat "${INBOX_PULL_CALLS_PATH}")" = "--ensure" ]
+}
+
+@test "[common] reconcile stops when inbox verification fails" {
+    write_mise_stub
+    export INBOX_PULL_EXIT_CODE=1
+
+    run reconcile_agent_skills
+    [ "${status}" -eq 1 ]
+    [[ "${output}" == *"inbox clone verification failed"* ]]
+    [ "$(cat "${INBOX_PULL_CALLS_PATH}")" = "--ensure" ]
+    [ ! -f "${MISE_CALLS_PATH}" ]
 }
 
 @test "[common] reconcile is skipped when mise is not installed" {

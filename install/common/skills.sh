@@ -637,6 +637,17 @@ function write_managed_skills_manifest() {
 # @description Make the shared skills pool match the declared subscriptions.
 #
 function reconcile_agent_skills() {
+    local inbox_pull="${HOME}/.local/bin/common/claude-inbox-pull"
+
+    if [ ! -x "${inbox_pull}" ]; then
+        echo "skills: ${inbox_pull} is not executable, cannot verify the inbox clone" >&2
+        return 1
+    fi
+    if ! "${inbox_pull}" --ensure; then
+        echo "skills: inbox clone verification failed" >&2
+        return 1
+    fi
+
     if [ ! -x "${MISE_BIN}" ]; then
         echo "skills: ${MISE_BIN} is not executable, skipping reconciliation" >&2
         return 0

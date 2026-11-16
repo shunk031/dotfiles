@@ -88,6 +88,11 @@ function source_path_for() {
     fi
 }
 
+@test "[common] retired Linux inbox units are listed for removal" {
+    grep -Fxq '.config/systemd/user/claude-inbox-pull.service' "${CHEZMOIREMOVE_PATH}"
+    grep -Fxq '.config/systemd/user/claude-inbox-pull.timer' "${CHEZMOIREMOVE_PATH}"
+}
+
 @test "[common] the resolver finds a leftover that git would not report" {
     # Proves the check can fail. A directory kept alive by an untracked file is
     # the shape that stopped a real apply, and `git status` reports nothing.

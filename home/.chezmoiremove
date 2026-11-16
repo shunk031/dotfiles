@@ -10,3 +10,7 @@
 
 # Remove the retired Claude Code command hook.
 .claude/hooks/enforce-uv.sh
+
+# Remove the retired Linux Claude inbox timer units.
+.config/systemd/user/claude-inbox-pull.service
+.config/systemd/user/claude-inbox-pull.timer

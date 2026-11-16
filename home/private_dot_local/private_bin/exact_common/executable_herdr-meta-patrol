@@ -20,9 +20,11 @@
 #   A root is an agent listed in `${XDG_STATE_HOME:-$HOME/.local/state}/meta/roots.tsv`
 #   for its machine alias (`Local` for this machine); inbox tokens alone do not
 #   define roots.
-#   Registered roots may publish a timezone-qualified RFC 3339 timestamp in
-#   `tokens.due`; each overdue value is queued once, and its reminder state is
-#   cleared when the root removes or changes that value.
+#   Registered roots may publish only a UTC timestamp in the exact form
+#   `YYYY-MM-DDTHH:MM:SSZ` in `tokens.due`; each overdue value is queued once,
+#   and its reminder state is cleared when the root removes or changes that value.
+#   Any other nonempty due value creates one invalid-due finding until it changes
+#   or is removed.
 #   Findings whose normalized form is new since the previous run are appended as
 #   one message to the queue of `herdr-meta-patrol-queue`, which the meta agent
 #   waits on; nothing is typed into any pane, and no findings message is queued
@@ -262,8 +264,9 @@ function scan_machine() {
     jq -r --argjson roots "${roots}" '
         .result.agents[]?
         | select((.name // "") as $name | $roots | index($name))
-        | select((.tokens.due? | type) == "string")
-        | [(.name // ""), "due", .tokens.due] | @tsv
+        | .tokens.due? as $due
+        | select($due != null and ($due | tostring) != "")
+        | [(.name // ""), "due", ($due | tostring)] | @tsv
     ' <<< "${list}" > "${due_file}"
     tabs=""
     if tabs="$(hr tab list 2> /dev/null)" && jq -e '.result.tabs | type == "array"' <<< "${tabs}" > /dev/null 2>&1; then
@@ -369,7 +372,7 @@ function digest_changes() {
 
 mkdir -p "${state_dir}"
 touch "${state_dir}/keys.txt" "${state_dir}/leftover.tsv" "${state_dir}/still.tsv"
-touch "${state_dir}/due.tsv"
+touch "${state_dir}/due.tsv" "${state_dir}/invalid-due.tsv"
 now="$(date +%s)"
 last_digest="$(cat "${state_dir}/digest.epoch" 2> /dev/null)" || last_digest=""
 digest_due=0
@@ -469,44 +472,34 @@ function queue_message() {
     }
 }
 
-# @description Convert a timezone-qualified RFC 3339 timestamp to its due epoch second.
+# @description Parse a due timestamp only in the canonical UTC format.
 # @arg $1 string Due timestamp.
-# @stdout Epoch second, rounding up fractional seconds and mapping leap seconds to the next POSIX second.
+# @stdout Epoch second for `YYYY-MM-DDTHH:MM:SSZ`.
 function due_epoch() {
-    perl -MTime::Local=timegm -e '
-        my $value = shift;
-        $value =~ /\A(\d{4})-(\d{2})-(\d{2})[Tt](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?([Zz]|[+-](?:[01]\d|2[0-3]):[0-5]\d)\z/ or exit 1;
-        my ($year, $month, $day, $hour, $minute, $second, $fraction, $zone) = ($1, $2, $3, $4, $5, $6, $7, $8);
-        ($month >= 1 && $month <= 12 && $day >= 1 && $day <= 31 && $hour <= 23 && $minute <= 59 && $second <= 60) or exit 1;
-        my $base_second = $second == 60 ? 59 : $second;
-        my $local = eval { timegm($base_second, $minute, $hour, $day, $month - 1, $year) };
-        defined($local) or exit 1;
-        my @roundtrip = gmtime($local);
-        ($roundtrip[5] + 1900 == $year && $roundtrip[4] + 1 == $month && $roundtrip[3] == $day && $roundtrip[2] == $hour && $roundtrip[1] == $minute && $roundtrip[0] == $base_second) or exit 1;
-        my $offset = 0;
-        if ($zone !~ /\A[zZ]\z/) {
-            $zone =~ /\A([+-])(\d{2}):(\d{2})\z/;
-            $offset = ($2 * 60 + $3) * 60;
-            $offset *= -1 if $1 eq "-";
-        }
-        my $epoch = $local - $offset;
-        if ($second == 60) {
-            my @utc = gmtime($epoch);
-            (($utc[0] == 59 && $utc[1] == 59 && $utc[2] == 23) && (($utc[4] == 5 && $utc[3] == 30) || ($utc[4] == 11 && $utc[3] == 31))) or exit 1;
-            $epoch++;
-        } else {
-            $epoch++ if defined($fraction) && $fraction =~ /[1-9]/;
-        }
-        print "$epoch\n";
-    ' "$1"
+    python3 -c '
+import calendar
+import re
+import sys
+from datetime import datetime, timezone
+
+value = sys.argv[1]
+if re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z", value) is None:
+    sys.exit(1)
+try:
+    parsed = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+except ValueError:
+    sys.exit(1)
+print(calendar.timegm(parsed.utctimetuple()))
+' "$1"
 }
 
 # @description Queue overdue root metadata and retain one record per active due value.
 # @arg $1 string Current machine, agent, token, and timestamp records.
 # @arg $2 string Machine aliases whose agent lists were read successfully.
 function process_due_entries() {
-    local current="$1" successful="$2" next_file="${state_dir}/due.tsv.next" saved_machine saved_agent saved_token saved_value line machine_label agent token due record epoch message
+    local current="$1" successful="$2" next_file="${state_dir}/due.tsv.next" invalid_file="${state_dir}/invalid-due.tsv" invalid_next_file="${state_dir}/invalid-due.tsv.next" saved_machine saved_agent saved_token saved_value line machine_label agent token due record epoch message invalid_record
     : > "${next_file}"
+    : > "${invalid_next_file}"
     while IFS=$'\t' read -r saved_machine saved_agent saved_token saved_value; do
         [[ -n "${saved_machine}" ]] || continue
         record="${saved_machine}"$'\t'"${saved_agent}"$'\t'"${saved_token}"$'\t'"${saved_value}"
@@ -515,10 +508,29 @@ function process_due_entries() {
         fi
     done < "${state_dir}/due.tsv"
 
+    while IFS=$'\t' read -r saved_machine saved_agent saved_value; do
+        [[ -n "${saved_machine}" ]] || continue
+        record="${saved_machine}"$'\t'"${saved_agent}"$'\t'"${saved_value}"
+        if ! grep -Fqx -- "${saved_machine}" <<< "${successful}"; then
+            printf '%s\n' "${record}" >> "${invalid_next_file}"
+        fi
+    done < "${invalid_file}"
+
     while IFS=$'\t' read -r machine_label agent token due; do
         [[ -n "${machine_label}" && -n "${agent}" && -n "${token}" ]] || continue
-        epoch="$(due_epoch "${due}" 2> /dev/null)" || continue
         record="${machine_label}"$'\t'"${agent}"$'\t'"${token}"$'\t'"${due}"
+        if ! epoch="$(due_epoch "${due}" 2> /dev/null)"; then
+            invalid_record="${machine_label}"$'\t'"${agent}"$'\t'"${due}"
+            if grep -Fqx -- "${invalid_record}" "${invalid_file}"; then
+                printf '%s\n' "${invalid_record}" >> "${invalid_next_file}"
+            else
+                message="Invalid due value: [${machine_label}] ${agent}; expected YYYY-MM-DDTHH:MM:SSZ."
+                if queue_message finding "${message}"; then
+                    printf '%s\n' "${invalid_record}" >> "${invalid_next_file}"
+                fi
+            fi
+            continue
+        fi
         if ((epoch <= now)) && ! grep -Fqx -- "${record}" "${next_file}"; then
             message="Due reminder: [${machine_label}] ${agent} has ${token}=${due}."
             if queue_message due "${message}"; then
@@ -527,6 +539,7 @@ function process_due_entries() {
         fi
     done <<< "${current}"
     mv -f "${next_file}" "${state_dir}/due.tsv"
+    mv -f "${invalid_next_file}" "${invalid_file}"
 }
 
 # @description Persist this run's digest as the baseline for the next one.

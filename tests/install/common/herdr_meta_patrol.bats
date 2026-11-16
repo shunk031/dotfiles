@@ -103,12 +103,11 @@ function due_agent() {
     jq -n --arg due "$1" '{result:{agents:[{name:"orch",pane_id:"p1",agent_status:"working",tokens:{due:$due}}]}}' > "${FAKE_AGENTS}"
 }
 
-function timestamp_at_offset() {
+function timestamp_at_delta() {
     perl -MPOSIX=strftime -e '
-        my ($delta, $offset) = @ARGV;
-        my $local = time() + $delta + $offset * 3600;
-        printf "%s%+03d:00\n", strftime("%Y-%m-%dT%H:%M:%S", gmtime($local)), $offset;
-    ' -- "$1" "$2"
+        my ($delta) = @ARGV;
+        printf "%sZ\n", strftime("%Y-%m-%dT%H:%M:%S", gmtime(time() + $delta));
+    ' -- "$1"
 }
 
 function due_count() {
@@ -117,6 +116,14 @@ function due_count() {
         return
     }
     jq -sc '[.[] | select(.kind == "due")] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+}
+
+function invalid_due_count() {
+    [[ -r "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]] || {
+        printf '0\n'
+        return
+    }
+    jq -sc '[.[] | select(.kind == "finding" and (.text | contains("Invalid due value:")))] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
 }
 
 function blocked_agent() {
@@ -191,15 +198,15 @@ STUB
     [ -z "$(calls)" ]
 }
 
-@test "[common] herdr-meta-patrol parses due offsets, queues once, and clears changed or removed entries" {
+@test "[common] herdr-meta-patrol parses canonical UTC due values, queues once, and clears changed or removed entries" {
     register_root Local orch
-    future="$(timestamp_at_offset 3600 -12)"
+    future="$(timestamp_at_delta 3600)"
     due_agent "${future}"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
     [ "$(due_count)" -eq 0 ]
 
-    past="$(timestamp_at_offset -3600 +14)"
+    past="$(timestamp_at_delta -3600)"
     due_agent "${past}"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
@@ -210,7 +217,7 @@ STUB
     [ "${status}" -eq 0 ]
     [ "$(due_count)" -eq 1 ]
 
-    changed="$(timestamp_at_offset -1800 +14)"
+    changed="$(timestamp_at_delta -1800)"
     due_agent "${changed}"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
@@ -228,9 +235,28 @@ STUB
     [ "$(due_count)" -eq 3 ]
 }
 
-@test "[common] herdr-meta-patrol accepts lowercase RFC 3339 T and Z" {
+@test "[common] herdr-meta-patrol reports invalid nonempty due values once and accepts canonical UTC" {
     register_root Local orch
-    due="$(timestamp_at_offset -3600 0 | sed -e 's/T/t/' -e 's/+00:00/z/')"
+    invalid_values=(
+        '2026-11-16T12:00:00+00:00'
+        '2026-11-16t12:00:00z'
+        '2026-11-16T12:00:00.5Z'
+        '2026-02-30T12:00:00Z'
+        '2016-12-31T23:59:60Z'
+    )
+    for invalid in "${invalid_values[@]}"; do
+        due_agent "${invalid}"
+        run bash "${SCRIPT_PATH}"
+        [ "${status}" -eq 0 ]
+    done
+    [ "$(invalid_due_count)" -eq "${#invalid_values[@]}" ]
+
+    due_agent "${invalid_values[0]}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_due_count)" -eq "${#invalid_values[@]}" ]
+
+    due="$(timestamp_at_delta -3600)"
     due_agent "${due}"
 
     run bash "${SCRIPT_PATH}"
@@ -267,7 +293,7 @@ STUB
     register_root Local orch
     register_root remote orch
     export FAKE_MACHINE_LIST='[{"label":"remote","enabled":true}]'
-    due="$(timestamp_at_offset -3600 +14)"
+    due="$(timestamp_at_delta -3600)"
     due_agent "${due}"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]

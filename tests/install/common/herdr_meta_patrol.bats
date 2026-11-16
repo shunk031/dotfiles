@@ -288,8 +288,8 @@ STUB
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
     [ "$(due_count)" -eq 2 ]
-    grep -Fqx local "${HERDR_META_PATROL_STATE_DIR}/due.tsv"
-    grep -Fqx remote "${HERDR_META_PATROL_STATE_DIR}/due.tsv"
+    grep -Fq $'local\t' "${HERDR_META_PATROL_STATE_DIR}/due.tsv"
+    grep -Fq $'remote\t' "${HERDR_META_PATROL_STATE_DIR}/due.tsv"
 
     rm "${FAKE_REMOTE_DOWN}"
     run bash "${SCRIPT_PATH}"

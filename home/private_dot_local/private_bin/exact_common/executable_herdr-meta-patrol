@@ -471,25 +471,32 @@ function queue_message() {
 
 # @description Convert a timezone-qualified RFC 3339 timestamp to its due epoch second.
 # @arg $1 string Due timestamp.
-# @stdout Epoch second, rounded up when the timestamp has a fractional second.
+# @stdout Epoch second, rounding up fractional seconds and mapping leap seconds to the next POSIX second.
 function due_epoch() {
     perl -MTime::Local=timegm -e '
         my $value = shift;
-        $value =~ /\A(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)\z/ or exit 1;
+        $value =~ /\A(\d{4})-(\d{2})-(\d{2})[Tt](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?([Zz]|[+-](?:[01]\d|2[0-3]):[0-5]\d)\z/ or exit 1;
         my ($year, $month, $day, $hour, $minute, $second, $fraction, $zone) = ($1, $2, $3, $4, $5, $6, $7, $8);
-        ($month >= 1 && $month <= 12 && $day >= 1 && $day <= 31 && $hour <= 23 && $minute <= 59 && $second <= 59) or exit 1;
-        my $local = eval { timegm($second, $minute, $hour, $day, $month - 1, $year) };
+        ($month >= 1 && $month <= 12 && $day >= 1 && $day <= 31 && $hour <= 23 && $minute <= 59 && $second <= 60) or exit 1;
+        my $base_second = $second == 60 ? 59 : $second;
+        my $local = eval { timegm($base_second, $minute, $hour, $day, $month - 1, $year) };
         defined($local) or exit 1;
         my @roundtrip = gmtime($local);
-        ($roundtrip[5] + 1900 == $year && $roundtrip[4] + 1 == $month && $roundtrip[3] == $day && $roundtrip[2] == $hour && $roundtrip[1] == $minute && $roundtrip[0] == $second) or exit 1;
+        ($roundtrip[5] + 1900 == $year && $roundtrip[4] + 1 == $month && $roundtrip[3] == $day && $roundtrip[2] == $hour && $roundtrip[1] == $minute && $roundtrip[0] == $base_second) or exit 1;
         my $offset = 0;
-        if ($zone ne "Z") {
+        if ($zone !~ /\A[zZ]\z/) {
             $zone =~ /\A([+-])(\d{2}):(\d{2})\z/;
             $offset = ($2 * 60 + $3) * 60;
             $offset *= -1 if $1 eq "-";
         }
         my $epoch = $local - $offset;
-        $epoch++ if defined($fraction) && $fraction =~ /[1-9]/;
+        if ($second == 60) {
+            my @utc = gmtime($epoch);
+            (($utc[0] == 59 && $utc[1] == 59 && $utc[2] == 23) && (($utc[4] == 5 && $utc[3] == 30) || ($utc[4] == 11 && $utc[3] == 31))) or exit 1;
+            $epoch++;
+        } else {
+            $epoch++ if defined($fraction) && $fraction =~ /[1-9]/;
+        }
         print "$epoch\n";
     ' "$1"
 }

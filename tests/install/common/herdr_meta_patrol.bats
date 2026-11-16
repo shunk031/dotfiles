@@ -228,6 +228,41 @@ STUB
     [ "$(due_count)" -eq 3 ]
 }
 
+@test "[common] herdr-meta-patrol accepts lowercase RFC 3339 T and Z" {
+    register_root Local orch
+    due="$(timestamp_at_offset -3600 0 | sed -e 's/T/t/' -e 's/+00:00/z/')"
+    due_agent "${due}"
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 1 ]
+    grep -Fq "[local] orch has due=${due}" <(calls)
+}
+
+@test "[common] herdr-meta-patrol normalizes RFC 3339 leap seconds" {
+    register_root Local orch
+    due="2016-12-31T23:59:60Z"
+    due_agent "${due}"
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 1 ]
+    grep -Fq "[local] orch has due=${due}" <(calls)
+
+    due="2017-01-01T00:59:60+01:00"
+    due_agent "${due}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+    grep -Fq "[local] orch has due=${due}" <(calls)
+
+    due="2017-01-01T00:00:60Z"
+    due_agent "${due}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+}
+
 @test "[common] herdr-meta-patrol retains due dedupe state when a machine scan fails" {
     register_root Local orch
     register_root remote orch

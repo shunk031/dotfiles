@@ -45,9 +45,18 @@ function run_os_specific_test() {
 }
 
 #
-# @description Run the full unit test flow used by CI.
+# @description Validate the target and run the full unit test flow used by CI.
 #
 function main() {
+    case "${TARGET_OS:-}" in
+    macos-14 | ubuntu | ubuntu-latest | rockylinux)
+        ;;
+    *)
+        echo "${TARGET_OS:-<unset>} are not supported" >&2
+        exit 1
+        ;;
+    esac
+
     run_common_test
     run_os_specific_test
 }

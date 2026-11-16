@@ -99,6 +99,33 @@ function register_root() {
     printf '%s\t%s\n' "$1" "$2" >> "${XDG_STATE_HOME}/meta/roots.tsv"
 }
 
+function due_agent() {
+    jq -n --arg due "$1" '{result:{agents:[{name:"orch",pane_id:"p1",agent_status:"working",tokens:{due:$due}}]}}' > "${FAKE_AGENTS}"
+}
+
+function timestamp_at_delta() {
+    perl -MPOSIX=strftime -e '
+        my ($delta) = @ARGV;
+        printf "%sZ\n", strftime("%Y-%m-%dT%H:%M:%S", gmtime(time() + $delta));
+    ' -- "$1"
+}
+
+function due_count() {
+    [[ -r "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]] || {
+        printf '0\n'
+        return
+    }
+    jq -sc '[.[] | select(.kind == "due")] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+}
+
+function invalid_due_count() {
+    [[ -r "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]] || {
+        printf '0\n'
+        return
+    }
+    jq -sc '[.[] | select(.kind == "finding" and (.text | contains("Invalid due value:")))] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+}
+
 function blocked_agent() {
     echo '{"result":{"agents":[{"name":"w1","pane_id":"p1","agent_status":"blocked"}]}}' > "${FAKE_AGENTS}"
 }
@@ -169,6 +196,127 @@ STUB
     ack_all
     bash "${SCRIPT_PATH}"
     [ -z "$(calls)" ]
+}
+
+@test "[common] herdr-meta-patrol parses canonical UTC due values, queues once, and clears changed or removed entries" {
+    register_root Local orch
+    future="$(timestamp_at_delta 3600)"
+    due_agent "${future}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 0 ]
+
+    past="$(timestamp_at_delta -3600)"
+    due_agent "${past}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 1 ]
+    grep -Fq "[local] orch has due=${past}" <(calls)
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 1 ]
+
+    changed="$(timestamp_at_delta -1800)"
+    due_agent "${changed}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+
+    echo '{"result":{"agents":[{"name":"orch","pane_id":"p1","agent_status":"working"}]}}' > "${FAKE_AGENTS}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+    [ ! -s "${HERDR_META_PATROL_STATE_DIR}/due.tsv" ]
+
+    due_agent "${changed}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 3 ]
+}
+
+@test "[common] herdr-meta-patrol reports invalid nonempty due values once and accepts canonical UTC" {
+    register_root Local orch
+    invalid_values=(
+        '2026-11-16T12:00:00+00:00'
+        '2026-11-16t12:00:00z'
+        '2026-11-16T12:00:00.5Z'
+        '2026-02-30T12:00:00Z'
+        '2016-12-31T23:59:60Z'
+    )
+    expected_invalid_count=0
+    for invalid in "${invalid_values[@]}"; do
+        due_agent "${invalid}"
+        run bash "${SCRIPT_PATH}"
+        [ "${status}" -eq 0 ]
+        expected_invalid_count=$((expected_invalid_count + 1))
+        [ "$(invalid_due_count)" -eq "${expected_invalid_count}" ]
+
+        run bash "${SCRIPT_PATH}"
+        [ "${status}" -eq 0 ]
+        [ "$(invalid_due_count)" -eq "${expected_invalid_count}" ]
+    done
+
+    due="$(timestamp_at_delta -3600)"
+    due_agent "${due}"
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 1 ]
+    grep -Fq "[local] orch has due=${due}" <(calls)
+    [ ! -s "${HERDR_META_PATROL_STATE_DIR}/invalid-due.tsv" ]
+
+    due_agent "${invalid_values[0]}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_due_count)" -eq "$((expected_invalid_count + 1))" ]
+}
+
+@test "[common] herdr-meta-patrol retains due dedupe state when a machine scan fails" {
+    register_root Local orch
+    register_root remote orch
+    export FAKE_MACHINE_LIST='[{"label":"remote","enabled":true}]'
+    due="$(timestamp_at_delta -3600)"
+    due_agent "${due}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+    grep -Fq '[local] orch has due=' <(calls)
+    grep -Fq '[remote] orch has due=' <(calls)
+
+    touch "${FAKE_REMOTE_DOWN}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+    grep -Fq $'local\t' "${HERDR_META_PATROL_STATE_DIR}/due.tsv"
+    grep -Fq $'remote\t' "${HERDR_META_PATROL_STATE_DIR}/due.tsv"
+
+    rm "${FAKE_REMOTE_DOWN}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(due_count)" -eq 2 ]
+}
+
+@test "[common] herdr-meta-patrol retains invalid due dedupe state when a machine scan fails" {
+    register_root Local orch
+    register_root remote orch
+    export FAKE_MACHINE_LIST='[{"label":"remote","enabled":true}]'
+    due_agent '2026-11-16T12:00:00+00:00'
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_due_count)" -eq 2 ]
+
+    touch "${FAKE_REMOTE_DOWN}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_due_count)" -eq 2 ]
+    grep -Fq $'local\t' "${HERDR_META_PATROL_STATE_DIR}/invalid-due.tsv"
+    grep -Fq $'remote\t' "${HERDR_META_PATROL_STATE_DIR}/invalid-due.tsv"
+
+    rm "${FAKE_REMOTE_DOWN}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_due_count)" -eq 2 ]
 }
 
 # @description Make queue appends fail while the other queue subcommands still work.

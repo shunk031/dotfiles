@@ -498,6 +498,10 @@ print(calendar.timegm(parsed.utctimetuple()))
 # @arg $2 string Machine aliases whose agent lists were read successfully.
 function process_due_entries() {
     local current="$1" successful="$2" next_file="${state_dir}/due.tsv.next" invalid_file="${state_dir}/invalid-due.tsv" invalid_next_file="${state_dir}/invalid-due.tsv.next" saved_machine saved_agent saved_token saved_value line machine_label agent token due record epoch message invalid_record
+    if [[ -n "${current}" ]] && ! command -v python3 > /dev/null 2>&1; then
+        printf '%s\n' 'herdr-meta-patrol: python3 is required to parse due timestamps.' >&2
+        return 1
+    fi
     : > "${next_file}"
     : > "${invalid_next_file}"
     while IFS=$'\t' read -r saved_machine saved_agent saved_token saved_value; do

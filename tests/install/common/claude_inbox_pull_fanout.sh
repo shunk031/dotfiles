@@ -124,7 +124,9 @@ export CLAUDE_INBOX_PULL_FANOUT_MACHINE_LIST="${remotes_file}"
 rm -rf "${state_home}"
 export FAKE_SSH_MODE=fail
 for _ in 1 2 3; do
-    run_fanout
+    if run_fanout; then
+        fail 'fan-out reported success after a remote update failed'
+    fi
 done
 [[ "$(wc -l < "${queue_log}" | tr -d '[:space:]')" == "${#REMOTE_MACHINES[@]}" ]] || fail 'three failures did not queue one alert per machine'
 for machine in "${REMOTE_MACHINES[@]}"; do
@@ -142,7 +144,9 @@ unset FAKE_SSH_MODE
 export FAKE_SSH_SLOW_ALIAS='remote-c'
 export CLAUDE_INBOX_PULL_FANOUT_TIMEOUT_SECONDS=2
 started_at="$(date +%s)"
-run_fanout
+if run_fanout; then
+    fail 'fan-out reported success after a remote update timed out'
+fi
 elapsed=$(($(date +%s) - started_at))
 ((elapsed < 8)) || fail "one slow machine delayed the fan-out for ${elapsed} seconds"
 check_success_state local

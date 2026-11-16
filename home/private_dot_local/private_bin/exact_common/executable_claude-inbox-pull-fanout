@@ -223,14 +223,16 @@ function update_machine() {
         local message
         message="Remote inbox update failed for ${machine} ${failures} times in a row; last success ${last_success_at}, HEAD ${last_head}."
         if "${PATROL_QUEUE_COMMAND}" add --from meta-inboxpull "${message}"; then
-            write_machine_state "${machine}" "${last_success_epoch}" "${last_success_at}" \
-                "${last_head}" "${failures}" "${last_failure_at}" "${now}"
-            return "$?"
+            if ! write_machine_state "${machine}" "${last_success_epoch}" "${last_success_at}" \
+                "${last_head}" "${failures}" "${last_failure_at}" "${now}"; then
+                return 1
+            fi
+            return 1
         fi
         printf 'inbox fanout: could not queue the failure alert for %s\n' "${machine}" >&2
         return 1
     fi
-    return 0
+    return 1
 }
 
 remote_machines=()

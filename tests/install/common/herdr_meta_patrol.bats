@@ -297,6 +297,28 @@ STUB
     [ "$(due_count)" -eq 2 ]
 }
 
+@test "[common] herdr-meta-patrol retains invalid due dedupe state when a machine scan fails" {
+    register_root Local orch
+    register_root remote orch
+    export FAKE_MACHINE_LIST='[{"label":"remote","enabled":true}]'
+    due_agent '2026-11-16T12:00:00+00:00'
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_due_count)" -eq 2 ]
+
+    touch "${FAKE_REMOTE_DOWN}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_due_count)" -eq 2 ]
+    grep -Fq $'local\t' "${HERDR_META_PATROL_STATE_DIR}/invalid-due.tsv"
+    grep -Fq $'remote\t' "${HERDR_META_PATROL_STATE_DIR}/invalid-due.tsv"
+
+    rm "${FAKE_REMOTE_DOWN}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_due_count)" -eq 2 ]
+}
+
 # @description Make queue appends fail while the other queue subcommands still work.
 function fail_queue_adds() {
     cat > "${BATS_TEST_TMPDIR}/failing-queue" << STUB

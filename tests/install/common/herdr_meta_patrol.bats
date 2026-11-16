@@ -112,7 +112,10 @@ function timestamp_at_offset() {
 }
 
 function due_count() {
-    [[ -r "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]] || { printf '0\n'; return; }
+    [[ -r "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]] || {
+        printf '0\n'
+        return
+    }
     jq -sc '[.[] | select(.kind == "due")] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
 }
 

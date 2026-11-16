@@ -139,7 +139,7 @@ function invalid_reminder_count() {
         printf '0\n'
         return
     }
-    jq -sc '[.[] | select(.kind == "finding" and (.text | contains("Invalid reminder time:")))] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+    jq -sc '[.[] | select(.kind == "finding" and ((.text | contains("Invalid reminder time:")) or (.text | contains("Invalid reminder record:"))))] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
 }
 
 function blocked_agent() {
@@ -329,6 +329,17 @@ STUB
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
     [ "$(invalid_reminder_count)" -eq 2 ]
+
+    printf '%s\n' "$(timestamp_at_delta -3600)" > "${XDG_STATE_HOME}/meta/reminders.tsv"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(reminder_count)" -eq 0 ]
+    [ "$(invalid_reminder_count)" -eq 3 ]
+    grep -Fq 'Invalid reminder record:' <(calls)
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_reminder_count)" -eq 3 ]
 }
 
 @test "[common] herdr-meta-patrol retries a file reminder when queue append fails" {

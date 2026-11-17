@@ -791,7 +791,7 @@ EOF
     expected="$(
         jq --arg command 'command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length pre claude' '
             def markdown_hook: {"type":"command","command":$command,"timeout":120};
-            def decision_hook($condition): {"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"","timeout":40,"onFailure":"block"} + (if $condition == null then {} else {"if":$condition} end);
+            def decision_hook($condition): {"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"","timeout":60,"onFailure":"block"} + (if $condition == null then {} else {"if":$condition} end);
             .hooks.PreToolUse = [
                 {"matcher":"mcp__inbox__record","hooks":[decision_hook(null)]},
                 {"matcher":"Bash","hooks":[decision_hook("Bash(*herdr-agent-prompt-if-input-empty.sh*)"),decision_hook("Bash(*herdr*agent prompt*)")]},
@@ -799,7 +799,7 @@ EOF
                 {"matcher":"Write|Edit|MultiEdit","hooks":[markdown_hook]}
             ]
             | .hooks.Stop = [{"hooks":[
-                {"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"","timeout":40,"onFailure":"block"},
+                {"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"","timeout":60,"onFailure":"block"},
                 {"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-turn-gate.py\"","timeout":10},
                 {"type":"command","command":"command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length stop claude","timeout":120},
                 {"type":"command","command":"python3 ~/.local/bin/common/herdr-tab-title","async":true}

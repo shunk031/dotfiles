@@ -60,7 +60,7 @@
           {
             "type": "command",
             "command": "python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"",
-            "timeout": 40,
+            "timeout": 60,
             "onFailure": "block"
           }
         ]
@@ -72,14 +72,14 @@
             "type": "command",
             "if": "Bash(*herdr-agent-prompt-if-input-empty.sh*)",
             "command": "python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"",
-            "timeout": 40,
+            "timeout": 60,
             "onFailure": "block"
           },
           {
             "type": "command",
             "if": "Bash(*herdr*agent prompt*)",
             "command": "python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"",
-            "timeout": 40,
+            "timeout": 60,
             "onFailure": "block"
           }
         ]
@@ -154,7 +154,7 @@
           {
             "type": "command",
             "command": "python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"",
-            "timeout": 40,
+            "timeout": 60,
             "onFailure": "block"
           },
           {

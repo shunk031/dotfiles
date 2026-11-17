@@ -1,18 +1,12 @@
 import importlib.util
+import json
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
-REPO_ROOT = Path(__file__).parents[2]
-HOOK = (
-    REPO_ROOT
-    / "home"
-    / "dot_claude"
-    / "hooks"
-    / "executable_herdr-meta-decision-check.py"
-)
+HOOK = Path(__file__).parents[2] / "home/dot_claude/hooks/executable_herdr-meta-decision-check.py"
 SPEC = importlib.util.spec_from_file_location("meta_decision_check", HOOK)
 assert SPEC is not None and SPEC.loader is not None
 GATE = importlib.util.module_from_spec(SPEC)
@@ -26,9 +20,6 @@ ALLOW = {"status": "ALLOW", "decision": "none", "reason": "No conflict."}
 
 
 class DecisionCheckTest(unittest.TestCase):
-    def retry_unknown(self, reason, _payload):
-        raise AssertionError(f"CONFLICT must not use UNKNOWN retries: {reason}")
-
     def test_replays_three_recorded_conflicts_before_agent_prompt(self):
         cases = (
             "Propose one Dockerfile per package again.",
@@ -42,7 +33,7 @@ class DecisionCheckTest(unittest.TestCase):
                     "hook_event_name": "PreToolUse", "tool_name": "Bash",
                     "tool_input": {"command": f"(herdr-agent-prompt-if-input-empty.sh {text})"},
                 }
-                result = GATE.evaluate_event(payload, checker, self.retry_unknown)
+                result = GATE.evaluate_event(payload, checker)
                 output = result["hookSpecificOutput"]
                 self.assertEqual(output["permissionDecision"], "deny")
                 self.assertIn("standing decision", output["permissionDecisionReason"])
@@ -50,22 +41,18 @@ class DecisionCheckTest(unittest.TestCase):
     def test_valid_proposal_is_allowed(self):
         checker = mock.Mock(return_value=ALLOW)
         payload = {"hook_event_name": "Stop", "last_assistant_message": "I recommend keeping the daily, hourly, and minute caps."}
-        self.assertIsNone(GATE.evaluate_event(payload, checker, self.retry_unknown))
-        malformed = (
-            {**ALLOW, "decision": ""}, {**ALLOW, "decision": " "},
-            {"status": "ALLOW", "reason": "missing decision"}, {**ALLOW, "extra": "unexpected"},
-            {**ALLOW, "decision": None}, {**ALLOW, "status": None}, {**ALLOW, "reason": None},
-        )
-        for response in malformed:
-            self.assertEqual("UNKNOWN", GATE.normalize_result(response)["status"])
-        duplicate = [("status", "CONFLICT"), ("status", "ALLOW")]
-        self.assertEqual(GATE.unique_object(duplicate), {})
-        retry = mock.Mock()
-        checker.return_value = GATE.unknown("Timed out.")
-        GATE.evaluate_event(payload, checker, retry)
-        retry.assert_called_once()
+        self.assertIsNone(GATE.evaluate_event(payload, checker))
 
-    def test_checker_timeout_becomes_unknown_and_denies_pretool(self):
+    def test_checker_result_requires_exact_schema(self):
+        cases = (("blank", {**ALLOW, "decision": ""}), ("whitespace", {**ALLOW, "reason": " \t"}),
+                 ("missing", {"status": "ALLOW", "reason": "No conflict."}),
+                 ("extra", {**ALLOW, "extra": "unexpected"}), ("wrong type", {**ALLOW, "status": None}))
+        for label, response in cases:
+            with self.subTest(label=label):
+                self.assertEqual("UNKNOWN", GATE.normalize_result(response)["status"])
+        self.assertEqual({}, GATE.unique_object([("status", "CONFLICT"), ("status", "ALLOW")]))
+
+    def test_checker_timeout_becomes_unknown(self):
         with tempfile.TemporaryDirectory() as temporary:
             home = Path(temporary)
             ledger = home / ".local" / "state" / "meta" / "standing-permissions.md"
@@ -77,23 +64,30 @@ class DecisionCheckTest(unittest.TestCase):
                 result = GATE.run_checker("Drop the hourly cap.")
         self.assertEqual(result["status"], "UNKNOWN")
 
-    def test_unknown_is_denied_for_pretool(self):
-        checker = mock.Mock(return_value=GATE.unknown("Timed out."))
-        payload = {
-            "hook_event_name": "PreToolUse", "tool_name": "mcp__inbox__record",
-            "tool_input": {"kind": "question", "ask": "Drop the hour cap?"},
-        }
-        result = GATE.evaluate_event(payload, checker, self.retry_unknown)
-        self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
+    def test_unknown_passes_and_logs_without_proposal_text(self):
+        cases = (
+            ("Stop", {"hook_event_name": "Stop", "last_assistant_message": "I recommend SECRET PROPOSAL TEXT."}),
+            ("Inbox record", {"hook_event_name": "PreToolUse", "tool_name": "mcp__inbox__record", "tool_input": {"ask": "SECRET PROPOSAL TEXT"}}),
+            ("Inbox record", {"hook_event_name": "PreToolUse", "tool_name": "mcp__inbox__record", "tool_input": {}}),
+            ("Agent prompt", {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": "herdr agent prompt SECRET PROPOSAL TEXT"}}),
+        )
+        with tempfile.TemporaryDirectory() as temporary, mock.patch.dict(GATE.os.environ, {"HOME": temporary}):
+            for _, payload in cases:
+                self.assertIsNone(GATE.evaluate_event(payload, mock.Mock(return_value=GATE.unknown("SECRET PROPOSAL TEXT"))))
+            path = Path(temporary) / ".local/state/meta/decision-check.log"
+            content = path.read_text(encoding="utf-8")
+            records = [json.loads(line) for line in content.splitlines()]
+        self.assertEqual([event for event, _ in cases], [record["event"] for record in records])
+        for record in records:
+            self.assertEqual({"time", "event", "decision", "reason"}, set(record))
+            self.assertTrue(record["time"])
+            self.assertEqual("UNKNOWN", record["decision"])
+        self.assertNotIn("SECRET PROPOSAL TEXT", content)
 
-    def test_conflict_never_uses_unknown_retry_allowance(self):
+    def test_conflict_is_blocked(self):
         checker = mock.Mock(return_value={**CONFLICT, "decision": "caps", "reason": "Reverses caps."})
-        payload = {
-            "hook_event_name": "Stop",
-            "stop_hook_active": True,
-            "last_assistant_message": "I recommend dropping the personal hour and minute caps.",
-        }
-        result = GATE.evaluate_event(payload, checker, self.retry_unknown)
+        payload = {"hook_event_name": "Stop", "stop_hook_active": True, "last_assistant_message": "I recommend dropping the personal hour and minute caps."}
+        result = GATE.evaluate_event(payload, checker)
         self.assertEqual(result["decision"], "block")
 
     def test_checker_runs_only_for_action_or_choice_text(self):
@@ -109,7 +103,6 @@ class DecisionCheckTest(unittest.TestCase):
             GATE.evaluate_event(
                 {"hook_event_name": "Stop", "last_assistant_message": text},
                 checker,
-                self.retry_unknown,
             )
         self.assertEqual(checker.call_count, 1)
 

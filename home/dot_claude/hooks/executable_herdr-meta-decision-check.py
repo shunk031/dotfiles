@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 CHECK_TIMEOUT_SECONDS = 45
@@ -162,7 +163,19 @@ def deny_result(event: str, result: dict[str, str]) -> dict[str, object]:
     }
 
 
-def evaluate_event(payload: object, checker=run_checker, unknown_retry=None):
+def log_unknown(event: str) -> None:
+    path = Path(os.environ.get("HOME", str(Path.home()))) / ".local/state/meta/decision-check.log"
+    record = {"time": datetime.now().astimezone().isoformat(), "event": event,
+              "decision": "UNKNOWN", "reason": "Decision checker could not resolve the proposal."}
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except OSError:
+        print("UNKNOWN decision could not be recorded.", file=sys.stderr)
+
+
+def evaluate_event(payload: object, checker=run_checker):
     if (
         isinstance(payload, dict)
         and payload.get("hook_event_name") == "PreToolUse"
@@ -171,7 +184,8 @@ def evaluate_event(payload: object, checker=run_checker, unknown_retry=None):
             not isinstance(payload.get("tool_input"), dict) or not payload["tool_input"]
         )
     ):
-        return deny_result("PreToolUse", unknown("Inbox record input is missing."))
+        log_unknown("Inbox record")
+        return None
     item = candidate(payload)
     if item is None or not isinstance(payload, dict):
         return None
@@ -182,11 +196,9 @@ def evaluate_event(payload: object, checker=run_checker, unknown_retry=None):
     event = payload["hook_event_name"]
     if result["status"] == "ALLOW":
         return None
-    if event == "Stop" and result["status"] == "UNKNOWN" and unknown_retry is not None:
-        reason = (
-            f"UNKNOWN: {result['decision'] or 'decision unclear'}; {result['reason']}"
-        )
-        return unknown_retry(reason, payload)
+    if result["status"] == "UNKNOWN":
+        log_unknown("Stop" if event == "Stop" else "Inbox record" if payload.get("tool_name") == "mcp__inbox__record" else "Agent prompt")
+        return None
     return deny_result(event, result)
 
 
@@ -215,12 +227,7 @@ def main() -> None:
     if gate.identify_meta(pane_id) is None:
         return
     payload = json.loads(raw)
-    result = evaluate_event(
-        payload,
-        unknown_retry=lambda reason, data: gate.apply_retry_policy(
-            reason, json.dumps(data, ensure_ascii=False), pane_id
-        ),
-    )
+    result = evaluate_event(payload)
     if isinstance(result, dict):
         emit(result)
 

@@ -16,7 +16,6 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-
 MODEL = "gpt-6-luna"
 MODEL_TIMEOUT = 90
 POST_TOOL_INTERVAL = 20
@@ -32,6 +31,18 @@ SCHEMA = {
     "additionalProperties": False,
 }
 EVENTS = {"UserPromptSubmit", "PostToolUse", "Stop"}
+GENERIC_TERMINAL_TITLES = {
+    "bash",
+    "claude",
+    "claude code",
+    "codex",
+    "fish",
+    "openai codex",
+    "作業",
+    "shell",
+    "terminal",
+    "zsh",
+}
 
 
 def clean_text(value: object) -> str:
@@ -39,14 +50,29 @@ def clean_text(value: object) -> str:
     if not isinstance(value, str):
         return "作業"
     value = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", value)
-    value = "".join(" " if ord(char) < 32 or ord(char) == 127 else char for char in value)
+    value = "".join(
+        " " if ord(char) < 32 or ord(char) == 127 else char for char in value
+    )
     value = re.sub(r"^(?:🚧|⛔|✅|🤖)\s*", "", value.strip())
-    return (" ".join(value.split())[:32] or "作業")
+    return " ".join(value.split())[:32] or "作業"
+
+
+def useful_terminal_title(value: object) -> str | None:
+    """Return an agent-provided task title, excluding blank and generic app titles."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    title = clean_text(value)
+    if title.casefold() in GENERIC_TERMINAL_TITLES:
+        return None
+    return title
 
 
 def is_owner(pane: dict, session_id: str) -> bool:
     """A subagent inherits the pane environment but not its owner's session ID."""
-    return bool(session_id) and (pane.get("agent_session") or {}).get("value") == session_id
+    return (
+        bool(session_id)
+        and (pane.get("agent_session") or {}).get("value") == session_id
+    )
 
 
 def can_replace(current_label: str, previous_label: str | None) -> bool:
@@ -54,7 +80,9 @@ def can_replace(current_label: str, previous_label: str | None) -> bool:
     if current_label.startswith("🤖"):
         return False
     if previous_label is None:
-        return current_label.isdecimal() or current_label.startswith(("🚧 ", "⛔ ", "✅ "))
+        return current_label.isdecimal() or current_label.startswith(
+            ("🚧 ", "⛔ ", "✅ ")
+        )
     return current_label == previous_label
 
 
@@ -121,7 +149,9 @@ def load(path: Path) -> dict:
 
 
 def save(path: Path, value: dict) -> None:
-    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as file:
+    with tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=path.parent, delete=False
+    ) as file:
         json.dump(value, file, ensure_ascii=False)
         temporary = Path(file.name)
     os.replace(temporary, path)
@@ -183,9 +213,14 @@ def enqueue(payload: dict) -> None:
         elif event == "PostToolUse":
             state["step"] = tool_step(payload)
         elif event == "Stop":
-            state["last_message"] = str(payload.get("last_assistant_message") or "")[:1800]
+            state["last_message"] = str(payload.get("last_assistant_message") or "")[
+                :1800
+            ]
         save(path, state)
-        if alive(state.get("worker_pid")) and time.time() - state.get("worker_started", 0) < MODEL_TIMEOUT + 30:
+        if (
+            alive(state.get("worker_pid"))
+            and time.time() - state.get("worker_started", 0) < MODEL_TIMEOUT + 30
+        ):
             return
         environment = dict(os.environ)
         environment["HERDR_TAB_TITLE_CHILD"] = "1"
@@ -247,7 +282,9 @@ def ask_model(state: dict) -> dict | None:
         "task": state.get("prompt", ""),
         "latest_tool": state.get("step", ""),
         "latest_assistant": (
-            "" if state.get("event") == "UserPromptSubmit" else recent_assistant(state.get("transcript_path", ""))
+            ""
+            if state.get("event") == "UserPromptSubmit"
+            else recent_assistant(state.get("transcript_path", ""))
         ),
         "final_answer": state.get("last_message", ""),
         "previous_label": state.get("last_label", ""),
@@ -260,8 +297,7 @@ def ask_model(state: dict) -> dict | None:
         "blocked means it cannot progress without another person's answer, approval, merge, or an external dependency. "
         "complete means the final answer states the task and handoff are finished with no action left. "
         "When uncertain, choose working. Extract a PR number only if the text explicitly supplies it. "
-        "Do not use tools.\n"
-        + json.dumps(context, ensure_ascii=False)
+        "Do not use tools.\n" + json.dumps(context, ensure_ascii=False)
     )
     with tempfile.TemporaryDirectory(prefix="herdr-tab-title-") as directory:
         folder = Path(directory)
@@ -269,15 +305,37 @@ def ask_model(state: dict) -> dict | None:
         answer_path = folder / "answer.json"
         schema_path.write_text(json.dumps(SCHEMA), encoding="utf-8")
         command = [
-            "codex", "exec", "-m", MODEL, "-c", "model_reasoning_effort=low",
-            "-c", "features.hooks=false", "--ephemeral", "--skip-git-repo-check",
-            "-s", "read-only", "-c", "approval_policy=never", "-C", directory,
-            "--output-schema", str(schema_path), "-o", str(answer_path), "-",
+            "codex",
+            "exec",
+            "-m",
+            MODEL,
+            "-c",
+            "model_reasoning_effort=low",
+            "-c",
+            "features.hooks=false",
+            "--ephemeral",
+            "--skip-git-repo-check",
+            "-s",
+            "read-only",
+            "-c",
+            "approval_policy=never",
+            "-C",
+            directory,
+            "--output-schema",
+            str(schema_path),
+            "-o",
+            str(answer_path),
+            "-",
         ]
         try:
             result = subprocess.run(
-                command, input=prompt, text=True, stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL, timeout=MODEL_TIMEOUT, check=False,
+                command,
+                input=prompt,
+                text=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=MODEL_TIMEOUT,
+                check=False,
                 env={**os.environ, "HERDR_TAB_TITLE_CHILD": "1"},
             )
             if result.returncode != 0:
@@ -285,7 +343,12 @@ def ask_model(state: dict) -> dict | None:
             answer = json.loads(answer_path.read_text(encoding="utf-8"))
         except (OSError, ValueError, subprocess.TimeoutExpired):
             return None
-    return answer if isinstance(answer, dict) and answer.get("state") in {"working", "blocked", "complete"} else None
+    return (
+        answer
+        if isinstance(answer, dict)
+        and answer.get("state") in {"working", "blocked", "complete"}
+        else None
+    )
 
 
 def pr_state(number: object, cwd: str) -> str | None:
@@ -295,8 +358,11 @@ def pr_state(number: object, cwd: str) -> str | None:
         result = subprocess.run(
             ["gh", "pr", "view", str(number), "--json", "state"],
             cwd=cwd if cwd and Path(cwd).is_dir() else None,
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
-            timeout=12, check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=12,
+            check=False,
         )
         if result.returncode == 0:
             return json.loads(result.stdout).get("state")
@@ -307,8 +373,12 @@ def pr_state(number: object, cwd: str) -> str | None:
 
 def herdr(*args: str) -> dict:
     result = subprocess.run(
-        [os.environ.get("HERDR_BIN_PATH") or "herdr", *args], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-        text=True, timeout=8, check=True,
+        [os.environ.get("HERDR_BIN_PATH") or "herdr", *args],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        timeout=8,
+        check=True,
     )
     return json.loads(result.stdout)
 
@@ -320,7 +390,10 @@ def on_herdr_event() -> None:
         return
     for pane in panes:
         session_id = (pane.get("agent_session") or {}).get("value")
-        if not isinstance(session_id, str) or pane.get("agent_status") not in {"blocked", "working"}:
+        if not isinstance(session_id, str) or pane.get("agent_status") not in {
+            "blocked",
+            "working",
+        }:
             continue
         path = cache_path(session_id)
         if not path.is_file():
@@ -333,7 +406,10 @@ def on_herdr_event() -> None:
             try:
                 tab_id = pane["tab_id"]
                 current = herdr("tab", "get", tab_id)["result"]["tab"]["label"]
-                if not can_replace(current, state.get("last_label")) or label == current:
+                if (
+                    not can_replace(current, state.get("last_label"))
+                    or label == current
+                ):
                     continue
                 renamed = herdr("tab", "rename", tab_id, label)["result"]["tab"]
                 if renamed.get("tab_id") == tab_id and renamed.get("label") == label:
@@ -351,14 +427,22 @@ def worker(path: Path) -> None:
             generation = state.get("generation")
             if state.get("worker_pid") != os.getpid():
                 return
-            if state.get("event") == "PostToolUse" and time.time() - state.get("last_model_time", 0) < POST_TOOL_INTERVAL and not str(state.get("last_label", "")).startswith("⛔"):
+            if (
+                state.get("event") == "PostToolUse"
+                and time.time() - state.get("last_model_time", 0) < POST_TOOL_INTERVAL
+                and not str(state.get("last_label", "")).startswith("⛔")
+            ):
                 state["worker_pid"] = None
                 save(path, state)
                 return
         try:
             pane = herdr("pane", "current", "--current")["result"]["pane"]
-            current_label = herdr("tab", "get", pane["tab_id"])["result"]["tab"]["label"]
-            if not is_owner(pane, state["session_id"]) or not can_replace(current_label, state.get("last_label")):
+            current_label = herdr("tab", "get", pane["tab_id"])["result"]["tab"][
+                "label"
+            ]
+            if not is_owner(pane, state["session_id"]) or not can_replace(
+                current_label, state.get("last_label")
+            ):
                 with locked(path):
                     latest = load(path)
                     latest["worker_pid"] = None
@@ -372,28 +456,67 @@ def worker(path: Path) -> None:
                 scrub_text(latest)
                 save(path, latest)
             return
-        decision = ask_model(state)
-        status = pr_state(decision.get("pr_number"), state.get("cwd", "")) if decision else None
+        terminal_title = None
+        if state.get("event") != "Stop" and pane.get("agent_status") == "working":
+            terminal_title = useful_terminal_title(pane.get("terminal_title_stripped"))
+        decision = ask_model(state) if terminal_title is None else None
+        status = (
+            pr_state(decision.get("pr_number"), state.get("cwd", ""))
+            if decision
+            else None
+        )
         with locked(path):
             latest = load(path)
             if latest.get("generation") != generation:
                 continue
-            if decision:
+            if decision or terminal_title is not None:
                 try:
                     pane = herdr("pane", "current", "--current")["result"]["pane"]
                     tab_id = pane["tab_id"]
-                    current_label = herdr("tab", "get", tab_id)["result"]["tab"]["label"]
-                    if is_owner(pane, state["session_id"]) and can_replace(current_label, state.get("last_label")):
-                        if pane.get("agent_status") == "blocked" and decision.get("state") == "working":
-                            decision = {**decision, "state": "blocked", "next_action": "承認または入力待ち"}
-                        label = make_label(state["event"], decision, status)
-                        renamed = herdr("tab", "rename", tab_id, label)["result"]["tab"]
-                        if renamed.get("tab_id") == tab_id and renamed.get("label") == label:
-                            latest["last_label"] = label
-                            if label.startswith("🚧"):
-                                latest["last_active_title"] = clean_text(decision.get("title"))
+                    current_label = herdr("tab", "get", tab_id)["result"]["tab"][
+                        "label"
+                    ]
+                    if is_owner(pane, state["session_id"]) and can_replace(
+                        current_label, state.get("last_label")
+                    ):
+                        if (
+                            decision
+                            and pane.get("agent_status") == "blocked"
+                            and decision.get("state") == "working"
+                        ):
+                            decision = {
+                                **decision,
+                                "state": "blocked",
+                                "next_action": "承認または入力待ち",
+                            }
+                        if (
+                            terminal_title is None
+                            or pane.get("agent_status") == "working"
+                        ):
+                            if terminal_title is not None:
+                                label = f"🚧 {terminal_title}"
+                                active_title = terminal_title
+                            else:
+                                assert decision is not None
+                                label = make_label(state["event"], decision, status)
+                                active_title = clean_text(decision.get("title"))
+                            renamed = (
+                                {"tab_id": tab_id, "label": current_label}
+                                if current_label == label
+                                else herdr("tab", "rename", tab_id, label)["result"][
+                                    "tab"
+                                ]
+                            )
+                            if (
+                                renamed.get("tab_id") == tab_id
+                                and renamed.get("label") == label
+                            ):
+                                latest["last_label"] = label
+                                if label.startswith("🚧"):
+                                    latest["last_active_title"] = active_title
                 except (OSError, ValueError, KeyError, subprocess.SubprocessError):
                     pass
+            if decision:
                 latest["last_model_time"] = time.time()
             latest["worker_pid"] = None
             if state.get("event") == "Stop":

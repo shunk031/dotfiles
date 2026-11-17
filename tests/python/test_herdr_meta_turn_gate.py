@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 import time
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest import mock
 
@@ -39,6 +40,8 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.registry = self.state / "herdr-worker-lifecycle" / "workers.tsv"
         self.registry.parent.mkdir(parents=True)
         self.registry.write_text("")
+        self.task_tree_dir = self.root / ".local" / "state" / "inbox" / "task-tree"
+        self.task_tree_dir.mkdir(parents=True)
         (self.queue_state / "waiters").mkdir(parents=True)
         (self.queue_state / "queue.jsonl").touch()
         self.queue = self.bin / "herdr-meta-patrol-queue"
@@ -84,8 +87,37 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             "HERDR_PANE_ID": "w1:p1",
             "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
         }
+        self.write_task_tree([])
 
-    def run_hook(self, *, active=False, include_active=True, env=None, session_id="session-under-test"):
+    @staticmethod
+    def utc_text(value=None):
+        value = value or datetime.now(timezone.utc)
+        return value.isoformat(timespec="seconds").replace("+00:00", "Z")
+
+    def task_fixture(self, *, task_id="task-1", title="Review gate", status="queued",
+                     updated_at=None, owner=None, pr=None, parent_id=None, warnings=None):
+        return {
+            "id": task_id, "title": title, "status": status,
+            "updated_at": self.utc_text(updated_at), "owner": owner, "pr": pr,
+            "parent_id": parent_id, "warnings": warnings or [],
+        }
+
+    def write_task_tree(self, tasks, *, session_id="session-under-test", **changes):
+        document = {
+            "schema": 1, "session_id": session_id,
+            "saved_at": self.utc_text(), "tasks": tasks,
+            **changes,
+        }
+        path = self.task_tree_dir / f"{session_id}.json"
+        path.write_text(json.dumps(document))
+        return path
+
+    def run_hook(self, *, active=False, include_active=True, env=None,
+                 session_id="session-under-test", include_task_export=True):
+        if include_task_export and isinstance(session_id, str):
+            path = self.task_tree_dir / f"{session_id}.json"
+            if not path.exists():
+                self.write_task_tree([], session_id=session_id)
         payload = {"hook_event_name": "Stop"}
         if include_active:
             payload["stop_hook_active"] = active
@@ -222,6 +254,111 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
+
+    def test_open_inbox_tasks_with_any_warning_block(self):
+        self.start_waiter()
+        statuses = ("queued", "working", "waits-on-other")
+        warnings = (
+            "owner-idle-15m", "owner-finished-task-open",
+            "pr-merged-task-open", "status-conflict",
+        )
+        for status in statuses:
+            for warning in warnings:
+                with self.subTest(status=status, warning=warning):
+                    self.write_task_tree([self.task_fixture(
+                        status=status, warnings=[warning],
+                    )])
+                    result = self.run_hook()
+                    self.assert_blocked(result, "task-1 'Review gate'")
+                    reason = json.loads(result.stdout)["reason"]
+                    self.assertIn(warning, reason)
+                    self.assertIn("Inbox tasks tool", reason)
+
+    def test_stale_working_inbox_task_blocks_and_recent_task_does_not(self):
+        self.start_waiter()
+        old = datetime.now(timezone.utc) - timedelta(minutes=61)
+        self.write_task_tree([self.task_fixture(status="working", updated_at=old)])
+        self.assert_blocked(self.run_hook(), "over 60 minutes")
+
+        self.write_task_tree([self.task_fixture(status="working")])
+        result = self.run_hook()
+        self.assertEqual((result.returncode, result.stdout), (0, ""))
+
+    def test_closed_inbox_tasks_do_not_block_for_warnings_or_age(self):
+        self.start_waiter()
+        old = datetime.now(timezone.utc) - timedelta(days=1)
+        for status in ("done", "dropped"):
+            with self.subTest(status=status):
+                self.write_task_tree([self.task_fixture(
+                    status=status, updated_at=old, warnings=["status-conflict"],
+                    pr="not a validated URL",
+                )])
+                result = self.run_hook()
+                self.assertEqual((result.returncode, result.stdout), (0, ""))
+
+        self.write_task_tree([self.task_fixture(pr=42)])
+        self.assert_blocked(self.run_hook(), "invalid pr")
+
+    def test_inbox_export_parent_id_needs_no_tree_validation(self):
+        self.start_waiter()
+        tasks = [
+            self.task_fixture(
+                task_id=f"task-{index}", status="done",
+                parent_id=(
+                    "task-1" if index == 0 else
+                    "task-0" if index == 1 else
+                    "" if index == 2 else f"missing-parent-{index}"
+                ),
+            )
+            for index in range(201)
+        ]
+        self.write_task_tree(tasks)
+        result = self.run_hook()
+        self.assertEqual((result.returncode, result.stdout), (0, ""))
+
+    def test_missing_inbox_task_tree_export_blocks_after_identity(self):
+        self.start_waiter()
+        (self.task_tree_dir / "session-under-test.json").unlink()
+        for attempt in range(4):
+            with self.subTest(attempt=attempt + 1):
+                result = self.run_hook(active=attempt > 0, include_task_export=False)
+                if attempt < 3:
+                    self.assert_blocked(result, "inbox task-tree export missing: update inbox")
+                else:
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("allowed this turn to end", json.loads(result.stdout)["systemMessage"])
+
+    def test_malformed_inbox_task_tree_export_blocks(self):
+        self.start_waiter()
+        cases = [
+            ("unexpected warning", "task", "warnings", ["unexpected-warning"]),
+            ("date-only saved_at", "root", "saved_at", "2025-01-01Z"),
+            ("date-only updated_at", "task", "updated_at", "2025-01-01Z"),
+        ]
+        for name, scope, field, value in cases:
+            with self.subTest(input=name):
+                path = self.write_task_tree([self.task_fixture()])
+                document = json.loads(path.read_text())
+                (document if scope == "root" else document["tasks"][0])[field] = value
+                path.write_text(json.dumps(document))
+                result = self.run_hook()
+                self.assert_blocked(result, "gate cannot verify: Inbox task-tree export")
+                self.assertIn("recovery:", json.loads(result.stdout)["reason"])
+
+    def test_block_lists_each_open_task_by_id_title_and_reason(self):
+        self.start_waiter()
+        self.write_task_tree([
+            self.task_fixture(task_id="stale-a", title="Review Alpha", status="working",
+                              updated_at=datetime.now(timezone.utc) - timedelta(hours=2)),
+            self.task_fixture(task_id="warn-b", title="Review Beta", warnings=["status-conflict"]),
+        ])
+        result = self.run_hook()
+        self.assert_blocked(result, "stale-a")
+        reason = json.loads(result.stdout)["reason"]
+        self.assertIn("stale-a 'Review Alpha'", reason)
+        self.assertIn("warn-b 'Review Beta'", reason)
+        self.assertIn("over 60 minutes", reason)
+        self.assertIn("status-conflict", reason)
 
     def test_done_worker_in_protected_tab_asks_user_instead_of_collect_command(self):
         self.start_waiter()

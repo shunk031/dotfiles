@@ -204,7 +204,27 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         del agents["result"]["agents"][0]["terminal_id"]
         self.agents_file.write_text(json.dumps(agents))
 
-        self.assert_blocked(self.run_hook(), "Meta has no terminal_id")
+        self.assert_blocked(
+            self.run_hook(), "Meta has a missing, empty, or non-string terminal_id"
+        )
+
+    def test_non_string_meta_terminal_id_blocks_worker_reconciliation(self):
+        self.start_waiter()
+        row = "meta\tw1:p1\tmeta-terminal\tgate-task\tgate-worker\tworker-terminal\tw2:t2\tw2:p2\tstarted\n"
+        self.registry.write_text(row)
+
+        agents = json.loads(self.agents_file.read_text())
+        agents["result"]["agents"][0]["terminal_id"] = 123
+        self.agents_file.write_text(json.dumps(agents))
+        self.assert_blocked(
+            self.run_hook(), "Meta has a missing, empty, or non-string terminal_id"
+        )
+
+        agents["result"]["agents"][0]["terminal_id"] = {"unexpected": "object"}
+        self.agents_file.write_text(json.dumps(agents))
+        self.assert_blocked(
+            self.run_hook(), "Meta has a missing, empty, or non-string terminal_id"
+        )
 
     def test_missing_malformed_and_dangling_registry_paths_fail_closed(self):
         self.start_waiter()
@@ -346,6 +366,18 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.assert_blocked(result, "gate cannot verify: retry state")
         self.assertIn("recovery:", json.loads(result.stdout)["reason"])
 
+    def test_clean_active_retry_requires_valid_retry_state(self):
+        self.start_waiter()
+        self.assert_blocked(
+            self.run_hook(active=True), "gate cannot verify: retry state is missing"
+        )
+
+        state_file = self.gate_state_dir / f"{self.session_key()}.json"
+        state_file.write_text("not-json\n")
+        self.assert_blocked(
+            self.run_hook(active=True), "gate cannot verify: retry state"
+        )
+
     def test_retry_state_uses_temporary_fallback_when_primary_is_unavailable(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
         (self.queue_state / "stop-gate").write_text("not a directory")
@@ -418,6 +450,18 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         })
         self.assert_blocked(result, "gate cannot verify: the patrol queue could not be read")
 
+    def test_malformed_queue_lines_are_reported_and_block_the_gate(self):
+        self.start_waiter()
+        self.run_queue("add", "--from", "gate-test", "valid record")
+        with (self.queue_state / "queue.jsonl").open("a") as queue_file:
+            queue_file.write("not-json\n")
+
+        result = self.run_hook()
+        self.assert_blocked(
+            result,
+            "gate cannot verify: the patrol queue reader reported 1 malformed lines",
+        )
+
     def test_check_errors_fail_closed_with_recovery_guidance(self):
         malformed_queue = self.bin / "malformed-queue"
         malformed_queue.write_text("#!/bin/sh\nprintf '%s\\n' 'not-json'\n")
@@ -470,7 +514,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
                 "malformed queue data",
                 no_change,
                 {"HERDR_META_PATROL_QUEUE_COMMAND": str(malformed_queue)},
-                "patrol queue returned unparsable",
+                "patrol queue returned an unparsable",
             ),
             ("malformed waiter directory", hide_waiter_dir, {}, "queue waiter directory"),
             ("missing lifecycle registry", hide_registry, {}, "worker lifecycle registry"),

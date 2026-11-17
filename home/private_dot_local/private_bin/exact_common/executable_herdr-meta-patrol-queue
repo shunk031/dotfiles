@@ -27,6 +27,8 @@
 #   - `read [--limit N] [--compact-status]` prints up to N unread records (default
 #     10, maximum 50), one JSON object per line. Compaction retains the latest
 #     STATUS from each sender and every other record in the selected batch.
+#     `read --strict` returns unread-record and malformed-line counts for the
+#     entire queue file.
 #   - `ack SEQ` marks every record up to SEQ as handled.
 #   - `trim` drops acknowledged records older than the keep period.
 #   - `notify-if-stale` shows one Herdr notification for a batch of unread records
@@ -38,6 +40,7 @@
 # @option HERDR_META_PATROL_STALE_SECONDS Age of unread records and of the waiter heartbeat that triggers a notification (default 600).
 # @option --limit N Number of raw unread records to include in a read batch (1-50; default 10).
 # @option --compact-status Show only the latest STATUS per sender within a read batch.
+# @option --strict Return a JSON envelope and count malformed queue lines.
 # @exitcode 0 On success.
 # @exitcode 2 On a usage error.
 # @example
@@ -119,8 +122,32 @@ function read_unread() {
 # @description Print a bounded unread batch, optionally omitting superseded STATUS updates.
 # @arg $1 number Maximum number of raw unread records.
 # @arg $2 boolean Whether to compact STATUS updates from the same sender.
+# @arg $3 boolean Whether to return unread-record and malformed-line counts.
 function read_batch() {
-    local limit="$1" compact="$2"
+    local limit="$1" compact="$2" strict="${3:-false}"
+    if [[ "${strict}" == true ]]; then
+        [[ -s "${queue}" ]] || {
+            jq -cn '{unread_record_count: 0, malformed_line_count: 0}'
+            return
+        }
+        jq -Rsc --argjson ack "$(number_in "${ack_file}")" '
+            def valid_record:
+                if type == "object" and (.seq | type) == "number" and (.t | type) == "number" and
+                    (.at | type) == "string" and (.kind | type) == "string" and
+                    (.from | type) == "string" and (.text | type) == "string"
+                then .seq > 0 and (.seq | floor) == .seq and .t >= 0
+                else false end;
+            split("\n") as $lines |
+            (if ($lines[-1] // null) == "" then $lines[:-1] else $lines end) |
+            reduce .[] as $line ({unread_record_count: 0, malformed_line_count: 0};
+                (try ($line | fromjson) catch null) as $record |
+                if ($record | valid_record) then
+                    if $record.seq > $ack then .unread_record_count += 1 else . end
+                else .malformed_line_count += 1 end
+            )
+        ' "${queue}"
+        return
+    fi
     read_unread | jq -sc --argjson limit "${limit}" --argjson compact "${compact}" '
         def is_status:
             . as $record |
@@ -223,6 +250,7 @@ wait)
 read)
     limit=10
     compact=false
+    strict=false
     while (($# > 0)); do
         case "$1" in
         --limit)
@@ -236,10 +264,14 @@ read)
             compact=true
             shift
             ;;
+        --strict)
+            strict=true
+            shift
+            ;;
         *) usage ;;
         esac
     done
-    read_batch "${limit}" "${compact}"
+    read_batch "${limit}" "${compact}" "${strict}"
     ;;
 ack)
     (($# == 1)) && [[ "$1" =~ ^[0-9]+$ ]] || usage

@@ -77,18 +77,24 @@ else
     fi
 fi
 
-meta_terminal="$(jq -r '.[0].terminal_id // empty' <<< "${pane_agents}" 2> /dev/null)" || meta_terminal=''
-if [[ -z "${meta_terminal}" ]]; then
-    add_check_error "Meta has no terminal_id in the Herdr agent list" "run 'herdr agent list' and reconcile Meta's pane ownership"
+if ! meta_terminal="$(jq -er 'if (.[0].terminal_id | type) == "string" then (.[0].terminal_id | select(length > 0)) else empty end' <<< "${pane_agents}" 2> /dev/null)"; then
+    meta_terminal=''
+    add_check_error "Meta has a missing, empty, or non-string terminal_id in the Herdr agent list" "run 'herdr agent list' and reconcile Meta's pane ownership"
 fi
 
 queue_command="${HERDR_META_PATROL_QUEUE_COMMAND:-herdr-meta-patrol-queue}"
-if ! queue_records="$("${queue_command}" read --limit 50 2> /dev/null)"; then
+if ! queue_response="$("${queue_command}" read --strict 2> /dev/null)"; then
     add_check_error "the patrol queue could not be read" "run 'herdr-meta-patrol-queue read' and inspect the queue state"
-elif ! unread_count="$(jq -sr 'if all(.[]; type == "object" and (.seq | type) == "number" and (.text | type) == "string") then length else error("invalid queue record") end' <<< "${queue_records}" 2> /dev/null)"; then
-    add_check_error "the patrol queue returned unparsable or malformed records" "run 'herdr-meta-patrol-queue read' and repair or acknowledge its records"
-elif ((unread_count > 0)); then
-    add_blocker "the patrol queue has unread records" "run 'herdr-meta-patrol-queue read', handle each record, then acknowledge the highest handled sequence"
+elif ! queue_counts="$(jq -er 'if type == "object" and (.malformed_line_count | type) == "number" and (.malformed_line_count | floor) == .malformed_line_count and .malformed_line_count >= 0 and (.unread_record_count | type) == "number" and (.unread_record_count | floor) == .unread_record_count and .unread_record_count >= 0 then [.malformed_line_count, .unread_record_count] | @tsv else error("invalid strict queue response") end' <<< "${queue_response}" 2> /dev/null)"; then
+    add_check_error "the patrol queue returned an unparsable or malformed strict response" "run 'herdr-meta-patrol-queue read --strict' and repair the queue state"
+else
+    IFS=$'\t' read -r malformed_queue_count unread_count <<< "${queue_counts}"
+    if ((malformed_queue_count > 0)); then
+        add_check_error "the patrol queue reader reported ${malformed_queue_count} malformed lines" "run 'herdr-meta-patrol-queue read --strict' and repair the reported queue.jsonl lines before acknowledging records"
+    fi
+    if ((unread_count > 0)); then
+        add_blocker "the patrol queue has unread records" "run 'herdr-meta-patrol-queue read', handle each record, then acknowledge the highest handled sequence"
+    fi
 fi
 
 queue_state_dir="${HERDR_META_PATROL_STATE_DIR:-${HOME}/.local/state/herdr-meta-patrol}"
@@ -175,7 +181,6 @@ else
     fi
 fi
 
-((check_error_count + blocker_count > 0)) || exit 0
 reason=''
 if ((check_error_count > 0)); then
     for check_error in "${check_errors[@]}"; do
@@ -260,6 +265,8 @@ if [[ -f "${state_file}" ]]; then
 elif [[ "${stop_hook_active}" == 'true' ]]; then
     fail_closed "retry state is missing for an active Stop retry" "start a fresh Claude turn after checking the patrol state"
 fi
+
+((check_error_count + blocker_count > 0)) || exit 0
 
 block_count=1
 if [[ "${stop_hook_active}" == 'true' && "${state_exists}" == '1' && "${saved_reason}" == "${reason_fingerprint}" ]]; then

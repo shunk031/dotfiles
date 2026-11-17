@@ -155,6 +155,20 @@ JSON
     jq -e '(.warnings | length) == 0' "${feed}" > /dev/null
 }
 
+@test "[common] herdr-meta-patrol-feed clears a root warning for a work item with a matching signalKey" {
+    printf 'Local\tkorch\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    jq -nc '{result:{agents:[{name:"korch",agent_status:"working",tokens:{"inbox-needs-you":"1"}}]}}' > "${AGENTS_JSON}"
+    jq -nc '{result:{tabs:[]}}' > "${TABS_JSON}"
+    jq -nc '{version:1,source:"meta-open-items",writtenAt:1,entries:[
+        {key:"work/korch",kind:"work",state:"working",title:"Korch work",detail:"",at:1,signalKey:"herdr/local/korch/untracked-asks"}
+    ]}' > "${HERDR_META_PATROL_FEED_DIR}/meta-open-items.json"
+
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
+    jq -e '([.warnings[] | select(.key == "herdr/local/korch/untracked-asks")] | length) == 0' "${feed}" > /dev/null
+}
+
 @test "[common] herdr-meta-patrol-feed skips an overlong key without losing other entries" {
     long_name="$(printf 'r%.0s' {1..100})"
     long_worker="$(printf 'w%.0s' {1..100})"

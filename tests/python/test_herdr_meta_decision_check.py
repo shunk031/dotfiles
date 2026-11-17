@@ -22,7 +22,6 @@ CONFLICT = {
     "decision": "standing decision",
     "reason": "This reverses the recorded choice.",
 }
-MALFORMED_CONFLICT = {**CONFLICT, "decision": " "}
 ALLOW = {"status": "ALLOW", "decision": "none", "reason": "No conflict."}
 
 
@@ -52,7 +51,12 @@ class DecisionCheckTest(unittest.TestCase):
         checker = mock.Mock(return_value=ALLOW)
         payload = {"hook_event_name": "Stop", "last_assistant_message": "I recommend keeping the daily, hourly, and minute caps."}
         self.assertIsNone(GATE.evaluate_event(payload, checker, self.retry_unknown))
-        for response in ({"status": "ALLOW"}, {**ALLOW, "reason": " "}, MALFORMED_CONFLICT):
+        malformed = (
+            {**ALLOW, "decision": ""}, {**ALLOW, "decision": " "},
+            {"status": "ALLOW", "reason": "missing decision"}, {**ALLOW, "extra": "unexpected"},
+            {**ALLOW, "decision": None}, {**ALLOW, "status": None}, {**ALLOW, "reason": None},
+        )
+        for response in malformed:
             self.assertEqual("UNKNOWN", GATE.normalize_result(response)["status"])
         duplicate = [("status", "CONFLICT"), ("status", "ALLOW")]
         self.assertEqual(GATE.unique_object(duplicate), {})
@@ -95,7 +99,7 @@ class DecisionCheckTest(unittest.TestCase):
     def test_checker_runs_only_for_action_or_choice_text(self):
         self.assertTrue(GATE.stop_proposes("We could either keep caps or drop them.") and not GATE.stop_proposes("We could keep the caps, or drop them."))
         checker = mock.Mock(return_value=ALLOW)
-        for text in ("Facts.", "Option A: Keep; Option B: Replace"):
+        for text in ("Facts.", "I recommend the other option."):
             GATE.evaluate_event(
                 {"hook_event_name": "Stop", "last_assistant_message": text},
                 checker,

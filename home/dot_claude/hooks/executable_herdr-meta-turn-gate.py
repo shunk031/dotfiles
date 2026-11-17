@@ -13,7 +13,9 @@ import sys
 import tempfile
 import time
 import zlib
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 HERDR_TIMEOUT_SECONDS = 3
 QUEUE_TIMEOUT_SECONDS = 3
@@ -22,6 +24,13 @@ PANE_PATTERN = re.compile(r"^[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$")
 SESSION_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 FINGERPRINT_PATTERN = re.compile(r"^[0-9]+$")
 WORKER_STATUSES = {"working", "blocked", "idle", "done"}
+TASK_STATUSES = {"queued", "working", "waits-on-other", "done", "dropped"}
+TASK_WARNINGS = {
+    "owner-idle-15m",
+    "owner-finished-task-open",
+    "pr-merged-task-open",
+    "status-conflict",
+}
 
 
 class GateError(Exception):
@@ -342,6 +351,119 @@ def check_workers(
             f"worker '{name}' is {status} with an uncollected started lifecycle record",
             recovery,
         )
+
+
+def parse_export_time(value: object) -> datetime:
+    if not isinstance(value, str) or not value.endswith("Z"):
+        raise ValueError("timestamp must be ISO 8601 UTC")
+    try:
+        return datetime.fromisoformat(value[:-1] + "+00:00")
+    except ValueError as error:
+        raise ValueError("timestamp must be ISO 8601 UTC") from error
+
+
+def read_task_tree_export(path: Path, session_id: str) -> list[dict[str, object]]:
+    if not path_exists(path):
+        raise GateError("inbox task-tree export missing: update inbox")
+    if path.parent.is_symlink() or not path.parent.is_dir() or not is_regular_file(path) or not os.access(path, os.R_OK):
+        raise GateError(f"Inbox task-tree export '{path}' is not a readable regular file")
+    try:
+        document = parse_json_document(path.read_text(encoding="utf-8"))
+    except Exception as error:
+        raise GateError(f"Inbox task-tree export '{path}' is unreadable or unparsable") from error
+    if not isinstance(document, dict) or set(document) != {"schema", "session_id", "saved_at", "tasks"}:
+        raise GateError(f"Inbox task-tree export '{path}' has an invalid schema")
+    if type(document["schema"]) is not int or document["schema"] != 1:
+        raise GateError(f"Inbox task-tree export '{path}' has an unsupported schema")
+    if document["session_id"] != session_id:
+        raise GateError(f"Inbox task-tree export '{path}' names a different session")
+    try:
+        parse_export_time(document["saved_at"])
+    except ValueError as error:
+        raise GateError(f"Inbox task-tree export '{path}' has an invalid saved_at") from error
+    tasks = document["tasks"]
+    if not isinstance(tasks, list) or len(tasks) > 200:
+        raise GateError(f"Inbox task-tree export '{path}' has invalid tasks")
+    ids: set[str] = set()
+    for task in tasks:
+        fields = {"id", "title", "status", "updated_at", "owner", "pr", "parent_id", "warnings"}
+        if not isinstance(task, dict) or set(task) != fields:
+            raise GateError(f"Inbox task-tree export '{path}' contains a malformed task")
+        task_id, title, status = task["id"], task["title"], task["status"]
+        if (not isinstance(task_id, str) or not task_id or task_id != task_id.strip() or
+                len(task_id) > 100 or task_id in ids or
+                not isinstance(title, str) or not title.strip() or len(title) > 100 or
+                not isinstance(status, str) or status not in TASK_STATUSES):
+            raise GateError(f"Inbox task-tree export '{path}' contains an invalid task identity or status")
+        ids.add(task_id)
+        try:
+            parse_export_time(task["updated_at"])
+        except ValueError as error:
+            raise GateError(f"Inbox task-tree export '{path}' contains an invalid updated_at") from error
+        owner = task["owner"]
+        if owner is not None and (
+            not isinstance(owner, dict) or set(owner) != {"agent", "machine"} or
+            not isinstance(owner["agent"], str) or
+            not re.fullmatch(r"[a-z][a-z0-9_-]{0,31}", owner["agent"]) or
+            not isinstance(owner["machine"], str) or
+            not owner["machine"].strip() or len(owner["machine"]) > 100
+        ):
+            raise GateError(f"Inbox task-tree export '{path}' contains an invalid owner")
+        pr = task["pr"]
+        if pr is not None:
+            parsed_pr = urlsplit(pr) if isinstance(pr, str) else None
+            parts = parsed_pr.path.split("/") if parsed_pr else []
+            if (not parsed_pr or parsed_pr.scheme != "https" or not parsed_pr.hostname or
+                    parsed_pr.username or parsed_pr.password or parsed_pr.query or parsed_pr.fragment or
+                    len(parts) != 5 or parts[0] or parts[1] in {"", ".", ".."} or
+                    parts[2] in {"", ".", ".."} or parts[3] != "pull" or
+                    not re.fullmatch(r"[1-9][0-9]*", parts[4])):
+                raise GateError(f"Inbox task-tree export '{path}' contains an invalid PR URL")
+        parent_id = task["parent_id"]
+        if parent_id is not None and (
+            not isinstance(parent_id, str) or not parent_id or parent_id != parent_id.strip() or
+            len(parent_id) > 100 or parent_id == task_id
+        ):
+            raise GateError(f"Inbox task-tree export '{path}' contains an invalid parent_id")
+        warnings = task["warnings"]
+        if (not isinstance(warnings, list) or any(
+                not isinstance(warning, str) or warning not in TASK_WARNINGS for warning in warnings
+        )
+                or len(warnings) != len(set(warnings))):
+            raise GateError(f"Inbox task-tree export '{path}' contains invalid warnings")
+    if any(task["parent_id"] is not None and task["parent_id"] not in ids for task in tasks):
+        raise GateError(f"Inbox task-tree export '{path}' references a missing parent task")
+    parents = {task["id"]: task["parent_id"] for task in tasks}
+    for task_id in parents:
+        ancestors: set[str] = set()
+        parent = parents[task_id]
+        while parent is not None:
+            if parent in ancestors or parent == task_id:
+                raise GateError(f"Inbox task-tree export '{path}' contains a parent cycle")
+            ancestors.add(parent)
+            parent = parents[parent]
+    return tasks
+
+
+def check_inbox_tasks(
+    tasks: list[dict[str, object]], now: datetime, blockers: list[str]
+) -> None:
+    for task in tasks:
+        if task["status"] not in {"queued", "working", "waits-on-other"}:
+            continue
+        reasons: list[str] = []
+        warnings = task["warnings"]
+        if warnings:
+            reasons.append(f"warnings: {', '.join(warnings)}")
+        updated_at = parse_export_time(task["updated_at"])
+        if task["status"] == "working" and now - updated_at > timedelta(minutes=60):
+            reasons.append("working task has not been updated for over 60 minutes")
+        for reason in reasons:
+            add_blocker(
+                blockers,
+                f"Inbox task {task['id']} '{' '.join(task['title'].split())}': {reason}",
+                "update or complete this task with the Inbox tasks tool",
+            )
 
 
 def make_session_key(session_id: str, pane_id: str, valid_session: bool) -> str:
@@ -832,6 +954,19 @@ def evaluate_after_identity(
                 errors,
                 message,
                 f"run 'herdr agent list' and '{lifecycle_helper} audit'",
+            )
+
+    session_id = payload.get("session_id") if isinstance(payload, dict) else None
+    if isinstance(session_id, str) and SESSION_PATTERN.fullmatch(session_id):
+        task_tree_path = home / ".local" / "state" / "inbox" / "task-tree" / f"{session_id}.json"
+        try:
+            tasks = read_task_tree_export(task_tree_path, session_id)
+            check_inbox_tasks(tasks, datetime.now(timezone.utc), blockers)
+        except GateError as error:
+            add_error(
+                errors,
+                str(error),
+                f"refresh Inbox at '{task_tree_path}', then update or complete stale tasks with the Inbox tasks tool",
             )
 
     reason = reason_text(errors, blockers) if errors or blockers else None

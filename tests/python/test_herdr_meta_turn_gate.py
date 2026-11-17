@@ -1,5 +1,6 @@
 """Tests for the Meta-only Claude Stop hook."""
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -355,6 +356,40 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             [1, 1],
         )
 
+    def test_retry_counts_are_isolated_for_legacy_checksum_collision_ids(self):
+        self.start_waiter()
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        first_session = "session-49KCsYe3oaQD"
+        second_session = "session-GrHzgYWuiIHw"
+        self.assertEqual(
+            self.legacy_session_key(first_session), self.legacy_session_key(second_session)
+        )
+
+        self.assert_blocked(self.run_hook(session_id=first_session), "unread records")
+        self.assert_blocked(
+            self.run_hook(active=True, session_id=first_session), "unread records"
+        )
+        first_state = self.gate_state_dir / f"{self.session_key(first_session)}.json"
+        self.assertEqual(json.loads(first_state.read_text())["consecutive_blocks"], 2)
+
+        self.assert_blocked(self.run_hook(session_id=second_session), "unread records")
+        second_state = self.gate_state_dir / f"{self.session_key(second_session)}.json"
+        self.assertNotEqual(first_state, second_state)
+        self.assertEqual(json.loads(first_state.read_text())["consecutive_blocks"], 2)
+        self.assertEqual(json.loads(second_state.read_text())["consecutive_blocks"], 1)
+
+    def test_retry_key_generation_fails_closed_without_working_sha256_tools(self):
+        for name in ("shasum", "sha256sum"):
+            command = self.bin / name
+            command.write_text("#!/bin/sh\nexit 1\n")
+            command.chmod(0o755)
+
+        result = self.run_hook()
+        self.assert_blocked(
+            result, "gate cannot verify: the retry session key could not be generated with SHA-256"
+        )
+        self.assertIn("install or repair 'shasum' or 'sha256sum'", json.loads(result.stdout)["reason"])
+
     def test_unwritable_retry_state_blocks_with_recovery_guidance(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
         (self.queue_state / "stop-gate").write_text("not a directory")
@@ -499,6 +534,9 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.assertIn("could not append its audit log", message)
 
     def session_key(self, value="session-under-test"):
+        return hashlib.sha256(value.encode()).hexdigest()
+
+    def legacy_session_key(self, value):
         result = subprocess.run(
             ["cksum"], input=value, text=True,
             capture_output=True, check=True,

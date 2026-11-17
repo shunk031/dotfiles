@@ -193,10 +193,22 @@ if ((blocker_count > 0)); then
     done
 fi
 
+function sha256_value() {
+    local value="$1" digest=''
+    if command -v shasum > /dev/null 2>&1; then
+        digest="$(printf '%s' "${value}" | shasum -a 256 2> /dev/null | awk '{print $1}')" || digest=''
+    fi
+    if [[ ! "${digest}" =~ ^[[:xdigit:]]{64}$ ]] && command -v sha256sum > /dev/null 2>&1; then
+        digest="$(printf '%s' "${value}" | sha256sum 2> /dev/null | awk '{print $1}')" || digest=''
+    fi
+    [[ "${digest}" =~ ^[[:xdigit:]]{64}$ ]] || return 1
+    printf '%s\n' "${digest}"
+}
+
 if [[ -n "${session_id}" ]]; then
-    session_key="$(printf '%s' "${session_id}" | cksum | awk '{print $1 "-" $2}')" || fail_closed "the retry session key could not be generated" "retry the Claude Stop hook"
+    session_key="$(sha256_value "${session_id}")" || fail_closed "the retry session key could not be generated with SHA-256" "install or repair 'shasum' or 'sha256sum', then retry the Stop hook"
 else
-    session_key="pane-$(printf '%s' "${HERDR_PANE_ID}" | cksum | awk '{print $1 "-" $2}')" || fail_closed "the pane retry key could not be generated" "run 'herdr agent list' and retry the Stop hook"
+    session_key="pane-$(sha256_value "${HERDR_PANE_ID}")" || fail_closed "the pane retry key could not be generated with SHA-256" "install or repair 'shasum' or 'sha256sum', then retry the Stop hook"
 fi
 reason_fingerprint="$(printf '%s' "${reason}" | cksum | awk '{print $1}')" || fail_closed "the retry reason fingerprint could not be generated" "retry the Claude Stop hook"
 

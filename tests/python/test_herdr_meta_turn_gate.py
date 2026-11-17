@@ -236,7 +236,9 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         result = self.run_hook()
 
         self.assert_blocked(result, "protected tab: ask the user")
-        self.assertNotIn("herdr-worker-lifecycle.sh collect", json.loads(result.stdout)["reason"])
+        reason = json.loads(result.stdout)["reason"]
+        self.assertIn("recovery: protected tab: ask the user.", reason)
+        self.assertNotIn("herdr-worker-lifecycle.sh collect", reason)
 
     def test_lifecycle_registry_accepts_writer_row_shapes_and_launch_modes(self):
         self.start_waiter()

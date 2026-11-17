@@ -331,7 +331,7 @@ def check_workers(
                 f"recovery: inspect 'herdr tab list' for tab '{tab}'"
             )
         if label.startswith("⛔"):
-            recovery = "protected tab: ask the user to resolve this worker lifecycle record"
+            recovery = "protected tab: ask the user"
         else:
             recovery = (
                 f"inspect its transcript and result, then collect it with "

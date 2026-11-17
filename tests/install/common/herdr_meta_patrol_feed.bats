@@ -169,6 +169,34 @@ JSON
     jq -e '([.warnings[] | select(.key == "herdr/local/korch/untracked-asks")] | length) == 0' "${feed}" > /dev/null
 }
 
+@test "[common] herdr-meta-patrol-feed matches open entries by owner across kinds" {
+    printf 'Local\torch-task\nLocal\torch-done\nLocal\torch-ownerless\nLocal\torch-signal\nLocal\torch-work\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    jq -nc '{result:{agents:[
+        {name:"orch-task",agent_status:"working",tokens:{"inbox-needs-you":"1"}},
+        {name:"orch-done",agent_status:"working",tokens:{"inbox-needs-you":"1"}},
+        {name:"orch-ownerless",agent_status:"working",tokens:{"inbox-needs-you":"1"}},
+        {name:"orch-signal",agent_status:"working",tokens:{"inbox-needs-you":"1"}},
+        {name:"orch-work",agent_status:"working",tokens:{"inbox-needs-you":"1"}}
+    ]}}' > "${AGENTS_JSON}"
+    jq -nc '{result:{tabs:[]}}' > "${TABS_JSON}"
+    jq -nc '{version:1,source:"meta-open-items",writtenAt:1,projected:true,entries:[
+        {key:"task/projected",kind:"task",state:"working",title:"Projected task",detail:"",at:1,owner:{machine:"local",agent:"orch-task"}},
+        {key:"task/done",kind:"task",state:"done",title:"Done task",detail:"",at:1,owner:{machine:"local",agent:"orch-done"}},
+        {key:"task/ownerless",kind:"task",state:"working",title:"Ownerless task",detail:"",at:1},
+        {key:"work/signal",state:"working",title:"Hand-written item",detail:"",at:1,signalKey:"herdr/local/orch-signal/untracked-asks"},
+        {key:"work/owned",kind:"work",state:"blocked",title:"Owned work",detail:"",at:1,owner:{machine:"local",agent:"orch-work"}}
+    ]}' > "${HERDR_META_PATROL_FEED_DIR}/meta-open-items.json"
+
+    run bash "${SCRIPT_PATH}" local "${AGENTS_JSON}" "${TABS_JSON}"
+    [ "${status}" -eq 0 ]
+    feed="${HERDR_META_PATROL_FEED_DIR}/herdr-local.json"
+    jq -e '([.warnings[] | select(.key == "herdr/local/orch-task/untracked-asks")] | length) == 0' "${feed}" > /dev/null
+    jq -e '.warnings[] | select(.key == "herdr/local/orch-done/untracked-asks") | .detail | contains("1 of 1 asks")' "${feed}" > /dev/null
+    jq -e '.warnings[] | select(.key == "herdr/local/orch-ownerless/untracked-asks") | .detail | contains("1 of 1 asks")' "${feed}" > /dev/null
+    jq -e '([.warnings[] | select(.key == "herdr/local/orch-signal/untracked-asks")] | length) == 0' "${feed}" > /dev/null
+    jq -e '([.warnings[] | select(.key == "herdr/local/orch-work/untracked-asks")] | length) == 0' "${feed}" > /dev/null
+}
+
 @test "[common] herdr-meta-patrol-feed skips an overlong key without losing other entries" {
     long_name="$(printf 'r%.0s' {1..100})"
     long_worker="$(printf 'w%.0s' {1..100})"

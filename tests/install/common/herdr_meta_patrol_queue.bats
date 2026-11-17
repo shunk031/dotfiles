@@ -116,6 +116,40 @@ function queue() {
     [[ "${output}" == 'unread 1:'* ]]
 }
 
+@test "[common] herdr-meta-patrol-queue tracks waiters by pane and removes only its own marker" {
+    export HERDR_ENV=1
+    export HERDR_PANE_ID='w1:p2'
+    local first_pid second_pid first_marker second_marker
+
+    bash "${QUEUE_PATH}" wait --max-seconds 20 &
+    first_pid=$!
+    first_marker="${HERDR_META_PATROL_STATE_DIR}/waiters/${HERDR_PANE_ID}.${first_pid}.pid"
+    for _ in $(seq 1 50); do
+        [ -e "${first_marker}" ] && break
+        sleep 0.1
+    done
+    [ -e "${first_marker}" ]
+    [ "$(cat "${first_marker}")" = "${first_pid}" ]
+
+    bash "${QUEUE_PATH}" wait --max-seconds 20 &
+    second_pid=$!
+    second_marker="${HERDR_META_PATROL_STATE_DIR}/waiters/${HERDR_PANE_ID}.${second_pid}.pid"
+    for _ in $(seq 1 50); do
+        [ -e "${second_marker}" ] && break
+        sleep 0.1
+    done
+    [ -e "${second_marker}" ]
+
+    kill "${first_pid}"
+    wait "${first_pid}" || true
+    [ ! -e "${first_marker}" ]
+    [ -e "${second_marker}" ]
+
+    kill "${second_pid}"
+    wait "${second_pid}" || true
+    [ ! -e "${second_marker}" ]
+}
+
 @test "[common] herdr-meta-patrol-queue notifies once per stale batch while no waiter polls" {
     export HERDR_META_PATROL_STALE_SECONDS=0
     queue add first

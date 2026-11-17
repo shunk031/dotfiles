@@ -123,6 +123,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/herdr-meta-turn-gate.sh\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length stop claude",
             "timeout": 120
           },

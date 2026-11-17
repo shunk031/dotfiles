@@ -102,7 +102,7 @@ function tracked_count() {
     }
     jq -r --arg machine "${machine}" --arg agent "${agent}" --arg kind "${kind}" --arg signal "${signal}" '
         if .source != "meta-open-items" or (.entries | type) != "array" then 0
-        else [.entries[] | select(.kind == $kind and .state != "done" and ((.owner.machine == $machine and .owner.agent == $agent) or (.signalKey == $signal and $signal != "")))] | length
+        else [.entries[] | select(.state != "done" and (((.kind == $kind) and .owner.machine == $machine and .owner.agent == $agent) or (.signalKey == $signal and $signal != "")))] | length
         end
     ' "${active_items_file}" 2> /dev/null || printf '0\n'
 }

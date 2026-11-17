@@ -20,6 +20,10 @@
 #   A root is an agent listed in `${XDG_STATE_HOME:-$HOME/.local/state}/meta/roots.tsv`
 #   for its machine alias (`Local` for this machine); inbox tokens alone do not
 #   define roots.
+#   The optional `${XDG_STATE_HOME:-$HOME/.local/state}/meta/reminders.tsv` file
+#   holds reminders as
+#   one `<UTC timestamp><TAB><text>` record per line. Due reminders are queued
+#   once, and malformed timestamps create one finding while the line remains.
 #   Registered roots may publish only a UTC timestamp in the exact form
 #   `YYYY-MM-DDTHH:MM:SSZ` in `tokens.due`; each overdue value is queued once,
 #   and its reminder state is cleared when the root removes or changes that value.
@@ -546,6 +550,51 @@ function process_due_entries() {
     mv -f "${invalid_next_file}" "${invalid_file}"
 }
 
+# @description Queue reminders from the optional reminders file and retain sent and invalid records.
+function process_reminder_file() {
+    local reminders_file="${XDG_STATE_HOME:-${HOME}/.local/state}/meta/reminders.tsv" sent_file="${state_dir}/reminders-sent.tsv" invalid_file="${state_dir}/invalid-reminders.tsv" invalid_next_file="${state_dir}/invalid-reminders.tsv.next"
+    local line timestamp text record epoch message invalid_message
+    : > "${invalid_next_file}"
+    if [[ -r "${reminders_file}" ]]; then
+        while IFS= read -r line || [[ -n "${line}" ]]; do
+            [[ -z "${line//[[:space:]]/}" || "${line}" == \#* ]] && continue
+            invalid_message=""
+            if [[ "${line}" != *$'\t'* ]]; then
+                record="${line}"
+                invalid_message='Invalid reminder record: expected <UTC timestamp><TAB><text>.'
+            else
+                if ! command -v python3 > /dev/null 2>&1; then
+                    printf '%s\n' 'herdr-meta-patrol: python3 is required to parse reminder timestamps.' >&2
+                    return 1
+                fi
+                timestamp="${line%%$'\t'*}"
+                text="${line#*$'\t'}"
+                record="${timestamp}"$'\t'"${text}"
+                if ! epoch="$(due_epoch "${timestamp}" 2> /dev/null)"; then
+                    invalid_message="Invalid reminder time: ${timestamp}; expected YYYY-MM-DDTHH:MM:SSZ."
+                fi
+            fi
+            if [[ -n "${invalid_message}" ]]; then
+                if ! grep -Fqx -- "${record}" "${invalid_file}" 2> /dev/null && ! grep -Fqx -- "${record}" "${invalid_next_file}"; then
+                    if queue_message finding "${invalid_message}"; then
+                        printf '%s\n' "${record}" >> "${invalid_next_file}"
+                    fi
+                else
+                    printf '%s\n' "${record}" >> "${invalid_next_file}"
+                fi
+                continue
+            fi
+            if ((epoch <= now)) && ! grep -Fqx -- "${record}" "${sent_file}" 2> /dev/null; then
+                message="remind the user: ${text}"
+                if queue_message reminder "${message}"; then
+                    printf '%s\n' "${record}" >> "${sent_file}"
+                fi
+            fi
+        done < "${reminders_file}"
+    fi
+    mv -f "${invalid_next_file}" "${invalid_file}"
+}
+
 # @description Persist this run's digest as the baseline for the next one.
 # @arg $1 string Current digest file.
 function commit_digest() {
@@ -554,6 +603,7 @@ function commit_digest() {
 }
 
 process_due_entries "${due_entries}" "${due_success}"
+process_reminder_file
 
 # @description Queue the progress digest when a registered root changed since the last digest.
 function send_digest() {

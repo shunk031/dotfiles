@@ -118,12 +118,28 @@ function due_count() {
     jq -sc '[.[] | select(.kind == "due")] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
 }
 
+function reminder_count() {
+    [[ -r "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]] || {
+        printf '0\n'
+        return
+    }
+    jq -sc '[.[] | select(.kind == "reminder")] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+}
+
 function invalid_due_count() {
     [[ -r "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]] || {
         printf '0\n'
         return
     }
     jq -sc '[.[] | select(.kind == "finding" and (.text | contains("Invalid due value:")))] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
+}
+
+function invalid_reminder_count() {
+    [[ -r "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]] || {
+        printf '0\n'
+        return
+    }
+    jq -sc '[.[] | select(.kind == "finding" and ((.text | contains("Invalid reminder time:")) or (.text | contains("Invalid reminder record:"))))] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
 }
 
 function blocked_agent() {
@@ -270,6 +286,79 @@ STUB
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ]
     [ "$(invalid_due_count)" -eq "$((expected_invalid_count + 1))" ]
+}
+
+@test "[common] herdr-meta-patrol queues due file reminders once and skips comments and blank lines" {
+    future="$(timestamp_at_delta 3600)"
+    past="$(timestamp_at_delta -3600)"
+    mkdir -p "${XDG_STATE_HOME}/meta"
+    printf '# reminders\n\n%s\tfuture reminder\n%s\tcheck the build\n%s\tcheck the build\n' \
+        "${future}" "${past}" "${past}" > "${XDG_STATE_HOME}/meta/reminders.tsv"
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(reminder_count)" -eq 1 ]
+    grep -Fxq 'remind the user: check the build' <(calls)
+    grep -Fqx "${past}"$'\t''check the build' "${HERDR_META_PATROL_STATE_DIR}/reminders-sent.tsv"
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(reminder_count)" -eq 1 ]
+}
+
+@test "[common] herdr-meta-patrol reports malformed file reminder times once" {
+    mkdir -p "${XDG_STATE_HOME}/meta"
+    printf 'not-a-time\tcheck the build\n' > "${XDG_STATE_HOME}/meta/reminders.tsv"
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(reminder_count)" -eq 0 ]
+    [ "$(invalid_reminder_count)" -eq 1 ]
+    grep -Fq 'Invalid reminder time: not-a-time' <(calls)
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_reminder_count)" -eq 1 ]
+
+    printf '%s\tcheck the build\n' "$(timestamp_at_delta 3600)" > "${XDG_STATE_HOME}/meta/reminders.tsv"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ ! -s "${HERDR_META_PATROL_STATE_DIR}/invalid-reminders.tsv" ]
+
+    printf 'not-a-time\tcheck the build\n' > "${XDG_STATE_HOME}/meta/reminders.tsv"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_reminder_count)" -eq 2 ]
+
+    printf '%s\n' "$(timestamp_at_delta -3600)" > "${XDG_STATE_HOME}/meta/reminders.tsv"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(reminder_count)" -eq 0 ]
+    [ "$(invalid_reminder_count)" -eq 3 ]
+    grep -Fq 'Invalid reminder record:' <(calls)
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(invalid_reminder_count)" -eq 3 ]
+}
+
+@test "[common] herdr-meta-patrol retries a file reminder when queue append fails" {
+    mkdir -p "${XDG_STATE_HOME}/meta"
+    past="$(timestamp_at_delta -3600)"
+    printf '%s\tcheck the build\n' "${past}" > "${XDG_STATE_HOME}/meta/reminders.tsv"
+    fail_queue_adds
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(reminder_count)" -eq 0 ]
+    [ ! -e "${HERDR_META_PATROL_STATE_DIR}/reminders-sent.tsv" ]
+
+    export HERDR_META_PATROL_QUEUE="${QUEUE_PATH}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "$(reminder_count)" -eq 1 ]
+    grep -Fxq 'remind the user: check the build' <(calls)
+    grep -Fqx "${past}"$'\t''check the build' "${HERDR_META_PATROL_STATE_DIR}/reminders-sent.tsv"
 }
 
 @test "[common] herdr-meta-patrol retains due dedupe state when a machine scan fails" {

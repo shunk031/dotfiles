@@ -294,7 +294,7 @@ if [[ "${stop_hook_active}" == 'true' && "${state_exists}" == '1' && "${saved_re
         if ((log_written)); then
             message='The Meta turn gate allowed this turn to end after blocking the same unresolved condition three times; inspect the patrol state before the next turn.'
         else
-            message='The Meta turn gate allowed this turn to end after three blocks, but could not append its audit log; inspect the patrol state before the next turn.'
+            message="The Meta turn gate allowed this turn to end after three blocks; audit log write failed: ${log_file}. Inspect the patrol state before the next turn."
         fi
         jq -cn --arg message "${message}" '{systemMessage: $message}'
         exit 0

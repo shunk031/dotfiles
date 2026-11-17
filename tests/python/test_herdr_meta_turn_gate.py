@@ -532,7 +532,10 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         result = self.run_hook(active=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         message = json.loads(result.stdout)["systemMessage"]
-        self.assertIn("could not append its audit log", message)
+        self.assertIn(
+            f"audit log write failed: {self.gate_state_dir / 'audit.log'}",
+            message,
+        )
 
     def session_key(self, value="session-under-test"):
         return hashlib.sha256(value.encode()).hexdigest()

@@ -16,7 +16,8 @@
 #   (`seq`, `t` epoch seconds, `at`, `kind`, `from`, `text`), `queue.seq` the last
 #   sequence number, `queue.ack` the highest acknowledged one, `waiter.heartbeat`
 #   the time of the last `wait` poll, and `queue.notified` the last sequence
-#   number announced by `notify-if-stale`.
+#   number announced by `notify-if-stale`. Session-owned `wait` commands record
+#   their PID in `waiters/<pane-id>.<pid>.pid` until they exit.
 #
 #   Subcommands:
 #   - `add [--kind KIND] [--from NAME] TEXT` appends one record.
@@ -26,6 +27,8 @@
 #   - `read [--limit N] [--compact-status]` prints up to N unread records (default
 #     10, maximum 50), one JSON object per line. Compaction retains the latest
 #     STATUS from each sender and every other record in the selected batch.
+#     `read --strict` requires a regular queue file, valid acknowledgement state,
+#     and valid records before returning unread-record and malformed-line counts.
 #   - `ack SEQ` marks every record up to SEQ as handled.
 #   - `trim` drops acknowledged records older than the keep period.
 #   - `notify-if-stale` shows one Herdr notification for a batch of unread records
@@ -37,6 +40,8 @@
 # @option HERDR_META_PATROL_STALE_SECONDS Age of unread records and of the waiter heartbeat that triggers a notification (default 600).
 # @option --limit N Number of raw unread records to include in a read batch (1-50; default 10).
 # @option --compact-status Show only the latest STATUS per sender within a read batch.
+# @option --strict Return a JSON envelope; fail when queue state or records are invalid.
+# @stderr queue unverifiable: <why> when strict queue state cannot be verified.
 # @exitcode 0 On success.
 # @exitcode 2 On a usage error.
 # @example
@@ -57,6 +62,8 @@ ack_file="${state_dir}/queue.ack"
 heartbeat="${state_dir}/waiter.heartbeat"
 notified_file="${state_dir}/queue.notified"
 lock_file="${state_dir}/queue.lock"
+waiters_dir="${state_dir}/waiters"
+waiter_marker=''
 
 # @description Print a usage error and exit 2.
 function usage() {
@@ -71,6 +78,12 @@ function number_in() {
     value="$(cat "$1" 2> /dev/null)" || value=""
     [[ "${value}" =~ ^[0-9]+$ ]] || value=0
     printf '%s\n' "${value}"
+}
+
+# @description Report why strict queue state cannot be verified.
+# @arg $1 string Validation failure reason.
+function queue_unverifiable() {
+    printf 'queue unverifiable: %s\n' "$1" >&2
 }
 
 # @description Run a command while holding the queue lock (perl ships with macOS).
@@ -116,8 +129,84 @@ function read_unread() {
 # @description Print a bounded unread batch, optionally omitting superseded STATUS updates.
 # @arg $1 number Maximum number of raw unread records.
 # @arg $2 boolean Whether to compact STATUS updates from the same sender.
+# @arg $3 boolean Whether to require strict queue validation and return counts.
 function read_batch() {
-    local limit="$1" compact="$2"
+    local limit="$1" compact="$2" strict="${3:-false}" ack_value queue_result malformed_count
+    if [[ "${strict}" == true ]]; then
+        if [[ -L "${queue}" ]]; then
+            queue_unverifiable 'queue.jsonl is a symbolic link'
+            return 1
+        elif [[ ! -e "${queue}" ]]; then
+            queue_unverifiable 'queue.jsonl is missing'
+            return 1
+        elif [[ ! -f "${queue}" ]]; then
+            queue_unverifiable 'queue.jsonl is not a regular file'
+            return 1
+        elif [[ ! -r "${queue}" ]]; then
+            queue_unverifiable 'queue.jsonl is not readable'
+            return 1
+        fi
+
+        ack_value=0
+        if [[ -L "${ack_file}" ]]; then
+            queue_unverifiable 'queue.ack is a symbolic link'
+            return 1
+        elif [[ -e "${ack_file}" ]]; then
+            if [[ ! -f "${ack_file}" ]]; then
+                queue_unverifiable 'queue.ack is not a regular file'
+                return 1
+            elif [[ ! -r "${ack_file}" ]]; then
+                queue_unverifiable 'queue.ack is not readable'
+                return 1
+            elif ! ack_value="$(cat "${ack_file}" 2> /dev/null)"; then
+                queue_unverifiable 'queue.ack could not be read'
+                return 1
+            elif [[ ! "${ack_value}" =~ ^[0-9]+$ ]]; then
+                queue_unverifiable 'queue.ack is not a non-negative integer'
+                return 1
+            fi
+            local ack_line_count
+            if ! ack_line_count="$(awk 'END { print NR }' "${ack_file}" 2> /dev/null)" || [[ "${ack_line_count}" != 1 ]]; then
+                queue_unverifiable 'queue.ack must contain exactly one integer line'
+                return 1
+            fi
+            while [[ ${#ack_value} -gt 1 && "${ack_value:0:1}" == 0 ]]; do
+                ack_value="${ack_value:1}"
+            done
+        fi
+
+        if ! queue_result="$(jq -Rsc --argjson ack "${ack_value}" '
+            def valid_record:
+                if type == "object" and keys == ["at", "from", "kind", "seq", "t", "text"] and
+                    (.seq | type) == "number" and (.t | type) == "number" and
+                    (.at | type) == "string" and (.kind | type) == "string" and
+                    (.from | type) == "string" and (.text | type) == "string"
+                then .seq > 0 and (.seq | floor) == .seq and .t >= 0 and (.t | floor) == .t and
+                    (.at | length) > 0 and (.kind | length) > 0 and
+                    (.from | length) > 0 and (.text | length) > 0
+                else false end;
+            split("\n") as $lines |
+            (if ($lines[-1] // null) == "" then $lines[:-1] else $lines end) |
+            reduce .[] as $line ({unread_record_count: 0, malformed_line_count: 0};
+                (try ($line | fromjson) catch null) as $record |
+                if ($record | valid_record) then
+                    if $record.seq > $ack then .unread_record_count += 1 else . end
+                else .malformed_line_count += 1 end
+            )
+        ' "${queue}")"; then
+            queue_unverifiable 'queue.jsonl could not be read or parsed'
+            return 1
+        fi
+        if ! malformed_count="$(jq -er '.malformed_line_count | if type == "number" and floor == . and . >= 0 then . else error end' <<< "${queue_result}" 2> /dev/null)"; then
+            queue_unverifiable 'queue.jsonl validation result could not be read'
+            return 1
+        elif ((malformed_count > 0)); then
+            queue_unverifiable "queue.jsonl contains ${malformed_count} malformed or invalid record(s)"
+            return 1
+        fi
+        printf '%s\n' "${queue_result}"
+        return
+    fi
     read_unread | jq -sc --argjson limit "${limit}" --argjson compact "${compact}" '
         def is_status:
             . as $record |
@@ -134,10 +223,47 @@ function read_batch() {
     '
 }
 
-mkdir -p "${state_dir}"
+# @description Record a session-owned waiter so its Herdr pane can verify it is running.
+function register_waiter() {
+    local pane_id="${HERDR_PANE_ID:-}" temporary
+    [[ "${HERDR_ENV:-}" == '1' ]] || return 0
+    [[ "${pane_id}" =~ ^[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$ ]] || return 0
+    mkdir -p "${waiters_dir}" || return 1
+    chmod 700 "${waiters_dir}" 2> /dev/null || return 1
+    waiter_marker="${waiters_dir}/${pane_id}.$$.pid"
+    temporary="${waiter_marker}.tmp"
+    (umask 077 && printf '%s\n' "$$" > "${temporary}") || return 1
+    if ! mv -f "${temporary}" "${waiter_marker}"; then
+        rm -f "${temporary}"
+        return 1
+    fi
+}
+
+# @description Remove only this process's waiter record when it exits.
+function cleanup_waiter() {
+    local marker_pid=''
+    [[ -n "${waiter_marker}" && -f "${waiter_marker}" ]] || return 0
+    marker_pid="$(cat "${waiter_marker}" 2> /dev/null)" || marker_pid=''
+    if [[ "${marker_pid}" == "$$" ]]; then
+        rm -f "${waiter_marker}"
+    fi
+    return 0
+}
+
 (($# > 0)) || usage
 command="$1"
 shift
+strict_read=false
+if [[ "${command}" == read ]]; then
+    for argument in "$@"; do
+        if [[ "${argument}" == --strict ]]; then
+            strict_read=true
+        fi
+    done
+fi
+if [[ "${strict_read}" != true ]]; then
+    mkdir -p "${state_dir}"
+fi
 
 case "${command}" in
 add)
@@ -168,6 +294,13 @@ wait)
     elif (($# != 0)); then
         usage
     fi
+    if ! register_waiter; then
+        printf '%s\n' 'cannot register this session queue waiter' >&2
+        exit 1
+    fi
+    trap cleanup_waiter EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
     start="$(date +%s)"
     while :; do
         touch "${heartbeat}"
@@ -186,6 +319,7 @@ wait)
 read)
     limit=10
     compact=false
+    strict=false
     while (($# > 0)); do
         case "$1" in
         --limit)
@@ -199,10 +333,14 @@ read)
             compact=true
             shift
             ;;
+        --strict)
+            strict=true
+            shift
+            ;;
         *) usage ;;
         esac
     done
-    read_batch "${limit}" "${compact}"
+    read_batch "${limit}" "${compact}" "${strict}"
     ;;
 ack)
     (($# == 1)) && [[ "$1" =~ ^[0-9]+$ ]] || usage

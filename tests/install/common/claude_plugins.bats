@@ -797,7 +797,12 @@ EOF
                 else
                     [{"matcher":"Bash","hooks":[markdown_hook]}] + .
                 end
-            )' "${CLAUDE_SETTINGS_PATH}" | jq -S .
+            )
+            | .hooks.Stop = [{"hooks":[
+                {"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-turn-gate.py\"","timeout":10},
+                {"type":"command","command":"command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length stop claude","timeout":120},
+                {"type":"command","command":"python3 ~/.local/bin/common/herdr-tab-title","async":true}
+            ]}]' "${CLAUDE_SETTINGS_PATH}" | jq -S .
     )"
     [ "${actual}" = "${expected}" ]
 }

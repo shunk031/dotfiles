@@ -36,7 +36,7 @@ def unknown(reason: str) -> dict[str, str]:
 def normalize_result(value: object) -> dict[str, str]:
     if not isinstance(value, dict) or value.get("status") not in STATUSES:
         return unknown("Invalid checker response.")
-    decision = value.get("decision", "")
+    decision = value.get("decision")
     reason = value.get("reason", "")
     if not isinstance(decision, str) or not isinstance(reason, str):
         return unknown("Invalid checker response.")

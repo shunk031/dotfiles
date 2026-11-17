@@ -65,7 +65,9 @@ class DecisionCheckTest(unittest.TestCase):
             "last_assistant_message": "I recommend keeping the daily, hourly, and minute caps.",
         }
         self.assertIsNone(GATE.evaluate_event(payload, checker, self.retry_unknown))
-        checker.assert_called_once()
+        self.assertEqual(
+            "UNKNOWN", GATE.normalize_result({"status": "ALLOW"})["status"]
+        )
         retry = mock.Mock()
         checker.return_value = GATE.unknown("Timed out.")
         GATE.evaluate_event(payload, checker, retry)

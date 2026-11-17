@@ -40,11 +40,8 @@ class DecisionCheckTest(unittest.TestCase):
             with self.subTest(text=text):
                 checker = mock.Mock(return_value=CONFLICT)
                 payload = {
-                    "hook_event_name": "PreToolUse",
-                    "tool_name": "Bash",
-                    "tool_input": {
-                        "command": f"(herdr-agent-prompt-if-input-empty.sh {text})"
-                    },
+                    "hook_event_name": "PreToolUse", "tool_name": "Bash",
+                    "tool_input": {"command": f"(herdr-agent-prompt-if-input-empty.sh {text})"},
                 }
                 result = GATE.evaluate_event(payload, checker, self.retry_unknown)
                 output = result["hookSpecificOutput"]
@@ -53,10 +50,7 @@ class DecisionCheckTest(unittest.TestCase):
 
     def test_valid_proposal_is_allowed(self):
         checker = mock.Mock(return_value=ALLOW)
-        payload = {
-            "hook_event_name": "Stop",
-            "last_assistant_message": "I recommend keeping the daily, hourly, and minute caps.",
-        }
+        payload = {"hook_event_name": "Stop", "last_assistant_message": "I recommend keeping the daily, hourly, and minute caps."}
         self.assertIsNone(GATE.evaluate_event(payload, checker, self.retry_unknown))
         for response in ({"status": "ALLOW"}, {**ALLOW, "reason": " "}, MALFORMED_CONFLICT):
             self.assertEqual("UNKNOWN", GATE.normalize_result(response)["status"])
@@ -73,13 +67,8 @@ class DecisionCheckTest(unittest.TestCase):
             ledger = home / ".local" / "state" / "meta" / "standing-permissions.md"
             ledger.parent.mkdir(parents=True)
             ledger.write_text("Recorded decision: keep all personal caps.\n")
-            with (
-                mock.patch.dict(GATE.os.environ, {"HOME": str(home)}),
-                mock.patch.object(
-                    GATE.subprocess,
-                    "run",
-                    side_effect=subprocess.TimeoutExpired("codex", 30),
-                ),
+            with mock.patch.dict(GATE.os.environ, {"HOME": str(home)}), mock.patch.object(
+                GATE.subprocess, "run", side_effect=subprocess.TimeoutExpired("codex", 30)
             ):
                 result = GATE.run_checker("Drop the hourly cap.")
         self.assertEqual(result["status"], "UNKNOWN")
@@ -87,17 +76,14 @@ class DecisionCheckTest(unittest.TestCase):
     def test_unknown_is_denied_for_pretool(self):
         checker = mock.Mock(return_value=GATE.unknown("Timed out."))
         payload = {
-            "hook_event_name": "PreToolUse",
-            "tool_name": "mcp__inbox__record",
+            "hook_event_name": "PreToolUse", "tool_name": "mcp__inbox__record",
             "tool_input": {"kind": "question", "ask": "Drop the hour cap?"},
         }
         result = GATE.evaluate_event(payload, checker, self.retry_unknown)
         self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
 
     def test_conflict_never_uses_unknown_retry_allowance(self):
-        checker = mock.Mock(
-            return_value={**CONFLICT, "decision": "caps", "reason": "Reverses caps."}
-        )
+        checker = mock.Mock(return_value={**CONFLICT, "decision": "caps", "reason": "Reverses caps."})
         payload = {
             "hook_event_name": "Stop",
             "stop_hook_active": True,

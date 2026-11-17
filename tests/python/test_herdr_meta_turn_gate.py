@@ -431,6 +431,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             ("block count missing", "consecutive_blocks", "missing", None),
             ("block count empty", "consecutive_blocks", "value", None),
             ("block count wrong type", "consecutive_blocks", "value", "1"),
+            ("block count above maximum", "consecutive_blocks", "value", 4),
             ("extra field", "unexpected", "value", True),
         ]
         for index, (name, field, action, value) in enumerate(cases):

@@ -87,6 +87,14 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             capture_output=True, check=False,
         )
 
+    def configure_queue_response(self, response):
+        response_file = self.root / "strict-queue-response.json"
+        response_file.write_text(json.dumps(response) + "\n")
+        command = self.bin / "strict-queue"
+        command.write_text('#!/bin/sh\ncat "$HOME/strict-queue-response.json"\n')
+        command.chmod(0o755)
+        return {"HERDR_META_PATROL_QUEUE_COMMAND": str(command)}
+
     def assert_blocked(self, result, text):
         self.assertEqual(result.returncode, 0, result.stderr)
         decision = json.loads(result.stdout)
@@ -295,6 +303,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.assert_blocked(self.run_hook(active=True), "no queue waiter marker exists")
         current = json.loads(state_file.read_text())
         self.assertEqual(current["consecutive_blocks"], 1)
+        self.assertRegex(current["reason_fingerprint"], r"^[0-9]+$")
         self.assertNotEqual(current["reason_fingerprint"], previous["reason_fingerprint"])
 
     def test_missing_session_id_uses_a_stable_pane_scoped_retry_key(self):
@@ -377,6 +386,59 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.assert_blocked(
             self.run_hook(active=True), "gate cannot verify: retry state"
         )
+
+    def test_retry_state_requires_exact_schema(self):
+        self.start_waiter()
+        cases = [
+            ("reason fingerprint missing", "reason_fingerprint", "missing", None),
+            ("reason fingerprint empty", "reason_fingerprint", "value", ""),
+            ("reason fingerprint wrong type", "reason_fingerprint", "value", 123),
+            ("block count missing", "consecutive_blocks", "missing", None),
+            ("block count empty", "consecutive_blocks", "value", None),
+            ("block count wrong type", "consecutive_blocks", "value", "1"),
+            ("extra field", "unexpected", "value", True),
+        ]
+        for index, (name, field, action, value) in enumerate(cases):
+            with self.subTest(schema_case=name):
+                session_id = f"retry-schema-{index}"
+                state = {"reason_fingerprint": "123456", "consecutive_blocks": 1}
+                if action == "missing":
+                    del state[field]
+                else:
+                    state[field] = value
+                state_file = self.gate_state_dir / f"{self.session_key(session_id)}.json"
+                state_file.parent.mkdir(parents=True, exist_ok=True)
+                state_file.write_text(json.dumps(state) + "\n")
+
+                result = self.run_hook(active=True, session_id=session_id)
+                self.assert_blocked(result, "gate cannot verify: retry state")
+                self.assertIn("recovery:", json.loads(result.stdout)["reason"])
+
+    def test_queue_envelope_requires_exact_schema(self):
+        self.start_waiter()
+        cases = [
+            ("malformed count missing", "malformed_line_count", "missing", None),
+            ("malformed count empty", "malformed_line_count", "value", None),
+            ("malformed count wrong type", "malformed_line_count", "value", "0"),
+            ("unread count missing", "unread_record_count", "missing", None),
+            ("unread count empty", "unread_record_count", "value", None),
+            ("unread count wrong type", "unread_record_count", "value", "0"),
+            ("extra field", "unexpected", "value", True),
+        ]
+        for index, (name, field, action, value) in enumerate(cases):
+            with self.subTest(schema_case=name):
+                response = {"malformed_line_count": 0, "unread_record_count": 0}
+                if action == "missing":
+                    del response[field]
+                else:
+                    response[field] = value
+                env = self.configure_queue_response(response)
+
+                result = self.run_hook(session_id=f"queue-schema-{index}", env=env)
+                self.assert_blocked(
+                    result, "gate cannot verify: the patrol queue returned an unparsable or malformed strict response"
+                )
+                self.assertIn("recovery:", json.loads(result.stdout)["reason"])
 
     def test_retry_state_uses_temporary_fallback_when_primary_is_unavailable(self):
         self.run_queue("add", "--from", "gate-test", "unread record")

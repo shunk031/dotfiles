@@ -85,7 +85,7 @@ fi
 queue_command="${HERDR_META_PATROL_QUEUE_COMMAND:-herdr-meta-patrol-queue}"
 if ! queue_response="$("${queue_command}" read --strict 2> /dev/null)"; then
     add_check_error "the patrol queue could not be read" "run 'herdr-meta-patrol-queue read' and inspect the queue state"
-elif ! queue_counts="$(jq -er 'if type == "object" and (.malformed_line_count | type) == "number" and (.malformed_line_count | floor) == .malformed_line_count and .malformed_line_count >= 0 and (.unread_record_count | type) == "number" and (.unread_record_count | floor) == .unread_record_count and .unread_record_count >= 0 then [.malformed_line_count, .unread_record_count] | @tsv else error("invalid strict queue response") end' <<< "${queue_response}" 2> /dev/null)"; then
+elif ! queue_counts="$(jq -er 'def nonnegative_integer: if type == "number" then floor == . and . >= 0 else false end; if type == "object" and (keys == ["malformed_line_count", "unread_record_count"]) and (.malformed_line_count | nonnegative_integer) and (.unread_record_count | nonnegative_integer) then [.malformed_line_count, .unread_record_count] | @tsv else error("invalid strict queue response") end' <<< "${queue_response}" 2> /dev/null)"; then
     add_check_error "the patrol queue returned an unparsable or malformed strict response" "run 'herdr-meta-patrol-queue read --strict' and repair the queue state"
 else
     IFS=$'\t' read -r malformed_queue_count unread_count <<< "${queue_counts}"
@@ -198,7 +198,7 @@ if [[ -n "${session_id}" ]]; then
 else
     session_key="pane-$(printf '%s' "${HERDR_PANE_ID}" | cksum | awk '{print $1 "-" $2}')" || fail_closed "the pane retry key could not be generated" "run 'herdr agent list' and retry the Stop hook"
 fi
-reason_fingerprint="$(printf '%s' "${reason}" | cksum | awk '{print $1 ":" $2}')" || fail_closed "the retry reason fingerprint could not be generated" "retry the Claude Stop hook"
+reason_fingerprint="$(printf '%s' "${reason}" | cksum | awk '{print $1}')" || fail_closed "the retry reason fingerprint could not be generated" "retry the Claude Stop hook"
 
 function prepare_state_dir() {
     local directory="$1"
@@ -256,7 +256,7 @@ state_exists=0
 saved_reason=''
 saved_count=0
 if [[ -f "${state_file}" ]]; then
-    if ! jq -e 'type == "object" and (.reason_fingerprint | type) == "string" and (.consecutive_blocks | type) == "number" and (.consecutive_blocks | floor) == .consecutive_blocks and (.consecutive_blocks >= 1 and .consecutive_blocks <= 3)' "${state_file}" > /dev/null 2>&1; then
+    if ! jq -e 'def fingerprint: if type == "string" then length > 0 and test("^[0-9]+$") else false end; def block_count: if type == "number" then floor == . and . >= 1 and . <= 3 else false end; type == "object" and (keys == ["consecutive_blocks", "reason_fingerprint"]) and (.reason_fingerprint | fingerprint) and (.consecutive_blocks | block_count)' "${state_file}" > /dev/null 2>&1; then
         fail_closed "retry state '${state_file}' is unparsable or malformed" "repair or remove '${state_file}', then retry the Stop hook"
     fi
     state_exists=1

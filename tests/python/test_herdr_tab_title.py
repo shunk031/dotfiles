@@ -250,6 +250,7 @@ class HerdrTabTitleTests(unittest.TestCase):
                     "generation": 1,
                     "event": "PostToolUse",
                     "last_label": "🚧 Old step",
+                    "last_model_time": MODULE.time.time(),
                 },
             )
             labels = ["🚧 Old step"]

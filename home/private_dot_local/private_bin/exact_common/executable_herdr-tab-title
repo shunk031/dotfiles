@@ -427,14 +427,6 @@ def worker(path: Path) -> None:
             generation = state.get("generation")
             if state.get("worker_pid") != os.getpid():
                 return
-            if (
-                state.get("event") == "PostToolUse"
-                and time.time() - state.get("last_model_time", 0) < POST_TOOL_INTERVAL
-                and not str(state.get("last_label", "")).startswith("⛔")
-            ):
-                state["worker_pid"] = None
-                save(path, state)
-                return
         try:
             pane = herdr("pane", "current", "--current")["result"]["pane"]
             current_label = herdr("tab", "get", pane["tab_id"])["result"]["tab"][
@@ -459,6 +451,19 @@ def worker(path: Path) -> None:
         terminal_title = None
         if state.get("event") != "Stop" and pane.get("agent_status") == "working":
             terminal_title = useful_terminal_title(pane.get("terminal_title_stripped"))
+        if (
+            terminal_title is None
+            and state.get("event") == "PostToolUse"
+            and time.time() - state.get("last_model_time", 0) < POST_TOOL_INTERVAL
+            and not str(state.get("last_label", "")).startswith("⛔")
+        ):
+            with locked(path):
+                latest = load(path)
+                if latest.get("generation") != generation:
+                    continue
+                latest["worker_pid"] = None
+                save(path, latest)
+            return
         decision = ask_model(state) if terminal_title is None else None
         status = (
             pr_state(decision.get("pr_number"), state.get("cwd", ""))

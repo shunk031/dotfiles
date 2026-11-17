@@ -63,12 +63,13 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
         }
 
-    def run_hook(self, *, active=False, env=None):
+    def run_hook(self, *, active=False, env=None, session_id="session-under-test"):
         payload = {
             "hook_event_name": "Stop",
-            "session_id": "session-under-test",
             "stop_hook_active": active,
         }
+        if session_id is not None:
+            payload["session_id"] = session_id
         try:
             return subprocess.run(
                 ["bash", str(HOOK)], input=json.dumps(payload), text=True,
@@ -92,6 +93,12 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
 
     def waiter_marker(self, pid):
         return self.queue_state / "waiters" / f"w1:p1.{pid}.pid"
+
+    @property
+    def gate_state_dir(self):
+        primary = self.queue_state / "stop-gate"
+        fallback = Path(self.env.get("TMPDIR", "/tmp")) / f"herdr-meta-turn-gate-{os.getuid()}"
+        return fallback if primary.exists() and not primary.is_dir() else primary
 
     def start_waiter(self):
         process = subprocess.Popen(
@@ -160,17 +167,146 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
 
+    def test_unexpected_worker_status_blocks_for_reconciliation(self):
+        self.start_waiter()
+        self.registry.parent.mkdir(parents=True)
+        row = "meta\tw1:p1\tmeta-terminal\tgate-task\tgate-worker\tworker-terminal\tw2:t2\tw2:p2\tstarted\n"
+        self.registry.write_text(row)
+        agents = json.loads(self.agents_file.read_text())
+        agents["result"]["agents"][1]["agent_status"] = "unknown"
+        self.agents_file.write_text(json.dumps(agents))
+
+        self.assert_blocked(self.run_hook(), "status unknown")
+
     def test_other_claude_session_is_not_gated(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
         result = self.run_hook(env={"HERDR_PANE_ID": "w9:p9"})
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
 
-    def test_stop_hook_active_allows_to_prevent_a_repeat_loop(self):
+    def test_ambiguous_pane_with_meta_and_other_agent_is_not_gated(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
-        result = self.run_hook(active=True)
+        agents = json.loads(self.agents_file.read_text())
+        agents["result"]["agents"].append({
+            "name": "other-agent", "pane_id": "w1:p1", "tab_id": "w9:t9",
+            "terminal_id": "other-terminal", "agent_status": "working",
+        })
+        self.agents_file.write_text(json.dumps(agents))
+
+        result = self.run_hook()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
+
+    def test_stop_hook_active_attempt_still_blocks(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        self.assert_blocked(self.run_hook(), "unread records")
+        self.assert_blocked(self.run_hook(active=True), "unread records")
+
+    def test_fourth_same_reason_attempt_allows_and_audits_warning(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        for attempt in range(3):
+            self.assert_blocked(
+                self.run_hook(active=attempt > 0), "unread records"
+            )
+
+        result = self.run_hook(active=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = json.loads(result.stdout)
+        self.assertIn("systemMessage", output)
+        self.assertIn("three times", output["systemMessage"])
+        audit = self.gate_state_dir / "audit.log"
+        audit_record = json.loads(audit.read_text().splitlines()[-1])
+        self.assertEqual(audit_record["consecutive_blocks"], 3)
+        self.assertEqual(audit_record["action"], "allow")
+
+    def test_fresh_stop_attempt_starts_a_new_retry_count(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        self.assert_blocked(self.run_hook(), "unread records")
+        self.assert_blocked(self.run_hook(active=True), "unread records")
+
+        self.assert_blocked(self.run_hook(active=False), "unread records")
+        self.assert_blocked(self.run_hook(active=True), "unread records")
+        self.assert_blocked(self.run_hook(active=True), "unread records")
+        result = self.run_hook(active=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("systemMessage", json.loads(result.stdout))
+
+    def test_changed_reason_starts_a_new_retry_count(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        self.assert_blocked(self.run_hook(), "unread records")
+        state_file = self.gate_state_dir / f"{self.session_key()}.json"
+        previous = json.loads(state_file.read_text())
+
+        self.run_queue("ack", "1")
+        self.assert_blocked(self.run_hook(active=True), "No 'herdr-meta-patrol-queue wait'")
+        current = json.loads(state_file.read_text())
+        self.assertEqual(current["consecutive_blocks"], 1)
+        self.assertNotEqual(current["reason_fingerprint"], previous["reason_fingerprint"])
+
+    def test_missing_session_id_uses_a_stable_pane_scoped_retry_key(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        self.assert_blocked(self.run_hook(session_id=None), "unread records")
+        self.assert_blocked(self.run_hook(session_id="../invalid"), "unread records")
+        state_files = list(self.gate_state_dir.glob("*.json"))
+        self.assertEqual(len(state_files), 1)
+        self.assertTrue(state_files[0].name.startswith("pane-"))
+        self.assert_blocked(self.run_hook(active=True, session_id="../invalid"), "unread records")
+
+    def test_retry_counts_are_scoped_to_each_session(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        self.assert_blocked(self.run_hook(session_id="first-session"), "unread records")
+        self.assert_blocked(self.run_hook(session_id="second-session"), "unread records")
+        state_files = list(self.gate_state_dir.glob("*.json"))
+        self.assertEqual(len(state_files), 2)
+        self.assertEqual(
+            [json.loads(path.read_text())["consecutive_blocks"] for path in state_files],
+            [1, 1],
+        )
+
+    def test_unwritable_retry_state_blocks_with_recovery_guidance(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        (self.queue_state / "stop-gate").write_text("not a directory")
+        temporary_dir = self.root / "tmp-is-a-file"
+        temporary_dir.write_text("not a directory")
+
+        result = self.run_hook(env={"TMPDIR": str(temporary_dir)})
+        self.assert_blocked(result, "could not be saved")
+        self.assertIn("writable", json.loads(result.stdout)["reason"])
+
+    def test_retry_state_uses_temporary_fallback_when_primary_is_unavailable(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        (self.queue_state / "stop-gate").write_text("not a directory")
+        temporary_dir = self.root / "tmp"
+        temporary_dir.mkdir()
+        expected_state_dir = temporary_dir / f"herdr-meta-turn-gate-{os.getuid()}"
+
+        self.assert_blocked(
+            self.run_hook(env={"TMPDIR": str(temporary_dir)}), "unread records"
+        )
+        self.assertTrue((expected_state_dir / f"{self.session_key()}.json").is_file())
+        self.assert_blocked(
+            self.run_hook(active=True, env={"TMPDIR": str(temporary_dir)}),
+            "unread records",
+        )
+
+    def test_fourth_attempt_warning_survives_audit_log_failure(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        (self.gate_state_dir / "audit.log").mkdir(parents=True)
+        for attempt in range(3):
+            self.assert_blocked(self.run_hook(active=attempt > 0), "unread records")
+
+        result = self.run_hook(active=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        message = json.loads(result.stdout)["systemMessage"]
+        self.assertIn("could not append its audit log", message)
+
+    def session_key(self, value="session-under-test"):
+        result = subprocess.run(
+            ["cksum"], input=value, text=True,
+            capture_output=True, check=True,
+        )
+        checksum, length, *_ = result.stdout.split()
+        return f"{checksum}-{length}"
 
     def test_queue_failure_blocks_for_retry_after_meta_is_identified(self):
         result = self.run_hook(env={

@@ -381,7 +381,7 @@ def read_task_tree_export(path: Path, session_id: str) -> list[dict[str, object]
     except ValueError as error:
         raise GateError(f"Inbox task-tree export '{path}' has an invalid saved_at") from error
     tasks = document["tasks"]
-    if not isinstance(tasks, list) or len(tasks) > 200:
+    if not isinstance(tasks, list):
         raise GateError(f"Inbox task-tree export '{path}' has invalid tasks")
     ids: set[str] = set()
     for task in tasks:

@@ -299,6 +299,13 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.write_task_tree([self.task_fixture(pr=42)])
         self.assert_blocked(self.run_hook(), "invalid pr")
 
+    def test_inbox_export_has_no_arbitrary_task_count_limit(self):
+        self.start_waiter()
+        tasks = [self.task_fixture(task_id=f"task-{index}", status="done") for index in range(201)]
+        self.write_task_tree(tasks)
+        result = self.run_hook()
+        self.assertEqual((result.returncode, result.stdout), (0, ""))
+
     def test_missing_inbox_task_tree_export_blocks_after_identity(self):
         self.start_waiter()
         (self.task_tree_dir / "session-under-test.json").unlink()

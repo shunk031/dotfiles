@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Check Meta's proposed actions against the standing decision record."""
 
-from __future__ import annotations
-
 import importlib.util
 import json
 import os
@@ -45,7 +43,7 @@ def normalize_result(value: object) -> dict[str, str]:
     reason = value.get("reason", "")
     if not isinstance(decision, str) or not isinstance(reason, str):
         return unknown("Invalid checker response.")
-    if not reason.strip() or (value["status"] == "CONFLICT" and not decision):
+    if not reason.strip() or (value["status"] == "CONFLICT" and not decision.strip()):
         return unknown("Checker omitted its decision or reason.")
     return {
         "status": value["status"],

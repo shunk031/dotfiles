@@ -22,6 +22,7 @@ CONFLICT = {
     "decision": "standing decision",
     "reason": "This reverses the recorded choice.",
 }
+MALFORMED_CONFLICT = {**CONFLICT, "decision": " "}
 ALLOW = {"status": "ALLOW", "decision": "none", "reason": "No conflict."}
 
 
@@ -57,7 +58,7 @@ class DecisionCheckTest(unittest.TestCase):
             "last_assistant_message": "I recommend keeping the daily, hourly, and minute caps.",
         }
         self.assertIsNone(GATE.evaluate_event(payload, checker, self.retry_unknown))
-        for response in ({"status": "ALLOW"}, {**ALLOW, "reason": " "}):
+        for response in ({"status": "ALLOW"}, {**ALLOW, "reason": " "}, MALFORMED_CONFLICT):
             self.assertEqual("UNKNOWN", GATE.normalize_result(response)["status"])
         duplicate = [("status", "CONFLICT"), ("status", "ALLOW")]
         self.assertEqual(GATE.unique_object(duplicate), {})

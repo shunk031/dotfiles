@@ -26,7 +26,7 @@ LIST_LINE = re.compile(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", re.MULTILINE)
 OPTION_HEADING = re.compile(
     r"(?im)^\s*(?:options?|alternatives?|choose one|選択肢|候補)\s*:?\s*$"
 )
-NAMED_OPTION = re.compile(r"(?im)^\s*(?:[-*+]\s*)?option\s+(?:[a-z]|\d+)\b")
+NAMED_OPTION = re.compile(r"(?i)\boption\s+(?:[a-z]|\d+)\s*:")
 
 
 def unknown(reason: str) -> dict[str, str]:
@@ -40,7 +40,7 @@ def normalize_result(value: object) -> dict[str, str]:
     reason = value.get("reason", "")
     if not isinstance(decision, str) or not isinstance(reason, str):
         return unknown("Invalid checker response.")
-    if not reason or (value["status"] == "CONFLICT" and not decision):
+    if not reason.strip() or (value["status"] == "CONFLICT" and not decision):
         return unknown("Checker omitted its decision or reason.")
     return {
         "status": value["status"],

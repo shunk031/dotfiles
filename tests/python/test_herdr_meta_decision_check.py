@@ -65,9 +65,8 @@ class DecisionCheckTest(unittest.TestCase):
             "last_assistant_message": "I recommend keeping the daily, hourly, and minute caps.",
         }
         self.assertIsNone(GATE.evaluate_event(payload, checker, self.retry_unknown))
-        self.assertEqual(
-            "UNKNOWN", GATE.normalize_result({"status": "ALLOW"})["status"]
-        )
+        for response in ({"status": "ALLOW"}, {**ALLOW, "reason": " "}):
+            self.assertEqual("UNKNOWN", GATE.normalize_result(response)["status"])
         retry = mock.Mock()
         checker.return_value = GATE.unknown("Timed out.")
         GATE.evaluate_event(payload, checker, retry)
@@ -116,7 +115,7 @@ class DecisionCheckTest(unittest.TestCase):
         checker = mock.Mock(return_value=ALLOW)
         for text in (
             "The command finished.\n- One fact\n- Another fact",
-            "Options:\n- Keep the hook\n- Replace the screen",
+            "Option A: Keep the hook; Option B: Replace the screen",
         ):
             payload = {"hook_event_name": "Stop", "last_assistant_message": text}
             self.assertIsNone(GATE.evaluate_event(payload, checker, self.retry_unknown))

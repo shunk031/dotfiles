@@ -91,13 +91,19 @@ class DecisionCheckTest(unittest.TestCase):
         payload = {
             "hook_event_name": "Stop",
             "stop_hook_active": True,
-            "last_assistant_message": "Drop the personal hour and minute caps?",
+            "last_assistant_message": "I recommend dropping the personal hour and minute caps.",
         }
         result = GATE.evaluate_event(payload, checker, self.retry_unknown)
         self.assertEqual(result["decision"], "block")
 
     def test_checker_runs_only_for_action_or_choice_text(self):
-        self.assertTrue(GATE.stop_proposes("We could either keep caps or drop them.") and not GATE.stop_proposes("We could keep the caps, or drop them."))
+        cases = (
+            ("Any update?", False), ("We can proceed.", False),
+            ("Let's continue.", False), ("Would you pick A or B?", True),
+            ("I recommend A.", True), ("Options:\n- A\n- B", True),
+            ("We could keep the caps, or drop them.", False),
+        )
+        self.assertTrue(all(GATE.stop_proposes(text) == expected for text, expected in cases))
         checker = mock.Mock(return_value=ALLOW)
         for text in ("Facts.", "I recommend the other option."):
             GATE.evaluate_event(

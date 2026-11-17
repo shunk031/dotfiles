@@ -9,22 +9,19 @@ import subprocess
 import sys
 from pathlib import Path
 
-CHECK_TIMEOUT_SECONDS = 30
+CHECK_TIMEOUT_SECONDS = 45
 STATUSES = {"ALLOW", "CONFLICT", "UNKNOWN"}
 SEND_PATTERNS = (
     re.compile(r"(?<![\w.-])herdr-agent-prompt-if-input-empty\.sh(?=$|[^\w.-])"),
     re.compile(r"\bherdr(?:\s+--\S+(?:\s+\S+)?)*\s+agent\s+prompt\b"),
 )
 PROPOSAL_WORDS = re.compile(
-    r"\b(i recommend|we recommend|recommendation|recommended|i suggest|we should|i propose|let's|we can)\b|"
-    r"\beither\b[\s\S]+\bor\b|"
-    r"おすすめ|推奨|提案(?:します|です|する)",
+    r"\b(?:recommend(?:s|ed|ing|ation)?|suggest(?:s|ed|ing)?)\b|おすすめ|推奨",
     re.IGNORECASE,
 )
+CHOICE_WORDS = re.compile(r"\b(?:either|or|vs\.?|versus)\b|どちら|どれ|どっち|それとも", re.IGNORECASE)
 LIST_LINE = re.compile(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", re.MULTILINE)
-OPTION_HEADING = re.compile(
-    r"(?im)^\s*(?:options?|alternatives?|choose one|選択肢|候補)\s*:?\s*$"
-)
+OPTION_HEADING = re.compile(r"(?im)^\s*(?:options?|alternatives?|choose one|選択肢|候補)\s*:?\s*$")
 
 
 def unknown(reason: str) -> dict[str, str]:
@@ -50,12 +47,8 @@ def normalize_result(value: object) -> dict[str, str]:
 
 def stop_proposes(text: str) -> bool:
     options = len(LIST_LINE.findall(text)) > 1 and OPTION_HEADING.search(text)
-    return (
-        "?" in text
-        or "？" in text
-        or bool(PROPOSAL_WORDS.search(text))
-        or bool(options)
-    )
+    choice_question = ("?" in text or "？" in text) and CHOICE_WORDS.search(text)
+    return bool(PROPOSAL_WORDS.search(text) or options or choice_question)
 
 
 def candidate(payload: object) -> str | None:

@@ -197,6 +197,25 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
 
+    def test_unique_meta_pane_without_terminal_id_blocks_for_reconciliation(self):
+        agents = json.loads(self.agents_file.read_text())
+        del agents["result"]["agents"][0]["terminal_id"]
+        self.agents_file.write_text(json.dumps(agents))
+
+        self.assert_blocked(self.run_hook(), "terminal ID is missing")
+
+    def test_inaccessible_registry_parent_blocks_but_absent_registry_is_allowed(self):
+        self.start_waiter()
+        self.registry.parent.parent.mkdir(parents=True, exist_ok=True)
+        self.registry.parent.write_text("not a directory")
+
+        self.assert_blocked(self.run_hook(), "registry directory is inaccessible or malformed")
+
+        self.registry.parent.unlink()
+        result = self.run_hook()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+
     def test_stop_hook_active_attempt_still_blocks(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
         self.assert_blocked(self.run_hook(), "unread records")
@@ -288,6 +307,37 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             self.run_hook(active=True, env={"TMPDIR": str(temporary_dir)}),
             "unread records",
         )
+
+    def test_retry_state_write_failure_uses_temporary_fallback(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        temporary_dir = self.root / "tmp"
+        temporary_dir.mkdir()
+        fallback_state_dir = temporary_dir / f"herdr-meta-turn-gate-{os.getuid()}"
+        real_mv = shutil.which("mv")
+        self.assertIsNotNone(real_mv)
+        mv_wrapper = self.bin / "mv"
+        mv_wrapper.write_text(
+            "#!/bin/sh\n"
+            'if [ ! -e "$HOME/mv-failed-once" ]; then\n'
+            '  : > "$HOME/mv-failed-once"\n'
+            "  exit 1\n"
+            "fi\n"
+            f"exec {real_mv} \"$@\"\n"
+        )
+        mv_wrapper.chmod(0o755)
+
+        self.assert_blocked(
+            self.run_hook(env={"TMPDIR": str(temporary_dir)}), "unread records"
+        )
+        self.assertTrue((self.root / "mv-failed-once").exists())
+        state_file = fallback_state_dir / f"{self.session_key()}.json"
+        self.assertTrue(state_file.exists(), state_file)
+        self.assertEqual(json.loads(state_file.read_text())["consecutive_blocks"], 1)
+        self.assert_blocked(
+            self.run_hook(active=True, env={"TMPDIR": str(temporary_dir)}),
+            "unread records",
+        )
+        self.assertEqual(json.loads(state_file.read_text())["consecutive_blocks"], 2)
 
     def test_fourth_attempt_warning_survives_audit_log_failure(self):
         self.run_queue("add", "--from", "gate-test", "unread record")

@@ -23,9 +23,11 @@ pane_agent_count="$(jq -r 'length' <<< "${pane_agents}" 2> /dev/null)" || exit 0
 meta_name="$(jq -r '.[0].name // empty' <<< "${pane_agents}" 2> /dev/null)" || exit 0
 [[ "${meta_name}" == 'meta' ]] || exit 0
 meta_terminal="$(jq -r '.[0].terminal_id // empty' <<< "${pane_agents}" 2> /dev/null)" || exit 0
-[[ -n "${meta_terminal}" ]] || exit 0
 
 reasons=()
+if [[ -z "${meta_terminal}" ]]; then
+    reasons+=("Meta's terminal ID is missing; inspect the Herdr agent list and reconcile worker ownership before stopping.")
+fi
 queue_command="${HERDR_META_PATROL_QUEUE_COMMAND:-herdr-meta-patrol-queue}"
 queue_records=""
 if ! queue_records="$("${queue_command}" read --limit 1 2> /dev/null)"; then
@@ -60,7 +62,10 @@ fi
 
 state_dir="${HERDR_WORKER_LIFECYCLE_STATE_DIR:-${XDG_STATE_HOME:-${HOME}/.local/state}/herdr-worker-lifecycle}"
 records_file="${state_dir}/workers.tsv"
-if [[ -L "${records_file}" || (-e "${records_file}" && (! -f "${records_file}" || ! -r "${records_file}")) ]]; then
+state_parent="${state_dir%/*}"
+if [[ -L "${state_dir}" || (-e "${state_dir}" && (! -d "${state_dir}" || ! -r "${state_dir}" || ! -x "${state_dir}")) || (-e "${state_parent}" && (-L "${state_parent}" || ! -d "${state_parent}" || ! -r "${state_parent}" || ! -x "${state_parent}")) ]]; then
+    reasons+=("The worker lifecycle registry directory is inaccessible or malformed; inspect it before stopping.")
+elif [[ -L "${records_file}" || (-e "${records_file}" && (! -f "${records_file}" || ! -r "${records_file}")) ]]; then
     reasons+=("The worker lifecycle registry is not a readable regular file; inspect it before stopping.")
 elif [[ -f "${records_file}" ]]; then
     if ! awk -F '\t' 'NF != 9 || $1 == "" || $2 == "" || $3 == "" || $4 == "" || $5 == "" || $6 == "" || $7 == "" || $8 == "" || ($9 != "started" && $9 != "collected") { bad = 1 } END { exit bad ? 1 : 0 }' "${records_file}"; then
@@ -105,6 +110,21 @@ function prepare_state_dir() {
     chmod 700 "${directory}" 2> /dev/null
 }
 
+function write_retry_state() {
+    local directory="$1"
+    local destination="${directory}/${session_key}.json"
+    local temporary="${destination}.$$.tmp"
+    [[ ! -L "${destination}" && (! -e "${destination}" || -f "${destination}") ]] || return 1
+    if ! (umask 077 && jq -cn --arg fingerprint "${reason_fingerprint}" --argjson count "${block_count}" '{reason_fingerprint: $fingerprint, consecutive_blocks: $count}' > "${temporary}"); then
+        rm -f "${temporary}"
+        return 1
+    fi
+    if ! mv -f "${temporary}" "${destination}" || [[ ! -f "${destination}" || -L "${destination}" ]]; then
+        rm -f "${temporary}"
+        return 1
+    fi
+}
+
 primary_state_dir="${HERDR_META_PATROL_STATE_DIR:-${HOME}/.local/state/herdr-meta-patrol}/stop-gate"
 fallback_state_dir="${TMPDIR:-/tmp}/herdr-meta-turn-gate-$(id -u)"
 if prepare_state_dir "${primary_state_dir}"; then
@@ -115,6 +135,10 @@ else
     reason+=" The retry counter could not be saved; make either ${primary_state_dir} or ${fallback_state_dir} writable before trying to stop again."
     jq -cn --arg reason "${reason}" '{decision: "block", reason: $reason}'
     exit 0
+fi
+fallback_session_state="${fallback_state_dir}/${session_key}.json"
+if [[ "${gate_state_dir}" == "${primary_state_dir}" && -f "${fallback_session_state}" && ! -L "${fallback_session_state}" ]]; then
+    gate_state_dir="${fallback_state_dir}"
 fi
 state_file="${gate_state_dir}/${session_key}.json"
 log_file="${gate_state_dir}/audit.log"
@@ -143,12 +167,14 @@ if [[ "${stop_hook_active}" == 'true' && -f "${state_file}" && ! -L "${state_fil
     fi
 fi
 
-temporary_file="${state_file}.$$.tmp"
-if ! (umask 077 && jq -cn --arg fingerprint "${reason_fingerprint}" --argjson count "${block_count}" '{reason_fingerprint: $fingerprint, consecutive_blocks: $count}' > "${temporary_file}") || ! mv -f "${temporary_file}" "${state_file}"; then
-    rm -f "${temporary_file}"
-    reason+=" The retry counter could not be saved in ${gate_state_dir}; make that directory writable before trying to stop again."
-    jq -cn --arg reason "${reason}" '{decision: "block", reason: $reason}'
-    exit 0
+if ! write_retry_state "${gate_state_dir}"; then
+    if [[ "${gate_state_dir}" != "${fallback_state_dir}" ]] && prepare_state_dir "${fallback_state_dir}" && write_retry_state "${fallback_state_dir}"; then
+        gate_state_dir="${fallback_state_dir}"
+    else
+        reason+=" The retry counter could not be saved in ${gate_state_dir} or ${fallback_state_dir}; make one of those directories writable before trying to stop again."
+        jq -cn --arg reason "${reason}" '{decision: "block", reason: $reason}'
+        exit 0
+    fi
 fi
 
 jq -cn --arg reason "${reason}" '{decision: "block", reason: $reason}'

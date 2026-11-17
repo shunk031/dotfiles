@@ -383,18 +383,16 @@ def read_task_tree_export(path: Path, session_id: str) -> list[dict[str, object]
     tasks = document["tasks"]
     if not isinstance(tasks, list):
         raise GateError(f"Inbox task-tree export '{path}' has invalid tasks")
-    ids: set[str] = set()
     for task in tasks:
         fields = {"id", "title", "status", "updated_at", "owner", "pr", "parent_id", "warnings"}
         if not isinstance(task, dict) or set(task) != fields:
             raise GateError(f"Inbox task-tree export '{path}' contains a malformed task")
         task_id, title, status = task["id"], task["title"], task["status"]
         if (not isinstance(task_id, str) or not task_id or task_id != task_id.strip() or
-                len(task_id) > 100 or task_id in ids or
+                len(task_id) > 100 or
                 not isinstance(title, str) or not title.strip() or len(title) > 100 or
                 not isinstance(status, str) or status not in TASK_STATUSES):
             raise GateError(f"Inbox task-tree export '{path}' contains an invalid task identity or status")
-        ids.add(task_id)
         try:
             parse_export_time(task["updated_at"])
         except ValueError as error:
@@ -411,11 +409,7 @@ def read_task_tree_export(path: Path, session_id: str) -> list[dict[str, object]
         pr = task["pr"]
         if pr is not None and not isinstance(pr, str):
             raise GateError(f"Inbox task-tree export '{path}' contains an invalid pr")
-        parent_id = task["parent_id"]
-        if parent_id is not None and (
-            not isinstance(parent_id, str) or not parent_id or parent_id != parent_id.strip() or
-            len(parent_id) > 100 or parent_id == task_id
-        ):
+        if task["parent_id"] is not None and not isinstance(task["parent_id"], str):
             raise GateError(f"Inbox task-tree export '{path}' contains an invalid parent_id")
         warnings = task["warnings"]
         if (not isinstance(warnings, list) or any(
@@ -423,17 +417,6 @@ def read_task_tree_export(path: Path, session_id: str) -> list[dict[str, object]
         )
                 or len(warnings) != len(set(warnings))):
             raise GateError(f"Inbox task-tree export '{path}' contains invalid warnings")
-    if any(task["parent_id"] is not None and task["parent_id"] not in ids for task in tasks):
-        raise GateError(f"Inbox task-tree export '{path}' references a missing parent task")
-    parents = {task["id"]: task["parent_id"] for task in tasks}
-    for task_id in parents:
-        ancestors: set[str] = set()
-        parent = parents[task_id]
-        while parent is not None:
-            if parent in ancestors or parent == task_id:
-                raise GateError(f"Inbox task-tree export '{path}' contains a parent cycle")
-            ancestors.add(parent)
-            parent = parents[parent]
     return tasks
 
 

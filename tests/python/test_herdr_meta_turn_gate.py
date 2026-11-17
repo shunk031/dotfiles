@@ -57,10 +57,20 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
                 },
             ]},
         }))
+        self.tabs_file = self.root / "tabs.json"
+        self.tabs_file.write_text(json.dumps({
+            "result": {"tabs": [
+                {"tab_id": "w1:t1", "label": "Meta"},
+                {"tab_id": "w2:t2", "label": "gate-worker"},
+            ]},
+        }))
         (self.bin / "herdr").write_text(
             "#!/bin/sh\n"
-            "[ \"$1 $2\" = 'agent list' ] || exit 2\n"
-            "cat \"$HOME/agents.json\"\n"
+            "case \"$1 $2\" in\n"
+            "  'agent list') cat \"$HOME/agents.json\" ;;\n"
+            "  'tab list') cat \"$HOME/tabs.json\" ;;\n"
+            "  *) exit 2 ;;\n"
+            "esac\n"
         )
         (self.bin / "herdr").chmod(0o755)
         self.env = {
@@ -122,6 +132,11 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
 
     def waiter_marker(self, pid):
         return self.queue_state / "waiters" / f"w1:p1.{pid}.pid"
+
+    def set_worker_status(self, status):
+        agents = json.loads(self.agents_file.read_text())
+        agents["result"]["agents"][1]["agent_status"] = status
+        self.agents_file.write_text(json.dumps(agents))
 
     @property
     def gate_state_dir(self):
@@ -187,6 +202,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.start_waiter()
         row = "meta\tw1:p1\tmeta-terminal\tgate-task\tgate-worker\tworker-terminal\tw2:t2\tw2:p2\tstarted\n"
         self.registry.write_text(row)
+        self.set_worker_status("done")
 
         self.assert_blocked(self.run_hook(), "gate-worker")
 
@@ -194,6 +210,35 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         result = self.run_hook()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
+
+    def test_working_worker_with_started_record_does_not_block(self):
+        self.start_waiter()
+        self.registry.write_text(
+            "meta\tw1:p1\tmeta-terminal\tgate-task\tgate-worker\tworker-terminal\tw2:t2\tw2:p2\tstarted\n"
+        )
+        self.set_worker_status("working")
+
+        result = self.run_hook()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+
+    def test_done_worker_in_protected_tab_asks_user_instead_of_collect_command(self):
+        self.start_waiter()
+        self.registry.write_text(
+            "meta\tw1:p1\tmeta-terminal\tgate-task\tgate-worker\tworker-terminal\tw2:t2\tw2:p2\tstarted\n"
+        )
+        self.set_worker_status("done")
+        tabs = json.loads(self.tabs_file.read_text())
+        tabs["result"]["tabs"][1]["label"] = "⛔ protected worker"
+        self.tabs_file.write_text(json.dumps(tabs))
+
+        result = self.run_hook()
+
+        self.assert_blocked(result, "protected tab: ask the user")
+        reason = json.loads(result.stdout)["reason"]
+        self.assertIn("recovery: protected tab: ask the user.", reason)
+        self.assertNotIn("herdr-worker-lifecycle.sh collect", reason)
 
     def test_lifecycle_registry_accepts_writer_row_shapes_and_launch_modes(self):
         self.start_waiter()

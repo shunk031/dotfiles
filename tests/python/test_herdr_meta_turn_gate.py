@@ -266,10 +266,31 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.run_queue("add", "--from", "gate-test", "unread record")
         self.assert_blocked(self.run_hook(session_id=None), "unread records")
         self.assert_blocked(self.run_hook(session_id="../invalid"), "unread records")
+        self.assert_blocked(self.run_hook(session_id=123), "unread records")
+        self.assert_blocked(self.run_hook(session_id=True), "unread records")
         state_files = list(self.gate_state_dir.glob("*.json"))
         self.assertEqual(len(state_files), 1)
         self.assertTrue(state_files[0].name.startswith("pane-"))
         self.assert_blocked(self.run_hook(active=True, session_id="../invalid"), "unread records")
+
+    def test_non_string_session_ids_are_isolated_between_meta_panes(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        self.assert_blocked(self.run_hook(session_id=123), "unread records")
+
+        agents = json.loads(self.agents_file.read_text())
+        agents["result"]["agents"][0]["pane_id"] = "w9:p9"
+        self.agents_file.write_text(json.dumps(agents))
+        self.assert_blocked(
+            self.run_hook(active=True, session_id=123, env={"HERDR_PANE_ID": "w9:p9"}),
+            "unread records",
+        )
+
+        state_files = list(self.gate_state_dir.glob("*.json"))
+        self.assertEqual(len(state_files), 2)
+        self.assertEqual(
+            [json.loads(path.read_text())["consecutive_blocks"] for path in state_files],
+            [1, 1],
+        )
 
     def test_retry_counts_are_scoped_to_each_session(self):
         self.run_queue("add", "--from", "gate-test", "unread record")

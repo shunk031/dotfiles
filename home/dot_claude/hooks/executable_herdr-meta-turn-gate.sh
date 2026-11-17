@@ -13,7 +13,7 @@ set -u
 
 input="$(cat)" || exit 0
 stop_hook_active="$(jq -r '.stop_hook_active // false' <<< "${input}" 2> /dev/null)" || exit 0
-session_id="$(jq -r '.session_id // empty' <<< "${input}" 2> /dev/null)" || session_id=''
+session_id="$(jq -r 'if (.session_id | type) == "string" then .session_id else empty end' <<< "${input}" 2> /dev/null)" || session_id=''
 [[ "${HERDR_ENV:-}" == '1' && -n "${HERDR_PANE_ID:-}" ]] || exit 0
 
 agents_json="$(herdr agent list 2> /dev/null)" || exit 0

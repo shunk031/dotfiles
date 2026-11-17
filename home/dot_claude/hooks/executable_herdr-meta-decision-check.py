@@ -16,7 +16,7 @@ SEND_PATTERNS = (
     re.compile(r"\bherdr(?:\s+--\S+(?:\s+\S+)?)*\s+agent\s+prompt\b"),
 )
 PROPOSAL_WORDS = re.compile(
-    r"\b(i recommend|we recommend|recommendation|recommended|i suggest|we should|i propose|let's|we can|we could)\b|"
+    r"\b(i recommend|we recommend|recommendation|recommended|i suggest|we should|i propose|let's|we can)\b|"
     r"\beither\b[\s\S]+\bor\b|"
     r"おすすめ|推奨|提案(?:します|です|する)",
     re.IGNORECASE,

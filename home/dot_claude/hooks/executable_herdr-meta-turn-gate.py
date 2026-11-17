@@ -6,7 +6,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
 import stat
 import subprocess
@@ -14,7 +13,7 @@ import sys
 import tempfile
 import time
 import zlib
-
+from pathlib import Path
 
 HERDR_TIMEOUT_SECONDS = 3
 QUEUE_TIMEOUT_SECONDS = 3
@@ -253,7 +252,12 @@ def read_lifecycle_records(
     pending: list[tuple[str, str, str, str]] = []
     for line in lines:
         fields = line.split("\t")
-        if len(fields) != 9 or any(not field for field in fields):
+        if len(fields) not in {9, 10} or any(not field for field in fields):
+            raise GateError(
+                f"the worker lifecycle registry is unparsable or contains unexpected statuses; "
+                f"recovery: repair '{records_file}', then run '{lifecycle_helper} audit'"
+            )
+        if len(fields) == 10 and fields[9] not in {"tab", "root"}:
             raise GateError(
                 f"the worker lifecycle registry is unparsable or contains unexpected statuses; "
                 f"recovery: repair '{records_file}', then run '{lifecycle_helper} audit'"
@@ -432,6 +436,213 @@ def audit_and_allow(log_file: Path, session_key: str, fingerprint: str) -> None:
     emit({"systemMessage": message})
 
 
+def failure_text(message: str) -> str:
+    if not message.startswith("gate cannot verify:"):
+        message = f"gate cannot verify: {message}"
+    if not message.endswith("."):
+        message += "."
+    return message
+
+
+def emergency_retry_policy(
+    reason: str | None, input_text: str, pane_id: str, error: Exception
+) -> None:
+    """Use a fixed temporary path if normal retry bookkeeping itself fails."""
+    processing_error = failure_text(
+        "retry bookkeeping failed "
+        f"({type(error).__name__}: {error}); recovery: inspect the retry state and retry the Stop hook"
+    )
+    reason = f"{reason} {processing_error}" if reason else processing_error
+    state_file: Path | None = None
+    try:
+        try:
+            payload = parse_json_document(input_text)
+        except Exception:
+            payload = None
+        active = (
+            isinstance(payload, dict)
+            and type(payload.get("stop_hook_active")) is bool
+            and payload["stop_hook_active"]
+        )
+        session_id = payload.get("session_id") if isinstance(payload, dict) else None
+        session_valid = (
+            isinstance(session_id, str)
+            and bool(session_id)
+            and bool(SESSION_PATTERN.fullmatch(session_id))
+        )
+        try:
+            session_key = make_session_key(
+                session_id if session_valid else "", pane_id, session_valid
+            )
+        except Exception:
+            session_key = "pane-" + (re.sub(r"[^A-Za-z0-9_-]", "_", pane_id) or "unknown")
+        try:
+            uid: int | str = os.getuid()
+        except Exception:
+            uid = "unknown"
+
+        state_dir = Path("/tmp") / f"herdr-meta-turn-gate-{uid}"
+        state_file = state_dir / f"{session_key}.json"
+        log_file = state_dir / "audit.log"
+        saved: tuple[str, int] | None = None
+        try:
+            saved = read_retry_state(state_file, active)
+        except Exception as state_error:
+            reason = f"{reason} {failure_text(str(state_error))}"
+        try:
+            fingerprint = str(zlib.crc32(reason.encode("utf-8")) & 0xFFFFFFFF)
+        except Exception:
+            fingerprint = "0"
+
+        if active and saved is not None and saved[0] == fingerprint:
+            if saved[1] < 3:
+                block_count = saved[1] + 1
+            else:
+                audit_and_allow(log_file, session_key, fingerprint)
+                try:
+                    state_file.unlink(missing_ok=True)
+                except OSError:
+                    pass
+                return
+        else:
+            block_count = 1
+
+        if not prepare_state_dir(state_dir):
+            raise OSError(f"retry state directory '{state_dir}' is unavailable")
+        write_retry_state(state_dir, session_key, fingerprint, block_count)
+        emit({"decision": "block", "reason": reason})
+    except Exception as write_error:
+        emit(
+            {
+                "systemMessage": (
+                    "The Meta turn gate allowed this turn to end; retry state write failed: "
+                    f"{state_file or Path('/tmp')}. Visible warning: {write_error}."
+                )
+            }
+        )
+
+
+def apply_retry_policy(reason: str | None, input_text: str, pane_id: str) -> None:
+    """Apply one retry budget to every post-identity block and verification error."""
+    try:
+        try:
+            payload = parse_json_document(input_text)
+        except Exception:
+            payload = None
+        active = (
+            isinstance(payload, dict)
+            and type(payload.get("stop_hook_active")) is bool
+            and payload["stop_hook_active"]
+        )
+        session_id = payload.get("session_id") if isinstance(payload, dict) else None
+        session_valid = (
+            isinstance(session_id, str)
+            and bool(session_id)
+            and bool(SESSION_PATTERN.fullmatch(session_id))
+        )
+
+        try:
+            session_key = make_session_key(
+                session_id if session_valid else "", pane_id, session_valid
+            )
+        except Exception as error:
+            fallback_identity = re.sub(r"[^A-Za-z0-9_-]", "_", pane_id) or "unknown"
+            session_key = f"pane-{fallback_identity}"
+            key_error = failure_text(
+                f"retry session key could not be generated; recovery: repair the Python runtime and retry the Stop hook ({error})"
+            )
+            reason = f"{reason} {key_error}" if reason else key_error
+
+        home = Path(os.environ.get("HOME", str(Path.home())))
+        queue_state_dir = Path(
+            env_default(
+                "HERDR_META_PATROL_STATE_DIR",
+                str(home / ".local" / "state" / "herdr-meta-patrol"),
+            )
+        )
+        primary_dir = queue_state_dir / "stop-gate"
+        try:
+            uid = os.getuid()
+        except Exception as error:
+            uid = "unknown"
+            uid_error = failure_text(
+                f"retry state owner could not be determined; recovery: repair the Python runtime ({error})"
+            )
+            reason = f"{reason} {uid_error}" if reason else uid_error
+        fallback_dir = Path(env_default("TMPDIR", "/tmp")) / f"herdr-meta-turn-gate-{uid}"
+        fallback_file = fallback_dir / f"{session_key}.json"
+        state_dir = fallback_dir if path_exists(fallback_file) else primary_dir
+        state_file = state_dir / f"{session_key}.json"
+        log_file = state_dir / "audit.log"
+
+        saved: tuple[str, int] | None = None
+        try:
+            saved = read_retry_state(state_file, active)
+        except Exception as error:
+            state_error = failure_text(str(error))
+            reason = f"{reason} {state_error}" if reason else state_error
+
+        if reason is None:
+            return
+
+        try:
+            fingerprint = str(zlib.crc32(reason.encode("utf-8")) & 0xFFFFFFFF)
+        except Exception as error:
+            reason = (
+                f"{reason} "
+                + failure_text(
+                    f"retry reason fingerprint could not be generated; recovery: repair the Python runtime ({error})"
+                )
+            )
+            fingerprint = "0"
+
+        if active and saved is not None and saved[0] == fingerprint:
+            if saved[1] < 3:
+                block_count = saved[1] + 1
+            else:
+                audit_and_allow(log_file, session_key, fingerprint)
+                try:
+                    state_file.unlink(missing_ok=True)
+                except OSError:
+                    pass
+                return
+        else:
+            block_count = 1
+
+        write_error: Exception | None = None
+        try:
+            if not prepare_state_dir(state_dir):
+                raise OSError(f"retry state directory '{state_dir}' is unavailable")
+            state_file = write_retry_state(state_dir, session_key, fingerprint, block_count)
+        except Exception as error:
+            write_error = error
+            other_dir = primary_dir if state_dir == fallback_dir else fallback_dir
+            if prepare_state_dir(other_dir):
+                try:
+                    state_file = write_retry_state(
+                        other_dir, session_key, fingerprint, block_count
+                    )
+                    log_file = other_dir / "audit.log"
+                    write_error = None
+                except Exception as fallback_error:
+                    write_error = fallback_error
+
+        if write_error is not None:
+            emit(
+                {
+                    "systemMessage": (
+                        "The Meta turn gate allowed this turn to end; retry state write failed: "
+                        f"{state_file}. Visible warning: {write_error}."
+                    )
+                }
+            )
+            return
+
+        emit({"decision": "block", "reason": reason})
+    except Exception as error:
+        emergency_retry_policy(reason, input_text, pane_id, error)
+
+
 def evaluate_after_identity(
     input_text: str,
     pane_id: str,
@@ -452,10 +663,6 @@ def evaluate_after_identity(
         payload = parse_json_document(input_text)
     except Exception:
         payload = None
-    active = False
-    active_valid = False
-    session_id = ""
-    session_valid = False
     if not isinstance(payload, dict):
         add_error(
             errors,
@@ -474,10 +681,7 @@ def evaluate_after_identity(
         )
     else:
         active_value = payload.get("stop_hook_active")
-        if type(active_value) is bool:
-            active = active_value
-            active_valid = True
-        else:
+        if type(active_value) is not bool:
             add_error(
                 errors,
                 "stop_hook_active is missing or invalid",
@@ -502,9 +706,6 @@ def evaluate_after_identity(
                 "session_id has an invalid format",
                 "resume the Claude session and retry the Stop hook",
             )
-        else:
-            session_id = session_value
-            session_valid = True
 
     if not isinstance(owner_terminal, str) or not owner_terminal:
         add_error(
@@ -593,92 +794,8 @@ def evaluate_after_identity(
                 f"run 'herdr agent list' and '{lifecycle_helper} audit'",
             )
 
-    reason = reason_text(errors, blockers)
-    try:
-        session_key = make_session_key(session_id, pane_id, session_valid)
-    except Exception as error:
-        raise GateError(
-            "the retry session key could not be generated with SHA-256; "
-            "recovery: repair the Python runtime and retry the Stop hook"
-        ) from error
-    fingerprint = str(zlib.crc32(reason.encode("utf-8")) & 0xFFFFFFFF)
-    if not FINGERPRINT_PATTERN.fullmatch(fingerprint):
-        raise GateError(
-            "the retry reason fingerprint is empty or invalid; "
-            "recovery: retry the Claude Stop hook"
-        )
-
-    try:
-        uid = os.getuid()
-        primary_dir = queue_state_dir / "stop-gate"
-        fallback_dir = Path(env_default("TMPDIR", "/tmp")) / f"herdr-meta-turn-gate-{uid}"
-        if prepare_state_dir(primary_dir):
-            state_dir = primary_dir
-        elif prepare_state_dir(fallback_dir):
-            state_dir = fallback_dir
-        else:
-            raise GateError(
-                f"retry state cannot be created in '{primary_dir}' or '{fallback_dir}'; "
-                f"recovery: create a writable retry state directory with 'mkdir -p {primary_dir}'"
-            )
-
-        fallback_state = fallback_dir / f"{session_key}.json"
-        if state_dir == primary_dir and path_exists(fallback_state):
-            if not prepare_state_dir(fallback_dir):
-                raise GateError(
-                    f"the existing fallback retry state cannot be accessed; recovery: repair '{fallback_dir}'"
-                )
-            state_dir = fallback_dir
-        state_file = state_dir / f"{session_key}.json"
-        log_file = state_dir / "audit.log"
-        saved = read_retry_state(state_file, active if active_valid else False)
-    except GateError:
-        raise
-    except Exception as error:
-        raise GateError(
-            f"retry state could not be inspected: {error}; recovery: repair the retry state directory and retry the Stop hook"
-        ) from error
-
-    if not errors and not blockers:
-        return
-
-    block_count = 1
-    if active and saved is not None and saved[0] == fingerprint:
-        if saved[1] < 3:
-            block_count = saved[1] + 1
-        else:
-            audit_and_allow(log_file, session_key, fingerprint)
-            try:
-                state_file.unlink(missing_ok=True)
-            except OSError:
-                pass
-            return
-
-    try:
-        write_retry_state(state_dir, session_key, fingerprint, block_count)
-    except Exception as primary_error:
-        if state_dir != fallback_dir and prepare_state_dir(fallback_dir):
-            fallback_state = fallback_dir / f"{session_key}.json"
-            try:
-                if fallback_state.is_symlink() or (
-                    path_exists(fallback_state) and not is_regular_file(fallback_state)
-                ):
-                    raise OSError(f"fallback retry state '{fallback_state}' is not a regular file")
-                state_file = write_retry_state(
-                    fallback_dir, session_key, fingerprint, block_count
-                )
-                log_file = fallback_dir / "audit.log"
-            except Exception as fallback_error:
-                raise GateError(
-                    f"retry state could not be written in either location: {primary_error}; {fallback_error}; "
-                    "recovery: make the primary or temporary retry state directory writable"
-                ) from fallback_error
-        else:
-            raise GateError(
-                f"retry state could not be written in '{state_dir}' or '{fallback_dir}': {primary_error}; "
-                "recovery: make one of those directories writable"
-            ) from primary_error
-    emit({"decision": "block", "reason": reason})
+    reason = reason_text(errors, blockers) if errors or blockers else None
+    apply_retry_policy(reason, input_text, pane_id)
 
 
 def main() -> None:
@@ -697,22 +814,16 @@ def main() -> None:
     try:
         evaluate_after_identity(raw_input, pane_id, owner_terminal, agents)
     except GateError as error:
-        reason = str(error)
-        if not reason.startswith("gate cannot verify:"):
-            reason = f"gate cannot verify: {reason}"
-        if not reason.endswith("."):
-            reason += "."
-        emit({"decision": "block", "reason": reason})
+        apply_retry_policy(failure_text(str(error)), raw_input, pane_id)
     except Exception as error:
-        emit(
-            {
-                "decision": "block",
-                "reason": (
-                    "gate cannot verify: unexpected check failure "
-                    f"({type(error).__name__}: {error}); recovery: repair the reported gate input "
-                    "and retry the Claude Stop hook."
-                ),
-            }
+        apply_retry_policy(
+            failure_text(
+                "unexpected check failure "
+                f"({type(error).__name__}: {error}); recovery: repair the reported gate input "
+                "and retry the Claude Stop hook"
+            ),
+            raw_input,
+            pane_id,
         )
 
 

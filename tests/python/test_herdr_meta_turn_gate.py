@@ -1,15 +1,18 @@
 """Tests for the Meta-only Claude Stop hook."""
 
+import contextlib
 import hashlib
+import importlib.util
+import io
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 import time
 import unittest
-
+from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HOOK = REPO_ROOT / "home" / "dot_claude" / "hooks" / "executable_herdr-meta-turn-gate.py"
@@ -17,6 +20,10 @@ QUEUE_SOURCE = (
     REPO_ROOT / "home" / "private_dot_local" / "private_bin" / "exact_common"
     / "executable_herdr-meta-patrol-queue"
 )
+GATE_MODULE_SPEC = importlib.util.spec_from_file_location("herdr_meta_turn_gate", HOOK)
+assert GATE_MODULE_SPEC is not None and GATE_MODULE_SPEC.loader is not None
+GATE_MODULE = importlib.util.module_from_spec(GATE_MODULE_SPEC)
+GATE_MODULE_SPEC.loader.exec_module(GATE_MODULE)
 
 
 @unittest.skipUnless(shutil.which("jq") and shutil.which("ps"), "requires jq and ps")
@@ -187,6 +194,32 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         result = self.run_hook()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
+
+    def test_lifecycle_registry_accepts_writer_row_shapes_and_launch_modes(self):
+        self.start_waiter()
+        writer_fields = [
+            "meta", "w1:p1", "meta-terminal", "gate-task", "gate-worker",
+            "worker-terminal", "w2:t2", "w2:p2", "started",
+        ]
+        cases = [
+            ("legacy 9-field row", writer_fields),
+            ("tab launch row", [*writer_fields, "tab"]),
+            ("root-pane launch row", [*writer_fields, "root"]),
+        ]
+
+        for name, fields in cases:
+            with self.subTest(row=name):
+                self.registry.write_text("\t".join(fields) + "\n")
+                self.assert_blocked(self.run_hook(), "gate-worker")
+
+    def test_lifecycle_registry_rejects_unrecognized_launch_mode(self):
+        self.start_waiter()
+        fields = [
+            "meta", "w1:p1", "meta-terminal", "gate-task", "gate-worker",
+            "worker-terminal", "w2:t2", "w2:p2", "started", "other",
+        ]
+        self.registry.write_text("\t".join(fields) + "\n")
+        self.assert_blocked(self.run_hook(), "registry is unparsable")
 
     def test_unexpected_worker_status_blocks_for_reconciliation(self):
         self.start_waiter()
@@ -449,15 +482,15 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             json.loads(state_file.read_text())["reason_fingerprint"], r"^[0-9]+$"
         )
 
-    def test_unwritable_retry_state_blocks_with_recovery_guidance(self):
+    def test_unwritable_retry_state_allows_with_visible_warning(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
         (self.queue_state / "stop-gate").write_text("not a directory")
         temporary_dir = self.root / "tmp-is-a-file"
         temporary_dir.write_text("not a directory")
 
         result = self.run_hook(env={"TMPDIR": str(temporary_dir)})
-        self.assert_blocked(result, "gate cannot verify: retry state cannot be created")
-        self.assertIn("recovery:", json.loads(result.stdout)["reason"])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("retry state write failed:", json.loads(result.stdout)["systemMessage"])
 
     def test_malformed_retry_state_fails_closed_with_recovery_guidance(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
@@ -683,6 +716,39 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             message,
         )
 
+    def test_same_unhandled_gate_error_fourth_attempt_allows_with_warning(self):
+        payloads = [
+            {"hook_event_name": "Stop", "stop_hook_active": index > 0,
+             "session_id": "same-gate-error"}
+            for index in range(4)
+        ]
+        for index, payload in enumerate(payloads):
+            with self.subTest(attempt=index + 1):
+                output = io.StringIO()
+                with (
+                    mock.patch.dict(os.environ, self.env),
+                    mock.patch.object(
+                        GATE_MODULE, "identify_meta",
+                        return_value=("meta-terminal", []),
+                    ),
+                    mock.patch.object(
+                        GATE_MODULE, "evaluate_after_identity",
+                        side_effect=GATE_MODULE.GateError("same injected gate error"),
+                    ),
+                    mock.patch.object(
+                        GATE_MODULE.sys, "stdin", io.StringIO(json.dumps(payload))
+                    ),
+                    contextlib.redirect_stdout(output),
+                ):
+                    GATE_MODULE.main()
+                result = json.loads(output.getvalue())
+                if index < 3:
+                    self.assertEqual(result["decision"], "block")
+                    self.assertIn("same injected gate error", result["reason"])
+                else:
+                    self.assertIn("systemMessage", result)
+                    self.assertIn("allowed this turn to end", result["systemMessage"])
+
     def session_key(self, value="session-under-test"):
         return hashlib.sha256(value.encode()).hexdigest()
 
@@ -717,8 +783,6 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         malformed_queue.write_text("#!/bin/sh\nprintf '%s\\n' 'not-json'\n")
         malformed_queue.chmod(0o755)
         waiter_dir = self.queue_state / "waiters"
-        retry_state_path = self.queue_state / "stop-gate"
-        invalid_tmp = self.root / "tmp-is-a-file"
 
         def no_change():
             return lambda: None
@@ -741,18 +805,6 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             self.registry.write_text("malformed lifecycle row\\n")
             return lambda: self.registry.write_text("")
 
-        def break_retry_storage():
-            if retry_state_path.is_dir():
-                shutil.rmtree(retry_state_path)
-            retry_state_path.write_text("not a directory")
-            invalid_tmp.write_text("not a directory")
-
-            def restore():
-                retry_state_path.unlink()
-                invalid_tmp.unlink()
-
-            return restore
-
         cases = [
             (
                 "queue command failure",
@@ -769,12 +821,6 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             ("malformed waiter directory", hide_waiter_dir, {}, "queue waiter directory"),
             ("missing lifecycle registry", hide_registry, {}, "worker lifecycle registry"),
             ("malformed lifecycle registry", corrupt_registry, {}, "registry is unparsable"),
-            (
-                "unavailable retry state",
-                break_retry_storage,
-                {"TMPDIR": str(invalid_tmp)},
-                "retry state cannot be created",
-            ),
         ]
 
         for index, (name, prepare, env, expected) in enumerate(cases):

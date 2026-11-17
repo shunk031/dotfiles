@@ -278,6 +278,7 @@ def check_workers(
     lifecycle_helper: Path,
     blockers: list[str],
 ) -> None:
+    tab_inventory: list[object] | None = None
     for name, terminal, tab, pane in workers:
         matches = [
             row
@@ -297,10 +298,49 @@ def check_workers(
                 f"worker '{name}' has unexpected status '{status}'; "
                 f"recovery: run 'herdr agent list' and '{lifecycle_helper} audit'"
             )
+        if status not in {"done", "idle"}:
+            continue
+        if tab_inventory is None:
+            try:
+                result = run_command(["herdr", "tab", "list"], HERDR_TIMEOUT_SECONDS)
+                if result.returncode != 0:
+                    raise ValueError("command failed")
+                document = parse_json_document(result.stdout)
+                tabs = object_field(object_field(document, "result"), "tabs")
+                if not isinstance(tabs, list):
+                    raise ValueError("tab inventory is not an array")
+                tab_inventory = tabs
+            except Exception as error:
+                raise GateError(
+                    f"worker '{name}' tab label is unverifiable; "
+                    f"recovery: inspect 'herdr tab list' for tab '{tab}' ({error})"
+                ) from error
+        matches = [
+            row for row in tab_inventory
+            if isinstance(row, dict) and row.get("tab_id") == tab
+        ]
+        if len(matches) != 1:
+            raise GateError(
+                f"worker '{name}' tab label is unverifiable; "
+                f"recovery: inspect 'herdr tab list' for tab '{tab}'"
+            )
+        label = matches[0].get("label")
+        if not isinstance(label, str) or not label:
+            raise GateError(
+                f"worker '{name}' tab label is unverifiable; "
+                f"recovery: inspect 'herdr tab list' for tab '{tab}'"
+            )
+        if label.startswith("⛔"):
+            recovery = "protected tab: ask the user to resolve this worker lifecycle record"
+        else:
+            recovery = (
+                f"inspect its transcript and result, then collect it with "
+                f"'{lifecycle_helper} collect {name}' when safe"
+            )
         add_blocker(
             blockers,
-            f"worker '{name}' has an uncollected started lifecycle record (status {status})",
-            f"inspect its transcript and result, then collect it with '{lifecycle_helper} collect {name}' when safe",
+            f"worker '{name}' is {status} with an uncollected started lifecycle record",
+            recovery,
         )
 
 

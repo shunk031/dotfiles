@@ -55,6 +55,36 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": "mcp__inbox__record",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"",
+            "timeout": 40,
+            "onFailure": "block"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(*herdr-agent-prompt-if-input-empty.sh*)",
+            "command": "python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"",
+            "timeout": 40,
+            "onFailure": "block"
+          },
+          {
+            "type": "command",
+            "if": "Bash(*herdr*agent prompt*)",
+            "command": "python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"",
+            "timeout": 40,
+            "onFailure": "block"
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -121,6 +151,12 @@
     "Stop": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"",
+            "timeout": 40,
+            "onFailure": "block"
+          },
           {
             "type": "command",
             "command": "python3 \"$HOME/.claude/hooks/herdr-meta-turn-gate.py\"",

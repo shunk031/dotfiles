@@ -90,19 +90,19 @@ function append_root_entry() {
     append_entry "${entry}"
 }
 
-# @description Return the count of open items owned by an agent in the active-items file.
+# @description Return the count of open items owned by an agent or linked by signal key.
 # @arg $1 string Machine label.
 # @arg $2 string Agent name.
-# @arg $3 string Item kind, `task` or `work`.
+# @arg $3 string Matching signal key.
 function tracked_count() {
-    local machine="$1" agent="$2" kind="$3" signal="${4:-}"
+    local machine="$1" agent="$2" signal="${3:-}"
     [[ -r "${active_items_file}" ]] || {
         printf '0\n'
         return
     }
-    jq -r --arg machine "${machine}" --arg agent "${agent}" --arg kind "${kind}" --arg signal "${signal}" '
+    jq -r --arg machine "${machine}" --arg agent "${agent}" --arg signal "${signal}" '
         if .source != "meta-open-items" or (.entries | type) != "array" then 0
-        else [.entries[] | select(.state != "done" and (((.kind == $kind) and .owner.machine == $machine and .owner.agent == $agent) or (.signalKey == $signal and $signal != "")))] | length
+        else [.entries[] | select(.state != "done" and (((.owner | type) == "object" and .owner.machine == $machine and .owner.agent == $agent) or (.signalKey == $signal and $signal != "")))] | length
         end
     ' "${active_items_file}" 2> /dev/null || printf '0\n'
 }
@@ -118,7 +118,7 @@ function check_root_asks() {
     label="${machine}"
     [[ -n "${label}" ]] || label=local
     key="herdr/${label}/${root}/untracked-asks"
-    tracked="$(tracked_count "${machine}" "${root}" task "${key}")"
+    tracked="$(tracked_count "${machine}" "${root}" "${key}")"
     missing=$((count - tracked))
     ((missing > 0)) || return 0
     if key_exceeds_limit "${key}"; then
@@ -141,7 +141,7 @@ function check_meta_worker() {
     label="${machine}"
     [[ -n "${label}" ]] || label=local
     key="herdr/${label}/${name}/untracked-work"
-    [[ "$(tracked_count "${machine}" "${name}" work "${key}")" -gt 0 ]] && return 0
+    [[ "$(tracked_count "${machine}" "${name}" "${key}")" -gt 0 ]] && return 0
     if key_exceeds_limit "${key}"; then
         printf 'warning key exceeds 100 bytes for agent %s\n' "${name}" >&2
         return 0

@@ -106,6 +106,7 @@ class DecisionCheckTest(unittest.TestCase):
         self.assertEqual(result["decision"], "block")
 
     def test_checker_runs_only_for_action_or_choice_text(self):
+        self.assertTrue(GATE.stop_proposes("We could either keep caps or drop them."))
         checker = mock.Mock(return_value=ALLOW)
         for text in ("Facts.", "Option A: Keep; Option B: Replace"):
             GATE.evaluate_event(

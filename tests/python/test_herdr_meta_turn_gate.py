@@ -33,6 +33,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.registry.parent.mkdir(parents=True)
         self.registry.write_text("")
         (self.queue_state / "waiters").mkdir(parents=True)
+        (self.queue_state / "queue.jsonl").touch()
         self.queue = self.bin / "herdr-meta-patrol-queue"
         shutil.copyfile(QUEUE_SOURCE, self.queue)
         self.queue.chmod(0o755)
@@ -476,6 +477,89 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
                 )
                 self.assertIn("recovery:", json.loads(result.stdout)["reason"])
 
+    def test_strict_queue_rejects_unverifiable_queue_and_ack_inputs(self):
+        queue_path = self.queue_state / "queue.jsonl"
+        ack_path = self.queue_state / "queue.ack"
+        target = self.root / "queue-target"
+
+        def reset_path(path):
+            if path.is_symlink() or path.is_file():
+                path.unlink()
+            elif path.is_dir():
+                path.rmdir()
+
+        cases = [
+            ("missing queue", "queue", "missing", "queue.jsonl is missing"),
+            ("directory queue", "queue", "directory", "queue.jsonl is not a regular file"),
+            ("queue symlink", "queue", "symlink", "queue.jsonl is a symbolic link"),
+            ("dangling queue symlink", "queue", "dangling", "queue.jsonl is a symbolic link"),
+            ("empty ack", "ack", "empty", "queue.ack is not a non-negative integer"),
+            ("negative ack", "ack", "negative", "queue.ack is not a non-negative integer"),
+            ("nonnumeric ack", "ack", "nonnumeric", "queue.ack is not a non-negative integer"),
+            ("multiline ack", "ack", "multiline", "queue.ack must contain exactly one integer line"),
+            ("directory ack", "ack", "directory", "queue.ack is not a regular file"),
+            ("ack symlink", "ack", "symlink", "queue.ack is a symbolic link"),
+            ("dangling ack symlink", "ack", "dangling", "queue.ack is a symbolic link"),
+        ]
+
+        for name, kind, value, diagnostic in cases:
+            with self.subTest(input=name):
+                reset_path(queue_path)
+                reset_path(ack_path)
+                target.unlink(missing_ok=True)
+                path = queue_path if kind == "queue" else ack_path
+                if kind == "ack":
+                    queue_path.touch()
+                if value == "missing":
+                    path.unlink(missing_ok=True)
+                elif value == "directory":
+                    path.mkdir()
+                elif value == "symlink":
+                    target.write_text("0\n")
+                    path.symlink_to(target)
+                elif value == "dangling":
+                    path.symlink_to(self.root / "absent-target")
+                elif value == "empty":
+                    path.write_text("")
+                elif value == "negative":
+                    path.write_text("-1\n")
+                elif value == "nonnumeric":
+                    path.write_text("invalid\n")
+                elif value == "multiline":
+                    path.write_text("0\n\n")
+
+                result = self.run_queue("read", "--strict")
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn(f"queue unverifiable: {diagnostic}", result.stderr)
+
+        reset_path(queue_path)
+        reset_path(ack_path)
+        queue_path.touch()
+        self.assertEqual(self.run_queue("read", "--strict").returncode, 0)
+        ack_path.write_text("0002\n")
+        valid_ack = self.run_queue("read", "--strict")
+        self.assertEqual(valid_ack.returncode, 0, valid_ack.stderr)
+
+    def test_invalid_meta_pane_id_fails_closed_before_waiter_lookup(self):
+        invalid_pane_id = "w1:p1/../../*"
+        agents = json.loads(self.agents_file.read_text())
+        agents["result"]["agents"][0]["pane_id"] = invalid_pane_id
+        self.agents_file.write_text(json.dumps(agents))
+        self.assert_blocked(
+            self.run_hook(env={"HERDR_PANE_ID": invalid_pane_id}),
+            "gate cannot verify: the Meta pane ID has an invalid format",
+        )
+
+    def test_invalid_retry_fingerprint_fails_closed(self):
+        self.run_queue("add", "unread record")
+        cksum = self.bin / "cksum"
+        cksum.write_text("#!/bin/sh\nprintf 'invalid 0\\n'\n")
+        cksum.chmod(0o755)
+
+        self.assert_blocked(
+            self.run_hook(), "gate cannot verify: the retry reason fingerprint is empty or invalid"
+        )
+
     def test_retry_state_uses_temporary_fallback_when_primary_is_unavailable(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
         (self.queue_state / "stop-gate").write_text("not a directory")
@@ -552,7 +636,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         result = self.run_hook(env={
             "HERDR_META_PATROL_QUEUE_COMMAND": str(self.root / "missing-queue"),
         })
-        self.assert_blocked(result, "gate cannot verify: the patrol queue could not be read")
+        self.assert_blocked(result, "gate cannot verify: queue unverifiable:")
 
     def test_malformed_queue_lines_are_reported_and_block_the_gate(self):
         self.start_waiter()
@@ -563,7 +647,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         result = self.run_hook()
         self.assert_blocked(
             result,
-            "gate cannot verify: the patrol queue reader reported 1 malformed lines",
+            "gate cannot verify: queue unverifiable: queue.jsonl contains 1 malformed or invalid record(s)",
         )
 
     def test_check_errors_fail_closed_with_recovery_guidance(self):
@@ -612,7 +696,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
                 "queue command failure",
                 no_change,
                 {"HERDR_META_PATROL_QUEUE_COMMAND": str(self.root / "missing-queue")},
-                "patrol queue could not be read",
+                "queue unverifiable:",
             ),
             (
                 "malformed queue data",

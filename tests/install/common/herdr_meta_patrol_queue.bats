@@ -227,15 +227,13 @@ STUB
     [ "$(queue read | jq -r '.text' | tr '\n' ' ')" = 'one three ' ]
 }
 
-@test "[common] herdr-meta-patrol-queue strict read reports malformed line counts" {
+@test "[common] herdr-meta-patrol-queue strict read blocks on malformed lines" {
     queue add one
     printf 'not-json\n' >> "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
     queue add two
 
     run queue read --strict
-    [ "${status}" -eq 0 ]
-    [ "$(jq -r '.malformed_line_count' <<< "${output}")" = 1 ]
-    [ "$(jq -r '.unread_record_count' <<< "${output}")" = 2 ]
+    [ "${status}" -ne 0 ]
 }
 
 @test "[common] herdr-meta-patrol-queue keeps a record appended after a line cut short" {

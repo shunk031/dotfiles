@@ -27,8 +27,8 @@
 #   - `read [--limit N] [--compact-status]` prints up to N unread records (default
 #     10, maximum 50), one JSON object per line. Compaction retains the latest
 #     STATUS from each sender and every other record in the selected batch.
-#     `read --strict` returns unread-record and malformed-line counts for the
-#     entire queue file.
+#     `read --strict` requires a regular queue file, valid acknowledgement state,
+#     and valid records before returning unread-record and malformed-line counts.
 #   - `ack SEQ` marks every record up to SEQ as handled.
 #   - `trim` drops acknowledged records older than the keep period.
 #   - `notify-if-stale` shows one Herdr notification for a batch of unread records
@@ -40,7 +40,8 @@
 # @option HERDR_META_PATROL_STALE_SECONDS Age of unread records and of the waiter heartbeat that triggers a notification (default 600).
 # @option --limit N Number of raw unread records to include in a read batch (1-50; default 10).
 # @option --compact-status Show only the latest STATUS per sender within a read batch.
-# @option --strict Return a JSON envelope and count malformed queue lines.
+# @option --strict Return a JSON envelope; fail when queue state or records are invalid.
+# @stderr queue unverifiable: <why> when strict queue state cannot be verified.
 # @exitcode 0 On success.
 # @exitcode 2 On a usage error.
 # @example
@@ -77,6 +78,12 @@ function number_in() {
     value="$(cat "$1" 2> /dev/null)" || value=""
     [[ "${value}" =~ ^[0-9]+$ ]] || value=0
     printf '%s\n' "${value}"
+}
+
+# @description Report why strict queue state cannot be verified.
+# @arg $1 string Validation failure reason.
+function queue_unverifiable() {
+    printf 'queue unverifiable: %s\n' "$1" >&2
 }
 
 # @description Run a command while holding the queue lock (perl ships with macOS).
@@ -122,20 +129,61 @@ function read_unread() {
 # @description Print a bounded unread batch, optionally omitting superseded STATUS updates.
 # @arg $1 number Maximum number of raw unread records.
 # @arg $2 boolean Whether to compact STATUS updates from the same sender.
-# @arg $3 boolean Whether to return unread-record and malformed-line counts.
+# @arg $3 boolean Whether to require strict queue validation and return counts.
 function read_batch() {
-    local limit="$1" compact="$2" strict="${3:-false}"
+    local limit="$1" compact="$2" strict="${3:-false}" ack_value queue_result malformed_count
     if [[ "${strict}" == true ]]; then
-        [[ -s "${queue}" ]] || {
-            jq -cn '{unread_record_count: 0, malformed_line_count: 0}'
-            return
-        }
-        jq -Rsc --argjson ack "$(number_in "${ack_file}")" '
+        if [[ -L "${queue}" ]]; then
+            queue_unverifiable 'queue.jsonl is a symbolic link'
+            return 1
+        elif [[ ! -e "${queue}" ]]; then
+            queue_unverifiable 'queue.jsonl is missing'
+            return 1
+        elif [[ ! -f "${queue}" ]]; then
+            queue_unverifiable 'queue.jsonl is not a regular file'
+            return 1
+        elif [[ ! -r "${queue}" ]]; then
+            queue_unverifiable 'queue.jsonl is not readable'
+            return 1
+        fi
+
+        ack_value=0
+        if [[ -L "${ack_file}" ]]; then
+            queue_unverifiable 'queue.ack is a symbolic link'
+            return 1
+        elif [[ -e "${ack_file}" ]]; then
+            if [[ ! -f "${ack_file}" ]]; then
+                queue_unverifiable 'queue.ack is not a regular file'
+                return 1
+            elif [[ ! -r "${ack_file}" ]]; then
+                queue_unverifiable 'queue.ack is not readable'
+                return 1
+            elif ! ack_value="$(cat "${ack_file}" 2> /dev/null)"; then
+                queue_unverifiable 'queue.ack could not be read'
+                return 1
+            elif [[ ! "${ack_value}" =~ ^[0-9]+$ ]]; then
+                queue_unverifiable 'queue.ack is not a non-negative integer'
+                return 1
+            fi
+            local ack_line_count
+            if ! ack_line_count="$(awk 'END { print NR }' "${ack_file}" 2> /dev/null)" || [[ "${ack_line_count}" != 1 ]]; then
+                queue_unverifiable 'queue.ack must contain exactly one integer line'
+                return 1
+            fi
+            while [[ ${#ack_value} -gt 1 && "${ack_value:0:1}" == 0 ]]; do
+                ack_value="${ack_value:1}"
+            done
+        fi
+
+        if ! queue_result="$(jq -Rsc --argjson ack "${ack_value}" '
             def valid_record:
-                if type == "object" and (.seq | type) == "number" and (.t | type) == "number" and
+                if type == "object" and keys == ["at", "from", "kind", "seq", "t", "text"] and
+                    (.seq | type) == "number" and (.t | type) == "number" and
                     (.at | type) == "string" and (.kind | type) == "string" and
                     (.from | type) == "string" and (.text | type) == "string"
-                then .seq > 0 and (.seq | floor) == .seq and .t >= 0
+                then .seq > 0 and (.seq | floor) == .seq and .t >= 0 and (.t | floor) == .t and
+                    (.at | length) > 0 and (.kind | length) > 0 and
+                    (.from | length) > 0 and (.text | length) > 0
                 else false end;
             split("\n") as $lines |
             (if ($lines[-1] // null) == "" then $lines[:-1] else $lines end) |
@@ -145,7 +193,18 @@ function read_batch() {
                     if $record.seq > $ack then .unread_record_count += 1 else . end
                 else .malformed_line_count += 1 end
             )
-        ' "${queue}"
+        ' "${queue}")"; then
+            queue_unverifiable 'queue.jsonl could not be read or parsed'
+            return 1
+        fi
+        if ! malformed_count="$(jq -er '.malformed_line_count | if type == "number" and floor == . and . >= 0 then . else error end' <<< "${queue_result}" 2> /dev/null)"; then
+            queue_unverifiable 'queue.jsonl validation result could not be read'
+            return 1
+        elif ((malformed_count > 0)); then
+            queue_unverifiable "queue.jsonl contains ${malformed_count} malformed or invalid record(s)"
+            return 1
+        fi
+        printf '%s\n' "${queue_result}"
         return
     fi
     read_unread | jq -sc --argjson limit "${limit}" --argjson compact "${compact}" '
@@ -191,10 +250,20 @@ function cleanup_waiter() {
     return 0
 }
 
-mkdir -p "${state_dir}"
 (($# > 0)) || usage
 command="$1"
 shift
+strict_read=false
+if [[ "${command}" == read ]]; then
+    for argument in "$@"; do
+        if [[ "${argument}" == --strict ]]; then
+            strict_read=true
+        fi
+    done
+fi
+if [[ "${strict_read}" != true ]]; then
+    mkdir -p "${state_dir}"
+fi
 
 case "${command}" in
 add)

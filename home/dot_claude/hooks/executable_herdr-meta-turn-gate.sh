@@ -53,6 +53,11 @@ function fail_closed() {
     exit 0
 }
 
+pane_id="${HERDR_PANE_ID}"
+if [[ ! "${pane_id}" =~ ^[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$ ]]; then
+    add_check_error "the Meta pane ID has an invalid format" "run 'herdr agent list' and reconcile Meta's pane ownership"
+fi
+
 # Validate the Stop payload only after Meta is known to be in this pane.
 stop_hook_active=false
 session_id=''
@@ -83,8 +88,15 @@ if ! meta_terminal="$(jq -er 'if (.[0].terminal_id | type) == "string" then (.[0
 fi
 
 queue_command="${HERDR_META_PATROL_QUEUE_COMMAND:-herdr-meta-patrol-queue}"
-if ! queue_response="$("${queue_command}" read --strict 2> /dev/null)"; then
-    add_check_error "the patrol queue could not be read" "run 'herdr-meta-patrol-queue read' and inspect the queue state"
+if ! queue_response="$("${queue_command}" read --strict 2>&1)"; then
+    if [[ "${queue_response}" == 'queue unverifiable: '* ]]; then
+        queue_error="${queue_response}"
+    elif [[ -n "${queue_response}" ]]; then
+        queue_error="queue unverifiable: strict reader failed: ${queue_response}"
+    else
+        queue_error='queue unverifiable: strict reader failed without a diagnostic'
+    fi
+    add_check_error "${queue_error}" "run 'herdr-meta-patrol-queue read --strict' and repair the reported queue state"
 elif ! queue_counts="$(jq -er 'def nonnegative_integer: if type == "number" then floor == . and . >= 0 else false end; if type == "object" and (keys == ["malformed_line_count", "unread_record_count"]) and (.malformed_line_count | nonnegative_integer) and (.unread_record_count | nonnegative_integer) then [.malformed_line_count, .unread_record_count] | @tsv else error("invalid strict queue response") end' <<< "${queue_response}" 2> /dev/null)"; then
     add_check_error "the patrol queue returned an unparsable or malformed strict response" "run 'herdr-meta-patrol-queue read --strict' and repair the queue state"
 else
@@ -99,11 +111,13 @@ fi
 
 queue_state_dir="${HERDR_META_PATROL_STATE_DIR:-${HOME}/.local/state/herdr-meta-patrol}"
 waiters_dir="${queue_state_dir}/waiters"
-if [[ -L "${waiters_dir}" || ! -d "${waiters_dir}" || ! -r "${waiters_dir}" || ! -x "${waiters_dir}" ]]; then
+if [[ ! "${pane_id}" =~ ^[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$ ]]; then
+    : # The invalid pane ID has already been recorded as a check error.
+elif [[ -L "${waiters_dir}" || ! -d "${waiters_dir}" || ! -r "${waiters_dir}" || ! -x "${waiters_dir}" ]]; then
     add_check_error "the queue waiter directory is missing, unreadable, or malformed" "create '${waiters_dir}' and start 'herdr-meta-patrol-queue wait' in this pane"
 else
     shopt -s nullglob
-    waiter_markers=("${waiters_dir}/${HERDR_PANE_ID}."*.pid)
+    waiter_markers=("${waiters_dir}/${pane_id}."*.pid)
     shopt -u nullglob
     if ((${#waiter_markers[@]} == 0)); then
         add_blocker "no queue waiter marker exists for this Meta pane" "start 'herdr-meta-patrol-queue wait' as a background command in this session"
@@ -211,6 +225,7 @@ else
     session_key="pane-$(sha256_value "${HERDR_PANE_ID}")" || fail_closed "the pane retry key could not be generated with SHA-256" "install or repair 'shasum' or 'sha256sum', then retry the Stop hook"
 fi
 reason_fingerprint="$(printf '%s' "${reason}" | cksum | awk '{print $1}')" || fail_closed "the retry reason fingerprint could not be generated" "retry the Claude Stop hook"
+[[ "${reason_fingerprint}" =~ ^[0-9]+$ ]] || fail_closed "the retry reason fingerprint is empty or invalid" "repair 'cksum' and retry the Claude Stop hook"
 
 function prepare_state_dir() {
     local directory="$1"

@@ -12,7 +12,7 @@ import unittest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-HOOK = REPO_ROOT / "home" / "dot_claude" / "hooks" / "executable_herdr-meta-turn-gate.sh"
+HOOK = REPO_ROOT / "home" / "dot_claude" / "hooks" / "executable_herdr-meta-turn-gate.py"
 QUEUE_SOURCE = (
     REPO_ROOT / "home" / "private_dot_local" / "private_bin" / "exact_common"
     / "executable_herdr-meta-patrol-queue"
@@ -76,9 +76,19 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             payload["session_id"] = session_id
         try:
             return subprocess.run(
-                ["bash", str(HOOK)], input=json.dumps(payload), text=True,
+                ["python3", str(HOOK)], input=json.dumps(payload), text=True,
                 capture_output=True, env={**self.env, **(env or {})}, check=False,
                 timeout=5,
+            )
+        except subprocess.TimeoutExpired as error:
+            self.fail(f"hook timed out: stdout={error.stdout!r}; stderr={error.stderr!r}")
+
+    def run_hook_raw(self, payload, *, env=None):
+        try:
+            return subprocess.run(
+                ["python3", str(HOOK)], input=payload, text=True,
+                capture_output=True, env={**self.env, **(env or {})}, check=False,
+                timeout=7,
             )
         except subprocess.TimeoutExpired as error:
             self.fail(f"hook timed out: stdout={error.stdout!r}; stderr={error.stderr!r}")
@@ -208,6 +218,52 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         result = self.run_hook()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
+
+    def test_multiple_json_documents_in_herdr_output_do_not_prove_identity(self):
+        herdr = self.bin / "herdr"
+        herdr.write_text(
+            "#!/bin/sh\n"
+            "[ \"$1 $2\" = 'agent list' ] || exit 2\n"
+            "cat \"$HOME/agents.json\"\n"
+            "printf '{}\\n'\n"
+        )
+        herdr.chmod(0o755)
+
+        result = self.run_hook()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+
+    def test_multiple_json_documents_in_stop_payload_fail_closed(self):
+        payload = json.dumps({
+            "stop_hook_active": False,
+            "session_id": "session-under-test",
+        }) + "\n{}\n"
+        result = self.run_hook_raw(payload)
+        self.assert_blocked(result, "gate cannot verify: the Claude Stop payload is not a JSON object")
+
+    def test_multiple_json_documents_in_queue_response_fail_closed(self):
+        env = self.configure_queue_response(
+            {"malformed_line_count": 0, "unread_record_count": 0}
+        )
+        response = self.root / "strict-queue-response.json"
+        response.write_text(response.read_text() + "{}\n")
+
+        result = self.run_hook(env=env)
+        self.assert_blocked(
+            result,
+            "gate cannot verify: the patrol queue returned an unparsable or malformed strict response",
+        )
+
+    def test_multiple_json_documents_in_retry_state_fail_closed(self):
+        self.start_waiter()
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        self.assert_blocked(self.run_hook(), "unread records")
+        state_file = self.gate_state_dir / f"{self.session_key()}.json"
+        state_file.write_text(state_file.read_text() + "{}\n")
+
+        self.assert_blocked(
+            self.run_hook(active=True), "gate cannot verify: retry state"
+        )
 
     def test_unique_meta_pane_without_terminal_id_blocks_for_reconciliation(self):
         agents = json.loads(self.agents_file.read_text())
@@ -379,17 +435,19 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.assertEqual(json.loads(first_state.read_text())["consecutive_blocks"], 2)
         self.assertEqual(json.loads(second_state.read_text())["consecutive_blocks"], 1)
 
-    def test_retry_key_generation_fails_closed_without_working_sha256_tools(self):
+    def test_retry_key_generation_uses_python_standard_library(self):
         for name in ("shasum", "sha256sum"):
             command = self.bin / name
             command.write_text("#!/bin/sh\nexit 1\n")
             command.chmod(0o755)
 
         result = self.run_hook()
-        self.assert_blocked(
-            result, "gate cannot verify: the retry session key could not be generated with SHA-256"
+        self.assert_blocked(result, "no queue waiter marker exists")
+        state_file = self.gate_state_dir / f"{self.session_key()}.json"
+        self.assertTrue(state_file.is_file())
+        self.assertRegex(
+            json.loads(state_file.read_text())["reason_fingerprint"], r"^[0-9]+$"
         )
-        self.assertIn("install or repair 'shasum' or 'sha256sum'", json.loads(result.stdout)["reason"])
 
     def test_unwritable_retry_state_blocks_with_recovery_guidance(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
@@ -550,14 +608,11 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             "gate cannot verify: the Meta pane ID has an invalid format",
         )
 
-    def test_invalid_retry_fingerprint_fails_closed(self):
-        self.run_queue("add", "unread record")
-        cksum = self.bin / "cksum"
-        cksum.write_text("#!/bin/sh\nprintf 'invalid 0\\n'\n")
-        cksum.chmod(0o755)
-
-        self.assert_blocked(
-            self.run_hook(), "gate cannot verify: the retry reason fingerprint is empty or invalid"
+    def test_retry_fingerprint_is_numeric(self):
+        self.assert_blocked(self.run_hook(), "no queue waiter marker exists")
+        state_file = self.gate_state_dir / f"{self.session_key()}.json"
+        self.assertRegex(
+            json.loads(state_file.read_text())["reason_fingerprint"], r"^[0-9]+$"
         )
 
     def test_retry_state_uses_temporary_fallback_when_primary_is_unavailable(self):
@@ -581,28 +636,35 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         temporary_dir = self.root / "tmp"
         temporary_dir.mkdir()
         fallback_state_dir = temporary_dir / f"herdr-meta-turn-gate-{os.getuid()}"
-        real_mv = shutil.which("mv")
-        self.assertIsNotNone(real_mv)
-        mv_wrapper = self.bin / "mv"
-        mv_wrapper.write_text(
-            "#!/bin/sh\n"
-            'if [ ! -e "$HOME/mv-failed-once" ]; then\n'
-            '  : > "$HOME/mv-failed-once"\n'
-            "  exit 1\n"
-            "fi\n"
-            f"exec {real_mv} \"$@\"\n"
+        marker = self.root / "replace-failed-once"
+        sitecustomize = self.root / "sitecustomize.py"
+        sitecustomize.write_text(
+            "import os\n"
+            f"marker = {str(marker)!r}\n"
+            "replace = os.replace\n"
+            "def fail_primary_once(source, destination):\n"
+            "    if '/stop-gate/' in str(destination) and not os.path.exists(marker):\n"
+            "        open(marker, 'w').close()\n"
+            "        raise OSError('simulated primary state rename failure')\n"
+            "    return replace(source, destination)\n"
+            "os.replace = fail_primary_once\n"
         )
-        mv_wrapper.chmod(0o755)
 
         self.assert_blocked(
-            self.run_hook(env={"TMPDIR": str(temporary_dir)}), "unread records"
+            self.run_hook(env={
+                "TMPDIR": str(temporary_dir),
+                "PYTHONPATH": str(self.root),
+            }), "unread records"
         )
-        self.assertTrue((self.root / "mv-failed-once").exists())
+        self.assertTrue(marker.exists())
         state_file = fallback_state_dir / f"{self.session_key()}.json"
         self.assertTrue(state_file.exists(), state_file)
         self.assertEqual(json.loads(state_file.read_text())["consecutive_blocks"], 1)
         self.assert_blocked(
-            self.run_hook(active=True, env={"TMPDIR": str(temporary_dir)}),
+            self.run_hook(active=True, env={
+                "TMPDIR": str(temporary_dir),
+                "PYTHONPATH": str(self.root),
+            }),
             "unread records",
         )
         self.assertEqual(json.loads(state_file.read_text())["consecutive_blocks"], 2)

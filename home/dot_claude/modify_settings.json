@@ -123,7 +123,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$HOME/.claude/hooks/herdr-meta-turn-gate.sh\"",
+            "command": "python3 \"$HOME/.claude/hooks/herdr-meta-turn-gate.py\"",
             "timeout": 10
           },
           {

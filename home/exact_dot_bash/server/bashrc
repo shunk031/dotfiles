@@ -10,8 +10,10 @@ if [ -r "${HOME%/}/.config/alias/private.bash" ]; then
     source "${HOME%/}/.config/alias/private.bash"
 fi
 
-if [ "$TERM" = "dumb" ]; then
-    echo -n
-else
-    command -v zsh > /dev/null && exec zsh
-fi
+case $- in
+*i*)
+    if [ "$TERM" != "dumb" ] && command -v zsh > /dev/null; then
+        exec zsh
+    fi
+    ;;
+esac

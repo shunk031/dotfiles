@@ -24,6 +24,7 @@ SESSION_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 FINGERPRINT_PATTERN = re.compile(r"^[0-9]+$")
 WORKER_STATUSES = {"working", "blocked", "idle", "done"}
 TASK_STATUSES = {"queued", "working", "waits-on-other", "done", "dropped"}
+UTC_TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$")
 TASK_WARNINGS = {
     "owner-idle-15m",
     "owner-finished-task-open",
@@ -353,7 +354,7 @@ def check_workers(
 
 
 def parse_export_time(value: object) -> datetime:
-    if not isinstance(value, str) or not value.endswith("Z"):
+    if not isinstance(value, str) or not UTC_TIMESTAMP_PATTERN.fullmatch(value):
         raise ValueError("timestamp must be ISO 8601 UTC")
     try:
         return datetime.fromisoformat(value[:-1] + "+00:00")

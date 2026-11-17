@@ -330,13 +330,20 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
 
     def test_malformed_inbox_task_tree_export_blocks(self):
         self.start_waiter()
-        path = self.write_task_tree([self.task_fixture()])
-        document = json.loads(path.read_text())
-        document["tasks"][0]["warnings"] = ["unexpected-warning"]
-        path.write_text(json.dumps(document))
-        result = self.run_hook()
-        self.assert_blocked(result, "gate cannot verify: Inbox task-tree export")
-        self.assertIn("recovery:", json.loads(result.stdout)["reason"])
+        cases = [
+            ("unexpected warning", "task", "warnings", ["unexpected-warning"]),
+            ("date-only saved_at", "root", "saved_at", "2025-01-01Z"),
+            ("date-only updated_at", "task", "updated_at", "2025-01-01Z"),
+        ]
+        for name, scope, field, value in cases:
+            with self.subTest(input=name):
+                path = self.write_task_tree([self.task_fixture()])
+                document = json.loads(path.read_text())
+                (document if scope == "root" else document["tasks"][0])[field] = value
+                path.write_text(json.dumps(document))
+                result = self.run_hook()
+                self.assert_blocked(result, "gate cannot verify: Inbox task-tree export")
+                self.assertIn("recovery:", json.loads(result.stdout)["reason"])
 
     def test_block_lists_each_open_task_by_id_title_and_reason(self):
         self.start_waiter()

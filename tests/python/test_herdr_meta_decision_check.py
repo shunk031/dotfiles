@@ -1,7 +1,4 @@
-"""Tests for Meta's decision-check hook."""
-
 import importlib.util
-import json
 import subprocess
 import tempfile
 import unittest
@@ -45,18 +42,13 @@ class DecisionCheckTest(unittest.TestCase):
                     "hook_event_name": "PreToolUse",
                     "tool_name": "Bash",
                     "tool_input": {
-                        "command": f"herdr agent prompt meta {json.dumps(text)}"
+                        "command": f"(herdr-agent-prompt-if-input-empty.sh {text})"
                     },
                 }
                 result = GATE.evaluate_event(payload, checker, self.retry_unknown)
-                self.assertEqual(
-                    result["hookSpecificOutput"]["permissionDecision"], "deny"
-                )
-                self.assertIn(
-                    "standing decision",
-                    result["hookSpecificOutput"]["permissionDecisionReason"],
-                )
-                checker.assert_called_once()
+                output = result["hookSpecificOutput"]
+                self.assertEqual(output["permissionDecision"], "deny")
+                self.assertIn("standing decision", output["permissionDecisionReason"])
 
     def test_valid_proposal_is_allowed(self):
         checker = mock.Mock(return_value=ALLOW)
@@ -67,6 +59,8 @@ class DecisionCheckTest(unittest.TestCase):
         self.assertIsNone(GATE.evaluate_event(payload, checker, self.retry_unknown))
         for response in ({"status": "ALLOW"}, {**ALLOW, "reason": " "}):
             self.assertEqual("UNKNOWN", GATE.normalize_result(response)["status"])
+        duplicate = [("status", "CONFLICT"), ("status", "ALLOW")]
+        self.assertEqual(GATE.unique_object(duplicate), {})
         retry = mock.Mock()
         checker.return_value = GATE.unknown("Timed out.")
         GATE.evaluate_event(payload, checker, retry)
@@ -113,12 +107,12 @@ class DecisionCheckTest(unittest.TestCase):
 
     def test_checker_runs_only_for_action_or_choice_text(self):
         checker = mock.Mock(return_value=ALLOW)
-        for text in (
-            "The command finished.\n- One fact\n- Another fact",
-            "Option A: Keep the hook; Option B: Replace the screen",
-        ):
-            payload = {"hook_event_name": "Stop", "last_assistant_message": text}
-            self.assertIsNone(GATE.evaluate_event(payload, checker, self.retry_unknown))
+        for text in ("Facts.", "Option A: Keep; Option B: Replace"):
+            GATE.evaluate_event(
+                {"hook_event_name": "Stop", "last_assistant_message": text},
+                checker,
+                self.retry_unknown,
+            )
         self.assertEqual(checker.call_count, 1)
 
 

@@ -14,7 +14,7 @@ from pathlib import Path
 CHECK_TIMEOUT_SECONDS = 30
 STATUSES = {"ALLOW", "CONFLICT", "UNKNOWN"}
 SEND_PATTERNS = (
-    re.compile(r"(?:^|[\s/'\"])herdr-agent-prompt-if-input-empty\.sh(?:\s|['\"]|$)"),
+    re.compile(r"(?<![\w.-])herdr-agent-prompt-if-input-empty\.sh(?=$|[^\w.-])"),
     re.compile(r"\bherdr(?:\s+--\S+(?:\s+\S+)?)*\s+agent\s+prompt\b"),
 )
 PROPOSAL_WORDS = re.compile(
@@ -31,6 +31,10 @@ NAMED_OPTION = re.compile(r"(?i)\boption\s+(?:[a-z]|\d+)\s*:")
 
 def unknown(reason: str) -> dict[str, str]:
     return {"status": "UNKNOWN", "decision": "", "reason": reason}
+
+
+def unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    return dict(pairs) if len(dict(pairs)) == len(pairs) else {}
 
 
 def normalize_result(value: object) -> dict[str, str]:
@@ -151,7 +155,9 @@ def run_checker(proposal: str) -> dict[str, str]:
     if result.returncode:
         return unknown("Decision checker returned no result.")
     try:
-        return normalize_result(json.loads(result.stdout))
+        return normalize_result(
+            json.loads(result.stdout, object_pairs_hook=unique_object)
+        )
     except (json.JSONDecodeError, TypeError):
         return unknown("Decision checker returned invalid JSON.")
 

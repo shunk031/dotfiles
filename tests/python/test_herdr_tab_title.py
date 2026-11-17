@@ -10,7 +10,6 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-
 SOURCE = (
     Path(__file__).parents[2]
     / "home"
@@ -35,9 +34,14 @@ class HerdrTabTitleTests(unittest.TestCase):
 
     def test_plugin_finds_hook_state_without_hook_socket_environment(self):
         with tempfile.TemporaryDirectory() as directory:
-            with patch.dict(os.environ, {"XDG_CACHE_HOME": directory, "HERDR_SOCKET_PATH": "hook-socket"}):
+            with patch.dict(
+                os.environ,
+                {"XDG_CACHE_HOME": directory, "HERDR_SOCKET_PATH": "hook-socket"},
+            ):
                 from_hook = MODULE.cache_path("owner-session")
-            with patch.dict(os.environ, {"XDG_CACHE_HOME": directory, "HERDR_SOCKET_PATH": ""}):
+            with patch.dict(
+                os.environ, {"XDG_CACHE_HOME": directory, "HERDR_SOCKET_PATH": ""}
+            ):
                 from_plugin = MODULE.cache_path("owner-session")
         self.assertEqual(from_hook, from_plugin)
 
@@ -53,43 +57,80 @@ class HerdrTabTitleTests(unittest.TestCase):
 
     def test_complete_requires_stop_and_merged_pr(self):
         decision = {"state": "complete", "title": "API 更新", "pr_number": 123}
-        self.assertEqual(MODULE.make_label("PostToolUse", decision, None), "🚧 API 更新")
-        self.assertEqual(MODULE.make_label("Stop", decision, "OPEN"), "⛔ review and merge PR #123")
-        self.assertEqual(MODULE.make_label("Stop", decision, "MERGED"), "✅ API 更新 #123")
-        self.assertEqual(MODULE.make_label("Stop", decision, None), "⛔ PR #123 の状態確認待ち")
+        self.assertEqual(
+            MODULE.make_label("PostToolUse", decision, None), "🚧 API 更新"
+        )
+        self.assertEqual(
+            MODULE.make_label("Stop", decision, "OPEN"), "⛔ review and merge PR #123"
+        )
+        self.assertEqual(
+            MODULE.make_label("Stop", decision, "MERGED"), "✅ API 更新 #123"
+        )
+        self.assertEqual(
+            MODULE.make_label("Stop", decision, None), "⛔ PR #123 の状態確認待ち"
+        )
 
     def test_complete_without_pr_uses_task_name(self):
         decision = {"state": "complete", "title": "調査完了", "pr_number": None}
         self.assertEqual(MODULE.make_label("Stop", decision, None), "✅ 調査完了")
 
     def test_blocked_uses_next_action(self):
-        decision = {"state": "blocked", "title": "調査", "next_action": "利用者の回答待ち"}
-        self.assertEqual(MODULE.make_label("Stop", decision, None), "⛔ 利用者の回答待ち")
+        decision = {
+            "state": "blocked",
+            "title": "調査",
+            "next_action": "利用者の回答待ち",
+        }
+        self.assertEqual(
+            MODULE.make_label("Stop", decision, None), "⛔ 利用者の回答待ち"
+        )
 
     def test_open_pr_blocker_keeps_observer_handoff_label(self):
-        decision = {"state": "blocked", "title": "Review", "next_action": "Waiting", "pr_number": 123}
-        self.assertEqual(MODULE.make_label("Stop", decision, "OPEN"), "⛔ review and merge PR #123")
+        decision = {
+            "state": "blocked",
+            "title": "Review",
+            "next_action": "Waiting",
+            "pr_number": 123,
+        }
+        self.assertEqual(
+            MODULE.make_label("Stop", decision, "OPEN"), "⛔ review and merge PR #123"
+        )
 
     def test_herdr_lifecycle_recovers_active_title(self):
         state = {"last_label": "⛔ 承認または入力待ち", "last_active_title": "API 更新"}
         self.assertEqual(MODULE.lifecycle_label("working", state), "🚧 API 更新")
         self.assertIsNone(MODULE.lifecycle_label("blocked", state))
         self.assertIsNone(MODULE.lifecycle_label("done", state))
-        self.assertIsNone(MODULE.lifecycle_label("blocked", {"last_label": "✅ API 更新"}))
-        self.assertIsNone(MODULE.lifecycle_label("working", {"last_label": "⛔ PR #123 のマージ待ち"}))
-        self.assertEqual(MODULE.lifecycle_label("blocked", {"last_label": "🚧 API 更新"}), "⛔ 承認または入力待ち")
+        self.assertIsNone(
+            MODULE.lifecycle_label("blocked", {"last_label": "✅ API 更新"})
+        )
+        self.assertIsNone(
+            MODULE.lifecycle_label("working", {"last_label": "⛔ PR #123 のマージ待ち"})
+        )
+        self.assertEqual(
+            MODULE.lifecycle_label("blocked", {"last_label": "🚧 API 更新"}),
+            "⛔ 承認または入力待ち",
+        )
 
     def test_hook_only_queues_detached_work(self):
         with tempfile.TemporaryDirectory() as directory:
-            environment = {"HERDR_ENV": "1", "HERDR_SOCKET_PATH": "test-socket", "XDG_CACHE_HOME": directory}
-            with patch.dict(os.environ, environment), patch.object(MODULE.subprocess, "Popen") as launch:
+            environment = {
+                "HERDR_ENV": "1",
+                "HERDR_SOCKET_PATH": "test-socket",
+                "XDG_CACHE_HOME": directory,
+            }
+            with (
+                patch.dict(os.environ, environment),
+                patch.object(MODULE.subprocess, "Popen") as launch,
+            ):
                 launch.return_value.pid = 12345
-                MODULE.enqueue({
-                    "hook_event_name": "UserPromptSubmit",
-                    "session_id": "test-session",
-                    "prompt": "Update a tab title",
-                    "cwd": directory,
-                })
+                MODULE.enqueue(
+                    {
+                        "hook_event_name": "UserPromptSubmit",
+                        "session_id": "test-session",
+                        "prompt": "Update a tab title",
+                        "cwd": directory,
+                    }
+                )
                 state = MODULE.load(MODULE.cache_path("test-session"))
             self.assertEqual(state["prompt"], "Update a tab title")
             self.assertEqual(state["worker_pid"], 12345)
@@ -98,18 +139,32 @@ class HerdrTabTitleTests(unittest.TestCase):
 
     def test_subagent_hook_does_not_queue_even_with_parent_session_id(self):
         with tempfile.TemporaryDirectory() as directory:
-            with patch.dict(os.environ, {"HERDR_ENV": "1", "XDG_CACHE_HOME": directory}), patch.object(MODULE.subprocess, "Popen") as launch:
-                MODULE.enqueue({
-                    "hook_event_name": "PostToolUse", "session_id": "owner-session", "agent_id": "child-1",
-                })
+            with (
+                patch.dict(os.environ, {"HERDR_ENV": "1", "XDG_CACHE_HOME": directory}),
+                patch.object(MODULE.subprocess, "Popen") as launch,
+            ):
+                MODULE.enqueue(
+                    {
+                        "hook_event_name": "PostToolUse",
+                        "session_id": "owner-session",
+                        "agent_id": "child-1",
+                    }
+                )
             launch.assert_not_called()
 
     def test_late_tool_hook_does_not_replace_stop_event(self):
         with tempfile.TemporaryDirectory() as directory:
-            with patch.dict(os.environ, {"HERDR_ENV": "1", "XDG_CACHE_HOME": directory}), patch.object(MODULE.subprocess, "Popen") as launch:
+            with (
+                patch.dict(os.environ, {"HERDR_ENV": "1", "XDG_CACHE_HOME": directory}),
+                patch.object(MODULE.subprocess, "Popen") as launch,
+            ):
                 launch.return_value.pid = 12345
-                MODULE.enqueue({"hook_event_name": "Stop", "session_id": "test-session"})
-                MODULE.enqueue({"hook_event_name": "PostToolUse", "session_id": "test-session"})
+                MODULE.enqueue(
+                    {"hook_event_name": "Stop", "session_id": "test-session"}
+                )
+                MODULE.enqueue(
+                    {"hook_event_name": "PostToolUse", "session_id": "test-session"}
+                )
                 state = MODULE.load(MODULE.cache_path("test-session"))
             self.assertEqual(state["event"], "Stop")
             self.assertEqual(state["generation"], 1)
@@ -133,18 +188,31 @@ class HerdrTabTitleTests(unittest.TestCase):
     def test_stop_worker_renames_live_owner_tab_and_scrubs_prompt(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "state.json"
-            MODULE.save(path, {
-                "session_id": "owner-session", "worker_pid": os.getpid(), "generation": 1,
-                "event": "Stop", "prompt": "Private task", "cwd": directory,
-            })
+            MODULE.save(
+                path,
+                {
+                    "session_id": "owner-session",
+                    "worker_pid": os.getpid(),
+                    "generation": 1,
+                    "event": "Stop",
+                    "prompt": "Private task",
+                    "cwd": directory,
+                },
+            )
             labels = ["2"]
 
             def fake_herdr(*args):
                 if args[:2] == ("pane", "current"):
-                    return {"result": {"pane": {
-                        "tab_id": "tab-1", "agent_session": {"value": "owner-session"},
-                        "agent_status": "working",
-                    }}}
+                    return {
+                        "result": {
+                            "pane": {
+                                "tab_id": "tab-1",
+                                "agent_session": {"value": "owner-session"},
+                                "agent_status": "working",
+                                "terminal_title_stripped": "Build task",
+                            }
+                        }
+                    }
                 if args[:2] == ("tab", "get"):
                     return {"result": {"tab": {"label": labels[0]}}}
                 if args[:2] == ("tab", "rename"):
@@ -152,13 +220,162 @@ class HerdrTabTitleTests(unittest.TestCase):
                     return {"result": {"tab": {"tab_id": args[2], "label": labels[0]}}}
                 raise AssertionError(args)
 
-            decision = {"state": "blocked", "title": "Build", "next_action": "Review", "pr_number": 123}
-            with patch.object(MODULE.time, "sleep"), patch.object(MODULE, "herdr", side_effect=fake_herdr), patch.object(MODULE, "ask_model", return_value=decision), patch.object(MODULE, "pr_state", return_value="OPEN"):
+            decision = {
+                "state": "blocked",
+                "title": "Build",
+                "next_action": "Review",
+                "pr_number": 123,
+            }
+            with (
+                patch.object(MODULE.time, "sleep"),
+                patch.object(MODULE, "herdr", side_effect=fake_herdr),
+                patch.object(MODULE, "ask_model", return_value=decision) as ask_model,
+                patch.object(MODULE, "pr_state", return_value="OPEN"),
+            ):
                 MODULE.worker(path)
+            ask_model.assert_called_once()
             self.assertEqual(labels[0], "⛔ review and merge PR #123")
             state = MODULE.load(path)
             self.assertEqual(state["last_label"], labels[0])
             self.assertNotIn("prompt", state)
+
+    def test_working_hook_uses_herdr_terminal_title_without_model(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "state.json"
+            MODULE.save(
+                path,
+                {
+                    "session_id": "owner-session",
+                    "worker_pid": os.getpid(),
+                    "generation": 1,
+                    "event": "PostToolUse",
+                    "last_label": "🚧 Old step",
+                    "last_model_time": MODULE.time.time(),
+                },
+            )
+            labels = ["🚧 Old step"]
+
+            def fake_herdr(*args):
+                if args[:2] == ("pane", "current"):
+                    return {
+                        "result": {
+                            "pane": {
+                                "tab_id": "tab-1",
+                                "agent_session": {"value": "owner-session"},
+                                "agent_status": "working",
+                                "terminal_title_stripped": "Run tests | chezmoi",
+                            }
+                        }
+                    }
+                if args[:2] == ("tab", "get"):
+                    return {"result": {"tab": {"label": labels[0]}}}
+                if args[:2] == ("tab", "rename"):
+                    labels[0] = args[3]
+                    return {"result": {"tab": {"tab_id": args[2], "label": labels[0]}}}
+                raise AssertionError(args)
+
+            with (
+                patch.object(MODULE.time, "sleep"),
+                patch.object(MODULE, "herdr", side_effect=fake_herdr),
+                patch.object(MODULE, "ask_model") as ask_model,
+            ):
+                MODULE.worker(path)
+
+            ask_model.assert_not_called()
+            self.assertEqual(labels[0], "🚧 Run tests | chezmoi")
+            state = MODULE.load(path)
+            self.assertEqual(state["last_label"], labels[0])
+            self.assertEqual(state["last_active_title"], "Run tests | chezmoi")
+
+    def test_generic_terminal_title_falls_back_to_model(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "state.json"
+            MODULE.save(
+                path,
+                {
+                    "session_id": "owner-session",
+                    "worker_pid": os.getpid(),
+                    "generation": 1,
+                    "event": "PostToolUse",
+                    "last_label": "🚧 Old step",
+                },
+            )
+            labels = ["🚧 Old step"]
+
+            def fake_herdr(*args):
+                if args[:2] == ("pane", "current"):
+                    return {
+                        "result": {
+                            "pane": {
+                                "tab_id": "tab-1",
+                                "agent_session": {"value": "owner-session"},
+                                "agent_status": "working",
+                                "terminal_title_stripped": "Codex",
+                            }
+                        }
+                    }
+                if args[:2] == ("tab", "get"):
+                    return {"result": {"tab": {"label": labels[0]}}}
+                if args[:2] == ("tab", "rename"):
+                    labels[0] = args[3]
+                    return {"result": {"tab": {"tab_id": args[2], "label": labels[0]}}}
+                raise AssertionError(args)
+
+            decision = {
+                "state": "working",
+                "title": "Model fallback",
+                "next_action": "",
+                "pr_number": None,
+            }
+            with (
+                patch.object(MODULE.time, "sleep"),
+                patch.object(MODULE, "herdr", side_effect=fake_herdr),
+                patch.object(MODULE, "ask_model", return_value=decision) as ask_model,
+            ):
+                MODULE.worker(path)
+
+            ask_model.assert_called_once()
+            self.assertEqual(labels[0], "🚧 Model fallback")
+
+    def test_unchanged_terminal_title_skips_rename_and_model(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "state.json"
+            label = "🚧 Run tests | chezmoi"
+            MODULE.save(
+                path,
+                {
+                    "session_id": "owner-session",
+                    "worker_pid": os.getpid(),
+                    "generation": 1,
+                    "event": "PostToolUse",
+                    "last_label": label,
+                },
+            )
+
+            def fake_herdr(*args):
+                if args[:2] == ("pane", "current"):
+                    return {
+                        "result": {
+                            "pane": {
+                                "tab_id": "tab-1",
+                                "agent_session": {"value": "owner-session"},
+                                "agent_status": "working",
+                                "terminal_title_stripped": "Run tests | chezmoi",
+                            }
+                        }
+                    }
+                if args[:2] == ("tab", "get"):
+                    return {"result": {"tab": {"label": label}}}
+                raise AssertionError(args)
+
+            with (
+                patch.object(MODULE.time, "sleep"),
+                patch.object(MODULE, "herdr", side_effect=fake_herdr),
+                patch.object(MODULE, "ask_model") as ask_model,
+            ):
+                MODULE.worker(path)
+
+            ask_model.assert_not_called()
 
     def test_plugin_watches_agent_status_changes(self):
         manifest = (
@@ -172,7 +389,9 @@ class HerdrTabTitleTests(unittest.TestCase):
         )
         config = tomllib.loads(manifest.read_text())
         self.assertEqual(config["id"], "shunk031.herdr-tab-title")
-        self.assertIn("pane.agent_status_changed", [event["on"] for event in config["events"]])
+        self.assertIn(
+            "pane.agent_status_changed", [event["on"] for event in config["events"]]
+        )
 
 
 if __name__ == "__main__":

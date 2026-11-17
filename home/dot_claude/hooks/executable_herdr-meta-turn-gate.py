@@ -15,7 +15,6 @@ import time
 import zlib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import urlsplit
 
 HERDR_TIMEOUT_SECONDS = 3
 QUEUE_TIMEOUT_SECONDS = 3
@@ -410,15 +409,8 @@ def read_task_tree_export(path: Path, session_id: str) -> list[dict[str, object]
         ):
             raise GateError(f"Inbox task-tree export '{path}' contains an invalid owner")
         pr = task["pr"]
-        if pr is not None:
-            parsed_pr = urlsplit(pr) if isinstance(pr, str) else None
-            parts = parsed_pr.path.split("/") if parsed_pr else []
-            if (not parsed_pr or parsed_pr.scheme != "https" or not parsed_pr.hostname or
-                    parsed_pr.username or parsed_pr.password or parsed_pr.query or parsed_pr.fragment or
-                    len(parts) != 5 or parts[0] or parts[1] in {"", ".", ".."} or
-                    parts[2] in {"", ".", ".."} or parts[3] != "pull" or
-                    not re.fullmatch(r"[1-9][0-9]*", parts[4])):
-                raise GateError(f"Inbox task-tree export '{path}' contains an invalid PR URL")
+        if pr is not None and not isinstance(pr, str):
+            raise GateError(f"Inbox task-tree export '{path}' contains an invalid pr")
         parent_id = task["parent_id"]
         if parent_id is not None and (
             not isinstance(parent_id, str) or not parent_id or parent_id != parent_id.strip() or

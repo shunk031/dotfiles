@@ -291,9 +291,13 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             with self.subTest(status=status):
                 self.write_task_tree([self.task_fixture(
                     status=status, updated_at=old, warnings=["status-conflict"],
+                    pr="not a validated URL",
                 )])
                 result = self.run_hook()
                 self.assertEqual((result.returncode, result.stdout), (0, ""))
+
+        self.write_task_tree([self.task_fixture(pr=42)])
+        self.assert_blocked(self.run_hook(), "invalid pr")
 
     def test_missing_inbox_task_tree_export_blocks_after_identity(self):
         self.start_waiter()

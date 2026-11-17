@@ -29,6 +29,9 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.state = self.root / "state"
         self.queue_state = self.root / "queue-state"
         self.registry = self.state / "herdr-worker-lifecycle" / "workers.tsv"
+        self.registry.parent.mkdir(parents=True)
+        self.registry.write_text("")
+        (self.queue_state / "waiters").mkdir(parents=True)
         self.queue = self.bin / "herdr-meta-patrol-queue"
         shutil.copyfile(QUEUE_SOURCE, self.queue)
         self.queue.chmod(0o755)
@@ -63,11 +66,10 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
         }
 
-    def run_hook(self, *, active=False, env=None, session_id="session-under-test"):
-        payload = {
-            "hook_event_name": "Stop",
-            "stop_hook_active": active,
-        }
+    def run_hook(self, *, active=False, include_active=True, env=None, session_id="session-under-test"):
+        payload = {"hook_event_name": "Stop"}
+        if include_active:
+            payload["stop_hook_active"] = active
         if session_id is not None:
             payload["session_id"] = session_id
         try:
@@ -156,7 +158,6 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
 
     def test_uncollected_settled_worker_blocks_until_registry_is_collected(self):
         self.start_waiter()
-        self.registry.parent.mkdir(parents=True)
         row = "meta\tw1:p1\tmeta-terminal\tgate-task\tgate-worker\tworker-terminal\tw2:t2\tw2:p2\tstarted\n"
         self.registry.write_text(row)
 
@@ -169,14 +170,15 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
 
     def test_unexpected_worker_status_blocks_for_reconciliation(self):
         self.start_waiter()
-        self.registry.parent.mkdir(parents=True)
         row = "meta\tw1:p1\tmeta-terminal\tgate-task\tgate-worker\tworker-terminal\tw2:t2\tw2:p2\tstarted\n"
         self.registry.write_text(row)
         agents = json.loads(self.agents_file.read_text())
         agents["result"]["agents"][1]["agent_status"] = "unknown"
         self.agents_file.write_text(json.dumps(agents))
 
-        self.assert_blocked(self.run_hook(), "status unknown")
+        self.assert_blocked(
+            self.run_hook(), "gate cannot verify: worker 'gate-worker' has unexpected status 'unknown'"
+        )
 
     def test_other_claude_session_is_not_gated(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
@@ -202,24 +204,37 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         del agents["result"]["agents"][0]["terminal_id"]
         self.agents_file.write_text(json.dumps(agents))
 
-        self.assert_blocked(self.run_hook(), "terminal ID is missing")
+        self.assert_blocked(self.run_hook(), "Meta has no terminal_id")
 
-    def test_inaccessible_registry_parent_blocks_but_absent_registry_is_allowed(self):
+    def test_missing_malformed_and_dangling_registry_paths_fail_closed(self):
         self.start_waiter()
-        self.registry.parent.parent.mkdir(parents=True, exist_ok=True)
+        self.registry.unlink()
+        self.registry.parent.rmdir()
         self.registry.parent.write_text("not a directory")
 
-        self.assert_blocked(self.run_hook(), "registry directory is inaccessible or malformed")
+        self.assert_blocked(self.run_hook(), "gate cannot verify: the worker lifecycle registry directory")
 
         self.registry.parent.unlink()
-        result = self.run_hook()
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout, "")
+        self.assert_blocked(self.run_hook(), "gate cannot verify: the worker lifecycle registry directory")
+
+        self.state.rmdir()
+        self.state.symlink_to(self.root / "missing-registry-parent")
+        self.assert_blocked(self.run_hook(), "gate cannot verify: the worker lifecycle parent")
 
     def test_stop_hook_active_attempt_still_blocks(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
         self.assert_blocked(self.run_hook(), "unread records")
         self.assert_blocked(self.run_hook(active=True), "unread records")
+
+    def test_missing_or_non_boolean_stop_hook_active_fails_closed(self):
+        self.assert_blocked(
+            self.run_hook(include_active=False),
+            "gate cannot verify: stop_hook_active is missing or invalid",
+        )
+        self.assert_blocked(
+            self.run_hook(active="false"),
+            "gate cannot verify: stop_hook_active is missing or invalid",
+        )
 
     def test_fourth_same_reason_attempt_allows_and_audits_warning(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
@@ -257,17 +272,25 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         previous = json.loads(state_file.read_text())
 
         self.run_queue("ack", "1")
-        self.assert_blocked(self.run_hook(active=True), "No 'herdr-meta-patrol-queue wait'")
+        self.assert_blocked(self.run_hook(active=True), "no queue waiter marker exists")
         current = json.loads(state_file.read_text())
         self.assertEqual(current["consecutive_blocks"], 1)
         self.assertNotEqual(current["reason_fingerprint"], previous["reason_fingerprint"])
 
     def test_missing_session_id_uses_a_stable_pane_scoped_retry_key(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
-        self.assert_blocked(self.run_hook(session_id=None), "unread records")
-        self.assert_blocked(self.run_hook(session_id="../invalid"), "unread records")
-        self.assert_blocked(self.run_hook(session_id=123), "unread records")
-        self.assert_blocked(self.run_hook(session_id=True), "unread records")
+        self.assert_blocked(
+            self.run_hook(session_id=None), "gate cannot verify: session_id is missing"
+        )
+        self.assert_blocked(
+            self.run_hook(session_id="../invalid"), "gate cannot verify: session_id has an invalid format"
+        )
+        self.assert_blocked(
+            self.run_hook(session_id=123), "gate cannot verify: session_id is missing"
+        )
+        self.assert_blocked(
+            self.run_hook(session_id=True), "gate cannot verify: session_id is missing"
+        )
         state_files = list(self.gate_state_dir.glob("*.json"))
         self.assertEqual(len(state_files), 1)
         self.assertTrue(state_files[0].name.startswith("pane-"))
@@ -281,8 +304,8 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         agents["result"]["agents"][0]["pane_id"] = "w9:p9"
         self.agents_file.write_text(json.dumps(agents))
         self.assert_blocked(
-            self.run_hook(active=True, session_id=123, env={"HERDR_PANE_ID": "w9:p9"}),
-            "unread records",
+            self.run_hook(active=False, session_id=123, env={"HERDR_PANE_ID": "w9:p9"}),
+            "gate cannot verify: session_id is missing",
         )
 
         state_files = list(self.gate_state_dir.glob("*.json"))
@@ -310,8 +333,18 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         temporary_dir.write_text("not a directory")
 
         result = self.run_hook(env={"TMPDIR": str(temporary_dir)})
-        self.assert_blocked(result, "could not be saved")
-        self.assertIn("writable", json.loads(result.stdout)["reason"])
+        self.assert_blocked(result, "gate cannot verify: retry state cannot be created")
+        self.assertIn("recovery:", json.loads(result.stdout)["reason"])
+
+    def test_malformed_retry_state_fails_closed_with_recovery_guidance(self):
+        self.run_queue("add", "--from", "gate-test", "unread record")
+        self.assert_blocked(self.run_hook(), "unread records")
+        state_file = self.gate_state_dir / f"{self.session_key()}.json"
+        state_file.write_text("not-json\n")
+
+        result = self.run_hook(active=True)
+        self.assert_blocked(result, "gate cannot verify: retry state")
+        self.assertIn("recovery:", json.loads(result.stdout)["reason"])
 
     def test_retry_state_uses_temporary_fallback_when_primary_is_unavailable(self):
         self.run_queue("add", "--from", "gate-test", "unread record")
@@ -383,7 +416,84 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         result = self.run_hook(env={
             "HERDR_META_PATROL_QUEUE_COMMAND": str(self.root / "missing-queue"),
         })
-        self.assert_blocked(result, "queue")
+        self.assert_blocked(result, "gate cannot verify: the patrol queue could not be read")
+
+    def test_check_errors_fail_closed_with_recovery_guidance(self):
+        malformed_queue = self.bin / "malformed-queue"
+        malformed_queue.write_text("#!/bin/sh\nprintf '%s\\n' 'not-json'\n")
+        malformed_queue.chmod(0o755)
+        waiter_dir = self.queue_state / "waiters"
+        retry_state_path = self.queue_state / "stop-gate"
+        invalid_tmp = self.root / "tmp-is-a-file"
+
+        def no_change():
+            return lambda: None
+
+        def hide_waiter_dir():
+            shutil.rmtree(waiter_dir)
+            waiter_dir.write_text("not a directory")
+
+            def restore():
+                waiter_dir.unlink()
+                waiter_dir.mkdir()
+
+            return restore
+
+        def hide_registry():
+            self.registry.unlink()
+            return lambda: self.registry.write_text("")
+
+        def corrupt_registry():
+            self.registry.write_text("malformed lifecycle row\\n")
+            return lambda: self.registry.write_text("")
+
+        def break_retry_storage():
+            if retry_state_path.is_dir():
+                shutil.rmtree(retry_state_path)
+            retry_state_path.write_text("not a directory")
+            invalid_tmp.write_text("not a directory")
+
+            def restore():
+                retry_state_path.unlink()
+                invalid_tmp.unlink()
+
+            return restore
+
+        cases = [
+            (
+                "queue command failure",
+                no_change,
+                {"HERDR_META_PATROL_QUEUE_COMMAND": str(self.root / "missing-queue")},
+                "patrol queue could not be read",
+            ),
+            (
+                "malformed queue data",
+                no_change,
+                {"HERDR_META_PATROL_QUEUE_COMMAND": str(malformed_queue)},
+                "patrol queue returned unparsable",
+            ),
+            ("malformed waiter directory", hide_waiter_dir, {}, "queue waiter directory"),
+            ("missing lifecycle registry", hide_registry, {}, "worker lifecycle registry"),
+            ("malformed lifecycle registry", corrupt_registry, {}, "registry is unparsable"),
+            (
+                "unavailable retry state",
+                break_retry_storage,
+                {"TMPDIR": str(invalid_tmp)},
+                "retry state cannot be created",
+            ),
+        ]
+
+        for index, (name, prepare, env, expected) in enumerate(cases):
+            with self.subTest(check=name):
+                restore = prepare()
+                try:
+                    result = self.run_hook(session_id=f"check-error-{index}", env=env)
+                    self.assert_blocked(result, "gate cannot verify:")
+                    reason = json.loads(result.stdout)["reason"]
+                    self.assertIn(expected, reason)
+                    self.assertIn("recovery:", reason)
+                finally:
+                    restore()
 
     def test_ack_and_rearmed_wait_allow_a_clean_stop(self):
         self.start_waiter()

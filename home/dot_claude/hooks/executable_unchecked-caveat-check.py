@@ -49,7 +49,7 @@ def visible_text(message: str) -> str:
             continue
         lines.append(line)
     text = "\n".join(lines)
-    text = re.sub(r"(?<!`)(`+)(?!`)[^\n]*?(?<!`)\1(?!`)", " ", text)
+    text = re.sub(r"(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)", " ", text)
     quotes = r'''"[^"\n]*"|“[^”\n]*”|‘[^’\n]*’|「[\s\S]*?」|『[\s\S]*?』|(?<!\w)'(?:[^'\n]|(?<=\w)'(?=\w))*'(?!\w)'''
     return re.sub(quotes, " ", text)
 

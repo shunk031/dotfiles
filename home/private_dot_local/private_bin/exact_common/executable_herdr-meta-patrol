@@ -210,7 +210,7 @@ function check_stale_root() {
         printf '[%s] %s: Inbox freshness check unavailable\n' "${machine}" "${root}"
         return
     }
-    stale_items="$(jq -c --argjson now "${now}" --argjson hours "${HERDR_META_TASK_STALE_HOURS:-6}" '[.tasks[] | select(.status != "done" and .status != "dropped") | select($now - (.updated_at | fromdateiso8601) > $hours * 3600) | {kind:"task",id,stamp:.updated_at,owner}] + [.items[] | select(.kind == "question") | . as $q | ($q.reportedAt // $q.at) as $t | select($now * 1000 - $t > $hours * 3600000) | {kind:"Ask",id:$q.id,stamp:($t|tostring),owner:null}]' <<< "${data}" 2> /dev/null)" || {
+    stale_items="$(jq -c --argjson now "${now}" --argjson hours "${HERDR_META_TASK_STALE_HOURS:-6}" '[.tasks[] | select(.status != "done" and .status != "dropped") | select($now - (.updated_at | sub("\\.[0-9]+Z$";"Z") | fromdateiso8601) > $hours * 3600) | {kind:"task",id,stamp:.updated_at,owner}] + [.items[] | select(.kind == "question") | . as $q | ($q.reportedAt // $q.at) as $t | select($now * 1000 - $t > $hours * 3600000) | {kind:"Ask",id:$q.id,stamp:($t|tostring),owner:null}]' <<< "${data}" 2> /dev/null)" || {
         printf '[%s] %s: Inbox freshness check unavailable\n' "${machine}" "${root}"
         return
     }

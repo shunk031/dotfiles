@@ -444,14 +444,14 @@ STUB
 @test "[common] herdr-meta-patrol wakes stale item owner once through the guarded sender" {
     mkdir -p "${XDG_STATE_HOME}/meta" "${XDG_STATE_HOME}/inbox/task-tree" "${HOME}/.claude/plugins/store" && printf 'Local\tmeta\nLocal\torch\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
     jq -n '{result:{agents:[{name:"meta",pane_id:"m",agent_status:"idle",agent_session:{kind:"id",source:"herdr:claude",value:"meta-session"}},{name:"orch",pane_id:"p1",agent_status:"idle"}]}}' > "${FAKE_AGENTS}"
-    jq -n '{schema:1,session_id:"meta-session",tasks:[{id:"stale-task",status:"queued",updated_at:"2000-01-01T00:00:00Z",owner:{agent:"orch",machine:"local"}}]}' > "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json"
+    jq -n '{schema:1,session_id:"meta-session",tasks:[{id:"stale-task",status:"queued",updated_at:"2000-01-01T00:00:00.123Z",owner:{agent:"orch",machine:"local"}}]}' > "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json"
     jq -n '{"s:meta-session":{ledger:{items:[{id:"meta-stale",kind:"question",at:0},{id:"recent-ask",kind:"question",at:(now*1000|floor)}],closed:[{id:"closed-ask",at:0}]}}}' > "${HOME}/.claude/plugins/store/inbox_inline-test.json"
     printf '❯ \n' > "${FAKE_PANE}"
     run bash "${SCRIPT_PATH}"
     [ "${status}" -eq 0 ] && [ "$(wc -l < "${FAKE_PROMPTS}")" -eq 1 ] && grep -F 'orch' "${FAKE_PROMPTS}" | grep -Fq 'stale-task'
     ! grep -Eq 'meta-stale|recent-ask|closed-ask' "${FAKE_PROMPTS}" && grep -Fq 'meta-stale' <(calls) && ! grep -Eq 'recent-ask|closed-ask' <(calls)
     run bash "${SCRIPT_PATH}"
-    jq '.tasks[0].updated_at="2000-01-02T00:00:00Z"' "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json" > "${BATS_TEST_TMPDIR}/updated.json" && mv "${BATS_TEST_TMPDIR}/updated.json" "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json"
+    jq '.tasks[0].updated_at="2000-01-02T00:00:00.123Z"' "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json" > "${BATS_TEST_TMPDIR}/updated.json" && mv "${BATS_TEST_TMPDIR}/updated.json" "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json"
     [ "$(wc -l < "${FAKE_PROMPTS}")" -eq 1 ]
     run bash "${SCRIPT_PATH}"
     [ "$(wc -l < "${FAKE_PROMPTS}")" -eq 2 ]

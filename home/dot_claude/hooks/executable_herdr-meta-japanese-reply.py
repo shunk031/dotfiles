@@ -132,6 +132,8 @@ def is_command_line(line: str) -> bool:
         assignments.append(arguments.pop(0))
     if assignments:
         return True
+    if arguments and arguments[0].startswith("--"):
+        return True
 
     if command in COMMAND_SUBCOMMANDS:
         return bool(arguments and arguments[0] in COMMAND_SUBCOMMANDS[command])

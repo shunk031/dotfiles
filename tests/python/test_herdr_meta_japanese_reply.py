@@ -110,8 +110,13 @@ class JapaneseReplyTest(unittest.TestCase):
             'custom-tool --message "The requested implementation is complete '
             'and validation passed successfully."'
         )
+        plain_executable = (
+            'customtool --message "The requested implementation is complete '
+            'and validation passed successfully."'
+        )
         lines = (
             command,
+            plain_executable,
             "$ " + command,
             "MODE=fast " + command,
             "./custom-tool --message 'The requested implementation is complete.'",

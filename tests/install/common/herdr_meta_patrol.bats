@@ -24,6 +24,10 @@ function setup() {
     export HERDR_META_PATROL_FEED_COMMAND="${BATS_TEST_TMPDIR}/feed-writer"
     export HERDR_META_PATROL_FINDINGS_DIR="${BATS_TEST_TMPDIR}/findings.d"
     export FAKE_INPUT_STATE=empty
+    export FAKE_PROMPTS="${BATS_TEST_TMPDIR}/guarded-prompts"
+    mkdir -p "${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts"
+    printf '%s\n' '#!/usr/bin/env bash' 'printf "%s\t%s\n" "$1" "$2" >> "${FAKE_PROMPTS}"' > "${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts/herdr-agent-prompt-if-input-empty.sh"
+    chmod +x "${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts/herdr-agent-prompt-if-input-empty.sh"
     mkdir -p "${BATS_TEST_TMPDIR}/bin"
     PATH="${BATS_TEST_TMPDIR}/bin:${PATH}"
     export PATH
@@ -40,6 +44,7 @@ case "$1 $2" in
     echo "${FAKE_MACHINE_LIST:-[]}"
     ;;
 "agent list") cat "${FAKE_AGENTS}" ;;
+"agent get") jq --arg n "$3" '.result.agents[] | select(.name == $n) | {result:{agent:.}}' "${FAKE_AGENTS}" ;;
 "pane list") echo '{"result":{"panes":[]}}' ;;
 "tab list")
     [[ -z "${FAKE_TAB_LIST_CALLS:-}" ]] || printf '.' >> "${FAKE_TAB_LIST_CALLS}"
@@ -434,6 +439,22 @@ STUB
     [ ! -e "${BATS_TEST_TMPDIR}/typed" ]
     [ "$(bash "${QUEUE_PATH}" read | jq -r '.kind')" = findings ]
     grep -Fq '[local] blocked: w1 p1' <(calls)
+}
+
+@test "[common] herdr-meta-patrol wakes stale item owner once through the guarded sender" {
+    mkdir -p "${XDG_STATE_HOME}/meta" "${XDG_STATE_HOME}/inbox/task-tree" "${HOME}/.claude/plugins/store" && printf 'Local\tmeta\nLocal\torch\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    jq -n '{result:{agents:[{name:"meta",pane_id:"m",agent_status:"idle",agent_session:{kind:"id",source:"herdr:claude",value:"meta-session"}},{name:"orch",pane_id:"p1",agent_status:"idle"}]}}' > "${FAKE_AGENTS}"
+    jq -n '{schema:1,session_id:"meta-session",tasks:[{id:"stale-task",status:"queued",updated_at:"2000-01-01T00:00:00.123Z",owner:{agent:"orch",machine:"local"}}]}' > "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json"
+    jq -n '{"s:meta-session":{ledger:{items:[{id:"meta-stale",kind:"question",at:0},{id:"recent-ask",kind:"question",at:(now*1000|floor)}],closed:[{id:"closed-ask",at:0}]}}}' > "${HOME}/.claude/plugins/store/inbox_inline-test.json"
+    printf '❯ \n' > "${FAKE_PANE}"
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ] && [ "$(wc -l < "${FAKE_PROMPTS}")" -eq 1 ] && grep -F 'orch' "${FAKE_PROMPTS}" | grep -Fq 'stale-task'
+    ! grep -Eq 'meta-stale|recent-ask|closed-ask' "${FAKE_PROMPTS}" && grep -Fq 'meta-stale' <(calls) && ! grep -Eq 'recent-ask|closed-ask' <(calls)
+    run bash "${SCRIPT_PATH}"
+    jq '.tasks[0].updated_at="2000-01-02T00:00:00.123Z"' "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json" > "${BATS_TEST_TMPDIR}/updated.json" && mv "${BATS_TEST_TMPDIR}/updated.json" "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json"
+    [ "$(wc -l < "${FAKE_PROMPTS}")" -eq 1 ]
+    run bash "${SCRIPT_PATH}"
+    [ "$(wc -l < "${FAKE_PROMPTS}")" -eq 2 ]
 }
 
 function root_inbox() {

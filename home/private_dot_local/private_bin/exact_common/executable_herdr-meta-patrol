@@ -31,8 +31,7 @@
 #   or is removed.
 #   Findings whose normalized form is new since the previous run are appended as
 #   one message to the queue of `herdr-meta-patrol-queue`, which the meta agent
-#   waits on; nothing is typed into any pane, and no findings message is queued
-#   when no new finding appears.
+#   waits on; stale items use the guarded sender for owners, while Meta uses its queue.
 #   Leftover input is re-reported after `HERDR_META_PATROL_REPEAT_SECONDS`.
 #   State is saved only after the message is queued, so a failed append is retried
 #   on the next run. After each run, acknowledged messages past their keep period
@@ -87,6 +86,7 @@ else
 fi
 limit_hold_handler="${HERDR_META_PATROL_LIMIT_HANDLER:-${HOME}/.agents/skills/shunk031-herdr-meta-orchestrate/scripts/herdr-meta-patrol.sh}"
 limit_hold_timeout="${HERDR_META_PATROL_LIMIT_HOLD_TIMEOUT:-90}"
+prompt_sender="${HOME}/.agents/skills/shunk031-herdr-orchestrate-workers/scripts/herdr-agent-prompt-if-input-empty.sh"
 limit_call_timeout=$((limit_hold_timeout / 6))
 ((limit_call_timeout > 0)) || limit_call_timeout=1
 # Only lines shaped like an agent's own error output count: a Codex error cell
@@ -169,6 +169,81 @@ function is_registered_root() {
     [[ -r "${roots_file}" ]] && awk -F '\t' -v machine="$1" -v name="$2" \
         '$0 !~ /^#/ && NF == 2 && $1 == machine && $2 == name { found = 1 } END { exit !found }' \
         "${roots_file}"
+}
+
+# @description Read the current session's task export and Inbox ledger locally or over SSH.
+# @arg $1 string Claude session ID.
+function read_inbox_data() {
+    local session="$1" script='import glob,json,os,sys; from pathlib import Path; s=sys.argv[1]; h=Path.home(); x=Path(os.environ.get("XDG_STATE_HOME",h/".local/state")); t=json.loads((x/"inbox/task-tree"/(s+".json")).read_text()); i=next((v for p in glob.glob(str(h/".claude/plugins/store/inbox_inline-*.json")) if isinstance((v:=json.loads(Path(p).read_text()).get("s:"+s,{}).get("ledger",{}).get("items")),list)),None); assert isinstance(t.get("tasks"),list) and i is not None; print(json.dumps({"tasks":t["tasks"],"items":i}))'
+    local -a command=(python3 -c "$script" "$session")
+    [[ "${machine}" == local ]] || command=(ssh -T -o BatchMode=yes -o ConnectTimeout=5 "${machine}" "$(printf 'python3 -c %q %q' "$script" "$session")")
+    run_with_timeout "${timeout_seconds}" "${command[@]}"
+}
+
+# @description Send through the input-empty guard, scoped to the scanned machine.
+# @arg $1 string Root agent name.
+# @arg $2 string Prompt text.
+function prompt_root() {
+    local target_machine="$1" root="$2" prompt="$3"
+    run_with_timeout "${timeout_seconds}" env HERDR_ENV=1 HERDR_META_PATROL_PROMPT_MACHINE="${target_machine}" \
+        bash -c 'herdr() { if [[ "$HERDR_META_PATROL_PROMPT_MACHINE" == local ]]; then command herdr "$@"; else command herdr --machine "$HERDR_META_PATROL_PROMPT_MACHINE" "$@"; fi; }; export -f herdr; exec "$1" "$2" "$3"' \
+        bash "${prompt_sender}" "${root}" "${prompt}"
+}
+
+# @description Return the current status of one registered owner root.
+# @arg $1 string Machine label (`local` for this machine).
+# @arg $2 string Root agent name.
+function root_status() {
+    local machine="$1" root="$2" agent
+    agent="$(hr agent get "${root}" 2> /dev/null)" || return
+    jq -r '.result.agent.agent_status // empty' <<< "${agent}"
+}
+
+# @description Queue Meta notices or wake only an idle owner for its stale items.
+# @arg $1 object Herdr agent JSON.
+# @arg $2 string Root name.
+function check_stale_root() {
+    local agent="$1" root="$2" session data stale_items groups group owner owner_machine registry_machine status pending keys labels prompt sent_key
+    session="$(jq -r 'select(.agent_session.kind == "id" and .agent_session.source == "herdr:claude") | .agent_session.value // empty' <<< "${agent}")"
+    [[ "${session}" =~ ^[A-Za-z0-9_-]+$ ]] || return 0
+    data="$(read_inbox_data "${session}" 2> /dev/null)" || {
+        printf '[%s] %s: Inbox freshness check unavailable\n' "${machine}" "${root}"
+        return
+    }
+    stale_items="$(jq -c --argjson now "${now}" --argjson hours "${HERDR_META_TASK_STALE_HOURS:-6}" '[.tasks[] | select(.status != "done" and .status != "dropped") | select($now - (.updated_at | sub("\\.[0-9]+Z$";"Z") | fromdateiso8601) > $hours * 3600) | {kind:"task",id,stamp:.updated_at,owner}] + [.items[] | select(.kind == "question") | . as $q | ($q.reportedAt // $q.at) as $t | select($now * 1000 - $t > $hours * 3600000) | {kind:"Ask",id:$q.id,stamp:($t|tostring),owner:null}]' <<< "${data}" 2> /dev/null)" || {
+        printf '[%s] %s: Inbox freshness check unavailable\n' "${machine}" "${root}"
+        return
+    }
+    [[ "${stale_items}" != '[]' ]] || return 0
+    groups="$(jq -c --arg r "${root}" --arg m "${machine}" '[.[] | . as $i | (if $i.kind == "task" and $i.owner != null then $i.owner else {agent:$r,machine:$m} end) as $o | {agent:$o.agent,machine:(if $o.machine == "Local" then "local" else ($o.machine // $m) end),item:$i}] | group_by([.machine,.agent]) | map({agent:.[0].agent,machine:.[0].machine,items:[.[].item]})' <<< "${stale_items}")"
+    while IFS= read -r group; do
+        owner="$(jq -r '.agent // empty' <<< "${group}")"
+        owner_machine="$(jq -r '.machine // empty' <<< "${group}")"
+        registry_machine="${owner_machine}"
+        [[ "${owner_machine}" == local ]] && registry_machine=Local
+        if [[ "${owner}" == "${meta}" ]] || ! is_registered_root "${registry_machine}" "${owner}"; then
+            jq -r --arg m "${machine}" --arg o "${owner}" '.items[] | "[\($m)] stale Inbox \(.kind) \(.id | gsub("[\\r\\n\\t]"; " ")) at \(.stamp); owner \($o)"' <<< "${group}"
+            continue
+        fi
+        status="$(root_status "${owner_machine}" "${owner}")" || status=unknown
+        if [[ "${status}" != idle ]]; then
+            [[ "${status}" == working ]] || printf '[%s] %s: stale Inbox items; root status is %s\n' "${owner_machine}" "${owner}" "${status}"
+            continue
+        fi
+        sent_key="${owner_machine}:${owner}"
+        case "${woken_targets}" in *$'\n'"${sent_key}"$'\n'*) continue ;; esac
+        pending="$(jq -c --arg m "${machine}" --arg s "${session}" --rawfile sent "${state_dir}/wake-keys.tsv" '[.items[] | . as $i | [$m,$s,$i.id,$i.stamp] | @json as $k | select(($sent | split("\n") | index($k)) == null) | $i]' <<< "${group}")"
+        [[ "${pending}" != '[]' ]] || continue
+        keys="$(jq -r --arg m "${machine}" --arg s "${session}" '[.[] | [$m,$s,.id,.stamp] | @json] | .[]' <<< "${pending}")"
+        labels="$(jq -r '[.[] | "\(.kind) \(.id) at \(.stamp)"] | join("; ")' <<< "${pending}")"
+        prompt="Refresh these stale Inbox items using current facts: ${labels}. Update or complete each existing item."
+        if prompt_root "${owner_machine}" "${owner}" "${prompt}"; then
+            printf '%s\n' "${keys}" >> "${state_dir}/wake-keys.tsv"
+            woken_targets+=$'\n'"${sent_key}"$'\n'
+        else
+            printf '[%s] %s: stale Inbox prompt was not delivered\n' "${owner_machine}" "${owner}"
+        fi
+    done < <(jq -c '.[]' <<< "${groups}")
 }
 
 # @description Log a failed `agent list` attempt's exit status to stderr, which launchd writes to launchd.log.
@@ -286,11 +361,17 @@ function scan_machine() {
     fin=0
     while IFS= read -r agent; do
         a="$(jq -r '.name // "-"' <<< "${agent}")"
-        [[ "${a}" != "${meta}" ]] || continue
+        if [[ "${a}" == "${meta}" ]]; then
+            if is_registered_root "${registry_machine}" "${a}"; then
+                check_stale_root "${agent}" "${a}" "$(jq -r '.agent_status // empty' <<< "${agent}")" unknown
+            fi
+            continue
+        fi
         pane="$(jq -r '.pane_id // empty' <<< "${agent}")"
         inbox="$(jq -r '.tokens.inbox // empty' <<< "${agent}")"
         has_inbox="$(jq -r '(.tokens // {}) | has("inbox")' <<< "${agent}")"
         status="$(jq -r '.agent_status // empty' <<< "${agent}")"
+        input_state=unknown
         if [[ -n "${pane}" && "${status}" == working ]]; then
             if sum="$(hr pane read "${pane}" --source recent --lines "${still_lines}" --format text 2> /dev/null | pane_progress_sum)"; then
                 since="$(M="${machine}" P="${pane}" S="${sum}" awk -F '\t' '$1 == ENVIRON["M"] && $2 == ENVIRON["P"] && $3 == ENVIRON["S"] { print $4; exit }' "${state_dir}/still.tsv")"
@@ -327,6 +408,7 @@ function scan_machine() {
                     printf '[%s] %s 入力欄: occupied\n' "${machine}" "${a}"
                 fi
             fi
+            check_stale_root "${agent}" "${a}" "${status}" "${input_state:-unknown}"
         elif [[ "${has_inbox}" == true ]]; then
             printf '[%s] unregistered agent with inbox token: %s\n' "${machine}" "${a}"
         fi
@@ -375,9 +457,10 @@ function digest_changes() {
 }
 
 mkdir -p "${state_dir}"
-touch "${state_dir}/keys.txt" "${state_dir}/leftover.tsv" "${state_dir}/still.tsv"
+touch "${state_dir}/keys.txt" "${state_dir}/leftover.tsv" "${state_dir}/still.tsv" "${state_dir}/wake-keys.tsv"
 touch "${state_dir}/due.tsv" "${state_dir}/invalid-due.tsv"
 now="$(date +%s)"
+woken_targets=""
 last_digest="$(cat "${state_dir}/digest.epoch" 2> /dev/null)" || last_digest=""
 digest_due=0
 if [[ ! "${last_digest}" =~ ^[0-9]+$ ]] || ((now - last_digest >= digest_seconds)); then

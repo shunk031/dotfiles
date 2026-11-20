@@ -279,6 +279,28 @@ class JapaneseReplyTest(unittest.TestCase):
         )
         self.assertEqual(json.loads(self.run_meta_hook(retry_payload))["decision"], "block")
 
+    def test_interleaved_sessions_keep_independent_block_counts(self):
+        message = "This English reply has enough alphabetic prose to trigger the hook."
+        outputs = []
+        for attempt in range(4):
+            for session_id in ("session-a", "session-b"):
+                outputs.append(
+                    self.run_meta_hook(
+                        {
+                            "hook_event_name": "Stop",
+                            "session_id": session_id,
+                            "stop_hook_active": attempt > 0,
+                            "last_assistant_message": message,
+                        }
+                    )
+                )
+
+        self.assertEqual(
+            [json.loads(value)["decision"] for value in outputs[:6]],
+            ["block"] * 6,
+        )
+        self.assertEqual(outputs[6:], ["", ""])
+
     def test_malformed_input_passes(self):
         result = subprocess.run(
             [str(HOOK)],

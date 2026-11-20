@@ -133,21 +133,21 @@ def reject_constant(value: str) -> None:
     raise ValueError(f"invalid JSON constant {value}")
 
 
-def read_block_count(counter_path: Path, session_key: str) -> int:
+def read_block_count(counter_path: Path) -> int:
     try:
         state = json.loads(counter_path.read_text(encoding="utf-8"))
         count = state.get("count")
-        if state.get("session") == session_key and type(count) is int and count >= 0:
+        if type(count) is int and count >= 0:
             return count
     except (OSError, ValueError, AttributeError):
         pass
     return 0
 
 
-def write_block_count(counter_path: Path, session_key: str, count: int) -> None:
+def write_block_count(counter_path: Path, count: int) -> None:
     temporary_path = counter_path.with_name(counter_path.name + ".tmp")
     temporary_path.write_text(
-        json.dumps({"session": session_key, "count": count}, separators=(",", ":")) + "\n",
+        json.dumps({"count": count}, separators=(",", ":")) + "\n",
         encoding="utf-8",
     )
     os.chmod(temporary_path, 0o600)
@@ -162,26 +162,28 @@ def record_decision(
     japanese_letter_count: int,
 ) -> bool:
     STATE_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
+    counter_dir = STATE_DIR / "japanese-reply-counters"
+    counter_dir.mkdir(mode=0o700, exist_ok=True)
     session_text = session_id if isinstance(session_id, str) else ""
     session_key = hashlib.sha256(session_text.encode("utf-8")).hexdigest()
-    counter_path = STATE_DIR / "japanese-reply-counter.json"
+    counter_path = counter_dir / f"{session_key}.json"
     lock_path = STATE_DIR / "japanese-reply-counter.lock"
     log_path = STATE_DIR / "japanese-reply.log"
 
     with lock_path.open("a", encoding="utf-8") as lock_file:
         fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
         try:
-            consecutive_blocks = read_block_count(counter_path, session_key)
+            consecutive_blocks = read_block_count(counter_path)
             if not stop_hook_active:
                 consecutive_blocks = 0
             reason = None
             if blocked_by_language and consecutive_blocks < MAX_CONSECUTIVE_BLOCKS:
                 decision = "block"
-                write_block_count(counter_path, session_key, consecutive_blocks + 1)
+                write_block_count(counter_path, consecutive_blocks + 1)
             elif blocked_by_language:
                 decision = "allow"
                 reason = "block-limit"
-                write_block_count(counter_path, session_key, consecutive_blocks)
+                write_block_count(counter_path, consecutive_blocks)
             else:
                 decision = "allow"
                 counter_path.unlink(missing_ok=True)

@@ -84,6 +84,34 @@ function number_in() {
     printf '%s\n' "${value}"
 }
 
+# @description Return the highest valid local sequence number in the queue.
+function queue_max_seq_locked() {
+    [[ ! -e "${queue}" ]] && {
+        printf '0\n'
+        return 0
+    }
+    [[ -f "${queue}" && -r "${queue}" ]] || return 1
+    jq -Rsc '
+        split("\n") |
+        [ .[] | (try fromjson catch null) | select(type == "object") | .seq? |
+          select(type == "number" and . > 0 and floor == .) ] |
+        max // 0
+    ' "${queue}"
+}
+
+# @description Repair the local sequence counter to include every queued record.
+function repair_import_seq_locked() {
+    local queue_seq current_seq
+    queue_seq="$(queue_max_seq_locked)" || return 1
+    current_seq="$(number_in "${seq_file}")"
+    if ((current_seq < queue_seq)); then
+        printf '%s\n' "${queue_seq}" > "${seq_file}.tmp" || return 1
+        mv "${seq_file}.tmp" "${seq_file}" || return 1
+        current_seq="${queue_seq}"
+    fi
+    printf '%s\n' "${current_seq}"
+}
+
 # @description Report why strict queue state cannot be verified.
 # @arg $1 string Validation failure reason.
 function queue_unverifiable() {
@@ -118,13 +146,14 @@ function append_locked() {
 # @arg $1 string Saved machine label that owns the source record.
 # @arg $2 string JSON object from the remote queue.
 function append_import_locked() {
-    local machine="$1" record="$2" source_seq seq
+    local machine="$1" record="$2" source_seq seq current_seq
     source_seq="$(jq -er '.seq | select(type == "number" and floor == . and . > 0)' <<< "${record}")" || return 2
+    current_seq="$(repair_import_seq_locked)" || return 1
     if [[ -s "${queue}" ]] && jq -e -R --arg machine "${machine}" --argjson source_seq "${source_seq}" \
         'fromjson? | select(.machine == $machine and .source_seq == $source_seq)' "${queue}" > /dev/null; then
         return 0
     fi
-    seq=$(($(number_in "${seq_file}") + 1))
+    seq=$((current_seq + 1))
     if [[ -s "${queue}" && -n "$(tail -c 1 "${queue}")" ]]; then
         printf '\n' >> "${queue}" || return 1
     fi
@@ -336,7 +365,7 @@ import)
         printf '%s\n' 'invalid remote queue record' >&2
         exit 2
     fi
-    export -f append_import_locked number_in
+    export -f append_import_locked number_in queue_max_seq_locked repair_import_seq_locked
     export queue seq_file
     with_lock bash -c 'set -Eeuo pipefail; append_import_locked "$@"' _ "${machine}" "${record}"
     ;;

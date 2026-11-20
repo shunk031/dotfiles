@@ -8,7 +8,7 @@ import sys
 CAVEAT = re.compile(
     r"(?:確かめていません|確かめていない|確認していません|確認できていません|"
     r"調べていません|検証していません|未確認)(?!でした|ませんでした)"
-    r"|\b(?:not yet verified|haven['’]t checked|unverified)\b",
+    r"|(?<![A-Za-z])(?:not yet verified|haven['’]t checked|unverified)(?![A-Za-z])",
     re.IGNORECASE,
 )
 BLOCK_REASON = (

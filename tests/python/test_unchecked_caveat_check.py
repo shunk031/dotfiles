@@ -21,7 +21,7 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
             "私は確かめていません。", "どちらなのかは確かめていません。",
             "まだ確認していません。", "まだ確認できていません。", "条件を調べていません。",
             "境界を検証していません。", "未確認です。", "確かめていない。",
-            "This is not yet verified.", "I haven't checked.", "This is unverified.",
+            "This is not yet verified.", "I haven't checked.", "This is unverified.", "The result is unverifiedです。",
             "This has `unverified`` with mismatched delimiters.", "```python`invalid-info\n未確認です。\n```", "    ```\n    example\n\n未確認です。", "    > code\n未確認です。",
         )
         for message in messages:

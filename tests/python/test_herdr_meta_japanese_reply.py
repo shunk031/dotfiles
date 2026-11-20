@@ -1,0 +1,150 @@
+"""Tests for Meta's Japanese-reply Claude Stop hook."""
+
+import contextlib
+import importlib.util
+import io
+import json
+import os
+import subprocess
+import unittest
+from pathlib import Path
+from unittest import mock
+
+HOOK = Path(__file__).parents[2] / "home/dot_claude/hooks/executable_herdr-meta-japanese-reply.py"
+SPEC = importlib.util.spec_from_file_location("meta_japanese_reply", HOOK)
+MODULE = importlib.util.module_from_spec(SPEC)
+assert SPEC.loader is not None
+SPEC.loader.exec_module(MODULE)
+
+
+class JapaneseReplyTest(unittest.TestCase):
+    def test_blocks_english_prose(self):
+        payload = {
+            "hook_event_name": "Stop",
+            "last_assistant_message": (
+                "I checked the implementation and found the cause. "
+                "The setting is missing, so the command exits before it can run."
+            ),
+        }
+        output = io.StringIO()
+        agent_list = json.dumps({
+            "result": {"agents": [{"name": "meta", "pane_id": "w1:p1"}]}
+        })
+        with mock.patch.dict(os.environ, {"HERDR_ENV": "1", "HERDR_PANE_ID": "w1:p1"}):
+            with mock.patch.object(
+                MODULE.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0, agent_list, ""),
+            ):
+                with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))):
+                    with contextlib.redirect_stdout(output):
+                        MODULE.main()
+        self.assertEqual(json.loads(output.getvalue()), {
+            "decision": "block",
+            "reason": MODULE.BLOCK_REASON,
+        })
+
+    def test_japanese_with_code_urls_paths_and_commands_passes(self):
+        japanese = "変更内容と確認結果を日本語で説明し、次の作業も利用者に伝えます。" * 2
+        english = "EnglishWord" * 14
+        message = (
+            japanese
+            + "\n`" + english + "`\n"
+            + "```text\n" + english + "\n```\n"
+            + "https://example.com/" + english + "\n"
+            + "/Users/example/" + english + ".txt\n"
+            + "git status --short  # " + english + "\n"
+            + "- git status --short  # " + english
+        )
+        visible = MODULE.visible_prose(message)
+        self.assertNotIn("EnglishWord", visible)
+        letters = [character for character in visible if character.isalpha()]
+        self.assertGreaterEqual(len(letters), 40)
+        self.assertGreaterEqual(
+            sum(MODULE.is_japanese_letter(character) for character in letters) * 10,
+            len(letters) * 3,
+        )
+        self.assertFalse(MODULE.should_block(message))
+
+    def test_verbatim_relay_is_excluded(self):
+        message = (
+            "---BEGIN---\n"
+            + "This is a verbatim relay with English content. " * 6
+            + "---END---\n"
+            + "上記は引用した文章です。今回の回答では、現在の状態と対応内容を日本語で説明します。"
+            "確認結果を整理し、必要な変更を最後まで実施します。"
+        )
+        visible = MODULE.visible_prose(message)
+        letters = [character for character in visible if character.isalpha()]
+        self.assertGreaterEqual(len(letters), 40)
+        self.assertGreaterEqual(
+            sum(MODULE.is_japanese_letter(character) for character in letters) * 10,
+            len(letters) * 3,
+        )
+        self.assertFalse(MODULE.should_block(message))
+
+    def test_second_attempt_passes(self):
+        payload = {
+            "hook_event_name": "Stop",
+            "stop_hook_active": True,
+            "last_assistant_message": "This English reply has enough alphabetic prose to trigger the hook.",
+        }
+        with mock.patch.dict(os.environ, {"HERDR_ENV": "1", "HERDR_PANE_ID": "w1:p1"}):
+            with mock.patch.object(MODULE.subprocess, "run") as run:
+                with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))):
+                    output = io.StringIO()
+                    with contextlib.redirect_stdout(output):
+                        MODULE.main()
+                run.assert_not_called()
+        self.assertEqual(output.getvalue(), "")
+
+    def test_malformed_input_passes(self):
+        result = subprocess.run(
+            [str(HOOK)],
+            input="{not valid json",
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.stderr, "")
+
+    def test_letter_threshold_and_japanese_percentage(self):
+        self.assertFalse(MODULE.should_block("a" * 39))
+        self.assertTrue(MODULE.should_block("a" * 40))
+        self.assertFalse(MODULE.should_block("あ" * 12 + "a" * 28))
+
+    def test_non_meta_session_does_not_run_identity_lookup(self):
+        with mock.patch.dict(os.environ, {"HERDR_ENV": "0", "HERDR_PANE_ID": "w1:p1"}):
+            payload = {
+                "hook_event_name": "Stop",
+                "last_assistant_message": "This English reply has enough letters to trigger a block.",
+            }
+            output = io.StringIO()
+            with mock.patch.object(MODULE.subprocess, "run") as run:
+                with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))):
+                    with contextlib.redirect_stdout(output):
+                        MODULE.main()
+                run.assert_not_called()
+            self.assertEqual(output.getvalue(), "")
+
+    def test_meta_identity_uses_herdr_agent_list(self):
+        output = json.dumps({"result": {"agents": [{"name": "meta", "pane_id": "w1:p1"}]}})
+        with mock.patch.dict(os.environ, {"HERDR_ENV": "1", "HERDR_PANE_ID": "w1:p1"}):
+            with mock.patch.object(
+                MODULE.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0, output, ""),
+            ) as run:
+                self.assertTrue(MODULE.is_meta_session())
+                run.assert_called_once_with(
+                    ["herdr", "agent", "list"],
+                    capture_output=True,
+                    check=False,
+                    text=True,
+                    timeout=MODULE.META_AGENT_LIST_TIMEOUT,
+                )
+
+
+if __name__ == "__main__":
+    unittest.main()

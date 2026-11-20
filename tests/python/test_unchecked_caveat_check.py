@@ -43,8 +43,14 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
         self.assertEqual(self.run_hook("まだ確かめていません。", active=True).stdout, "")
 
     def test_ignores_code_and_quoted_text(self):
-        message = "```text\n未確認\n```\n引用: “unverified” and 'haven't checked'"
-        self.assertEqual(self.run_hook(message).stdout, "")
+        messages = (
+            "```text\n未確認\n```",
+            "````text\n```\nunverified\n````",
+            "引用: “unverified” and 'haven't checked'",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                self.assertEqual(self.run_hook(message).stdout, "")
 
     def test_allows_message_without_caveat(self):
         self.assertEqual(self.run_hook("確認が完了しました。").stdout, "")

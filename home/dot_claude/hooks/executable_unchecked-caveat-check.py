@@ -21,13 +21,18 @@ def visible_text(message: str) -> str:
     fence = None
     for line in message.splitlines():
         stripped = line.lstrip()
-        marker = stripped[:3]
+        opening = re.match(r"(`{3,}|~{3,})", stripped)
         if fence:
-            if marker == fence:
+            closing = re.fullmatch(r"(`+|~+)[ \t]*", stripped)
+            if (
+                closing
+                and closing.group(1)[0] == fence[0]
+                and len(closing.group(1)) >= fence[1]
+            ):
                 fence = None
             continue
-        if marker in ("```", "~~~"):
-            fence = marker
+        if opening:
+            fence = (opening.group(1)[0], len(opening.group(1)))
             continue
         if stripped.startswith(">"):
             continue

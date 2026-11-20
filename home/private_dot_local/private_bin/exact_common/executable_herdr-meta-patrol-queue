@@ -13,7 +13,8 @@
 #   the batch. Delivery is at least once: an unacknowledged record stays unread.
 #
 #   Files in the state directory: `queue.jsonl` holds one JSON record per line
-#   (`seq`, `t` epoch seconds, `at`, `kind`, `from`, `text`), `queue.seq` the last
+#   (`seq`, `t` epoch seconds, `at`, `kind`, `from`, `text`); imported remote
+#   records also include `machine` and `source_seq`. `queue.seq` is the last
 #   sequence number, `queue.ack` the highest acknowledged one, `waiter.heartbeat`
 #   the time of the last `wait` poll, and `queue.notified` the last sequence
 #   number announced by `notify-if-stale`. Session-owned `wait` commands record
@@ -21,6 +22,8 @@
 #
 #   Subcommands:
 #   - `add [--kind KIND] [--from NAME] TEXT` appends one record.
+#   - `import --machine NAME RECORD_JSON` appends one remote record with its
+#     original timestamp and source sequence. Repeating the same import is safe.
 #   - `wait [--max-seconds N]` blocks until an unread record exists, prints the
 #     unread count, and exits 0. It also exits 0 after N seconds (default 21600)
 #     with a re-arm notice.
@@ -46,6 +49,7 @@
 # @exitcode 2 On a usage error.
 # @example
 #   herdr-meta-patrol-queue add --kind findings "$message"
+#   herdr-meta-patrol-queue import --machine remote "$record_json"
 #   herdr-meta-patrol-queue wait
 #   herdr-meta-patrol-queue read --compact-status
 #   herdr-meta-patrol-queue ack 12
@@ -67,7 +71,7 @@ waiter_marker=''
 
 # @description Print a usage error and exit 2.
 function usage() {
-    printf '%s\n' 'usage: herdr-meta-patrol-queue add [--kind KIND] [--from NAME] TEXT | wait [--max-seconds N] | read [--limit N] [--compact-status] | ack SEQ | trim | notify-if-stale' >&2
+    printf '%s\n' 'usage: herdr-meta-patrol-queue add [--kind KIND] [--from NAME] TEXT | import --machine NAME RECORD_JSON | wait [--max-seconds N] | read [--limit N] [--compact-status] | ack SEQ | trim | notify-if-stale' >&2
     exit 2
 }
 
@@ -106,6 +110,28 @@ function append_locked() {
     jq -cn --argjson seq "${seq}" --argjson t "${now}" --arg at "$(date '+%Y-%m-%dT%H:%M:%S%z')" \
         --arg kind "$1" --arg from "$2" --arg text "$3" \
         '{seq: $seq, t: $t, at: $at, kind: $kind, from: $from, text: $text}' >> "${queue}" || return 1
+    printf '%s\n' "${seq}" > "${seq_file}.tmp" || return 1
+    mv "${seq_file}.tmp" "${seq_file}"
+}
+
+# @description Append one remote record with its original time; runs under the queue lock.
+# @arg $1 string Saved machine label that owns the source record.
+# @arg $2 string JSON object from the remote queue.
+function append_import_locked() {
+    local machine="$1" record="$2" source_seq seq
+    source_seq="$(jq -er '.seq | select(type == "number" and floor == . and . > 0)' <<< "${record}")" || return 2
+    if [[ -s "${queue}" ]] && jq -e -R --arg machine "${machine}" --argjson source_seq "${source_seq}" \
+        'fromjson? | select(.machine == $machine and .source_seq == $source_seq)' "${queue}" > /dev/null; then
+        return 0
+    fi
+    seq=$(($(number_in "${seq_file}") + 1))
+    if [[ -s "${queue}" && -n "$(tail -c 1 "${queue}")" ]]; then
+        printf '\n' >> "${queue}" || return 1
+    fi
+    jq -cn --argjson seq "${seq}" --arg machine "${machine}" --argjson source "${record}" \
+        '{seq: $seq, t: $source.t, at: $source.at, kind: $source.kind,
+          from: $source.from, text: $source.text, machine: $machine, source_seq: $source.seq}' \
+        >> "${queue}" || return 1
     printf '%s\n' "${seq}" > "${seq_file}.tmp" || return 1
     mv "${seq_file}.tmp" "${seq_file}"
 }
@@ -177,13 +203,19 @@ function read_batch() {
 
         if ! queue_result="$(jq -Rsc --argjson ack "${ack_value}" '
             def valid_record:
-                if type == "object" and keys == ["at", "from", "kind", "seq", "t", "text"] and
+                if type == "object" and
+                    (keys == ["at", "from", "kind", "seq", "t", "text"] or
+                     keys == ["at", "from", "kind", "machine", "seq", "source_seq", "t", "text"]) and
                     (.seq | type) == "number" and (.t | type) == "number" and
                     (.at | type) == "string" and (.kind | type) == "string" and
                     (.from | type) == "string" and (.text | type) == "string"
                 then .seq > 0 and (.seq | floor) == .seq and .t >= 0 and (.t | floor) == .t and
                     (.at | length) > 0 and (.kind | length) > 0 and
-                    (.from | length) > 0 and (.text | length) > 0
+                    (.from | length) > 0 and (.text | length) > 0 and
+                    (if has("machine") then
+                        (.machine | type) == "string" and (.machine | length) > 0 and
+                        (.source_seq | type) == "number" and (.source_seq | floor) == .source_seq and .source_seq > 0
+                     else true end)
                 else false end;
             split("\n") as $lines |
             (if ($lines[-1] // null) == "" then $lines[:-1] else $lines end) |
@@ -286,6 +318,27 @@ add)
     export -f append_locked number_in
     export queue seq_file
     with_lock bash -c 'set -Eeuo pipefail; append_locked "$@"' _ "${kind}" "${from}" "$1"
+    ;;
+import)
+    (($# == 3)) && [[ "$1" == --machine && -n "$2" ]] || usage
+    machine="$2"
+    record="$3"
+    if ! jq -e '
+        type == "object" and
+        has("seq") and has("t") and has("at") and has("kind") and has("from") and has("text") and
+        (.seq | type) == "number" and (.seq | floor) == .seq and .seq > 0 and
+        (.t | type) == "number" and (.t | floor) == .t and .t >= 0 and
+        (.at | type) == "string" and (.at | length) > 0 and
+        (.kind | type) == "string" and (.kind | length) > 0 and
+        (.from | type) == "string" and (.from | length) > 0 and
+        (.text | type) == "string" and (.text | length) > 0
+    ' <<< "${record}" > /dev/null; then
+        printf '%s\n' 'invalid remote queue record' >&2
+        exit 2
+    fi
+    export -f append_import_locked number_in
+    export queue seq_file
+    with_lock bash -c 'set -Eeuo pipefail; append_import_locked "$@"' _ "${machine}" "${record}"
     ;;
 wait)
     max_seconds=21600

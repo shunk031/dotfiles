@@ -33,6 +33,18 @@ function queue() {
     [ "$(jq -rs '.[1].kind + " " + .[1].from' <<< "${output}")" = 'message patrol' ]
 }
 
+@test "[common] herdr-meta-patrol-queue imports remote records once with their source machine and time" {
+    local record
+    record="$(jq -cn '{seq: 8, t: 1600000000, at: "2020-09-13T12:26:40+0000", kind: "message", from: "korch", text: "line one\nline two"}')"
+
+    queue import --machine remote "${record}"
+    queue import --machine remote "${record}"
+
+    [ "$(jq -sc '[.[] | [.seq, .t, .at, .from, .text, .machine, .source_seq]]' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = '[[1,1600000000,"2020-09-13T12:26:40+0000","korch","line one\nline two","remote",8]]' ]
+    run queue read --strict
+    [ "${status}" -eq 0 ]
+}
+
 @test "[common] herdr-meta-patrol-queue keeps sequence numbers unique under concurrent appends" {
     local i
     for i in $(seq 1 20); do

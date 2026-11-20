@@ -109,6 +109,30 @@ class JapaneseReplyTest(unittest.TestCase):
         self.assertEqual(result.stdout, "")
         self.assertEqual(result.stderr, "")
 
+    def test_nonstandard_json_constant_passes(self):
+        payload = (
+            '{"hook_event_name":"Stop",'
+            '"last_assistant_message":"This English reply has enough alphabetic prose to trigger a block.",'
+            '"extra":NaN}'
+        )
+        agent_list = json.dumps({
+            "result": {"agents": [{"name": "meta", "pane_id": "w1:p1"}]}
+        })
+        output = io.StringIO()
+        error = io.StringIO()
+        with mock.patch.dict(os.environ, {"HERDR_ENV": "1", "HERDR_PANE_ID": "w1:p1"}):
+            with mock.patch.object(
+                MODULE.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0, agent_list, ""),
+            ) as run:
+                with mock.patch("sys.stdin", io.StringIO(payload)):
+                    with contextlib.redirect_stdout(output), contextlib.redirect_stderr(error):
+                        MODULE.main()
+                run.assert_not_called()
+        self.assertEqual(output.getvalue(), "")
+        self.assertEqual(error.getvalue(), "")
+
     def test_letter_threshold_and_japanese_percentage(self):
         self.assertFalse(MODULE.should_block("a" * 39))
         self.assertTrue(MODULE.should_block("a" * 40))

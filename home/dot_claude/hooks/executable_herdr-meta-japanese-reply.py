@@ -164,7 +164,7 @@ def is_meta_session() -> bool:
 
 def main() -> None:
     try:
-        payload = json.loads(sys.stdin.read())
+        payload = json.loads(sys.stdin.read(), parse_constant=reject_constant)
         if (
             not isinstance(payload, dict)
             or payload.get("hook_event_name") != "Stop"

@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -17,19 +18,23 @@ def prompts_meta(command):
         tree = json.loads(subprocess.run(["shfmt", "-ln", "bash", "--to-json"], input=command, text=True, capture_output=True, check=True).stdout)
     except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
         return False
-    pane_ids = {path.name.rsplit(".", 2)[0] for path in (Path(os.environ.get("HERDR_META_PATROL_STATE_DIR", Path.home() / ".local/state/herdr-meta-patrol")) / "waiters").glob("*.pid")}
-
+    pane_ids = {p.name.rsplit(".", 2)[0] for p in ((Path(os.environ["HERDR_META_PATROL_STATE_DIR"]) if os.environ.get("HERDR_META_PATROL_STATE_DIR") else Path.home() / ".local" / "state" / "herdr-meta-patrol") / "waiters").glob("*.pid")}
     def value(node): return "\0" if node.get("Type") in {"CmdSubst", "ParamExp", "ArithmExp", "ProcSubst"} else bytes(node["Value"], "utf8").decode("unicode_escape") if node.get("Dollar") else re.sub(r"\\(.)", r"\1", node["Value"]) if node.get("Type") == "Lit" else node.get("Value", "".join(value(part) for part in node.get("Parts", [])))
-
+    def direct(args):
+        args = [value(arg) for arg in args]
+        while args and Path(args[0]).name in {"env", "command"}:
+            prefix = Path(args.pop(0)).name
+            if prefix == "command" and args[:1] in (["-v"], ["-V"]): return False
+            if prefix == "command": args = args[1:] if args[:1] == ["--"] else args
+            elif args[:1] == ["-S"]: args = shlex.split(args[1]) + args[2:]
+            else: args = [arg for arg in args if arg != "--" and not arg.startswith("-") and not re.match(r"^[A-Za-z_][A-Za-z_0-9]*=", arg)]
+        if args[:1] != ["herdr"]: return False
+        args = args[1:]; args = args[2:] if args[:1] == ["--machine"] else args[1:] if args[:1] and args[0].startswith("--machine=") else args
+        return args[:2] == ["agent", "prompt"] and len(args) > 2 and args[2] in {"meta", *pane_ids}
     def visit(node):
         if isinstance(node, dict):
-            if node.get("Type") == "CallExpr":
-                args = [value(arg) for arg in node.get("Args", [])]
-                while args and (Path(args[0]).name in {"env", "command", "exec", "time"} or args[0] == "--" or args[0].startswith("-") or re.match(r"^[A-Za-z_][A-Za-z_0-9]*=", args[0])): option = args.pop(0); args = args[1:] if option in {"-u", "--unset", "-C", "--chdir", "-S", "--split-string", "--argv0"} and args else args
-                if args and Path(args[0]).name == "herdr":
-                    args = args[1:]; args = args[2:] if args[:1] == ["--machine"] else args
-                    if args[:2] == ["agent", "prompt"] and len(args) > 2 and args[2] in {"meta", *pane_ids}:
-                        return True
+            if node.get("Type") in {"FuncDecl", "TimeClause"}: return False
+            if node.get("Type") == "CallExpr" and direct(node.get("Args", [])): return True
             return any(visit(item) for item in node.values())
         return any(visit(item) for item in node) if isinstance(node, list) else False
     return visit(tree)

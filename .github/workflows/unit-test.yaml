@@ -82,7 +82,8 @@ jobs:
           echo "No unit-test-relevant files changed."
           echo "Compared diff range: ${{ needs.changes.outputs.diff_range }}"
 
-      - name: Install pinned `shfmt`
+      - &setup-shfmt
+        name: Install pinned `shfmt`
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         uses: jdx/mise-action@v3
         env:
@@ -154,6 +155,7 @@ jobs:
           echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
           echo "$(ruby -r rubygems -e 'puts Gem.user_dir')/bin" >> "${GITHUB_PATH}"
 
+      - *setup-shfmt
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: python3 -m unittest discover -s tests/python
@@ -270,6 +272,7 @@ jobs:
           sh -c "$(curl -fsLS get.chezmoi.io)" -- -t v2.72.1 -b "${HOME}/.local/bin"
           echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
 
+      - *setup-shfmt
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: python3 -m unittest discover -s tests/python
@@ -379,6 +382,7 @@ jobs:
           sh -c "$(curl -fsLS get.chezmoi.io)" -- -t v2.72.1 -b "${HOME}/.local/bin"
           echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
 
+      - *setup-shfmt
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
         run: python3 -m unittest discover -s tests/python

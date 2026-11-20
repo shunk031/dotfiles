@@ -11,6 +11,11 @@ SPEC = importlib.util.spec_from_file_location("meta_decision_check", HOOK)
 assert SPEC is not None and SPEC.loader is not None
 GATE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(GATE)
+ROOT_SPEC = importlib.util.spec_from_file_location(
+    "meta_root_naming", HOOK.with_name("executable_herdr-meta-root-naming-check.py")
+)
+ROOT_CHECK = importlib.util.module_from_spec(ROOT_SPEC)
+ROOT_SPEC.loader.exec_module(ROOT_CHECK)
 CONFLICT = {
     "status": "CONFLICT",
     "decision": "standing decision",
@@ -208,6 +213,25 @@ class DecisionCheckTest(unittest.TestCase):
                 checker,
             )
         self.assertEqual(checker.call_count, 1)
+
+    def test_root_naming_blocks_and_fails_open(self):
+        roots = {"Local": {"root-a"}, "remote": {"root-b"}}
+        local = [{"name": "meta", "pane_id": "m:p1"}]
+        env = {"HERDR_ENV": "1", "HERDR_PANE_ID": "m:p1"}
+        with mock.patch.dict(ROOT_CHECK.os.environ, env), mock.patch.object(
+            ROOT_CHECK, "root_registry", return_value=roots
+        ):
+            self.assertEqual((set(), {"root-a"}, {"root-a"}, {"root-a"}, set()), tuple(ROOT_CHECK.bare_names(text, {"root-a", "root-b"}) for text in ("`root-a` ``root-a`` /tmp/root-a/file /x/root-a.py ./root-a.md task担当の Orchestrator（root-a） project work担当の Orchestrator（root-b）", "``root-a```", "root-a.", "“root-a.”", "root-b.py")))
+            self.assertEqual({"root-a", "root-b", "root-c", "root-d"}, ROOT_CHECK.bare_names("Question (root-c)\nOrchestrator for  (root-b)\n担当の Orchestrator（root-a）\nOrchestrator for build review. Question (root-d)", {"root-a", "root-b", "root-c", "root-d"}))
+            payload = {"hook_event_name": "PreToolUse", "tool_name": "mcp__inbox__record",
+                       "tool_input": {"detail": "See /tmp/log\nroot-b"}}
+            result = ROOT_CHECK.evaluate(payload, lambda machine: local if machine == "Local" else [{"name": "root-b"}])
+            self.assertEqual("deny", result["hookSpecificOutput"]["permissionDecision"])
+            with mock.patch.object(ROOT_CHECK, "warning") as warn:
+                self.assertIsNone(
+                    ROOT_CHECK.evaluate(payload, lambda m: local if m == "Local" else None)
+                )
+                warn.assert_called_once()
 
 
 if __name__ == "__main__":

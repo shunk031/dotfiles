@@ -84,8 +84,8 @@ def run_command(arguments: list[str], timeout: int) -> subprocess.CompletedProce
     )
 
 
-def identify_meta(pane_id: str) -> tuple[str, list[dict[str, object]]] | None:
-    """Return the unique Meta terminal and agent rows, or fail open."""
+def identify_root(pane_id: str) -> tuple[str, str, list[dict[str, object]]] | None:
+    """Return the current registered root and agent rows, or fail open."""
     try:
         result = run_command(["herdr", "agent", "list"], HERDR_TIMEOUT_SECONDS)
         if result.returncode != 0:
@@ -96,9 +96,16 @@ def identify_meta(pane_id: str) -> tuple[str, list[dict[str, object]]] | None:
             return None
         rows = [row for row in agents if isinstance(row, dict)]
         pane_rows = [row for row in rows if row.get("pane_id") == pane_id]
-        if len(pane_rows) != 1 or pane_rows[0].get("name") != "meta":
+        if len(pane_rows) != 1:
             return None
-        return pane_rows[0].get("terminal_id", ""), rows
+        name = pane_rows[0].get("name")
+        home = Path(os.environ.get("HOME", str(Path.home())))
+        roots = Path(env_default("XDG_STATE_HOME", str(home / ".local" / "state"))) / "meta" / "roots.tsv"
+        if not isinstance(name, str) or (name != "meta" and not any(
+            line.split() == ["Local", name] for line in roots.read_text(encoding="utf-8").splitlines()
+        )):
+            return None
+        return name, pane_rows[0].get("terminal_id", ""), rows
     except Exception:
         return None
 
@@ -107,8 +114,8 @@ def add_error(errors: list[str], message: str, recovery: str) -> None:
     errors.append(f"gate cannot verify: {message}; recovery: {recovery}.")
 
 
-def add_blocker(blockers: list[str], message: str, recovery: str) -> None:
-    blockers.append(f"Meta must resolve: {message}; recovery: {recovery}.")
+def add_blocker(blockers: list[str], message: str, recovery: str, root_name: str = "Meta") -> None:
+    blockers.append(f"{root_name} must resolve: {message}; recovery: {recovery}.")
 
 
 def reason_text(errors: list[str], blockers: list[str]) -> str:
@@ -434,7 +441,7 @@ def read_task_tree_export(path: Path, session_id: str) -> list[dict[str, object]
 
 
 def check_inbox_tasks(
-    tasks: list[dict[str, object]], now: datetime, blockers: list[str]
+    tasks: list[dict[str, object]], now: datetime, blockers: list[str], root_name: str = "Meta"
 ) -> None:
     stale_threshold = None
     for task in tasks:
@@ -456,6 +463,7 @@ def check_inbox_tasks(
                 f"text not refreshed since {local_time}",
                 "check its live state, then rewrite its detail with the current facts "
                 "and time using the Inbox tasks tool",
+                root_name,
             )
         if task["status"] == "working" and now - updated_at > timedelta(minutes=60):
             reasons.append("working task has not been updated for over 60 minutes")
@@ -464,7 +472,40 @@ def check_inbox_tasks(
                 blockers,
                 f"Inbox task {task['id']} '{' '.join(task['title'].split())}': {reason}",
                 "update or complete this task with the Inbox tasks tool",
+                root_name,
             )
+
+
+def check_inbox_questions(home: Path, session_id: str, now: datetime,
+                          blockers: list[str], root_name: str) -> None:
+    store_dir = home / ".claude" / "plugins" / "store"
+    items = None
+    for path in store_dir.glob("inbox_inline-*.json"):
+        items = object_field(object_field(object_field(
+            parse_json_document(path.read_text(encoding="utf-8")), f"s:{session_id}"
+        ), "ledger"), "items")
+        if isinstance(items, list):
+            break
+    if not isinstance(items, list):
+        raise GateError("Inbox session store or ledger items missing")
+    threshold = task_stale_threshold()
+    for item in items:
+        if not isinstance(item, dict):
+            raise GateError("Inbox question ledger contains an invalid item")
+        if item.get("kind") != "question":
+            continue
+        timestamp = item.get("reportedAt") if item.get("reportedAt") is not None else item.get("at")
+        if type(timestamp) is not int:
+            raise GateError("Inbox question has an invalid timestamp")
+        if now.timestamp() * 1000 - timestamp > threshold.total_seconds() * 1000:
+            add_blocker(blockers, f"Inbox question {item.get('id')} is stale",
+                        "check its live state, then update or close it with the Inbox tool", root_name)
+
+
+def check_inbox_state(home: Path, session_id: str, now: datetime, blockers: list[str], root_name: str) -> None:
+    task_tree_path = home / ".local" / "state" / "inbox" / "task-tree" / f"{session_id}.json"
+    check_inbox_tasks(read_task_tree_export(task_tree_path, session_id), now, blockers, root_name)
+    check_inbox_questions(home, session_id, now, blockers, root_name)
 
 
 def make_session_key(session_id: str, pane_id: str, valid_session: bool) -> str:
@@ -809,6 +850,7 @@ def apply_retry_policy(reason: str | None, input_text: str, pane_id: str) -> Non
 def evaluate_after_identity(
     input_text: str,
     pane_id: str,
+    root_name: str,
     owner_terminal: object,
     agents: list[dict[str, object]],
 ) -> None:
@@ -881,6 +923,17 @@ def evaluate_after_identity(
         terminal_id = owner_terminal
 
     home = Path(os.environ.get("HOME", str(Path.home())))
+    if root_name != "meta":
+        session_id = payload.get("session_id") if isinstance(payload, dict) else None
+        if isinstance(session_id, str) and SESSION_PATTERN.fullmatch(session_id):
+            try:
+                check_inbox_state(home, session_id, datetime.now(timezone.utc), blockers, root_name)
+            except GateError as error:
+                add_error(errors, str(error), "refresh Inbox, then update or complete stale tasks and questions")
+        reason = reason_text(errors, blockers) if errors or blockers else None
+        apply_retry_policy(reason, input_text, pane_id)
+        return
+
     queue_command = env_default(
         "HERDR_META_PATROL_QUEUE_COMMAND", "herdr-meta-patrol-queue"
     )
@@ -959,16 +1012,10 @@ def evaluate_after_identity(
 
     session_id = payload.get("session_id") if isinstance(payload, dict) else None
     if isinstance(session_id, str) and SESSION_PATTERN.fullmatch(session_id):
-        task_tree_path = home / ".local" / "state" / "inbox" / "task-tree" / f"{session_id}.json"
         try:
-            tasks = read_task_tree_export(task_tree_path, session_id)
-            check_inbox_tasks(tasks, datetime.now(timezone.utc), blockers)
+            check_inbox_state(home, session_id, datetime.now(timezone.utc), blockers, root_name)
         except GateError as error:
-            add_error(
-                errors,
-                str(error),
-                f"refresh Inbox at '{task_tree_path}', then update or complete stale tasks with the Inbox tasks tool",
-            )
+            add_error(errors, str(error), "refresh Inbox, then update or complete stale tasks and questions")
 
     reason = reason_text(errors, blockers) if errors or blockers else None
     apply_retry_policy(reason, input_text, pane_id)
@@ -983,12 +1030,12 @@ def main() -> None:
         pass
     if os.environ.get("HERDR_ENV") != "1" or not pane_id:
         return
-    identity = identify_meta(pane_id)
+    identity = identify_root(pane_id)
     if identity is None:
         return
-    owner_terminal, agents = identity
+    root_name, owner_terminal, agents = identity
     try:
-        evaluate_after_identity(raw_input, pane_id, owner_terminal, agents)
+        evaluate_after_identity(raw_input, pane_id, root_name, owner_terminal, agents)
     except GateError as error:
         apply_retry_policy(failure_text(str(error)), raw_input, pane_id)
     except Exception as error:

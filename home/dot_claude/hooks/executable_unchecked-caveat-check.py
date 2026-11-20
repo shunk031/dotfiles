@@ -41,11 +41,11 @@ def visible_text(message: str) -> str:
             continue
         if quote_continuation:
             continue
+        if line.startswith(("    ", "\t")):
+            continue
         opening = re.match(r"(`{3,}|~{3,})", stripped)
         if opening:
             fence = (opening.group(1)[0], len(opening.group(1)))
-            continue
-        if line.startswith(("    ", "\t")):
             continue
         lines.append(line)
     text = "\n".join(lines)

@@ -22,7 +22,7 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
             "まだ確認していません。", "まだ確認できていません。", "条件を調べていません。",
             "境界を検証していません。", "未確認です。", "確かめていない。",
             "This is not yet verified.", "I haven't checked.", "This is unverified.",
-            "This has `unverified`` with mismatched delimiters.",
+            "This has `unverified`` with mismatched delimiters.", "    ```\n    example\n\n未確認です。",
         )
         for message in messages:
             output = json.loads(self.run_hook(message).stdout)

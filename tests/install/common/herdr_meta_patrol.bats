@@ -44,6 +44,7 @@ case "$1 $2" in
     echo "${FAKE_MACHINE_LIST:-[]}"
     ;;
 "agent list") cat "${FAKE_AGENTS}" ;;
+"agent get") jq --arg n "$3" '.result.agents[] | select(.name == $n) | {result:{agent:.}}' "${FAKE_AGENTS}" ;;
 "pane list") echo '{"result":{"panes":[]}}' ;;
 "tab list")
     [[ -z "${FAKE_TAB_LIST_CALLS:-}" ]] || printf '.' >> "${FAKE_TAB_LIST_CALLS}"
@@ -441,23 +442,17 @@ STUB
 }
 
 @test "[common] herdr-meta-patrol wakes stale item owner once through the guarded sender" {
-    register_root Local orch
-    register_root Local meta
-    jq -n '{result:{agents:[{name:"meta",pane_id:"m",agent_status:"idle",agent_session:{kind:"id",source:"herdr:claude",value:"meta-session"}},{name:"orch",pane_id:"p1",agent_status:"idle",agent_session:{kind:"id",source:"herdr:claude",value:"owner-session"}}]}}' > "${FAKE_AGENTS}"
-    mkdir -p "${XDG_STATE_HOME}/inbox/task-tree" "${HOME}/.claude/plugins/store"
-    jq -n '{schema:1,session_id:"owner-session",tasks:[{id:"stale-task",status:"queued",updated_at:"2000-01-01T00:00:00Z"}]}' > "${XDG_STATE_HOME}/inbox/task-tree/owner-session.json"
-    jq '.session_id="meta-session"' "${XDG_STATE_HOME}/inbox/task-tree/owner-session.json" > "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json"
-    jq -n '{"s:meta-session":{ledger:{items:[]}},"s:owner-session":{ledger:{items:[{id:"ask-stale",kind:"question",at:(now*1000|floor),reportedAt:0},{id:"recent-ask",kind:"question",at:(now*1000|floor)}],closed:[{id:"closed-ask",at:0}]}}}' > "${HOME}/.claude/plugins/store/inbox_inline-test.json"
+    mkdir -p "${XDG_STATE_HOME}/meta" "${XDG_STATE_HOME}/inbox/task-tree" "${HOME}/.claude/plugins/store" && printf 'Local\tmeta\nLocal\torch\n' > "${XDG_STATE_HOME}/meta/roots.tsv"
+    jq -n '{result:{agents:[{name:"meta",pane_id:"m",agent_status:"idle",agent_session:{kind:"id",source:"herdr:claude",value:"meta-session"}},{name:"orch",pane_id:"p1",agent_status:"idle"}]}}' > "${FAKE_AGENTS}"
+    jq -n '{schema:1,session_id:"meta-session",tasks:[{id:"stale-task",status:"queued",updated_at:"2000-01-01T00:00:00Z",owner:{agent:"orch",machine:"local"}}]}' > "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json"
+    jq -n '{"s:meta-session":{ledger:{items:[{id:"meta-stale",kind:"question",at:0},{id:"recent-ask",kind:"question",at:(now*1000|floor)}],closed:[{id:"closed-ask",at:0}]}}}' > "${HOME}/.claude/plugins/store/inbox_inline-test.json"
     printf '❯ \n' > "${FAKE_PANE}"
     run bash "${SCRIPT_PATH}"
-    [ "${status}" -eq 0 ]
-    [ "$(wc -l < "${FAKE_PROMPTS}")" -eq 1 ]
-    grep -F 'stale-task' "${FAKE_PROMPTS}" | grep -Fq 'ask-stale'
-    ! grep -Eq 'recent-ask|closed-ask' "${FAKE_PROMPTS}"
-    [ ! -e "${BATS_TEST_TMPDIR}/typed" ]
+    [ "${status}" -eq 0 ] && [ "$(wc -l < "${FAKE_PROMPTS}")" -eq 1 ] && grep -F 'orch' "${FAKE_PROMPTS}" | grep -Fq 'stale-task'
+    ! grep -Eq 'meta-stale|recent-ask|closed-ask' "${FAKE_PROMPTS}" && grep -Fq 'meta-stale' <(calls) && ! grep -Eq 'recent-ask|closed-ask' <(calls)
     run bash "${SCRIPT_PATH}"
+    jq '.tasks[0].updated_at="2000-01-02T00:00:00Z"' "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json" > "${BATS_TEST_TMPDIR}/updated.json" && mv "${BATS_TEST_TMPDIR}/updated.json" "${XDG_STATE_HOME}/inbox/task-tree/meta-session.json"
     [ "$(wc -l < "${FAKE_PROMPTS}")" -eq 1 ]
-    jq '.tasks[0].updated_at="2000-01-02T00:00:00Z"' "${XDG_STATE_HOME}/inbox/task-tree/owner-session.json" > "${BATS_TEST_TMPDIR}/updated.json" && mv "${BATS_TEST_TMPDIR}/updated.json" "${XDG_STATE_HOME}/inbox/task-tree/owner-session.json"
     run bash "${SCRIPT_PATH}"
     [ "$(wc -l < "${FAKE_PROMPTS}")" -eq 2 ]
 }

@@ -46,6 +46,7 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
         messages = (
             "```text\n未確認\n```",
             "````text\n```\nunverified\n````",
+            "    unverified",
             "引用: “unverified” and 'haven't checked'",
         )
         for message in messages:

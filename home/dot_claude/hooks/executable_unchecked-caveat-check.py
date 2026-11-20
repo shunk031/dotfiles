@@ -34,6 +34,8 @@ def visible_text(message: str) -> str:
         if opening:
             fence = (opening.group(1)[0], len(opening.group(1)))
             continue
+        if line.startswith(("    ", "\t")):
+            continue
         if stripped.startswith(">"):
             continue
         lines.append(line)

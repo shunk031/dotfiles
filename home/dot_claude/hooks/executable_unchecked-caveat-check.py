@@ -20,9 +20,9 @@ BLOCK_REASON = (
 def visible_text(message: str) -> str:
     lines = []
     fence = None
+    quote_continuation = False
     for line in message.splitlines():
         stripped = line.lstrip()
-        opening = re.match(r"(`{3,}|~{3,})", stripped)
         if fence:
             closing = re.fullmatch(r"(`+|~+)[ \t]*", stripped)
             if (
@@ -32,12 +32,20 @@ def visible_text(message: str) -> str:
             ):
                 fence = None
             continue
+        if not stripped:
+            quote_continuation = False
+            lines.append(line)
+            continue
+        if stripped.startswith(">"):
+            quote_continuation = True
+            continue
+        if quote_continuation:
+            continue
+        opening = re.match(r"(`{3,}|~{3,})", stripped)
         if opening:
             fence = (opening.group(1)[0], len(opening.group(1)))
             continue
         if line.startswith(("    ", "\t")):
-            continue
-        if stripped.startswith(">"):
             continue
         lines.append(line)
     text = "\n".join(lines)
@@ -60,10 +68,10 @@ def evaluate(payload: object) -> dict[str, str] | None:
 def main() -> None:
     try:
         result = evaluate(json.loads(sys.stdin.read()))
-    except (json.JSONDecodeError, UnicodeDecodeError):
+        if result is not None:
+            print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
+    except Exception:
         return
-    if result is not None:
-        print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
 
 
 if __name__ == "__main__":

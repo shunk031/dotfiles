@@ -10,15 +10,11 @@ HOOK = Path(__file__).parents[2] / "home/dot_claude/hooks/executable_unchecked-c
 
 class UncheckedCaveatCheckTest(unittest.TestCase):
     def run_hook(self, message, *, active=False):
-        payload = {
-            "hook_event_name": "Stop",
-            "stop_hook_active": active,
-            "last_assistant_message": message,
-        }
+        payload = {"hook_event_name": "Stop", "stop_hook_active": active,
+                   "last_assistant_message": message}
         return subprocess.run(
             ["python3", str(HOOK)], input=json.dumps(payload), text=True,
-            capture_output=True, check=True,
-        )
+            capture_output=True, check=True)
 
     def test_blocks_present_tense_caveats(self):
         messages = (
@@ -29,37 +25,37 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
             "This has `unverified`` with mismatched delimiters.",
         )
         for message in messages:
-            with self.subTest(message=message):
-                output = json.loads(self.run_hook(message).stdout)
-                self.assertEqual(output["decision"], "block")
-                self.assertIn("run the check now", output["reason"].lower())
-                self.assertIn("who must do what", output["reason"])
+            output = json.loads(self.run_hook(message).stdout)
+            self.assertEqual(output["decision"], "block", message)
+            self.assertIn("run the check now", output["reason"].lower(), message)
+            self.assertIn("who must do what", output["reason"], message)
 
     def test_allows_past_tense_caveat(self):
-        messages = (
-            "事前に確かめていませんでした。", "確認していませんでした。",
-            "確認できていませんでした。", "調べていませんでした。",
-            "検証していませんでした。", "未確認でした。",
-        )
+        messages = ("事前に確かめていませんでした。", "確認していませんでした。",
+                    "確認できていませんでした。", "調べていませんでした。",
+                    "検証していませんでした。", "未確認でした。")
         for message in messages:
-            with self.subTest(message=message):
-                self.assertEqual(self.run_hook(message).stdout, "")
+            self.assertEqual(self.run_hook(message).stdout, "", message)
 
     def test_allows_reentered_stop(self):
         self.assertEqual(self.run_hook("まだ確かめていません。", active=True).stdout, "")
 
     def test_ignores_code_and_quoted_text(self):
         messages = (
-            "```text\n未確認\n```",
-            "````text\n```\nunverified\n````",
-            "    unverified",
-            "This has `unverified` inside code.",
-            "「未確認です。\n引用の続き」",
+            "```text\n未確認\n```", "````text\n```\nunverified\n````",
+            "    unverified", "This has `unverified` inside code.",
+            "> Quoted example:\nunverified", "「未確認です。\n引用の続き」",
             "引用: “unverified” and 'haven't checked'",
         )
         for message in messages:
-            with self.subTest(message=message):
-                self.assertEqual(self.run_hook(message).stdout, "")
+            self.assertEqual(self.run_hook(message).stdout, "", message)
+
+    def test_deeply_nested_json_fails_open(self):
+        payload = "[" * 2000 + "0" + "]" * 2000
+        result = subprocess.run(
+            ["python3", str(HOOK)], input=payload, text=True,
+            capture_output=True, check=True)
+        self.assertEqual(result.stdout, "")
 
     def test_allows_message_without_caveat(self):
         self.assertEqual(self.run_hook("確認が完了しました。").stdout, "")

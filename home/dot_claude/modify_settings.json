@@ -166,6 +166,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/herdr-meta-japanese-reply.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "python3 \"$HOME/.claude/hooks/unchecked-caveat-check.py\"",
             "timeout": 5,
             "onFailure": "block"

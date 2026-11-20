@@ -118,13 +118,19 @@ class JapaneseReplyTest(unittest.TestCase):
             'customtool -m "The requested implementation is complete '
             'and validation passed successfully."'
         )
+        flag_after_argument = (
+            'customtool payload --message "The requested implementation is complete '
+            'and validation passed successfully."'
+        )
         lines = (
             command,
             plain_executable,
             short_flag_executable,
+            flag_after_argument,
             "$ " + command,
             "MODE=fast " + command,
             "./custom-tool --message 'The requested implementation is complete.'",
+            "python3 tests/python/test_file.py",
             "git status",
             "make test",
         )

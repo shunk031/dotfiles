@@ -140,7 +140,7 @@ def is_command_line(line: str) -> bool:
         assignments.append(arguments.pop(0))
     if assignments:
         return True
-    if arguments and arguments[0].startswith("-"):
+    if any(argument.startswith("-") for argument in arguments):
         return True
 
     if command in COMMAND_SUBCOMMANDS:

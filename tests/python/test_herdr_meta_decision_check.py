@@ -65,11 +65,93 @@ class DecisionCheckTest(unittest.TestCase):
             ledger = home / ".local" / "state" / "meta" / "standing-permissions.md"
             ledger.parent.mkdir(parents=True)
             ledger.write_text("Recorded decision: keep all personal caps.\n")
-            with mock.patch.dict(GATE.os.environ, {"HOME": str(home)}), mock.patch.object(
-                GATE.subprocess, "run", side_effect=subprocess.TimeoutExpired("codex", 30)
-            ):
+            with mock.patch.dict(
+                GATE.os.environ,
+                {
+                    "HOME": str(home),
+                    "HERDR_META_DECISION_CHECK_MODEL": "test-model",
+                    "HERDR_META_DECISION_CHECK_EFFORT": "medium",
+                },
+            ), mock.patch.object(GATE.subprocess, "run", side_effect=subprocess.TimeoutExpired("codex", 30)):
                 result = GATE.run_checker("Drop the hourly cap.")
         self.assertEqual(result["status"], "UNKNOWN")
+
+    def test_checker_requires_model_and_effort_settings(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            for settings in (
+                {},
+                {"HERDR_META_DECISION_CHECK_MODEL": "test-model"},
+                {"HERDR_META_DECISION_CHECK_EFFORT": "medium"},
+            ):
+                with self.subTest(settings=settings), mock.patch.dict(
+                    GATE.os.environ, {"HOME": temporary, **settings}, clear=True
+                ), mock.patch.object(GATE.subprocess, "run") as run:
+                    result = GATE.run_checker("Keep the caps.")
+                self.assertEqual(result, GATE.unknown(GATE.MISSING_SETTINGS_REASON))
+                run.assert_not_called()
+
+    def test_missing_checker_settings_block_proposal(self):
+        with tempfile.TemporaryDirectory() as temporary, mock.patch.dict(
+            GATE.os.environ, {"HOME": temporary}, clear=True
+        ), mock.patch.object(GATE.subprocess, "run") as run:
+            result = GATE.evaluate_event(
+                {"hook_event_name": "Stop", "last_assistant_message": "I recommend changing the setting."}
+            )
+        run.assert_not_called()
+        self.assertEqual("block", result["decision"])
+        self.assertIn("model or effort is not configured", result["reason"])
+
+    def test_model_unknown_with_configuration_failure_reason_still_passes(self):
+        checker = mock.Mock(return_value=GATE.unknown("Decision checker returned no result."))
+        result = GATE.evaluate_event(
+            {"hook_event_name": "Stop", "last_assistant_message": "I recommend changing the setting."},
+            checker,
+        )
+        self.assertIsNone(result)
+
+    def test_checker_command_failure_blocks_proposal(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            home = Path(temporary)
+            ledger = home / ".local" / "state" / "meta" / "standing-permissions.md"
+            ledger.parent.mkdir(parents=True)
+            ledger.write_text("Recorded decision: keep all personal caps.\n")
+            failed = subprocess.CompletedProcess("codex", 2, "", "invalid model or effort")
+            with mock.patch.dict(
+                GATE.os.environ,
+                {
+                    "HOME": str(home),
+                    "HERDR_META_DECISION_CHECK_MODEL": "unsupported-model",
+                    "HERDR_META_DECISION_CHECK_EFFORT": "medium",
+                },
+            ), mock.patch.object(GATE.subprocess, "run", return_value=failed):
+                result = GATE.evaluate_event(
+                    {"hook_event_name": "Stop", "last_assistant_message": "I recommend changing the setting."}
+                )
+        self.assertEqual("block", result["decision"])
+        self.assertIn("no result", result["reason"])
+
+    def test_checker_uses_private_model_and_effort_settings(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            home = Path(temporary)
+            ledger = home / ".local" / "state" / "meta" / "standing-permissions.md"
+            ledger.parent.mkdir(parents=True)
+            ledger.write_text("Recorded decision: keep all personal caps.\n")
+            completed = subprocess.CompletedProcess(
+                "codex", 0, '{"status":"ALLOW","decision":"No conflict","reason":"No conflict."}', ""
+            )
+            with mock.patch.dict(
+                GATE.os.environ,
+                {
+                    "HOME": str(home),
+                    "HERDR_META_DECISION_CHECK_MODEL": "test-model",
+                    "HERDR_META_DECISION_CHECK_EFFORT": "medium",
+                },
+            ), mock.patch.object(GATE.subprocess, "run", return_value=completed) as run:
+                result = GATE.run_checker("Keep the caps.")
+        command = run.call_args.args[0]
+        self.assertEqual("ALLOW", result["status"])
+        self.assertEqual("test-model", command[command.index("-m") + 1])
+        self.assertIn("model_reasoning_effort=medium", command)
 
     def test_unknown_passes_and_logs_without_proposal_text(self):
         self.log_patch.stop()

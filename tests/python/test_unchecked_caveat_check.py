@@ -43,7 +43,7 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
     def test_ignores_code_and_quoted_text(self):
         messages = (
             "```text\n未確認\n```", "````text\n```\nunverified\n````", "```text\n    ```\nunverified\n```",
-            "    unverified", "This has `unverified` inside code.", "`unverified\ncontinues`",
+            "    unverified", "   \t未確認です。", "This has `unverified` inside code.", "`unverified\ncontinues`",
             "> Quoted example:\nunverified", "「未確認です。\n引用の続き」",
             "引用: “unverified” and 'haven't checked'", "“I haven't checked\nthis yet.”", "He wrote: \"not yet verified\nin the report.\"",
         )

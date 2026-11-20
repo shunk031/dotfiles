@@ -36,7 +36,7 @@ def visible_text(message: str) -> str:
             quote_continuation = False
             lines.append(line)
             continue
-        if line.startswith(("    ", "\t")):
+        if re.match(r"(?: {4}| {0,3}\t)", line):
             continue
         if stripped.startswith(">"):
             quote_continuation = True

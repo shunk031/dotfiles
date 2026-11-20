@@ -432,8 +432,8 @@ function scan_machine() {
 # @arg $4 path File for validated, ordered source records.
 function pull_remote_queue() {
     local machine="$1" target="$2" queue_file="$3" ordered_file="$4"
-    local cursor_dir="${state_dir}/remote-queue-cursors" cursor_key cursor_file cursor record source_seq temporary
-    local remote_command='if [ -r "$HOME/.local/state/herdr-meta-patrol/queue.jsonl" ]; then cat "$HOME/.local/state/herdr-meta-patrol/queue.jsonl"; fi'
+    local cursor_dir="${state_dir}/remote-queue-cursors" cursor_key cursor_file cursor record source_seq temporary ssh_status
+    local remote_command='state_dir="$HOME/.local/state/herdr-meta-patrol"; queue_file="$state_dir/queue.jsonl"; if [ -e "$state_dir" ] || [ -L "$state_dir" ]; then [ -d "$state_dir" ] && [ -r "$state_dir" ] && [ -x "$state_dir" ] || exit 44; if [ -e "$queue_file" ] || [ -L "$queue_file" ]; then [ ! -L "$queue_file" ] && [ -f "$queue_file" ] && [ -r "$queue_file" ] || exit 44; cat "$queue_file" || exit 44; fi; fi'
 
     if ! mkdir -p "${cursor_dir}" || ! chmod 700 "${cursor_dir}"; then
         printf '[%s] queue pull failed (cursor state unavailable)\n' "${machine}"
@@ -451,9 +451,16 @@ function pull_remote_queue() {
     cursor="$(cat "${cursor_file}" 2> /dev/null)" || cursor=""
     [[ "${cursor}" =~ ^[0-9]+$ ]] || cursor=0
 
-    if ! run_with_timeout "${timeout_seconds}" "${ssh_command}" -T -o BatchMode=yes \
+    if run_with_timeout "${timeout_seconds}" "${ssh_command}" -T -o BatchMode=yes \
         -o ConnectTimeout=5 "${target}" "${remote_command}" > "${queue_file}" 2> /dev/null; then
-        printf '[%s] queue pull failed (machine unreachable)\n' "${machine}"
+        :
+    else
+        ssh_status=$?
+        if ((ssh_status == 124 || ssh_status == 255)); then
+            printf '[%s] queue pull failed (machine unreachable)\n' "${machine}"
+        else
+            printf '[%s] queue pull failed (remote queue unavailable)\n' "${machine}"
+        fi
         return 0
     fi
     if ! jq -cs '

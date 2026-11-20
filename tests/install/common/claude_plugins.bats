@@ -799,6 +799,7 @@ EOF
                 {"matcher":"Write|Edit|MultiEdit","hooks":[markdown_hook]}
             ]
             | .hooks.Stop = [{"hooks":[
+                {"type":"command","command":"python3 \"$HOME/.claude/hooks/unchecked-caveat-check.py\"","timeout":5,"onFailure":"block"},
                 {"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"","timeout":60,"onFailure":"block"},
                 {"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-turn-gate.py\"","timeout":10},
                 {"type":"command","command":"command -v node >/dev/null 2>&1 || exit 0; ~/.local/bin/common/markdown-sentence-length stop claude","timeout":120},

@@ -24,7 +24,7 @@ def visible_text(message: str) -> str:
     for line in message.splitlines():
         stripped = line.lstrip()
         if fence:
-            closing = re.fullmatch(r"(`+|~+)[ \t]*", stripped)
+            closing = re.fullmatch(r" {0,3}(`+|~+)[ \t]*", line)
             if (
                 closing
                 and closing.group(1)[0] == fence[0]

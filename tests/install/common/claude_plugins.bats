@@ -793,7 +793,7 @@ EOF
             def markdown_hook: {"type":"command","command":$command,"timeout":120};
             def decision_hook($condition): {"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-decision-check.py\"","timeout":60,"onFailure":"block"} + (if $condition == null then {} else {"if":$condition} end);
             .hooks.PreToolUse = [
-                {"matcher":"mcp__inbox__record","hooks":[decision_hook(null)]},
+                {"matcher":"mcp__inbox__record","hooks":[decision_hook(null),{"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-root-naming-check.py\""}]},
                 {"matcher":"Bash","hooks":[decision_hook("Bash(*herdr-agent-prompt-if-input-empty.sh*)"),decision_hook("Bash(*herdr*agent prompt*)")]},
                 {"matcher":"Bash","hooks":[markdown_hook]},
                 {"matcher":"Write|Edit|MultiEdit","hooks":[markdown_hook]}

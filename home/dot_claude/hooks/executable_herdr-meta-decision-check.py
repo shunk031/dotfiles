@@ -7,11 +7,17 @@ import os
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
 CHECK_TIMEOUT_SECONDS = 45
 STATUSES = {"ALLOW", "CONFLICT", "UNKNOWN"}
+SAFE_UNKNOWN_REASONS = {"Decision checker timed out or failed to start.", "Decision checker returned no result.",
+                        "Decision checker returned invalid JSON.", "Invalid checker response.",
+                        "Standing decisions could not be read.", "Decision checker failed.",
+                        "Inbox record has no proposal."}
+SAFE_LOG_DECISIONS = {"ALLOW": "No conflicting decision", "CONFLICT": "Standing decision conflict", "UNKNOWN": "Unclear"}
 SEND_PATTERNS = (
     re.compile(r"(?<![\w.-])herdr-agent-prompt-if-input-empty\.sh(?=$|[^\w.-])"),
     re.compile(r"\bherdr(?:\s+--\S+(?:\s+\S+)?)*\s+agent\s+prompt\b"),
@@ -163,16 +169,20 @@ def deny_result(event: str, result: dict[str, str]) -> dict[str, object]:
     }
 
 
-def log_unknown(event: str) -> None:
+def log_result(event: str, result: dict[str, str], elapsed_seconds: float) -> None:
     path = Path(os.environ.get("HOME", str(Path.home()))) / ".local/state/meta/decision-check.log"
     record = {"time": datetime.now().astimezone().isoformat(), "event": event,
-              "decision": "UNKNOWN", "reason": "Decision checker could not resolve the proposal."}
+              "status": result["status"], "decision": SAFE_LOG_DECISIONS[result["status"]],
+              "elapsed_seconds": round(elapsed_seconds, 3)}
+    if result["status"] == "UNKNOWN":
+        reason = result["reason"]
+        record["reason"] = reason if reason in SAFE_UNKNOWN_REASONS else "Decision checker returned UNKNOWN."
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("a", encoding="utf-8") as stream:
             stream.write(json.dumps(record, ensure_ascii=False) + "\n")
     except OSError:
-        print("UNKNOWN decision could not be recorded.", file=sys.stderr)
+        print("Decision checker outcome could not be recorded.", file=sys.stderr)
 
 
 def evaluate_event(payload: object, checker=run_checker):
@@ -184,20 +194,21 @@ def evaluate_event(payload: object, checker=run_checker):
             not isinstance(payload.get("tool_input"), dict) or not payload["tool_input"]
         )
     ):
-        log_unknown("Inbox record")
+        log_result("Inbox record", unknown("Inbox record has no proposal."), 0.0)
         return None
     item = candidate(payload)
     if item is None or not isinstance(payload, dict):
         return None
+    started = time.monotonic()
     try:
         result = normalize_result(checker(item))
     except Exception:  # noqa: BLE001 - checker failures must become UNKNOWN.
         result = unknown("Decision checker failed.")
+    elapsed_seconds = time.monotonic() - started
     event = payload["hook_event_name"]
-    if result["status"] == "ALLOW":
-        return None
-    if result["status"] == "UNKNOWN":
-        log_unknown("Stop" if event == "Stop" else "Inbox record" if payload.get("tool_name") == "mcp__inbox__record" else "Agent prompt")
+    log_event = "Stop" if event == "Stop" else "Inbox record" if payload.get("tool_name") == "mcp__inbox__record" else "Agent prompt"
+    log_result(log_event, result, elapsed_seconds)
+    if result["status"] in {"ALLOW", "UNKNOWN"}:
         return None
     return deny_result(event, result)
 

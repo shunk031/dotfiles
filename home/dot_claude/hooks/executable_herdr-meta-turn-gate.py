@@ -274,11 +274,18 @@ def read_lifecycle_records(
                 f"the worker lifecycle registry is unparsable or contains unexpected statuses; "
                 f"recovery: repair '{records_file}', then run '{lifecycle_helper} audit'"
             )
-        if len(fields) == 10 and fields[9] not in {"tab", "root"}:
-            raise GateError(
-                f"the worker lifecycle registry is unparsable or contains unexpected statuses; "
-                f"recovery: repair '{records_file}', then run '{lifecycle_helper} audit'"
-            )
+        if len(fields) == 10:
+            launch_mode = fields[9]
+            workspace_id = launch_mode[6:]
+            if launch_mode not in {"tab", "root"} and not (
+                launch_mode.startswith("owned:")
+                and workspace_id
+                and not any(character.isspace() for character in workspace_id)
+            ):
+                raise GateError(
+                    f"the worker lifecycle registry is unparsable or contains unexpected statuses; "
+                    f"recovery: repair '{records_file}', then run '{lifecycle_helper} audit'"
+                )
         if fields[8] not in {"started", "collected"}:
             raise GateError(
                 f"the worker lifecycle registry is unparsable or contains unexpected statuses; "

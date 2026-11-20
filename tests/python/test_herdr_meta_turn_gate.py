@@ -476,6 +476,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             ("legacy 9-field row", writer_fields),
             ("tab launch row", [*writer_fields, "tab"]),
             ("root-pane launch row", [*writer_fields, "root"]),
+            ("owned workspace row", [*writer_fields, "owned:wKB"]),
         ]
 
         for name, fields in cases:
@@ -491,6 +492,18 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         ]
         self.registry.write_text("\t".join(fields) + "\n")
         self.assert_blocked(self.run_hook(), "registry is unparsable")
+
+    def test_lifecycle_registry_rejects_owned_launch_mode_without_valid_workspace_id(self):
+        self.start_waiter()
+        writer_fields = [
+            "meta", "w1:p1", "meta-terminal", "gate-task", "gate-worker",
+            "worker-terminal", "w2:t2", "w2:p2", "started",
+        ]
+
+        for launch_mode in ("owned:", "owned:bad id"):
+            with self.subTest(launch_mode=launch_mode):
+                self.registry.write_text("\t".join([*writer_fields, launch_mode]) + "\n")
+                self.assert_blocked(self.run_hook(), "registry is unparsable")
 
     def test_unexpected_worker_status_blocks_for_reconciliation(self):
         self.start_waiter()

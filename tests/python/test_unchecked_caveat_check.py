@@ -22,9 +22,10 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
 
     def test_blocks_present_tense_caveats(self):
         messages = (
-            "この点はまだ確かめていません。", "まだ確認していません。", "未確認です。",
-            "確かめていない。", "This is not yet verified.", "I haven't checked.",
-            "This is unverified.",
+            "私は確かめていません。", "どちらなのかは確かめていません。",
+            "まだ確認していません。", "まだ確認できていません。", "条件を調べていません。",
+            "境界を検証していません。", "未確認です。", "確かめていない。",
+            "This is not yet verified.", "I haven't checked.", "This is unverified.",
         )
         for message in messages:
             with self.subTest(message=message):
@@ -34,7 +35,11 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
                 self.assertIn("who must do what", output["reason"])
 
     def test_allows_past_tense_caveat(self):
-        messages = ("事前に確かめていませんでした。", "確認していませんでした。", "未確認でした。")
+        messages = (
+            "事前に確かめていませんでした。", "確認していませんでした。",
+            "確認できていませんでした。", "調べていませんでした。",
+            "検証していませんでした。", "未確認でした。",
+        )
         for message in messages:
             with self.subTest(message=message):
                 self.assertEqual(self.run_hook(message).stdout, "")

@@ -6,7 +6,8 @@ import re
 import sys
 
 CAVEAT = re.compile(
-    r"(?:まだ確かめていません|確認していません|未確認|確かめていない)(?!でした|ませんでした)"
+    r"(?:確かめていません|確かめていない|確認していません|確認できていません|"
+    r"調べていません|検証していません|未確認)(?!でした|ませんでした)"
     r"|\b(?:not yet verified|haven['’]t checked|unverified)\b",
     re.IGNORECASE,
 )

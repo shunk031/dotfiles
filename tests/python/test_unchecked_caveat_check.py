@@ -26,6 +26,7 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
             "まだ確認していません。", "まだ確認できていません。", "条件を調べていません。",
             "境界を検証していません。", "未確認です。", "確かめていない。",
             "This is not yet verified.", "I haven't checked.", "This is unverified.",
+            "This has `unverified`` with mismatched delimiters.",
         )
         for message in messages:
             with self.subTest(message=message):
@@ -52,6 +53,7 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
             "```text\n未確認\n```",
             "````text\n```\nunverified\n````",
             "    unverified",
+            "This has `unverified` inside code.",
             "引用: “unverified” and 'haven't checked'",
         )
         for message in messages:

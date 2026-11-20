@@ -176,7 +176,7 @@ function is_registered_root() {
 function read_inbox_data() {
     local session="$1" script='import glob,json,os,sys; from pathlib import Path; s=sys.argv[1]; h=Path.home(); x=Path(os.environ.get("XDG_STATE_HOME",h/".local/state")); t=json.loads((x/"inbox/task-tree"/(s+".json")).read_text()); i=next((v for p in glob.glob(str(h/".claude/plugins/store/inbox_inline-*.json")) if isinstance((v:=json.loads(Path(p).read_text()).get("s:"+s,{}).get("ledger",{}).get("items")),list)),None); assert isinstance(t.get("tasks"),list) and i is not None; print(json.dumps({"tasks":t["tasks"],"items":i}))'
     local -a command=(python3 -c "$script" "$session")
-    [[ "${machine}" == local ]] || command=(ssh -T -o BatchMode=yes -o ConnectTimeout=5 "${machine}" python3 -c "$script" "$session")
+    [[ "${machine}" == local ]] || command=(ssh -T -o BatchMode=yes -o ConnectTimeout=5 "${machine}" "$(printf 'python3 -c %q %q' "$script" "$session")")
     run_with_timeout "${timeout_seconds}" "${command[@]}"
 }
 

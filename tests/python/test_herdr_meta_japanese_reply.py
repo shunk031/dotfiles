@@ -145,7 +145,7 @@ class JapaneseReplyTest(unittest.TestCase):
                 self.assertIn(line, MODULE.visible_prose(line))
 
     def test_attached_urls_and_paths_with_arbitrary_extensions_are_removed(self):
-        url = "www.superlongenglishdomainnameandpath.example/日本語"
+        url = "www.superlongenglishdomainnameandpath.example/path"
         absolute_path = "/Users/alice/verylongenglishprojectname.csv"
         relative_path = "reports/verylongenglishfilename.csv"
         windows_path = r"C:\Users\alice\verylongenglishfilename.csv"
@@ -171,6 +171,19 @@ class JapaneseReplyTest(unittest.TestCase):
         for japanese_suffix in ("確認します", "を確認します。"):
             with self.subTest(japanese_suffix=japanese_suffix):
                 self.assertIn(japanese_suffix, visible)
+        self.assertFalse(MODULE.should_block(message))
+
+    def test_japanese_suffix_after_url_remains_countable(self):
+        prefix = "日" * 10
+        url = "www.example.com"
+        suffix = "語" * 20
+        english = "English" * 9
+        message = prefix + url + suffix + " " + english
+
+        visible = MODULE.visible_prose(message)
+        self.assertNotIn(url, visible)
+        self.assertIn(prefix, visible)
+        self.assertIn(suffix, visible)
         self.assertFalse(MODULE.should_block(message))
 
     def test_slash_compounds_are_not_discarded_as_relative_paths(self):

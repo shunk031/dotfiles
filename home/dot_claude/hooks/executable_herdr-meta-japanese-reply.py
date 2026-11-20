@@ -18,7 +18,7 @@ FENCE_CLOSE = re.compile(r"^ {0,3}(`+|~+)[ \t]*$")
 INLINE_CODE = re.compile(r"(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)")
 URL = re.compile(
     r"(?<![A-Za-z0-9+.-])(?:[A-Za-z][A-Za-z0-9+.-]*://|mailto:|www\.)"
-    r"[^\s<>]+",
+    r"[A-Za-z0-9_.~:/?#\[\]@!$&'()*+,;=%-]+",
     re.IGNORECASE,
 )
 UNIX_PATH = re.compile(

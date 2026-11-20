@@ -36,11 +36,7 @@ FILE_NAME = re.compile(
 )
 COMMAND_LINE = re.compile(
     r"^\s*(?:(?:[-*+]\s+|\d+[.)]\s+))?(?:(?P<prompt>[$%❯➜])\s*)?"
-    r"(?P<command>command|sudo|env|export|set|source|exec|git|gh|make|pytest|"
-    r"python(?:\d+(?:\.\d+)*)?|uv|mise|npm|npx|node|bash|zsh|sh|cat|sed|"
-    r"awk|rg|grep|find|ls|cd|pwd|date|curl|wget|jq|brew|docker|ssh|scp|op|"
-    r"chmod|chown|mkdir|rm|cp|mv|touch|printf|echo|tar|zip|unzip|pip|pipx|"
-    r"go|cargo|rustc|gcc|herdr(?:-[a-z0-9-]+)*)(?P<arguments>(?:\s+.*)?)$"
+    r"(?P<command>[^\s]+)(?P<arguments>(?:\s+.*)?)$"
 )
 COMMAND_SUBCOMMANDS = {
     "git": {
@@ -63,6 +59,14 @@ COMMAND_SUBCOMMANDS = {
     "brew": {"info", "install", "list", "search", "uninstall", "update", "upgrade"},
 }
 MAKE_TARGETS = {"all", "build", "check", "clean", "format", "install", "lint", "setup", "test"}
+COMMAND_NAMES = {
+    "awk", "bash", "brew", "cat", "cd", "cargo", "chown", "chmod", "command",
+    "cp", "date", "docker", "echo", "env", "exec", "export", "find", "gcc", "gh",
+    "git", "go", "grep", "herdr", "jq", "ls", "make", "mkdir", "mise", "mv", "node",
+    "npm", "npx", "op", "pip", "pipx", "printf", "pwd", "pytest", "python", "rg",
+    "rm", "rustc", "scp", "sed", "set", "sh", "source", "ssh", "sudo", "tar", "touch",
+    "unzip", "uv", "wget", "zsh", "zip",
+}
 META_AGENT_LIST_TIMEOUT = 3
 
 
@@ -121,6 +125,14 @@ def is_command_line(line: str) -> bool:
 
     if match.group("prompt") is not None:
         return True
+    if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", command):
+        return True
+    assignments = []
+    while arguments and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", arguments[0]):
+        assignments.append(arguments.pop(0))
+    if assignments:
+        return True
+
     if command in COMMAND_SUBCOMMANDS:
         return bool(arguments and arguments[0] in COMMAND_SUBCOMMANDS[command])
     if command.startswith("herdr-"):
@@ -190,20 +202,36 @@ def is_command_line(line: str) -> bool:
             arguments
             and (
                 arguments[0].startswith("-")
-                or re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", arguments[0])
-                or arguments[0] in COMMAND_SUBCOMMANDS
+                or arguments[0] in COMMAND_NAMES
             )
         )
 
-    return bool(
-        arguments
-        and (
-            any(argument.startswith("-") for argument in arguments)
-            or any(is_path_argument(argument) for argument in arguments)
-            or any("=" in argument for argument in arguments)
-            or any(character in raw_arguments for character in "'\"$|;&<>")
-        )
+    if not arguments:
+        return command in {"date", "ls", "pwd"} or is_path_argument(command)
+
+    has_shell_syntax = (
+        any(argument.startswith("-") for argument in arguments)
+        or any(is_path_argument(argument) for argument in arguments)
+        or any("=" in argument for argument in arguments)
+        or any(character in raw_arguments for character in "'\"$|;&<>")
     )
+    if command in {"mkdir", "rm", "cp", "mv", "chown", "ssh", "scp"}:
+        return True
+    if command == "chmod":
+        return has_shell_syntax or bool(re.match(r"^\d{3,4}$", arguments[0]))
+    if command == "touch":
+        return has_shell_syntax
+    if command == "pytest":
+        return has_shell_syntax or arguments[0] in {"test", "tests"}
+    if command in {"npx", "wget", "jq", "rustc", "gcc", "printf", "tar", "zip", "unzip"}:
+        return has_shell_syntax
+
+    command_is_executable = (
+        command in COMMAND_NAMES
+        or bool(re.fullmatch(r"python\d+(?:\.\d+)*", command))
+        or bool(re.search(r"[./_\d-]", command))
+    )
+    return command_is_executable and has_shell_syntax
 
 
 def visible_prose(message: str) -> str:

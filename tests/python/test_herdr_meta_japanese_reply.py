@@ -105,6 +105,35 @@ class JapaneseReplyTest(unittest.TestCase):
         self.assertIn("Find the relevant details", visible)
         self.assertTrue(MODULE.should_block(message))
 
+    def test_command_syntax_is_removed_without_discarding_prose(self):
+        command = (
+            'custom-tool --message "The requested implementation is complete '
+            'and validation passed successfully."'
+        )
+        lines = (
+            command,
+            "$ " + command,
+            "MODE=fast " + command,
+            "./custom-tool --message 'The requested implementation is complete.'",
+            "git status",
+            "make test",
+        )
+        for line in lines:
+            with self.subTest(line=line):
+                self.assertTrue(MODULE.is_command_line(line))
+                self.assertNotIn(line, MODULE.visible_prose(line))
+
+        prose = (
+            "make sure this explanation remains visible to the reader.",
+            "Find the relevant result and explain what changed.",
+            "Set the configuration so the requested behavior works.",
+            "source files describe how the application works.",
+        )
+        for line in prose:
+            with self.subTest(line=line):
+                self.assertFalse(MODULE.is_command_line(line))
+                self.assertIn(line, MODULE.visible_prose(line))
+
     def test_slash_compounds_are_not_discarded_as_relative_paths(self):
         messages = (
             "Input/output and request/response are valid distinctions.",

@@ -14,7 +14,6 @@ from pathlib import Path
 CHECK_TIMEOUT_SECONDS = 45
 STATUSES = {"ALLOW", "CONFLICT", "UNKNOWN"}
 MISSING_SETTINGS_REASON = "Decision checker model or effort is not configured."
-BLOCKING_UNKNOWN_REASONS = {MISSING_SETTINGS_REASON, "Decision checker returned no result."}
 SAFE_UNKNOWN_REASONS = {"Decision checker timed out or failed to start.", "Decision checker returned no result.",
                         "Decision checker returned invalid JSON.", "Invalid checker response.",
                         "Standing decisions could not be read.", "Decision checker failed.",
@@ -36,6 +35,14 @@ OPTION_HEADING = re.compile(r"(?im)^\s*(?:options?|alternatives?|choose one|é¸æ
 
 def unknown(reason: str) -> dict[str, str]:
     return {"status": "UNKNOWN", "decision": "Unclear", "reason": reason}
+
+
+class FailClosedUnknown(dict[str, str]):
+    """Mark a local configuration or command failure that must block the proposal."""
+
+
+def fail_closed_unknown(reason: str) -> FailClosedUnknown:
+    return FailClosedUnknown(unknown(reason))
 
 
 def unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -91,7 +98,7 @@ def run_checker(proposal: str) -> dict[str, str]:
     model = os.environ.get("HERDR_META_DECISION_CHECK_MODEL", "").strip()
     effort = os.environ.get("HERDR_META_DECISION_CHECK_EFFORT", "").strip()
     if not model or not effort:
-        return unknown(MISSING_SETTINGS_REASON)
+        return fail_closed_unknown(MISSING_SETTINGS_REASON)
     ledger_path = home / ".local" / "state" / "meta" / "standing-permissions.md"
     try:
         ledger = ledger_path.read_text(encoding="utf-8")
@@ -153,7 +160,7 @@ def run_checker(proposal: str) -> dict[str, str]:
     except (OSError, subprocess.TimeoutExpired):
         return unknown("Decision checker timed out or failed to start.")
     if result.returncode:
-        return unknown("Decision checker returned no result.")
+        return fail_closed_unknown("Decision checker returned no result.")
     try:
         return normalize_result(
             json.loads(result.stdout, object_pairs_hook=unique_object)
@@ -206,8 +213,11 @@ def evaluate_event(payload: object, checker=run_checker):
     if item is None or not isinstance(payload, dict):
         return None
     started = time.monotonic()
+    fail_closed = False
     try:
-        result = normalize_result(checker(item))
+        checked = checker(item)
+        fail_closed = isinstance(checked, FailClosedUnknown)
+        result = normalize_result(checked)
     except Exception:  # noqa: BLE001 - checker failures must become UNKNOWN.
         result = unknown("Decision checker failed.")
     elapsed_seconds = time.monotonic() - started
@@ -216,7 +226,7 @@ def evaluate_event(payload: object, checker=run_checker):
     log_result(log_event, result, elapsed_seconds)
     if result["status"] == "ALLOW":
         return None
-    if result["status"] == "UNKNOWN" and result["reason"] not in BLOCKING_UNKNOWN_REASONS:
+    if result["status"] == "UNKNOWN" and not fail_closed:
         return None
     return deny_result(event, result)
 

@@ -91,13 +91,23 @@ class DecisionCheckTest(unittest.TestCase):
                 run.assert_not_called()
 
     def test_missing_checker_settings_block_proposal(self):
-        checker = mock.Mock(return_value=GATE.unknown(GATE.MISSING_SETTINGS_REASON))
+        with tempfile.TemporaryDirectory() as temporary, mock.patch.dict(
+            GATE.os.environ, {"HOME": temporary}, clear=True
+        ), mock.patch.object(GATE.subprocess, "run") as run:
+            result = GATE.evaluate_event(
+                {"hook_event_name": "Stop", "last_assistant_message": "I recommend changing the setting."}
+            )
+        run.assert_not_called()
+        self.assertEqual("block", result["decision"])
+        self.assertIn("model or effort is not configured", result["reason"])
+
+    def test_model_unknown_with_configuration_failure_reason_still_passes(self):
+        checker = mock.Mock(return_value=GATE.unknown("Decision checker returned no result."))
         result = GATE.evaluate_event(
             {"hook_event_name": "Stop", "last_assistant_message": "I recommend changing the setting."},
             checker,
         )
-        self.assertEqual("block", result["decision"])
-        self.assertIn("model or effort is not configured", result["reason"])
+        self.assertIsNone(result)
 
     def test_checker_command_failure_blocks_proposal(self):
         with tempfile.TemporaryDirectory() as temporary:

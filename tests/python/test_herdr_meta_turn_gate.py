@@ -83,6 +83,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             "HERDR_META_PATROL_STATE_DIR": str(self.queue_state),
             "HERDR_META_PATROL_QUEUE_COMMAND": str(self.queue),
             "HERDR_META_PATROL_QUEUE_POLL": "0.02",
+            "HERDR_META_TASK_STALE_HOURS": "6",
             "HERDR_ENV": "1",
             "HERDR_PANE_ID": "w1:p1",
             "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
@@ -111,6 +112,16 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         path = self.task_tree_dir / f"{session_id}.json"
         path.write_text(json.dumps(document))
         return path
+
+    def check_task_tree(self, tasks, *, env=None):
+        path = self.write_task_tree(tasks)
+        loaded = GATE_MODULE.read_task_tree_export(path, "session-under-test")
+        blockers = []
+        with mock.patch.dict(os.environ, {
+            "HERDR_META_TASK_STALE_HOURS": "6", **(env or {}),
+        }):
+            GATE_MODULE.check_inbox_tasks(loaded, datetime.now(timezone.utc), blockers)
+        return blockers
 
     def run_hook(self, *, active=False, include_active=True, env=None,
                  session_id="session-under-test", include_task_export=True):
@@ -283,6 +294,63 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.write_task_tree([self.task_fixture(status="working")])
         result = self.run_hook()
         self.assertEqual((result.returncode, result.stdout), (0, ""))
+
+    def test_stale_open_inbox_task_text_uses_configured_age(self):
+        now = datetime.now(timezone.utc)
+        recent = self.check_task_tree([self.task_fixture(
+            task_id="recent-task", status="queued", updated_at=now - timedelta(hours=1),
+        )])
+        self.assertEqual(recent, [])
+
+        old = now - timedelta(hours=7)
+        stale = self.check_task_tree([self.task_fixture(
+            task_id="stale-task", status="queued", updated_at=old,
+        )])
+        self.assertEqual(len(stale), 1)
+        reason = stale[0]
+        self.assertIn("stale-task", reason)
+        self.assertIn("text not refreshed since", reason)
+        expected_local_time = old.astimezone().strftime(
+            "%Y-%m-%d %H:%M:%S %Z"
+        ).strip()
+        self.assertIn(expected_local_time, reason)
+        self.assertIn("recovery: check its live state", reason)
+
+        done = self.check_task_tree([self.task_fixture(
+            status="done", updated_at=now - timedelta(days=3),
+        )])
+        self.assertEqual(done, [])
+
+        overridden = self.check_task_tree([self.task_fixture(
+            status="queued", updated_at=old,
+        )], env={"HERDR_META_TASK_STALE_HOURS": "12"})
+        self.assertEqual(overridden, [])
+
+        self.start_waiter()
+        self.write_task_tree([self.task_fixture(
+            task_id="stale-task", status="queued", updated_at=old,
+        )])
+        blocked = self.run_hook()
+        self.assert_blocked(blocked, "Inbox task stale-task 'Review gate'")
+        reason = json.loads(blocked.stdout)["reason"]
+        self.assertIn(expected_local_time, reason)
+        self.assertIn(
+            "recovery: check its live state, then rewrite its detail with the current facts "
+            "and time using the Inbox tasks tool.",
+            reason,
+        )
+
+        allowed = self.run_hook(env={"HERDR_META_TASK_STALE_HOURS": "12"})
+        self.assertEqual((allowed.returncode, allowed.stdout), (0, ""))
+
+    def test_malformed_updated_at_fails_closed(self):
+        path = self.write_task_tree([self.task_fixture()])
+        document = json.loads(path.read_text())
+        document["tasks"][0]["updated_at"] = "not-a-timestamp"
+        path.write_text(json.dumps(document))
+
+        self.start_waiter()
+        self.assert_blocked(self.run_hook(), "invalid updated_at")
 
     def test_closed_inbox_tasks_do_not_block_for_warnings_or_age(self):
         self.start_waiter()

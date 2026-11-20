@@ -17,8 +17,8 @@ class WaitBackgroundGuardTests(unittest.TestCase):
                 result = subprocess.run(["python3", str(HOOK)], input=json.dumps(payload), text=True, capture_output=True, env=dict(os.environ, PATH=state_dir.name + os.pathsep + os.environ["PATH"], HOME=state_dir.name), check=False)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(json.loads(result.stdout)["hookSpecificOutput"]["permissionDecisionReason"] if denied else result.stdout, "meta is reached via herdr-meta-patrol-queue add" if denied and "agent" in command and "prompt" in command else REASON if denied else "")
-        fake.write_text("#!/bin/sh\nexit 1\n")
-        for target, denied in (("meta", True), ("worker", False)):
+        fake.write_text("#!/bin/sh\nsleep 2\n")
+        for target, denied in (("meta", True), ("wT:p42", False)):
             result = subprocess.run(["python3", str(HOOK)], input=json.dumps({"tool_name": "Bash", "tool_input": {"command": f"herdr agent prompt {target}"}}), text=True, capture_output=True, env=dict(os.environ, PATH=state_dir.name + os.pathsep + os.environ["PATH"]), check=False)
             self.assertEqual(json.loads(result.stdout)["hookSpecificOutput"]["permissionDecisionReason"] if denied else result.stdout, "meta is reached via herdr-meta-patrol-queue add" if denied else "")
 

@@ -13,9 +13,9 @@ def prompts_meta(command):
     try: tree = json.loads(subprocess.run(["shfmt", "-ln", "bash", "--to-json"], input=command, text=True, capture_output=True, check=True).stdout)
     except (OSError, subprocess.SubprocessError, json.JSONDecodeError): return False
     def value(node): return "\0" if node.get("Type") in {"CmdSubst", "ParamExp", "ArithmExp", "ProcSubst"} else bytes(node["Value"], "utf8").decode("unicode_escape") if node.get("Dollar") else re.sub(r"\\(.)", r"\1", node["Value"]) if node.get("Type") == "Lit" else node.get("Value", "".join(value(part) for part in node.get("Parts", [])))
-    def is_meta(target):
+    def is_meta(target):  # 20 HERDR_ENV=1 runs on 2026-11-21: `herdr agent list` max 17.275 ms; 1 s gives >57x headroom.
         if target == "meta": return True
-        try: return any(a.get("name") == "meta" and a.get("pane_id") == target for a in json.loads(subprocess.run(["herdr", "agent", "list"], text=True, capture_output=True, check=True).stdout)["result"]["agents"] if isinstance(a, dict))
+        try: return any(a.get("name") == "meta" and a.get("pane_id") == target for a in json.loads(subprocess.run(["herdr", "agent", "list"], text=True, capture_output=True, check=True, timeout=1).stdout)["result"]["agents"] if isinstance(a, dict))
         except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError): return False
     def direct(args):
         args = [value(arg) for arg in args]

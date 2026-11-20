@@ -54,6 +54,7 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
             "````text\n```\nunverified\n````",
             "    unverified",
             "This has `unverified` inside code.",
+            "「未確認です。\n引用の続き」",
             "引用: “unverified” and 'haven't checked'",
         )
         for message in messages:

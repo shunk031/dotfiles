@@ -33,6 +33,45 @@ function queue() {
     [ "$(jq -rs '.[1].kind + " " + .[1].from' <<< "${output}")" = 'message patrol' ]
 }
 
+@test "[common] herdr-meta-patrol-queue imports remote records once with their source machine and time" {
+    local record
+    record="$(jq -cn '{seq: 8, t: 1600000000, at: "2020-09-13T12:26:40+0000", kind: "message", from: "korch", text: "line one\nline two"}')"
+
+    queue import --machine remote "${record}"
+    queue import --machine remote "${record}"
+
+    [ "$(jq -sc '[.[] | [.seq, .t, .at, .from, .text, .machine, .source_seq]]' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = '[[1,1600000000,"2020-09-13T12:26:40+0000","korch","line one\nline two","remote",8]]' ]
+    run queue read --strict
+    [ "${status}" -eq 0 ]
+}
+
+@test "[common] herdr-meta-patrol-queue repairs the sequence counter after an import retry" {
+    local record real_mv
+    record="$(jq -cn '{seq: 8, t: 1600000000, at: "2020-09-13T12:26:40+0000", kind: "message", from: "korch", text: "remote report"}')"
+    real_mv="$(command -v mv)"
+    export REAL_MV="${real_mv}"
+    cat > "${BATS_TEST_TMPDIR}/bin/mv" << 'STUB'
+#!/usr/bin/env bash
+if [[ "${2:-}" == "${HERDR_META_PATROL_STATE_DIR}/queue.seq" && ! -e "${BATS_TEST_TMPDIR}/queue-seq-mv-failed" ]]; then
+    : > "${BATS_TEST_TMPDIR}/queue-seq-mv-failed"
+    exit 1
+fi
+exec "${REAL_MV}" "$@"
+STUB
+    chmod +x "${BATS_TEST_TMPDIR}/bin/mv"
+
+    run queue import --machine remote "${record}"
+    [ "${status}" -ne 0 ]
+    [ "$(jq -sc '[.[].seq]' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = '[1]' ]
+
+    queue import --machine remote "${record}"
+    [ "$(cat "${HERDR_META_PATROL_STATE_DIR}/queue.seq")" = 1 ]
+    queue add later
+
+    [ "$(jq -sc '[.[].seq]' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = '[1,2]' ]
+    [ "$(jq -sc '[.[] | select(.machine == "remote" and .source_seq == 8)] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = 1 ]
+}
+
 @test "[common] herdr-meta-patrol-queue keeps sequence numbers unique under concurrent appends" {
     local i
     for i in $(seq 1 20); do

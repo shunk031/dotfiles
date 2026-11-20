@@ -50,6 +50,7 @@
 # @option HERDR_META_PATROL_META Name of the meta agent, which the scan skips (default `meta`).
 # @option HERDR_META_PATROL_STATE_DIR State directory, shared with the queue (default `~/.local/state/herdr-meta-patrol`).
 # @option HERDR_META_PATROL_QUEUE Queue command (default `herdr-meta-patrol-queue` next to this script).
+# @option HERDR_META_PATROL_SSH_COMMAND SSH executable used to read saved machines' queue files (default `/usr/bin/ssh`).
 # @option HERDR_META_PATROL_INPUT_PARSER Visible-input-state parser (default from the shunk031-herdr-orchestrate-workers skill).
 # @option HERDR_META_PATROL_REPEAT_SECONDS Leftover re-report interval (default 3600).
 # @option HERDR_META_PATROL_TIMEOUT Seconds before a single herdr call is killed (default 40).
@@ -68,6 +69,7 @@ meta="${HERDR_META_PATROL_META:-meta}"
 state_dir="${HERDR_META_PATROL_STATE_DIR:-${HOME}/.local/state/herdr-meta-patrol}"
 roots_file="${XDG_STATE_HOME:-${HOME}/.local/state}/meta/roots.tsv"
 queue_command="${HERDR_META_PATROL_QUEUE:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/herdr-meta-patrol-queue}"
+ssh_command="${HERDR_META_PATROL_SSH_COMMAND:-/usr/bin/ssh}"
 repeat_seconds="${HERDR_META_PATROL_REPEAT_SECONDS:-3600}"
 timeout_seconds="${HERDR_META_PATROL_TIMEOUT:-40}"
 retry_sleep="${HERDR_META_PATROL_RETRY_SLEEP:-5}"
@@ -423,6 +425,113 @@ function scan_machine() {
     return 0
 }
 
+# @description Import source records after the saved cursor from one enabled machine.
+# @arg $1 string Saved machine label.
+# @arg $2 string Saved SSH target.
+# @arg $3 path File for the fetched source queue.
+# @arg $4 path File for validated, ordered source records.
+function pull_remote_queue() {
+    local machine="$1" target="$2" queue_file="$3" ordered_file="$4"
+    local cursor_dir="${state_dir}/remote-queue-cursors" cursor_key cursor_file cursor record source_seq temporary ssh_status
+    local remote_command='python3 -'
+
+    if ! mkdir -p "${cursor_dir}" || ! chmod 700 "${cursor_dir}"; then
+        printf '[%s] queue pull failed (cursor state unavailable)\n' "${machine}"
+        return 0
+    fi
+    cursor_key="$(jq -nr --arg machine "${machine}" '$machine | @uri')" || {
+        printf '[%s] queue pull failed (invalid machine label)\n' "${machine}"
+        return 0
+    }
+    cursor_file="${cursor_dir}/${cursor_key}.seq"
+    if [[ -L "${cursor_file}" ]]; then
+        printf '[%s] queue pull failed (cursor state is a symbolic link)\n' "${machine}"
+        return 0
+    fi
+    cursor="$(cat "${cursor_file}" 2> /dev/null)" || cursor=""
+    [[ "${cursor}" =~ ^[0-9]+$ ]] || cursor=0
+
+    if run_with_timeout "${timeout_seconds}" "${ssh_command}" -T -o BatchMode=yes \
+        -o ConnectTimeout=5 "${target}" "${remote_command}" > "${queue_file}" 2> /dev/null << 'PYTHON'
+import os
+import stat
+import sys
+
+queue_dir = os.path.expanduser("~/.local/state/herdr-meta-patrol")
+queue_path = os.path.join(queue_dir, "queue.jsonl")
+
+try:
+    directory_stat = os.stat(queue_dir)
+    if not stat.S_ISDIR(directory_stat.st_mode) or not os.access(queue_dir, os.R_OK | os.X_OK):
+        sys.exit(44)
+except OSError:
+    sys.exit(44)
+
+try:
+    queue_stat = os.lstat(queue_path)
+except FileNotFoundError:
+    sys.exit(0)
+except OSError:
+    sys.exit(44)
+
+if not stat.S_ISREG(queue_stat.st_mode):
+    sys.exit(44)
+
+try:
+    with open(queue_path, "rb") as queue:
+        for chunk in iter(lambda: queue.read(65536), b""):
+            sys.stdout.buffer.write(chunk)
+except OSError:
+    sys.exit(44)
+PYTHON
+    then
+        :
+    else
+        ssh_status=$?
+        if ((ssh_status == 124 || ssh_status == 255)); then
+            printf '[%s] queue pull failed (machine unreachable)\n' "${machine}"
+        else
+            printf '[%s] queue pull failed (remote queue unavailable)\n' "${machine}"
+        fi
+        return 0
+    fi
+    if ! jq -cs '
+        def valid_record:
+            type == "object" and
+            (.seq | type) == "number" and (.seq | floor) == .seq and .seq > 0 and
+            (.t | type) == "number" and (.t | floor) == .t and .t >= 0 and
+            (.at | type) == "string" and (.at | length) > 0 and
+            (.kind | type) == "string" and (.kind | length) > 0 and
+            (.from | type) == "string" and (.from | length) > 0 and
+            (.text | type) == "string" and (.text | length) > 0;
+        if all(.[]; valid_record) then sort_by(.seq)[] else error("invalid remote queue record") end
+    ' "${queue_file}" > "${ordered_file}"; then
+        printf '[%s] queue pull failed (invalid remote queue)\n' "${machine}"
+        return 0
+    fi
+
+    while IFS= read -r record; do
+        [[ -n "${record}" ]] || continue
+        source_seq="$(jq -r '.seq' <<< "${record}")"
+        ((source_seq > cursor)) || continue
+        if ! HERDR_META_PATROL_STATE_DIR="${state_dir}" "${queue_command}" import --machine "${machine}" "${record}"; then
+            printf '[%s] queue import failed at source seq %s\n' "${machine}" "${source_seq}"
+            break
+        fi
+        temporary="$(mktemp "${cursor_dir}/.${cursor_key}.XXXXXX")" || {
+            printf '[%s] queue pull failed (cannot write cursor)\n' "${machine}"
+            break
+        }
+        if ! printf '%s\n' "${source_seq}" > "${temporary}" || ! chmod 600 "${temporary}" ||
+            ! mv -f "${temporary}" "${cursor_file}"; then
+            rm -f "${temporary}"
+            printf '[%s] queue pull failed (cannot write cursor)\n' "${machine}"
+            break
+        fi
+        cursor="${source_seq}"
+    done < "${ordered_file}"
+}
+
 # @description Strip the per-run counts so an unchanged situation yields an identical line.
 function normalize() {
     sed -E 's/^(\[[^]]*\] [^ ]+ inbox=)[0-9]+ · /\1N · /; s/^(\[[^]]*\] 残り: .* )[0-9]+ 個$/\1N 個/'
@@ -470,14 +579,18 @@ fi
 findings=""
 trim_log "${state_dir}/launchd.log"
 machine_list_succeeded=0
-if machine_list="$(hx machine list --json 2> /dev/null | jq -r '.[] | select(.enabled) | .label')"; then
+if machine_list="$(hx machine list --json 2> /dev/null | jq -r '.[] | select(.enabled) | [(.label // ""), (.target // .label // "")] | @tsv')"; then
     machine_list_succeeded=1
 else
     machine_list=""
 fi
 machines=(local)
-while IFS= read -r machine_label; do
-    if [[ -n "${machine_label}" ]]; then machines+=("${machine_label}"); fi
+machine_targets=("")
+while IFS=$'\t' read -r machine_label machine_target; do
+    if [[ -n "${machine_label}" ]]; then
+        machines+=("${machine_label}")
+        machine_targets+=("${machine_target:-${machine_label}}")
+    fi
 done <<< "${machine_list}"
 scan_dir="$(mktemp -d "${state_dir}/scan.XXXXXX")"
 trap 'rm -rf "$scan_dir"' EXIT
@@ -504,6 +617,11 @@ for ((i = 0; i < ${#machines[@]}; i++)); do
             due_entries+="${machines[$i]}"$'\t'"${line}"$'\n'
         done < "${scan_dir}/${i}.due.tsv"
     fi
+done
+for ((i = 1; i < ${#machines[@]}; i++)); do
+    pull_finding="$(pull_remote_queue "${machines[$i]}" "${machine_targets[$i]}" \
+        "${scan_dir}/${i}.queue" "${scan_dir}/${i}.queue.sorted")"
+    [[ -n "${pull_finding}" ]] && findings+="${pull_finding}"$'\n'
 done
 if [[ -d "${findings_dir}" ]]; then
     for script in "${findings_dir}"/*; do

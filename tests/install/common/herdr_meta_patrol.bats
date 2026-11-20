@@ -14,6 +14,10 @@ function setup() {
     export FAKE_AGENTS="${BATS_TEST_TMPDIR}/agents.json"
     export FAKE_MACHINE_LIST_DOWN="${BATS_TEST_TMPDIR}/machine_list_down"
     export FAKE_REMOTE_DOWN="${BATS_TEST_TMPDIR}/remote_down"
+    export FAKE_REMOTE_HOME="${BATS_TEST_TMPDIR}/remote-home"
+    export FAKE_REMOTE_PARENT_UNREADABLE="${BATS_TEST_TMPDIR}/remote_parent_unreadable"
+    export FAKE_REMOTE_QUEUE="${BATS_TEST_TMPDIR}/remote-queue.jsonl"
+    export HERDR_META_PATROL_SSH_COMMAND="${BATS_TEST_TMPDIR}/bin/ssh"
     export FAKE_PANE="${BATS_TEST_TMPDIR}/pane.txt"
     export FAKE_RECENT_PANE="${BATS_TEST_TMPDIR}/recent.txt"
     export FAKE_TAB_LIST_CALLS="${BATS_TEST_TMPDIR}/tab_list_calls"
@@ -60,6 +64,16 @@ case "$1 $2" in
     ;;
 esac
 STUB
+    cat > "${BATS_TEST_TMPDIR}/bin/ssh" << 'STUB'
+#!/usr/bin/env bash
+[[ ! -e "${FAKE_REMOTE_DOWN}" ]] || exit 255
+if [[ -e "${FAKE_REMOTE_PARENT_UNREADABLE}" ]]; then
+    HOME="${FAKE_REMOTE_HOME}" python3 -
+    exit "$?"
+fi
+if [[ -r "${FAKE_REMOTE_QUEUE}" ]]; then cat "${FAKE_REMOTE_QUEUE}"; fi
+exit 0
+STUB
     if [[ -r "${SHARED_INPUT_STATE_PARSER}" ]]; then
         ln -s "${SHARED_INPUT_STATE_PARSER}" "${BATS_TEST_TMPDIR}/herdr-visible-input-state.awk"
     else
@@ -68,6 +82,7 @@ END { print ENVIRON["FAKE_INPUT_STATE"] }
 STUB
     fi
     chmod +x "${BATS_TEST_TMPDIR}/bin/herdr"
+    chmod +x "${HERDR_META_PATROL_SSH_COMMAND}"
     cat > "${HERDR_META_PATROL_FEED_COMMAND}" << 'STUB'
 #!/usr/bin/env bash
 printf '%s\n' "$@" > "${FAKE_FEED_LOG}"
@@ -217,6 +232,65 @@ STUB
     ack_all
     bash "${SCRIPT_PATH}"
     [ -z "$(calls)" ]
+}
+
+@test "[common] herdr-meta-patrol imports remote queue records in order with their machine and original time" {
+    export FAKE_MACHINE_LIST='[{"label":"remote","target":"remote-ssh","enabled":true}]'
+    jq -cn '{seq: 4, t: 1600000000, at: "2020-09-13T12:26:40+0000", kind: "message", from: "korch", text: "first report"}' > "${FAKE_REMOTE_QUEUE}"
+    jq -cn '{seq: 5, t: 1600000001, at: "2020-09-13T12:26:41+0000", kind: "message", from: "korch", text: "second\nreport"}' >> "${FAKE_REMOTE_QUEUE}"
+
+    run bash "${SCRIPT_PATH}"
+
+    [ "${status}" -eq 0 ]
+    [ "$(jq -sc '[.[] | select(.machine == "remote") | .source_seq]' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = '[4,5]' ]
+    [ "$(jq -sc '[.[] | select(.machine == "remote") | [.seq, .t, .at, .from, .text]]' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = '[[1,1600000000,"2020-09-13T12:26:40+0000","korch","first report"],[2,1600000001,"2020-09-13T12:26:41+0000","korch","second\nreport"]]' ]
+}
+
+@test "[common] herdr-meta-patrol reports an unreachable queue host as a finding" {
+    export FAKE_MACHINE_LIST='[{"label":"remote","target":"remote-ssh","enabled":true}]'
+    touch "${FAKE_REMOTE_DOWN}"
+
+    run bash "${SCRIPT_PATH}"
+
+    [ "${status}" -eq 0 ]
+    grep -Fq '[remote] queue pull failed (machine unreachable)' <(calls)
+}
+
+@test "[common] herdr-meta-patrol treats a remote machine without a queue file as empty" {
+    export FAKE_MACHINE_LIST='[{"label":"remote","target":"remote-ssh","enabled":true}]'
+
+    run bash "${SCRIPT_PATH}"
+
+    [ "${status}" -eq 0 ]
+    [ -z "$(calls)" ]
+    [ ! -e "${HERDR_META_PATROL_STATE_DIR}/remote-queue-cursors/remote.seq" ]
+}
+
+@test "[common] herdr-meta-patrol reports an inaccessible remote queue parent without advancing its cursor" {
+    export FAKE_MACHINE_LIST='[{"label":"remote","target":"remote-ssh","enabled":true}]'
+    mkdir -p "${FAKE_REMOTE_HOME}/.local/state"
+    chmod 600 "${FAKE_REMOTE_HOME}/.local/state"
+    touch "${FAKE_REMOTE_PARENT_UNREADABLE}"
+
+    run bash "${SCRIPT_PATH}"
+    chmod 700 "${FAKE_REMOTE_HOME}/.local/state"
+
+    [ "${status}" -eq 0 ]
+    grep -Fq '[remote] queue pull failed (remote queue unavailable)' <(calls)
+    [ ! -e "${HERDR_META_PATROL_STATE_DIR}/remote-queue-cursors/remote.seq" ]
+}
+
+@test "[common] herdr-meta-patrol does not reimport remote records after a restart" {
+    export FAKE_MACHINE_LIST='[{"label":"remote","target":"remote-ssh","enabled":true}]'
+    jq -cn '{seq: 1, t: 1600000000, at: "2020-09-13T12:26:40+0000", kind: "message", from: "korch", text: "one report"}' > "${FAKE_REMOTE_QUEUE}"
+
+    run bash "${SCRIPT_PATH}"
+    [ "${status}" -eq 0 ]
+    run bash "${SCRIPT_PATH}"
+
+    [ "${status}" -eq 0 ]
+    [ "$(jq -sc '[.[] | select(.machine == "remote") | .source_seq]' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = '[1]' ]
+    [ "$(cat "${HERDR_META_PATROL_STATE_DIR}/remote-queue-cursors/remote.seq")" = 1 ]
 }
 
 @test "[common] herdr-meta-patrol parses canonical UTC due values, queues once, and clears changed or removed entries" {

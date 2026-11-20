@@ -14,7 +14,8 @@ function setup() {
     export FAKE_AGENTS="${BATS_TEST_TMPDIR}/agents.json"
     export FAKE_MACHINE_LIST_DOWN="${BATS_TEST_TMPDIR}/machine_list_down"
     export FAKE_REMOTE_DOWN="${BATS_TEST_TMPDIR}/remote_down"
-    export FAKE_REMOTE_QUEUE_UNREADABLE="${BATS_TEST_TMPDIR}/remote_queue_unreadable"
+    export FAKE_REMOTE_HOME="${BATS_TEST_TMPDIR}/remote-home"
+    export FAKE_REMOTE_PARENT_UNREADABLE="${BATS_TEST_TMPDIR}/remote_parent_unreadable"
     export FAKE_REMOTE_QUEUE="${BATS_TEST_TMPDIR}/remote-queue.jsonl"
     export HERDR_META_PATROL_SSH_COMMAND="${BATS_TEST_TMPDIR}/bin/ssh"
     export FAKE_PANE="${BATS_TEST_TMPDIR}/pane.txt"
@@ -66,7 +67,10 @@ STUB
     cat > "${BATS_TEST_TMPDIR}/bin/ssh" << 'STUB'
 #!/usr/bin/env bash
 [[ ! -e "${FAKE_REMOTE_DOWN}" ]] || exit 255
-[[ ! -e "${FAKE_REMOTE_QUEUE_UNREADABLE}" ]] || exit 44
+if [[ -e "${FAKE_REMOTE_PARENT_UNREADABLE}" ]]; then
+    HOME="${FAKE_REMOTE_HOME}" python3 -
+    exit "$?"
+fi
 if [[ -r "${FAKE_REMOTE_QUEUE}" ]]; then cat "${FAKE_REMOTE_QUEUE}"; fi
 exit 0
 STUB
@@ -262,11 +266,14 @@ STUB
     [ ! -e "${HERDR_META_PATROL_STATE_DIR}/remote-queue-cursors/remote.seq" ]
 }
 
-@test "[common] herdr-meta-patrol reports an unreadable remote queue without advancing its cursor" {
+@test "[common] herdr-meta-patrol reports an inaccessible remote queue parent without advancing its cursor" {
     export FAKE_MACHINE_LIST='[{"label":"remote","target":"remote-ssh","enabled":true}]'
-    touch "${FAKE_REMOTE_QUEUE_UNREADABLE}"
+    mkdir -p "${FAKE_REMOTE_HOME}/.local/state"
+    chmod 600 "${FAKE_REMOTE_HOME}/.local/state"
+    touch "${FAKE_REMOTE_PARENT_UNREADABLE}"
 
     run bash "${SCRIPT_PATH}"
+    chmod 700 "${FAKE_REMOTE_HOME}/.local/state"
 
     [ "${status}" -eq 0 ]
     grep -Fq '[remote] queue pull failed (remote queue unavailable)' <(calls)

@@ -433,7 +433,7 @@ function scan_machine() {
 function pull_remote_queue() {
     local machine="$1" target="$2" queue_file="$3" ordered_file="$4"
     local cursor_dir="${state_dir}/remote-queue-cursors" cursor_key cursor_file cursor record source_seq temporary ssh_status
-    local remote_command='state_dir="$HOME/.local/state/herdr-meta-patrol"; queue_file="$state_dir/queue.jsonl"; if [ -e "$state_dir" ] || [ -L "$state_dir" ]; then [ -d "$state_dir" ] && [ -r "$state_dir" ] && [ -x "$state_dir" ] || exit 44; if [ -e "$queue_file" ] || [ -L "$queue_file" ]; then [ ! -L "$queue_file" ] && [ -f "$queue_file" ] && [ -r "$queue_file" ] || exit 44; cat "$queue_file" || exit 44; fi; fi'
+    local remote_command='python3 -'
 
     if ! mkdir -p "${cursor_dir}" || ! chmod 700 "${cursor_dir}"; then
         printf '[%s] queue pull failed (cursor state unavailable)\n' "${machine}"
@@ -452,7 +452,39 @@ function pull_remote_queue() {
     [[ "${cursor}" =~ ^[0-9]+$ ]] || cursor=0
 
     if run_with_timeout "${timeout_seconds}" "${ssh_command}" -T -o BatchMode=yes \
-        -o ConnectTimeout=5 "${target}" "${remote_command}" > "${queue_file}" 2> /dev/null; then
+        -o ConnectTimeout=5 "${target}" "${remote_command}" > "${queue_file}" 2> /dev/null << 'PYTHON'
+import os
+import stat
+import sys
+
+queue_dir = os.path.expanduser("~/.local/state/herdr-meta-patrol")
+queue_path = os.path.join(queue_dir, "queue.jsonl")
+
+try:
+    directory_stat = os.stat(queue_dir)
+    if not stat.S_ISDIR(directory_stat.st_mode) or not os.access(queue_dir, os.R_OK | os.X_OK):
+        sys.exit(44)
+except OSError:
+    sys.exit(44)
+
+try:
+    queue_stat = os.lstat(queue_path)
+except FileNotFoundError:
+    sys.exit(0)
+except OSError:
+    sys.exit(44)
+
+if not stat.S_ISREG(queue_stat.st_mode):
+    sys.exit(44)
+
+try:
+    with open(queue_path, "rb") as queue:
+        for chunk in iter(lambda: queue.read(65536), b""):
+            sys.stdout.buffer.write(chunk)
+except OSError:
+    sys.exit(44)
+PYTHON
+    then
         :
     else
         ssh_status=$?

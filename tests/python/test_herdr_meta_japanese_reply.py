@@ -44,7 +44,7 @@ class JapaneseReplyTest(unittest.TestCase):
             "reason": MODULE.BLOCK_REASON,
         })
 
-    def test_japanese_with_code_urls_paths_and_commands_passes(self):
+    def test_japanese_with_code_urls_and_paths_passes(self):
         japanese = "変更内容と確認結果を日本語で説明し、次の作業も利用者に伝えます。" * 2
         english = "EnglishWord" * 14
         message = (
@@ -55,15 +55,7 @@ class JapaneseReplyTest(unittest.TestCase):
             + "/Users/example/" + english + ".txt\n"
             + "./src/" + english + ".py\n"
             + "tests/python/" + english + ".py\n"
-            + "C:\\Users\\example\\" + english + ".txt\n"
-            + "git status --short  # " + english + "\n"
-            + "- git status --short  # " + english + "\n"
-            + "make test  # " + english + "\n"
-            + "set -e  # " + english + "\n"
-            + "export PATH=/bin  # " + english + "\n"
-            + "find . -name '*.py'  # " + english + "\n"
-            + "python3 tests/python/test_file.py --quiet  # " + english + "\n"
-            + "source ~/.bashrc  # " + english
+            + "C:\\Users\\example\\" + english + ".txt"
         )
         visible = MODULE.visible_prose(message)
         self.assertNotIn("EnglishWord", visible)
@@ -105,50 +97,14 @@ class JapaneseReplyTest(unittest.TestCase):
         self.assertIn("Find the relevant details", visible)
         self.assertTrue(MODULE.should_block(message))
 
-    def test_command_syntax_is_removed_without_discarding_prose(self):
-        command = (
-            'custom-tool --message "The requested implementation is complete '
-            'and validation passed successfully."'
-        )
-        plain_executable = (
-            'customtool --message "The requested implementation is complete '
-            'and validation passed successfully."'
-        )
-        short_flag_executable = (
-            'customtool -m "The requested implementation is complete '
-            'and validation passed successfully."'
-        )
-        flag_after_argument = (
+    def test_command_lines_remain_countable_as_english(self):
+        message = (
             'customtool payload --message "The requested implementation is complete '
             'and validation passed successfully."'
         )
-        lines = (
-            command,
-            plain_executable,
-            short_flag_executable,
-            flag_after_argument,
-            "$ " + command,
-            "MODE=fast " + command,
-            "./custom-tool --message 'The requested implementation is complete.'",
-            "python3 tests/python/test_file.py",
-            "git status",
-            "make test",
-        )
-        for line in lines:
-            with self.subTest(line=line):
-                self.assertTrue(MODULE.is_command_line(line))
-                self.assertNotIn(line, MODULE.visible_prose(line))
 
-        prose = (
-            "make sure this explanation remains visible to the reader.",
-            "Find the relevant result and explain what changed.",
-            "Set the configuration so the requested behavior works.",
-            "source files describe how the application works.",
-        )
-        for line in prose:
-            with self.subTest(line=line):
-                self.assertFalse(MODULE.is_command_line(line))
-                self.assertIn(line, MODULE.visible_prose(line))
+        self.assertIn(message, MODULE.visible_prose(message))
+        self.assertTrue(MODULE.should_block(message))
 
     def test_attached_urls_and_paths_with_arbitrary_extensions_are_removed(self):
         url = "www.superlongenglishdomainnameandpath.example/path"

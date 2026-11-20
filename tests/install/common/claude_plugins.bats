@@ -795,6 +795,7 @@ EOF
             .hooks.PreToolUse = [
                 {"matcher":"mcp__inbox__record","hooks":[decision_hook(null),{"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-meta-root-naming-check.py\""}]},
                 {"matcher":"Bash","hooks":[decision_hook("Bash(*herdr-agent-prompt-if-input-empty.sh*)"),decision_hook("Bash(*herdr*agent prompt*)")]},
+                {"matcher":"Bash","hooks":[{"type":"command","command":"python3 \"$HOME/.claude/hooks/herdr-wait-background-guard.py\""}]},
                 {"matcher":"Bash","hooks":[markdown_hook]},
                 {"matcher":"Write|Edit|MultiEdit","hooks":[markdown_hook]}
             ]

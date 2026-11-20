@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import re
 import stat
@@ -362,6 +363,17 @@ def parse_export_time(value: object) -> datetime:
         raise ValueError("timestamp must be ISO 8601 UTC") from error
 
 
+def task_stale_threshold() -> timedelta:
+    raw_hours = os.environ.get("HERDR_META_TASK_STALE_HOURS") or "6"
+    try:
+        hours = float(raw_hours)
+        if not math.isfinite(hours) or hours < 0:
+            raise ValueError
+        return timedelta(hours=hours)
+    except (OverflowError, ValueError) as error:
+        raise GateError("invalid HERDR_META_TASK_STALE_HOURS") from error
+
+
 def read_task_tree_export(path: Path, session_id: str) -> list[dict[str, object]]:
     if not path_exists(path):
         raise GateError("inbox task-tree export missing: update inbox")
@@ -424,14 +436,27 @@ def read_task_tree_export(path: Path, session_id: str) -> list[dict[str, object]
 def check_inbox_tasks(
     tasks: list[dict[str, object]], now: datetime, blockers: list[str]
 ) -> None:
+    stale_threshold = None
     for task in tasks:
-        if task["status"] not in {"queued", "working", "waits-on-other"}:
+        status = task["status"]
+        if status in {"done", "dropped"}:
             continue
         reasons: list[str] = []
         warnings = task["warnings"]
         if warnings:
             reasons.append(f"warnings: {', '.join(warnings)}")
         updated_at = parse_export_time(task["updated_at"])
+        if stale_threshold is None:
+            stale_threshold = task_stale_threshold()
+        if now - updated_at > stale_threshold:
+            local_time = updated_at.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z").strip()
+            add_blocker(
+                blockers,
+                f"Inbox task {task['id']} '{' '.join(task['title'].split())}': "
+                f"text not refreshed since {local_time}",
+                "check its live state, then rewrite its detail with the current facts "
+                "and time using the Inbox tasks tool",
+            )
         if task["status"] == "working" and now - updated_at > timedelta(minutes=60):
             reasons.append("working task has not been updated for over 60 minutes")
         for reason in reasons:

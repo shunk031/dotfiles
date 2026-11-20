@@ -45,7 +45,7 @@ class UncheckedCaveatCheckTest(unittest.TestCase):
             "```text\n未確認\n```", "````text\n```\nunverified\n````",
             "    unverified", "This has `unverified` inside code.", "`unverified\ncontinues`",
             "> Quoted example:\nunverified", "「未確認です。\n引用の続き」",
-            "引用: “unverified” and 'haven't checked'",
+            "引用: “unverified” and 'haven't checked'", "“I haven't checked\nthis yet.”",
         )
         for message in messages:
             self.assertEqual(self.run_hook(message).stdout, "", message)

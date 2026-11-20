@@ -43,8 +43,8 @@ def visible_text(message: str) -> str:
             continue
         if quote_continuation:
             continue
-        opening = re.match(r"(`{3,}|~{3,})", stripped)
-        if opening:
+        opening = re.match(r"(`{3,}|~{3,})(.*)", stripped)
+        if opening and (opening.group(1)[0] != "`" or "`" not in opening.group(2)):
             fence = (opening.group(1)[0], len(opening.group(1)))
             continue
         lines.append(line)

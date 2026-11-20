@@ -57,7 +57,13 @@ class JapaneseReplyTest(unittest.TestCase):
             + "tests/python/" + english + ".py\n"
             + "C:\\Users\\example\\" + english + ".txt\n"
             + "git status --short  # " + english + "\n"
-            + "- git status --short  # " + english
+            + "- git status --short  # " + english + "\n"
+            + "make test  # " + english + "\n"
+            + "set -e  # " + english + "\n"
+            + "export PATH=/bin  # " + english + "\n"
+            + "find . -name '*.py'  # " + english + "\n"
+            + "python3 tests/python/test_file.py --quiet  # " + english + "\n"
+            + "source ~/.bashrc  # " + english
         )
         visible = MODULE.visible_prose(message)
         self.assertNotIn("EnglishWord", visible)
@@ -81,6 +87,17 @@ class JapaneseReplyTest(unittest.TestCase):
                 "Git is used to track the source and review each change.",
                 "Source files contain the relevant definitions and examples.",
                 "Export options are documented for every supported environment.",
+                "make sure the implementation covers every requested behavior and explains the result to the user.",
+                "find the relevant details in the report before updating the plan.",
+                "set the configuration as shown and complete the requested work.",
+                "go through the steps to verify the implementation.",
+                "source files contain the relevant definitions and examples.",
+                "export options are documented for every supported environment.",
+                "python is used to validate the implementation and return results.",
+                "git is used to track the source and review each change.",
+                "echo the result after checking every section for clarity.",
+                "date ranges show when the process starts and ends.",
+                "cat behavior can vary across different contexts.",
             ]
         )
         visible = MODULE.visible_prose(message)

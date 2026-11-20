@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import unicodedata
@@ -34,13 +35,34 @@ FILE_NAME = re.compile(
     re.IGNORECASE,
 )
 COMMAND_LINE = re.compile(
-    r"^\s*(?:(?:[-*+]\s+|\d+[.)]\s+))?(?:(?:\$|%|❯|➜)\s*)?"
-    r"(?:command|sudo|env|export|set|source|exec|git|gh|make|pytest|"
+    r"^\s*(?:(?:[-*+]\s+|\d+[.)]\s+))?(?:(?P<prompt>[$%❯➜])\s*)?"
+    r"(?P<command>command|sudo|env|export|set|source|exec|git|gh|make|pytest|"
     r"python(?:\d+(?:\.\d+)*)?|uv|mise|npm|npx|node|bash|zsh|sh|cat|sed|"
     r"awk|rg|grep|find|ls|cd|pwd|date|curl|wget|jq|brew|docker|ssh|scp|op|"
     r"chmod|chown|mkdir|rm|cp|mv|touch|printf|echo|tar|zip|unzip|pip|pipx|"
-    r"go|cargo|rustc|gcc|herdr(?:-[a-z0-9-]+)*)(?:\s|$)",
+    r"go|cargo|rustc|gcc|herdr(?:-[a-z0-9-]+)*)(?P<arguments>(?:\s+.*)?)$"
 )
+COMMAND_SUBCOMMANDS = {
+    "git": {
+        "add", "branch", "checkout", "cherry-pick", "clean", "clone", "commit",
+        "diff", "fetch", "init", "log", "merge", "mv", "pull", "push", "rebase",
+        "remote", "reset", "restore", "revert", "rm", "show", "status", "switch",
+        "tag", "worktree",
+    },
+    "gh": {"api", "auth", "browse", "issue", "pr", "repo", "run", "workflow"},
+    "go": {"build", "env", "fmt", "generate", "get", "install", "list", "mod", "run", "test", "vet", "version"},
+    "docker": {"build", "compose", "exec", "image", "images", "logs", "ps", "pull", "push", "rm", "run", "start", "stop"},
+    "herdr": {"agent", "pane", "tab", "workspace"},
+    "mise": {"activate", "exec", "install", "ls", "prune", "tool", "trust", "use", "x"},
+    "npm": {"audit", "ci", "install", "link", "list", "outdated", "publish", "run", "test", "uninstall", "update", "version"},
+    "op": {"document", "item", "read", "vault"},
+    "pip": {"freeze", "install", "list", "show", "uninstall"},
+    "pipx": {"install", "run", "uninstall", "upgrade"},
+    "cargo": {"build", "check", "clean", "fmt", "install", "run", "test", "update"},
+    "uv": {"add", "build", "cache", "export", "lock", "pip", "python", "remove", "run", "sync", "tool", "venv"},
+    "brew": {"info", "install", "list", "search", "uninstall", "update", "upgrade"},
+}
+MAKE_TARGETS = {"all", "build", "check", "clean", "format", "install", "lint", "setup", "test"}
 META_AGENT_LIST_TIMEOUT = 3
 
 
@@ -74,17 +96,126 @@ def remove_fenced_code(text: str) -> str:
     return "\n".join(visible)
 
 
+def is_path_argument(value: str) -> bool:
+    return (
+        value in {".", ".."}
+        or value.startswith(("/", "./", "../", "~/", ".\\"))
+        or "\\" in value
+        or bool(FILE_NAME.fullmatch(value))
+        or bool(RELATIVE_PATH.fullmatch(value))
+        or bool(URL.fullmatch(value))
+    )
+
+
+def is_command_line(line: str) -> bool:
+    match = COMMAND_LINE.fullmatch(line)
+    if match is None:
+        return False
+
+    command = match.group("command")
+    raw_arguments = (match.group("arguments") or "").strip()
+    try:
+        arguments = shlex.split(raw_arguments)
+    except ValueError:
+        return False
+
+    if match.group("prompt") is not None:
+        return True
+    if command in COMMAND_SUBCOMMANDS:
+        return bool(arguments and arguments[0] in COMMAND_SUBCOMMANDS[command])
+    if command.startswith("herdr-"):
+        return bool(arguments and arguments[0] in {"add", "list", "show", "status"})
+    if command == "make":
+        return bool(arguments and arguments[0] in MAKE_TARGETS)
+    if command == "set":
+        return bool(
+            arguments
+            and (
+                arguments[0].startswith(("-", "+"))
+                or re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", arguments[0])
+            )
+        )
+    if command == "export":
+        return bool(
+            arguments
+            and (
+                arguments[0] in {"-f", "-n"}
+                or re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", arguments[0])
+            )
+        )
+    if command == "source":
+        return bool(arguments and is_path_argument(arguments[0]))
+    if command == "find":
+        return bool(
+            len(arguments) > 1
+            and is_path_argument(arguments[0])
+            and arguments[1].startswith("-")
+        )
+    if command.startswith("python") or command == "node":
+        return bool(
+            arguments
+            and (
+                arguments[0].startswith("-")
+                or is_path_argument(arguments[0])
+            )
+        )
+    if command in {"date", "pwd"}:
+        return not arguments or arguments[0].startswith(("-", "+"))
+    if command == "ls":
+        return not arguments or arguments[0].startswith("-") or is_path_argument(arguments[0])
+    if command == "cd":
+        return bool(arguments and is_path_argument(arguments[0]))
+    if command == "cat":
+        return bool(
+            arguments
+            and (
+                arguments[0].startswith("-")
+                or is_path_argument(arguments[0])
+                or arguments[0].upper() in {"LICENSE", "MAKEFILE", "README"}
+            )
+        )
+    if command == "echo":
+        return any(character in raw_arguments for character in "'\"$|;&<>")
+    if command in {"command", "exec", "sudo"}:
+        return bool(
+            arguments
+            and (
+                arguments[0].startswith("-")
+                or arguments[0] in COMMAND_SUBCOMMANDS
+                or arguments[0] in {"python", "python3", "bash", "sh", "zsh"}
+            )
+        )
+    if command == "env":
+        return bool(
+            arguments
+            and (
+                arguments[0].startswith("-")
+                or re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", arguments[0])
+                or arguments[0] in COMMAND_SUBCOMMANDS
+            )
+        )
+
+    return bool(
+        arguments
+        and (
+            any(argument.startswith("-") for argument in arguments)
+            or any(is_path_argument(argument) for argument in arguments)
+            or any("=" in argument for argument in arguments)
+            or any(character in raw_arguments for character in "'\"$|;&<>")
+        )
+    )
+
+
 def visible_prose(message: str) -> str:
     text = remove_fenced_code(remove_verbatim_markers(message))
     text = INLINE_CODE.sub(" ", text)
+    text = "\n".join(line for line in text.splitlines() if not is_command_line(line))
     text = URL.sub(" ", text)
     text = UNIX_PATH.sub(" ", text)
     text = WINDOWS_PATH.sub(" ", text)
     text = RELATIVE_PATH.sub(" ", text)
     text = FILE_NAME.sub(" ", text)
-    return "\n".join(
-        line for line in text.splitlines() if not COMMAND_LINE.match(line)
-    )
+    return text
 
 
 def is_japanese_letter(character: str) -> bool:

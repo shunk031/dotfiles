@@ -6,7 +6,9 @@ import io
 import json
 import os
 import subprocess
+import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 from unittest import mock
 
@@ -18,18 +20,18 @@ SPEC.loader.exec_module(MODULE)
 
 
 class JapaneseReplyTest(unittest.TestCase):
-    def test_blocks_english_prose(self):
-        payload = {
-            "hook_event_name": "Stop",
-            "last_assistant_message": (
-                "I checked the implementation and found the cause. "
-                "The setting is missing, so the command exits before it can run."
-            ),
-        }
-        output = io.StringIO()
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        state_dir = mock.patch.object(MODULE, "STATE_DIR", Path(self.temp_dir.name))
+        state_dir.start()
+        self.addCleanup(state_dir.stop)
+
+    def run_meta_hook(self, payload):
         agent_list = json.dumps({
             "result": {"agents": [{"name": "meta", "pane_id": "w1:p1"}]}
         })
+        output = io.StringIO()
         with mock.patch.dict(os.environ, {"HERDR_ENV": "1", "HERDR_PANE_ID": "w1:p1"}):
             with mock.patch.object(
                 MODULE.subprocess,
@@ -39,7 +41,18 @@ class JapaneseReplyTest(unittest.TestCase):
                 with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))):
                     with contextlib.redirect_stdout(output):
                         MODULE.main()
-        self.assertEqual(json.loads(output.getvalue()), {
+        return output.getvalue()
+
+    def test_blocks_english_prose(self):
+        payload = {
+            "hook_event_name": "Stop",
+            "session_id": "session-1",
+            "last_assistant_message": (
+                "I checked the implementation and found the cause. "
+                "The setting is missing, so the command exits before it can run."
+            ),
+        }
+        self.assertEqual(json.loads(self.run_meta_hook(payload)), {
             "decision": "block",
             "reason": MODULE.BLOCK_REASON,
         })
@@ -176,20 +189,95 @@ class JapaneseReplyTest(unittest.TestCase):
         )
         self.assertFalse(MODULE.should_block(message))
 
-    def test_second_attempt_passes(self):
+    def test_english_reply_after_another_hook_blocks(self):
         payload = {
             "hook_event_name": "Stop",
+            "session_id": "session-1",
             "stop_hook_active": True,
-            "last_assistant_message": "This English reply has enough alphabetic prose to trigger the hook.",
+            "last_assistant_message": (
+                "This English reply has enough alphabetic prose "
+                "to trigger the hook."
+            ),
         }
-        with mock.patch.dict(os.environ, {"HERDR_ENV": "1", "HERDR_PANE_ID": "w1:p1"}):
-            with mock.patch.object(MODULE.subprocess, "run") as run:
-                with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))):
-                    output = io.StringIO()
-                    with contextlib.redirect_stdout(output):
-                        MODULE.main()
-                run.assert_not_called()
-        self.assertEqual(output.getvalue(), "")
+        self.assertEqual(json.loads(self.run_meta_hook(payload)), {
+            "decision": "block",
+            "reason": MODULE.BLOCK_REASON,
+        })
+
+    def test_japanese_reply_passes_and_resets_the_block_counter(self):
+        english = "This English reply has enough alphabetic prose to trigger the hook."
+        japanese = (
+            "変更内容と確認結果を日本語で説明し、"
+            "次の作業も利用者に伝えます。"
+        ) * 2
+        base_payload = {"hook_event_name": "Stop", "session_id": "session-1"}
+
+        first = self.run_meta_hook({**base_payload, "last_assistant_message": english})
+        self.assertEqual(json.loads(first)["decision"], "block")
+        self.assertEqual(
+            self.run_meta_hook({**base_payload, "last_assistant_message": japanese}),
+            "",
+        )
+        after_reset = self.run_meta_hook({**base_payload, "last_assistant_message": english})
+        self.assertEqual(json.loads(after_reset)["decision"], "block")
+
+    def test_fourth_consecutive_block_allows_and_logs_without_reply_text(self):
+        message = "This English reply has enough alphabetic prose to trigger the hook."
+        payload = {
+            "hook_event_name": "Stop",
+            "session_id": "session-1",
+            "last_assistant_message": message,
+        }
+
+        outputs = [
+            self.run_meta_hook({**payload, "stop_hook_active": index > 0})
+            for index in range(4)
+        ]
+        self.assertEqual([json.loads(value)["decision"] for value in outputs[:3]], ["block"] * 3)
+        self.assertEqual(outputs[3], "")
+
+        log_lines = (Path(self.temp_dir.name) / "japanese-reply.log").read_text().splitlines()
+        entries = [json.loads(line) for line in log_lines]
+        self.assertEqual([entry["decision"] for entry in entries], ["block"] * 3 + ["allow"])
+        self.assertEqual(entries[3]["reason"], "block-limit")
+        self.assertEqual(
+            entries[3]["letter_count"],
+            sum(character.isalpha() for character in message),
+        )
+        self.assertEqual(entries[3]["japanese_letter_count"], 0)
+        for entry in entries:
+            self.assertIsNotNone(datetime.fromisoformat(entry["at"]).tzinfo)
+            self.assertIsInstance(entry["letter_count"], int)
+            self.assertIsInstance(entry["japanese_letter_count"], int)
+        self.assertNotIn(message, "\n".join(log_lines))
+
+    def test_block_limit_allows_retries_until_a_reply_passes(self):
+        english = "This English reply has enough alphabetic prose to trigger the hook."
+        japanese = (
+            "変更内容と確認結果を日本語で説明し、"
+            "次の作業も利用者に伝えます。"
+        ) * 2
+        base_payload = {"hook_event_name": "Stop", "session_id": "session-1"}
+
+        for index in range(3):
+            payload = {
+                **base_payload,
+                "stop_hook_active": index > 0,
+                "last_assistant_message": english,
+            }
+            self.assertEqual(json.loads(self.run_meta_hook(payload))["decision"], "block")
+        retry_payload = {
+            **base_payload,
+            "stop_hook_active": True,
+            "last_assistant_message": english,
+        }
+        self.assertEqual(self.run_meta_hook(retry_payload), "")
+        self.assertEqual(self.run_meta_hook(retry_payload), "")
+        self.assertEqual(
+            self.run_meta_hook({**retry_payload, "last_assistant_message": japanese}),
+            "",
+        )
+        self.assertEqual(json.loads(self.run_meta_hook(retry_payload))["decision"], "block")
 
     def test_malformed_input_passes(self):
         result = subprocess.run(

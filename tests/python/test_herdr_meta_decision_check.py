@@ -20,6 +20,13 @@ ALLOW = {"status": "ALLOW", "decision": "none", "reason": "No conflict."}
 
 
 class DecisionCheckTest(unittest.TestCase):
+    def setUp(self):
+        self.log_patch = mock.patch.object(GATE, "log_result")
+        self.log_patch.start()
+
+    def tearDown(self):
+        self.log_patch.stop()
+
     def test_replays_three_recorded_conflicts_before_agent_prompt(self):
         cases = (
             "Propose one Dockerfile per package again.",
@@ -65,6 +72,7 @@ class DecisionCheckTest(unittest.TestCase):
         self.assertEqual(result["status"], "UNKNOWN")
 
     def test_unknown_passes_and_logs_without_proposal_text(self):
+        self.log_patch.stop()
         cases = (
             ("Stop", {"hook_event_name": "Stop", "last_assistant_message": "I recommend SECRET PROPOSAL TEXT."}),
             ("Inbox record", {"hook_event_name": "PreToolUse", "tool_name": "mcp__inbox__record", "tool_input": {"ask": "SECRET PROPOSAL TEXT"}}),
@@ -72,17 +80,30 @@ class DecisionCheckTest(unittest.TestCase):
             ("Agent prompt", {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": "herdr agent prompt SECRET PROPOSAL TEXT"}}),
         )
         with tempfile.TemporaryDirectory() as temporary, mock.patch.dict(GATE.os.environ, {"HOME": temporary}):
-            for _, payload in cases:
-                self.assertIsNone(GATE.evaluate_event(payload, mock.Mock(return_value=GATE.unknown("SECRET PROPOSAL TEXT"))))
+            for i, (_, payload) in enumerate(cases):
+                result = {} if i == 1 else {**GATE.unknown("Decision checker returned invalid JSON." if i == 0 else "SECRET PROPOSAL TEXT and SECRET LEDGER CONTENT"), "decision": "SECRET LEDGER CONTENT"}
+                self.assertIsNone(GATE.evaluate_event(payload, mock.Mock(return_value=result)))
             path = Path(temporary) / ".local/state/meta/decision-check.log"
             content = path.read_text(encoding="utf-8")
             records = [json.loads(line) for line in content.splitlines()]
         self.assertEqual([event for event, _ in cases], [record["event"] for record in records])
+        self.assertEqual(["Decision checker returned invalid JSON.", "Invalid checker response.", "Inbox record has no proposal.", "Decision checker returned UNKNOWN."], [records[i]["reason"] for i in range(4)])
         for record in records:
-            self.assertEqual({"time", "event", "decision", "reason"}, set(record))
-            self.assertTrue(record["time"])
-            self.assertEqual("UNKNOWN", record["decision"])
-        self.assertNotIn("SECRET PROPOSAL TEXT", content)
+            self.assertTrue(record["time"] and set(record) == {"time", "event", "status", "decision", "reason", "elapsed_seconds"} and (record["status"], record["decision"]) == ("UNKNOWN", "Unclear") and record["elapsed_seconds"] >= 0)
+        self.assertTrue(all(secret not in content for secret in ("SECRET PROPOSAL TEXT", "SECRET LEDGER CONTENT")))
+
+    def test_allow_and_conflict_logs_only_outcome_fields(self):
+        self.log_patch.stop()
+        with tempfile.TemporaryDirectory() as temporary, mock.patch.dict(GATE.os.environ, {"HOME": temporary}):
+            for response in ({**ALLOW, "decision": "SECRET PROPOSAL TEXT"}, {**CONFLICT, "decision": "SECRET LEDGER CONTENT"}):
+                payload = {"hook_event_name": "Stop", "last_assistant_message": "I recommend SECRET PROPOSAL TEXT."}
+                GATE.evaluate_event(payload, mock.Mock(return_value=response))
+            path = Path(temporary) / ".local/state/meta/decision-check.log"
+            content = path.read_text(encoding="utf-8")
+            records = [json.loads(line) for line in content.splitlines()]
+        self.assertEqual([("ALLOW", "No conflicting decision"), ("CONFLICT", "Standing decision conflict")], [(record["status"], record["decision"]) for record in records])
+        self.assertTrue(all(record["time"] and set(record) == {"time", "event", "status", "decision", "elapsed_seconds"} and record["elapsed_seconds"] >= 0 for record in records))
+        self.assertTrue(all(secret not in content for secret in ("SECRET PROPOSAL TEXT", "SECRET LEDGER CONTENT")))
 
     def test_conflict_is_blocked(self):
         checker = mock.Mock(return_value={**CONFLICT, "decision": "caps", "reason": "Reverses caps."})

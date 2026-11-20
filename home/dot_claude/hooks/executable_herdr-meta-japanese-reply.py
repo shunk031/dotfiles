@@ -21,8 +21,12 @@ URL = re.compile(
 UNIX_PATH = re.compile(r"(?<![\w:])(?:~|\.{1,2})?/(?:[^\s<>\"'`]+)")
 WINDOWS_PATH = re.compile(r"\b[A-Za-z]:\\(?:[^\\\s<>\"'`]+\\?)+")
 RELATIVE_PATH = re.compile(
-    r"(?<![\w./-])(?:\.\.?/|[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
-    r"(?:\.[A-Za-z0-9_.-]+)*(?![\w./-])"
+    r"(?<![\w./-])(?:"
+    r"(?:\.\.?|~)/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*"
+    r"|[A-Za-z0-9_.-]+/(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+"
+    r"\.(?:py|sh|md|txt|json|jsonl|toml|yaml|yml|ini|cfg|conf|html|css|js|ts|tsx|jsx|go|rs|rb|java|c|cc|cpp|h|hpp)"
+    r")(?![\w./-])",
+    re.IGNORECASE,
 )
 FILE_NAME = re.compile(
     r"(?<![\w./-])[A-Za-z0-9_.-]+\.(?:py|sh|md|txt|json|jsonl|toml|yaml|yml|"
@@ -36,7 +40,6 @@ COMMAND_LINE = re.compile(
     r"awk|rg|grep|find|ls|cd|pwd|date|curl|wget|jq|brew|docker|ssh|scp|op|"
     r"chmod|chown|mkdir|rm|cp|mv|touch|printf|echo|tar|zip|unzip|pip|pipx|"
     r"go|cargo|rustc|gcc|herdr(?:-[a-z0-9-]+)*)(?:\s|$)",
-    re.IGNORECASE,
 )
 META_AGENT_LIST_TIMEOUT = 3
 

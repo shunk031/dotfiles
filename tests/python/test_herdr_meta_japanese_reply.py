@@ -53,6 +53,9 @@ class JapaneseReplyTest(unittest.TestCase):
             + "```text\n" + english + "\n```\n"
             + "https://example.com/" + english + "\n"
             + "/Users/example/" + english + ".txt\n"
+            + "./src/" + english + ".py\n"
+            + "tests/python/" + english + ".py\n"
+            + "C:\\Users\\example\\" + english + ".txt\n"
             + "git status --short  # " + english + "\n"
             + "- git status --short  # " + english
         )
@@ -65,6 +68,36 @@ class JapaneseReplyTest(unittest.TestCase):
             len(letters) * 3,
         )
         self.assertFalse(MODULE.should_block(message))
+
+    def test_command_words_at_sentence_start_are_not_discarded(self):
+        message = "\n".join(
+            [
+                "Set the configuration as shown. This change resolves the missing setting and completes the requested work.",
+                "Make sure the results are checked after running the validation.",
+                "Find the relevant details in the report before updating the plan.",
+                "Go through each step and explain why the implementation works.",
+                "Python is used to validate the implementation and return results.",
+                "Command output includes a useful summary of the current status.",
+                "Git is used to track the source and review each change.",
+                "Source files contain the relevant definitions and examples.",
+                "Export options are documented for every supported environment.",
+            ]
+        )
+        visible = MODULE.visible_prose(message)
+        self.assertIn("Set the configuration", visible)
+        self.assertIn("Find the relevant details", visible)
+        self.assertTrue(MODULE.should_block(message))
+
+    def test_slash_compounds_are_not_discarded_as_relative_paths(self):
+        messages = (
+            "Input/output and request/response are valid distinctions.",
+            "Read/write/execute are common access permissions.",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                visible = MODULE.visible_prose(message)
+                self.assertIn(message.split()[0], visible)
+                self.assertTrue(MODULE.should_block(message))
 
     def test_verbatim_relay_is_excluded(self):
         message = (

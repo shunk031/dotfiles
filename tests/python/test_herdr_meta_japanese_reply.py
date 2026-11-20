@@ -114,9 +114,14 @@ class JapaneseReplyTest(unittest.TestCase):
             'customtool --message "The requested implementation is complete '
             'and validation passed successfully."'
         )
+        short_flag_executable = (
+            'customtool -m "The requested implementation is complete '
+            'and validation passed successfully."'
+        )
         lines = (
             command,
             plain_executable,
+            short_flag_executable,
             "$ " + command,
             "MODE=fast " + command,
             "./custom-tool --message 'The requested implementation is complete.'",
@@ -138,6 +143,35 @@ class JapaneseReplyTest(unittest.TestCase):
             with self.subTest(line=line):
                 self.assertFalse(MODULE.is_command_line(line))
                 self.assertIn(line, MODULE.visible_prose(line))
+
+    def test_attached_urls_and_paths_with_arbitrary_extensions_are_removed(self):
+        url = "www.superlongenglishdomainnameandpath.example/日本語"
+        absolute_path = "/Users/alice/verylongenglishprojectname.csv"
+        relative_path = "reports/verylongenglishfilename.csv"
+        windows_path = r"C:\Users\alice\verylongenglishfilename.csv"
+        filename = "verylongenglishfilename.csv"
+        message = (
+            "確認します"
+            + url
+            + " を確認します。 保存先は"
+            + absolute_path
+            + "を確認します。 相対パスは"
+            + relative_path
+            + "を確認します。 Windows側は"
+            + windows_path
+            + "を確認します。 ファイル名は"
+            + filename
+            + "を確認します。"
+        )
+
+        visible = MODULE.visible_prose(message)
+        for value in (url, absolute_path, relative_path, windows_path, filename):
+            with self.subTest(value=value):
+                self.assertNotIn(value, visible)
+        for japanese_suffix in ("確認します", "を確認します。"):
+            with self.subTest(japanese_suffix=japanese_suffix):
+                self.assertIn(japanese_suffix, visible)
+        self.assertFalse(MODULE.should_block(message))
 
     def test_slash_compounds_are_not_discarded_as_relative_paths(self):
         messages = (

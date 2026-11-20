@@ -17,21 +17,29 @@ FENCE_OPEN = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 FENCE_CLOSE = re.compile(r"^ {0,3}(`+|~+)[ \t]*$")
 INLINE_CODE = re.compile(r"(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)")
 URL = re.compile(
-    r"\b(?:[A-Za-z][A-Za-z0-9+.-]*://|mailto:|www\.)[^\s<>]+", re.IGNORECASE
+    r"(?<![A-Za-z0-9+.-])(?:[A-Za-z][A-Za-z0-9+.-]*://|mailto:|www\.)"
+    r"[^\s<>]+",
+    re.IGNORECASE,
 )
-UNIX_PATH = re.compile(r"(?<![\w:])(?:~|\.{1,2})?/(?:[^\s<>\"'`]+)")
-WINDOWS_PATH = re.compile(r"\b[A-Za-z]:\\(?:[^\\\s<>\"'`]+\\?)+")
+UNIX_PATH = re.compile(
+    r"(?<![A-Za-z0-9_:])(?:~|\.{1,2})?/"
+    r"[A-Za-z0-9_.~+-]+(?:/[A-Za-z0-9_.~+-]+)*"
+)
+WINDOWS_PATH = re.compile(
+    r"(?<![A-Za-z0-9_])[A-Za-z]:\\[A-Za-z0-9_.~+-]+"
+    r"(?:\\[A-Za-z0-9_.~+-]+)*\\?"
+)
 RELATIVE_PATH = re.compile(
-    r"(?<![\w./-])(?:"
+    r"(?<![A-Za-z0-9_./-])(?:"
     r"(?:\.\.?|~)/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*"
     r"|[A-Za-z0-9_.-]+/(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+"
-    r"\.(?:py|sh|md|txt|json|jsonl|toml|yaml|yml|ini|cfg|conf|html|css|js|ts|tsx|jsx|go|rs|rb|java|c|cc|cpp|h|hpp)"
-    r")(?![\w./-])",
+    r"\.[A-Za-z0-9]{1,16}"
+    r")(?![A-Za-z0-9_./-])",
     re.IGNORECASE,
 )
 FILE_NAME = re.compile(
-    r"(?<![\w./-])[A-Za-z0-9_.-]+\.(?:py|sh|md|txt|json|jsonl|toml|yaml|yml|"
-    r"ini|cfg|conf|html|css|js|ts|tsx|jsx|go|rs|rb|java|c|cc|cpp|h|hpp)(?![\w./-])",
+    r"(?<![A-Za-z0-9_./-])[A-Za-z0-9_.-]+\.[A-Za-z0-9]{1,16}"
+    r"(?![A-Za-z0-9_./-])",
     re.IGNORECASE,
 )
 COMMAND_LINE = re.compile(
@@ -132,7 +140,7 @@ def is_command_line(line: str) -> bool:
         assignments.append(arguments.pop(0))
     if assignments:
         return True
-    if arguments and arguments[0].startswith("--"):
+    if arguments and arguments[0].startswith("-"):
         return True
 
     if command in COMMAND_SUBCOMMANDS:

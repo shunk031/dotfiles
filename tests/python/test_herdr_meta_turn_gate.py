@@ -1,5 +1,3 @@
-"""Tests for the Meta-only Claude Stop hook."""
-
 import contextlib
 import hashlib
 import importlib.util
@@ -42,6 +40,10 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.registry.write_text("")
         self.task_tree_dir = self.root / ".local" / "state" / "inbox" / "task-tree"
         self.task_tree_dir.mkdir(parents=True)
+        (self.state / "meta").mkdir()
+        (self.state / "meta" / "roots.tsv").write_text("Local\torch\nyj-remote\tgate-worker\n")
+        self.inbox_store_dir = self.root / ".claude" / "plugins" / "store"
+        self.inbox_store_dir.mkdir(parents=True)
         (self.queue_state / "waiters").mkdir(parents=True)
         (self.queue_state / "queue.jsonl").touch()
         self.queue = self.bin / "herdr-meta-patrol-queue"
@@ -58,6 +60,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
                     "name": "gate-worker", "pane_id": "w2:p2", "tab_id": "w2:t2",
                     "terminal_id": "worker-terminal", "agent_status": "idle",
                 },
+                {"name": "orch", "pane_id": "w3:p3", "terminal_id": "orch-terminal"},
             ]},
         }))
         self.tabs_file = self.root / "tabs.json"
@@ -89,6 +92,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
             "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
         }
         self.write_task_tree([])
+        self.write_inbox_store([])
 
     @staticmethod
     def utc_text(value=None):
@@ -112,6 +116,13 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         path = self.task_tree_dir / f"{session_id}.json"
         path.write_text(json.dumps(document))
         return path
+
+    def write_inbox_store(self, items, *, closed=(), session_id="session-under-test"):
+        document = {f"s:{session_id}": {"ledger": {"items": items, "closed": list(closed)}}}
+        (self.inbox_store_dir / "inbox_inline-test.json").write_text(json.dumps(document))
+
+    def question_fixture(self, item_id, at, reported_at=None):
+        return {"id": item_id, "kind": "question", "ask": "Check current state", "at": at, "reportedAt": reported_at}
 
     def check_task_tree(self, tasks, *, env=None):
         path = self.write_task_tree(tasks)
@@ -342,6 +353,16 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
 
         allowed = self.run_hook(env={"HERDR_META_TASK_STALE_HOURS": "12"})
         self.assertEqual((allowed.returncode, allowed.stdout), (0, ""))
+
+    def test_registered_root_stop_gate_checks_open_questions(self):
+        now = int(datetime.now(timezone.utc).timestamp() * 1000)
+        recent = self.question_fixture("recent-ask", now)
+        self.write_inbox_store([recent], closed=[self.question_fixture(item_id="closed-ask", at=now - 7 * 60 * 60 * 1000)])
+        self.assertEqual(self.run_hook(env={"HERDR_PANE_ID": "w3:p3"}).returncode, 0)
+        self.write_inbox_store([None])
+        self.assert_blocked(self.run_hook(env={"HERDR_PANE_ID": "w3:p3"}), "invalid item")
+        self.write_inbox_store([self.question_fixture("stale-ask", now, 0)])
+        self.assert_blocked(self.run_hook(env={"HERDR_PANE_ID": "w3:p3"}), "stale-ask")
 
     def test_malformed_updated_at_fails_closed(self):
         path = self.write_task_tree([self.task_fixture()])
@@ -586,7 +607,7 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
         self.registry.parent.unlink()
         self.assert_blocked(self.run_hook(), "gate cannot verify: the worker lifecycle registry directory")
 
-        self.state.rmdir()
+        shutil.rmtree(self.state)
         self.state.symlink_to(self.root / "missing-registry-parent")
         self.assert_blocked(self.run_hook(), "gate cannot verify: the worker lifecycle parent")
 
@@ -977,10 +998,6 @@ class HerdrMetaTurnGateTest(unittest.TestCase):
                 output = io.StringIO()
                 with (
                     mock.patch.dict(os.environ, self.env),
-                    mock.patch.object(
-                        GATE_MODULE, "identify_meta",
-                        return_value=("meta-terminal", []),
-                    ),
                     mock.patch.object(
                         GATE_MODULE, "evaluate_after_identity",
                         side_effect=GATE_MODULE.GateError("same injected gate error"),

@@ -253,7 +253,7 @@ def main() -> None:
     if os.environ.get("HERDR_ENV") != "1" or not pane_id:
         return
     gate = turn_gate_module()
-    if gate.identify_meta(pane_id) is None:
+    if (identity := gate.identify_root(pane_id)) is None or identity[0] != "meta":
         return
     payload = json.loads(raw)
     result = evaluate_event(payload)

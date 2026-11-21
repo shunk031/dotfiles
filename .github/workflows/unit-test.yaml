@@ -158,7 +158,12 @@ jobs:
       - *setup-shfmt
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
-        run: python3 -m unittest discover -s tests/python
+        env:
+          MISE_CONFIG_FILE: home/dot_mise/config.toml
+        run: |
+          export PATH="$(mise where aqua:mvdan/sh):${PATH}"
+          shfmt --version
+          python3 -m unittest discover -s tests/python
 
       - name: Run shell unit tests with coverage
         if: ${{ needs.changes.outputs.should_test == 'true' }}
@@ -275,7 +280,12 @@ jobs:
       - *setup-shfmt
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
-        run: python3 -m unittest discover -s tests/python
+        env:
+          MISE_CONFIG_FILE: home/dot_mise/config.toml
+        run: |
+          export PATH="$(mise where aqua:mvdan/sh):${PATH}"
+          shfmt --version
+          python3 -m unittest discover -s tests/python
 
       - name: Run shell unit tests with coverage
         if: ${{ needs.changes.outputs.should_test == 'true' }}
@@ -385,7 +395,12 @@ jobs:
       - *setup-shfmt
       - name: Run Python unit tests
         if: ${{ needs.changes.outputs.should_test == 'true' }}
-        run: python3 -m unittest discover -s tests/python
+        env:
+          MISE_CONFIG_FILE: home/dot_mise/config.toml
+        run: |
+          export PATH="$(mise where aqua:mvdan/sh):${PATH}"
+          shfmt --version
+          python3 -m unittest discover -s tests/python
 
       - name: Run shell unit tests with coverage
         if: ${{ needs.changes.outputs.should_test == 'true' }}

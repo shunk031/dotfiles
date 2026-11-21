@@ -1,11 +1,12 @@
 import json
 import os, subprocess, tempfile
+import sys
 import unittest
 from pathlib import Path
 
 HOOK = Path(__file__).resolve().parents[2] / "home" / "dot_claude" / "hooks" / "executable_herdr-wait-background-guard.py"
 REASON = "Run `herdr agent wait <worker>` alone with run_in_background: true; a backgrounded wait inside a foreground call never notifies you."
-CASES = (("herdr agent wait w >/dev/null 2>&1 &", False, True), ("herdr agent wait w >/dev/null 2>&1 &", True, False), ("herdr agent wait w", False, False), ("herdr agent wait w; echo 'a & b'", False, False), ("herdr agent prompt meta report", False, True), ("herdr --machine local agent prompt meta report", False, True), ("herdr --machine=local agent prompt meta report", False, True), ("command herdr agent prompt meta report", False, True), ("env herdr agent prompt meta report", False, True), ("env -S 'herdr agent prompt meta report'", False, True), ("env --split-string='herdr agent prompt meta report'", False, True), ("env -u FOO herdr agent prompt meta", False, True), ("env -C /tmp FOO=1 herdr agent prompt meta", False, True), ("env -S 'herdr --machine local agent -v prompt wT:p42 report'", False, True), ("env -S 'ls herdr agent prompt meta'", False, True), ("env FOO=1 ls", False, False), ("env --unset=FOO --chdir=/tmp FOO=1 herdr agent prompt meta", False, True), ("env -P /bin herdr agent prompt meta", False, True), ("env -- FOO=1 herdr agent prompt meta", False, True), ("herdr agent prompt 'meta' report", False, True), ("herdr agent prompt wT:p42 report", False, True), ("true; herdr agent prompt meta report", False, True), ("herdr agent prompt worker report", False, False), ("command -v herdr", False, False), ("time herdr agent prompt meta report", False, False), ("f() { herdr agent prompt meta report; }", False, False), ("herdr() { :; }", False, False), ("printf '%s' 'herdr agent prompt meta'", False, False))
+CASES = (("herdr agent wait w >/dev/null 2>&1 &", False, True), ("herdr agent wait w >/dev/null 2>&1 &", True, False), ("herdr agent wait w", False, False), ("herdr agent wait w; echo 'a & b'", False, False), ("herdr agent prompt meta report", False, True), ("herdr --machine X agent prompt meta", False, False), ("herdr --machine local agent prompt meta report", False, False), ("herdr --machine=local agent prompt meta report", False, False), ("command herdr agent prompt meta report", False, True), ("env herdr agent prompt meta report", False, True), ("env -S 'herdr agent prompt meta report'", False, True), ("env --split-string='herdr agent prompt meta report'", False, True), ("env -u FOO herdr agent prompt meta", False, True), ("env -C /tmp FOO=1 herdr agent prompt meta", False, True), ("env -S 'herdr --machine local agent -v prompt wT:p42 report'", False, True), ("env -S 'ls herdr agent prompt meta'", False, True), ("env FOO=1 ls", False, False), ("env --unset=FOO --chdir=/tmp FOO=1 herdr agent prompt meta", False, True), ("env -P /bin herdr agent prompt meta", False, True), ("env -- FOO=1 herdr agent prompt meta", False, True), ("herdr agent prompt 'meta' report", False, True), ("herdr agent prompt wT:p42 report", False, True), ("true; herdr agent prompt meta report", False, True), ("herdr agent prompt worker report", False, False), ("command -v herdr", False, False), ("time herdr agent prompt meta report", False, False), ("f() { herdr agent prompt meta report; }", False, False), ("herdr() { :; }", False, False), ("printf '%s' 'herdr agent prompt meta'", False, False))
 
 
 class WaitBackgroundGuardTests(unittest.TestCase):
@@ -41,6 +42,13 @@ class WaitBackgroundGuardTests(unittest.TestCase):
     def test_invalid_input_fails_open(self):
         result = subprocess.run(["python3", str(HOOK)], input="invalid", text=True, capture_output=True, check=False)
         self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "", ""))
+
+    def test_missing_shfmt_fails_closed(self):
+        payload = {"tool_name": "Bash", "tool_input": {"command": "echo harmless"}}
+        result = subprocess.run([sys.executable, str(HOOK)], input=json.dumps(payload), text=True, capture_output=True, env={"PATH": "", "HOME": os.environ.get("HOME", "")}, check=False)
+        self.assertEqual(result.returncode, 0, f"exit code={result.returncode}; stderr={result.stderr!r}")
+        self.assertEqual(json.loads(result.stdout)["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.assertEqual(result.stderr.strip(), "Cannot check Bash command because shfmt is unavailable.")
 
 
 if __name__ == "__main__":

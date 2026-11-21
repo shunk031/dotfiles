@@ -6,6 +6,8 @@ In chezmoi, `dot_` changes a target name to start with `.`, while `exact_` remov
 
 ## Skill Pool and Subscription Policy
 
+The private dotfiles may apply retired private names in `~/.config/agents/skills-private.retired`. The public reconciler reads that file without storing its entries in this repository.
+
 `~/.agents/skills` is a real directory: the shared skills pool. This repository no longer carries skill content. Skills live in [shunk031/skills](https://github.com/shunk031/skills) (public) and `shunk031/skills-private` (private), and these dotfiles subscribe to them.
 
 [install/common/skills.sh](../../../install/common/skills.sh) subscribes to all skills in `shunk031/skills` as one repository and keeps individual selections only for third-party and private repositories. [home/.chezmoiscripts/common/run_after_30-reconcile-agent-skills.sh.tmpl](../../.chezmoiscripts/common/run_after_30-reconcile-agent-skills.sh.tmpl) reconciles the pool on every `chezmoi apply`, using the pinned `skills` CLI: it installs missing selected skills, rediscovers the public repository on a daily throttle, updates installed skills, and prunes only entries recorded in its manifest. `DOTFILES_SKILLS_FORCE_UPDATE=1 chezmoi apply` bypasses the discovery throttle. Because `skills update --yes` does not remove upstream deletions, a removed or renamed public skill also needs its old name in `SKILLS_RETIRED_NAMES`.

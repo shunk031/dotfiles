@@ -150,6 +150,19 @@ EOF
     [ "${output}" = "remove --skill shunk031-gh-comment-attach-files --agent claude-code --agent codex --global --yes" ]
 }
 
+@test "[common] prune removes a retired private skill from the applied private list" {
+    write_mise_stub
+    mkdir -p "${HOME}/.config/agents" "${SKILLS_POOL}/private-retired-example"
+    printf '%s\n' private-retired-example > "${SKILLS_PRIVATE_RETIRED_NAMES}"
+
+    prune_unlisted_skills
+
+    [ ! -e "${SKILLS_POOL}/private-retired-example" ]
+    run cat "${MISE_CALLS_PATH}"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "remove --skill private-retired-example --agent claude-code --agent codex --global --yes" ]
+}
+
 @test "[common] prune removes the pool entry before unregistering the skill" {
     write_mise_stub
     local pool_state_path="${BATS_TEST_TMPDIR}/pool-state.txt"

@@ -50,6 +50,16 @@ class WaitBackgroundGuardTests(unittest.TestCase):
         self.assertEqual(json.loads(result.stdout)["hookSpecificOutput"]["permissionDecision"], "deny")
         self.assertEqual(result.stderr.strip(), "Cannot check Bash command because shfmt is unavailable.")
 
+    def test_shfmt_parse_error_fails_closed(self):
+        command = "herdr agent prompt meta x\nif then"
+        payload = {"tool_name": "Bash", "tool_input": {"command": command}}
+        result = subprocess.run([sys.executable, str(HOOK)], input=json.dumps(payload), text=True, capture_output=True, check=False)
+        self.assertEqual(result.returncode, 0, f"exit code={result.returncode}; stderr={result.stderr!r}")
+        response = json.loads(result.stdout)
+        self.assertEqual(response["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.assertEqual(response["hookSpecificOutput"]["permissionDecisionReason"], "Cannot check Bash command because shfmt could not parse it.")
+        self.assertIn("Cannot check Bash command because shfmt could not parse it.", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

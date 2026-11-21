@@ -94,6 +94,10 @@ readonly SKILLS_ALLOWLIST=(
 # reconciled and nothing else changes.
 readonly SKILLS_PRIVATE_ALLOWLIST="${HOME}/.config/agents/skills-private.allowlist"
 
+# Private names retired by the private dotfiles source. Keep this list out of
+# the public source: a private skill's name can disclose an internal system.
+readonly SKILLS_PRIVATE_RETIRED_NAMES="${HOME}/.config/agents/skills-private.retired"
+
 #
 # @description Read lines from standard input into a named array.
 # @description
@@ -510,13 +514,13 @@ function remove_pool_entry() {
 #
 # @description Print managed skill names that may need pruning.
 # @description
-#   The manifest normally identifies removed subscriptions. Retired names are
-#   also included while their old pool directory remains, because an earlier
-#   reconciliation may already have replaced the manifest with the new name.
+#   The manifest normally identifies removed subscriptions. Public retired
+#   names and applied private retired names also cover migrations where the
+#   manifest already contains the replacement name.
 # @stdout Newline-separated skill names, sorted and unique.
 #
 function prune_candidate_names() {
-    local name
+    local name agent_dir
 
     {
         if [ -f "${SKILLS_MANIFEST}" ]; then
@@ -528,6 +532,23 @@ function prune_candidate_names() {
                 printf '%s\n' "${name}"
             fi
         done
+
+        if [ -f "${SKILLS_PRIVATE_RETIRED_NAMES}" ]; then
+            while IFS= read -r name || [ -n "${name}" ]; do
+                [ -n "${name}" ] || continue
+                if pool_has_skill "${name}"; then
+                    printf '%s\n' "${name}"
+                    continue
+                fi
+
+                for agent_dir in "${SKILLS_LINKED_AGENT_DIRS[@]}"; do
+                    if [ -e "${agent_dir}/${name}" ] || [ -L "${agent_dir}/${name}" ]; then
+                        printf '%s\n' "${name}"
+                        break
+                    fi
+                done
+            done < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' "${SKILLS_PRIVATE_RETIRED_NAMES}")
+        fi
     } | LC_ALL=C sort -u
 }
 

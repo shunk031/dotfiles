@@ -15,7 +15,7 @@
 
 - Skill content is not in this repository. Public skills live in [shunk031/skills](https://github.com/shunk031/skills) and are installed through one repository subscription. Internal skills live in `shunk031/skills-private` and remain individually selected by the private dotfiles.
 - When asked to add, change, or remove a skill, use the `shunk031-manage-public-private-skills` skill to decide which repository owns it before editing anything.
-- Adding a public skill to `shunk031/skills` needs no subscription edit here. Upstream deletions are pruned automatically from the `skills update` warning; `SKILLS_RETIRED_NAMES` remains for renames or cases the warning does not cover. Third-party selections and the public repository subscription are configured in `install/common/skills.sh`; private selections stay in the private dotfiles.
+- Adding a public skill to `shunk031/skills` needs no subscription edit here. Upstream deletions are pruned automatically from the `skills update` warning; `SKILLS_RETIRED_NAMES` remains for public renames or cases the warning does not cover. Third-party selections and the public repository subscription are configured in `install/common/skills.sh`; private selections and retired names stay in the private dotfiles.
 
 ## Comment Policy
 

@@ -21,7 +21,8 @@
 #   their PID in `waiters/<pane-id>.<pid>.pid` until they exit.
 #
 #   Subcommands:
-#   - `add [--kind KIND] [--from NAME] TEXT` appends one record.
+#   - `add [--kind KIND] --from NAME TEXT` appends one record.
+#   - `-h` or `--help` prints this usage without changing queue state.
 #   - `import --machine NAME RECORD_JSON` appends one remote record with its
 #     original timestamp and source sequence. Repeating the same import is safe.
 #   - `wait [--max-seconds N]` blocks until an unread record exists, prints the
@@ -41,14 +42,17 @@
 # @option HERDR_META_PATROL_QUEUE_KEEP_DAYS Days to keep acknowledged records (default 7).
 # @option HERDR_META_PATROL_TIMEOUT Seconds before the notification call is killed (default 40).
 # @option HERDR_META_PATROL_STALE_SECONDS Age of unread records and of the waiter heartbeat that triggers a notification (default 600).
+# @option --kind KIND Record kind for add (default message).
+# @option --from NAME Required sender name for add.
 # @option --limit N Number of raw unread records to include in a read batch (1-50; default 10).
 # @option --compact-status Show only the latest STATUS per sender within a read batch.
 # @option --strict Return a JSON envelope; fail when queue state or records are invalid.
+# @option -h | --help Print command usage and exit successfully.
 # @stderr queue unverifiable: <why> when strict queue state cannot be verified.
 # @exitcode 0 On success.
 # @exitcode 2 On a usage error.
 # @example
-#   herdr-meta-patrol-queue add --kind findings "$message"
+#   herdr-meta-patrol-queue add --kind findings --from patrol "$message"
 #   herdr-meta-patrol-queue import --machine remote "$record_json"
 #   herdr-meta-patrol-queue wait
 #   herdr-meta-patrol-queue read --compact-status
@@ -69,9 +73,36 @@ lock_file="${state_dir}/queue.lock"
 waiters_dir="${state_dir}/waiters"
 waiter_marker=''
 
+# @description Print command usage.
+function print_usage() {
+    cat << 'USAGE'
+usage: herdr-meta-patrol-queue [-h | --help] COMMAND [ARGS...]
+       herdr-meta-patrol-queue COMMAND [-h | --help]
+  add [--kind KIND] --from NAME TEXT
+  import --machine NAME RECORD_JSON
+  wait [--max-seconds N]
+  read [--limit N] [--compact-status] [--strict]
+  ack SEQ
+  trim
+  notify-if-stale
+USAGE
+}
+
+# @description Return success when a help option appears before an end-of-options marker.
+function has_help_option() {
+    local help_option
+    for help_option in "$@"; do
+        case "${help_option}" in
+        --) return 1 ;;
+        -h | --help) return 0 ;;
+        esac
+    done
+    return 1
+}
+
 # @description Print a usage error and exit 2.
 function usage() {
-    printf '%s\n' 'usage: herdr-meta-patrol-queue add [--kind KIND] [--from NAME] TEXT | import --machine NAME RECORD_JSON | wait [--max-seconds N] | read [--limit N] [--compact-status] | ack SEQ | trim | notify-if-stale' >&2
+    print_usage >&2
     exit 2
 }
 
@@ -312,6 +343,10 @@ function cleanup_waiter() {
 }
 
 (($# > 0)) || usage
+if has_help_option "$@"; then
+    print_usage
+    exit 0
+fi
 command="$1"
 shift
 strict_read=false
@@ -329,21 +364,30 @@ fi
 case "${command}" in
 add)
     kind=message
-    from=patrol
+    from=''
+    end_options=false
     while (($# > 1)); do
         case "$1" in
         --kind)
+            (($# >= 3)) || usage
             kind="$2"
             shift 2
             ;;
         --from)
+            (($# >= 3)) || usage
             from="$2"
             shift 2
+            ;;
+        --)
+            shift
+            end_options=true
+            break
             ;;
         *) usage ;;
         esac
     done
-    (($# == 1)) && [[ -n "$1" ]] || usage
+    (($# == 1)) && [[ -n "${from}" && -n "$1" ]] || usage
+    [[ "${end_options}" == true || "$1" != -* ]] || usage
     export -f append_locked number_in
     export queue seq_file
     with_lock bash -c 'set -Eeuo pipefail; append_locked "$@"' _ "${kind}" "${from}" "$1"

@@ -24,7 +24,7 @@ function queue() {
 
 @test "[common] herdr-meta-patrol-queue appends records with increasing sequence numbers" {
     queue add --kind findings --from orch $'line one\nline two'
-    queue add second
+    queue add --from patrol second
     run queue read
     [ "${status}" -eq 0 ]
     [ "$(jq -s 'map(.seq)' -c <<< "${output}")" = '[1,2]' ]
@@ -66,7 +66,7 @@ STUB
 
     queue import --machine remote "${record}"
     [ "$(cat "${HERDR_META_PATROL_STATE_DIR}/queue.seq")" = 1 ]
-    queue add later
+    queue add --from patrol later
 
     [ "$(jq -sc '[.[].seq]' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = '[1,2]' ]
     [ "$(jq -sc '[.[] | select(.machine == "remote" and .source_seq == 8)] | length' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = 1 ]
@@ -75,7 +75,7 @@ STUB
 @test "[common] herdr-meta-patrol-queue keeps sequence numbers unique under concurrent appends" {
     local i
     for i in $(seq 1 20); do
-        queue add "item ${i}" &
+        queue add --from patrol "item ${i}" &
     done
     wait
     [ "$(queue read --limit 20 | jq -s '[length, (map(.seq) | unique | length), (map(.seq) | max)]' -c)" = '[20,20,20]' ]
@@ -83,7 +83,7 @@ STUB
 
 @test "[common] herdr-meta-patrol-queue reads at most ten records by default and advances in batches" {
     local i
-    for i in $(seq 1 12); do queue add "item ${i}"; done
+    for i in $(seq 1 12); do queue add --from patrol "item ${i}"; done
 
     [ "$(queue read | jq -s '[length, .[0].seq, .[-1].seq]' -c)" = '[10,1,10]' ]
     queue ack 10
@@ -122,8 +122,8 @@ STUB
 }
 
 @test "[common] herdr-meta-patrol-queue reads only unacknowledged records and caps acks" {
-    queue add one
-    queue add two
+    queue add --from patrol one
+    queue add --from patrol two
     queue ack 1
     [ "$(queue read | jq -r '.text')" = two ]
     queue ack 99
@@ -134,7 +134,7 @@ STUB
 }
 
 @test "[common] herdr-meta-patrol-queue wait exits at once for unread records and refreshes its heartbeat" {
-    queue add pending
+    queue add --from patrol pending
     run queue wait --max-seconds 5
     [ "${status}" -eq 0 ]
     [[ "${output}" == 'unread 1:'* ]]
@@ -148,7 +148,7 @@ STUB
 
     (
         sleep 1
-        queue add later
+        queue add --from patrol later
     ) &
     run queue wait --max-seconds 20
     [ "${status}" -eq 0 ]
@@ -191,25 +191,25 @@ STUB
 
 @test "[common] herdr-meta-patrol-queue notifies once per stale batch while no waiter polls" {
     export HERDR_META_PATROL_STALE_SECONDS=0
-    queue add first
+    queue add --from patrol first
     queue notify-if-stale
     queue notify-if-stale
     [ "$(grep -c 'notification show' "${NOTIFY_LOG}")" -eq 1 ]
 
-    queue add second
+    queue add --from patrol second
     queue notify-if-stale
     [ "$(grep -c 'notification show' "${NOTIFY_LOG}")" -eq 2 ]
 
     export HERDR_META_PATROL_STALE_SECONDS=600
     touch "${HERDR_META_PATROL_STATE_DIR}/waiter.heartbeat"
-    queue add third
+    queue add --from patrol third
     queue notify-if-stale
     [ "$(grep -c 'notification show' "${NOTIFY_LOG}")" -eq 2 ]
 }
 
 @test "[common] herdr-meta-patrol-queue does not notify about acknowledged records" {
     export HERDR_META_PATROL_STALE_SECONDS=0
-    queue add handled
+    queue add --from patrol handled
     queue ack 1
     queue notify-if-stale
     [ ! -e "${NOTIFY_LOG}" ]
@@ -221,13 +221,80 @@ STUB
     jq -cn '{seq: 2, t: 1, at: "old", kind: "message", from: "patrol", text: "old unread"}' >> "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
     printf '2\n' > "${HERDR_META_PATROL_STATE_DIR}/queue.seq"
     queue ack 1
-    queue add new
+    queue add --from patrol new
     queue trim
     [ "$(jq -s 'map(.seq)' -c "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = '[2,3]' ]
 }
 
+@test "[common] herdr-meta-patrol-queue add --help prints usage without queuing a record" {
+    queue add --from patrol initial
+    local seq_before records_before
+    seq_before="$(cat "${HERDR_META_PATROL_STATE_DIR}/queue.seq")"
+    records_before="$(wc -l < "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" | tr -d ' ')"
+
+    run --separate-stderr queue --help
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == usage:* ]]
+    [ -z "${stderr}" ]
+
+    run --separate-stderr queue -h
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == usage:* ]]
+    [ -z "${stderr}" ]
+
+    run --separate-stderr queue add --help
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == usage:* ]]
+    [ -z "${stderr}" ]
+
+    run --separate-stderr queue add --from worker --help
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == usage:* ]]
+    [ -z "${stderr}" ]
+
+    run --separate-stderr queue read --help
+    [ "${status}" -eq 0 ]
+    [[ "${output}" == usage:* ]]
+    [ -z "${stderr}" ]
+
+    [ "$(cat "${HERDR_META_PATROL_STATE_DIR}/queue.seq")" = "${seq_before}" ]
+    [ "$(wc -l < "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" | tr -d ' ')" = "${records_before}" ]
+}
+
+@test "[common] herdr-meta-patrol-queue add rejects unknown options without queuing a record" {
+    run --separate-stderr queue add --bogus x
+    [ "${status}" -eq 2 ]
+    [ -z "${output}" ]
+    [[ "${stderr}" == usage:* ]]
+    [ ! -e "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]
+
+    run --separate-stderr queue add --from w --bogus x
+    [ "${status}" -eq 2 ]
+    [ -z "${output}" ]
+    [[ "${stderr}" == usage:* ]]
+    [ ! -e "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]
+}
+
+@test "[common] herdr-meta-patrol-queue add requires an explicit sender" {
+    run --separate-stderr queue add x
+    [ "${status}" -eq 2 ]
+    [ -z "${output}" ]
+    [[ "${stderr}" == usage:* ]]
+    [ ! -e "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl" ]
+}
+
+@test "[common] herdr-meta-patrol-queue add records the explicit sender" {
+    queue add --from w x
+    [ "$(jq -r '.from + " " + .text' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = 'w x' ]
+}
+
+@test "[common] herdr-meta-patrol-queue add treats help after -- as message text" {
+    queue add --from w -- --help
+    [ "$(jq -r '.from + " " + .text' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = 'w --help' ]
+}
+
 @test "[common] herdr-meta-patrol-queue rejects bad usage" {
-    run queue add
+    run queue add --from patrol
     [ "${status}" -eq 2 ]
     run queue ack nope
     [ "${status}" -eq 2 ]
@@ -240,7 +307,7 @@ STUB
 }
 
 @test "[common] herdr-meta-patrol-queue fails an append it cannot write and keeps the sequence number" {
-    queue add first
+    queue add --from patrol first
     # A failing record writer stands in for an unwritable file; CI may run as root.
     local real_jq
     real_jq="$(command -v jq)"
@@ -250,7 +317,7 @@ STUB
 exec "${real_jq}" "\$@"
 STUB
     chmod +x "${BATS_TEST_TMPDIR}/bin/jq"
-    run queue add second
+    run queue add --from patrol second
     rm "${BATS_TEST_TMPDIR}/bin/jq"
     [ "${status}" -ne 0 ]
     [ "$(cat "${HERDR_META_PATROL_STATE_DIR}/queue.seq")" = 1 ]
@@ -258,26 +325,26 @@ STUB
 }
 
 @test "[common] herdr-meta-patrol-queue skips a malformed line without losing unread records" {
-    queue add one
+    queue add --from patrol one
     printf '{"seq": 2, "t": 1, "te\n' >> "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
-    queue add three
+    queue add --from patrol three
     [ "$(queue read | jq -r '.text' | tr '\n' ' ')" = 'one three ' ]
     queue trim
     [ "$(queue read | jq -r '.text' | tr '\n' ' ')" = 'one three ' ]
 }
 
 @test "[common] herdr-meta-patrol-queue strict read blocks on malformed lines" {
-    queue add one
+    queue add --from patrol one
     printf 'not-json\n' >> "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
-    queue add two
+    queue add --from patrol two
 
     run queue read --strict
     [ "${status}" -ne 0 ]
 }
 
 @test "[common] herdr-meta-patrol-queue keeps a record appended after a line cut short" {
-    queue add one
+    queue add --from patrol one
     printf '{"seq":2' >> "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl"
-    queue add three
+    queue add --from patrol three
     [ "$(queue read | jq -r '.text' | tr '\n' ' ')" = 'one three ' ]
 }

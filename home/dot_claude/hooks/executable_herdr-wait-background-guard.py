@@ -40,6 +40,7 @@ def prompts_meta(command):
             index = 0
             has_machine = False
             while index < len(command_args):
+                if command_args[index] == "agent": break
                 if command_args[index] == "--machine":
                     has_machine = True
                     index += 2

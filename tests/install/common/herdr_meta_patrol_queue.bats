@@ -288,6 +288,11 @@ STUB
     [ "$(jq -r '.from + " " + .text' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = 'w x' ]
 }
 
+@test "[common] herdr-meta-patrol-queue add treats help after -- as message text" {
+    queue add --from w -- --help
+    [ "$(jq -r '.from + " " + .text' "${HERDR_META_PATROL_STATE_DIR}/queue.jsonl")" = 'w --help' ]
+}
+
 @test "[common] herdr-meta-patrol-queue rejects bad usage" {
     run queue add --from patrol
     [ "${status}" -eq 2 ]

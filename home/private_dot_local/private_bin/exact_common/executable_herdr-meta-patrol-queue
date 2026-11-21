@@ -88,11 +88,12 @@ usage: herdr-meta-patrol-queue [-h | --help] COMMAND [ARGS...]
 USAGE
 }
 
-# @description Return success when an argument requests usage output.
+# @description Return success when a help option appears before an end-of-options marker.
 function has_help_option() {
     local help_option
     for help_option in "$@"; do
         case "${help_option}" in
+        --) return 1 ;;
         -h | --help) return 0 ;;
         esac
     done
